@@ -2,8 +2,9 @@
   "name": "interactive-herbie",
   "displayName": "Herbie",
   "description": "A VSCode interface for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
+  "publisher": "herbie-fp",
   "engines": {
     "vscode": "^1.69.0"
   },

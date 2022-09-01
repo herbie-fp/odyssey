@@ -46,6 +46,8 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "lit-dom-expressions": "^0.34.4",
+    "solid-js": "^1.5.3",
     "vsce": "^2.10.0"
   }
 }

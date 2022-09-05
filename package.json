@@ -2,7 +2,7 @@
   "name": "interactive-herbie",
   "displayName": "Herbie",
   "description": "A VSCode interface for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
   "publisher": "herbie-fp",
   "engines": {
@@ -20,11 +20,11 @@
     "commands": [
       {
         "command": "interactive-herbie.helloWorld",
-        "title": "Hello World"
+        "title": "Herbie: Hello World"
       },
       {
         "command": "interactive-herbie.webViewTest",
-        "title": "webview test"
+        "title": "Herbie: webview test"
       }
     ]
   },

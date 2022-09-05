@@ -5,9 +5,13 @@ import { createStore, produce, unwrap } from "solid-js/store";
 window.unwrap = unwrap
 import { render } from 'solid-js/web'
 import html from 'solid-js/html'
-
 import expressions from './expressions.json'
+// const expressions :any= [0, 1, 2]  //import expressions from './expressions.json'
+// expressions[0] = {error: new Array(100).map(v => 'test'), id: 1, fpcore: '', sample: 0, expression: 0}
+// expressions[1] = {error: [], id: 1, fpcore: '', sample: 0, expression: 0}
+// expressions[2] = {error: [], id: 1, fpcore: '', sample: 0, expression: 0}
 import points_json from './points.json'
+points_json.points = points_json.points.slice(0, 10)
 const specs = {
   1: "(-b + sqrt( (-b^2 - 4ac) ) ) / (2a)"
 }

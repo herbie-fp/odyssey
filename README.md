@@ -1,9 +1,21 @@
 # interactive-herbie README
 
-How to publish:
+### Setting up a development environment
+```bash
+$ npm install  # make sure this runs to completion!
+# Then use command/control+shift+B to start the auto-compile tasks
+# Each time compilation finishes, you should see a message like "created out/webview/bundle.js in 2.5s"
+```
+
+### Testing the extension
+Use the "Run and Debug" tab to start an instance of VSCode with the most recent code.
+
+You can see changes to the frontend (`webview/index.ts`) by simply refreshing the webview, but changes to the host (`extension.ts`) will only show if the debugger is restarted.
+
+### How to publish:
 
 ```bash
-# update version in package.json, then
+# update "version" in package.json, then
 $ npm run publish
 ```
 

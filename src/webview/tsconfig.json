@@ -1,22 +1,24 @@
 {
 	"compilerOptions": {
-		"module": "commonJS",
-		"target": "ES2020",
+    "esModuleInterop": true,
+		"module": "esnext",
+		"target": "esnext",
 		"moduleResolution": "node",
-		"outDir": "out",
+    "rootDir": "..",
+		"outDir": "../../out",
 		"lib": [
-			"ES2020",
+			"ESNext",
 			"DOM"
 		],
+    "skipLibCheck": true,
+    "noImplicitAny": false,
 		"sourceMap": true,
-		"rootDir": "src",
+    "jsx": "preserve",
+    "resolveJsonModule": true,
 		"strict": true   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
 		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
 		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
-	},
-	"exclude" : [
-		"src/webview/*"
-	]
+	}
 }

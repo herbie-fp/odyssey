@@ -1,8 +1,11 @@
 # interactive-herbie README
 
-(Mandatory README edit for publication.)
+How to publish:
 
- After writing up a brief description, we recommend including the following sections.
+```bash
+# update version in package.json, then
+$ npm run publish
+```
 
 ## Features
 

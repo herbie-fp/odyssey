@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'
+import * as path from 'path'
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -32,31 +33,48 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// TODO show that we can connect to the server and get a response (let's try a webview of the index)
 
-	let disposable1 = vscode.commands.registerCommand('interactive-herbie.serverTest', () => {
+	let disposable1 = vscode.commands.registerCommand('interactive-herbie.webViewTest', () => {
 		
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(
 			'herbieIndex', // Identifies the type of the webview. Used internally
-			'ServerTest Title', // Title of the panel displayed to the user
+			'webViewTest Title', // Title of the panel displayed to the user
 			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-			{} // Webview options. More on these later.
-		);
+			{
+				// Enable scripts in the webview
+				enableScripts: true,
+				// Only allow the webview to access resources in these directories
+				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))]
+			}
+		)
+		
 		// And set its HTML content
 		panel.webview.html = `<!DOCTYPE html>
 				<html lang="en">
 				<head>
 						<meta charset="UTF-8">
 						<meta name="viewport" content="width=device-width, initial-scale=1.0">
-						<title>Cat Coding</title>
+
+						<meta
+							http-equiv="Content-Security-Policy"
+							content="default-src 'none'; img-src ${panel.webview.cspSource} https:; script-src ${panel.webview.cspSource} 'unsafe-eval'; style-src ${panel.webview.cspSource};"
+						/>
+
+						<script src="${panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'out', 'webview', 'bundle.js')))}" type="module"></script>
+						<title>Interactive Herbie</title>
 				</head>
 				<body>
-						<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+						
+						<div id="app"></div>
 				</body>
-				</html>`;
+				</html>`
 
 		vscode.window.showInformationMessage('Created WebView.');
 	});
+
+	context.subscriptions.push(disposable1);
 }
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {}

@@ -170,7 +170,8 @@ class TableView extends View {
 
 type SelectionData = {
 	id: number
-	artifactType: string
+	artifactType?: string
+  artifact_type?: string  // HACK
 }
 type SelectionMetadata = {
 	id?: number

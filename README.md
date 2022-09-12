@@ -3,7 +3,7 @@
 ### Setting up a development environment
 ```bash
 $ npm install  # make sure this runs to completion!
-# Then use command/control+shift+B to start the auto-compile tasks
+# Then use command/control+shift+B to start the auto-compile tasks (might have to rerun the first time...)
 # Each time compilation finishes, you should see a message like "created out/webview/bundle.js in 2.5s"
 ```
 

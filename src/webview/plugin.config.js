@@ -23,7 +23,7 @@
       all_selections: 'DetailView',
       all_multiselections: 'ComparisonView'
     },
-    tasks: [ 'ExploreTask' ]  // TODO figure out what this looks like
+    tasks: [ 'ExploreTask' ]  // TODO show all tables + allow opening panes like the general interaction model sketch
   },
   {
     id: 1, 
@@ -45,7 +45,7 @@
             compare: 'ExpressionComparisonView'
           }
         }, 'Analysis'],
-      target: 'ErrorGraphTask'  // TODO figure out what this looks like
+      target: 'ErrorGraphTask'  // TODO different structure--focus on entering + visualizing expressions
     }]
   }
 ]

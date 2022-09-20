@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { createEffect, createSignal, createMemo, For } from 'solid-js'
 import { createStore, produce, unwrap } from "solid-js/store";
 
@@ -6,6 +7,8 @@ window.unwrap = unwrap
 import { render } from 'solid-js/web'
 import html from 'solid-js/html'
 import expressions from './expressions.json'
+
+import plugin_config from './plugin.config.js'
 // const expressions :any= [0, 1, 2]  //import expressions from './expressions.json'
 // expressions[0] = {error: new Array(100).map(v => 'test'), id: 1, fpcore: '', sample: 0, expression: 0}
 // expressions[1] = {error: [], id: 1, fpcore: '', sample: 0, expression: 0}
@@ -381,4 +384,21 @@ const [selected_pane, setSelectedPane] = createStore({value: state.special.Pane.
 window.state = state
 //@ts-ignore
 window.selected_pane = selected_pane
+
+async function import_from_module(module, name) {
+  console.log('boop', module, name)
+  const {default: myDefault} = await import(`./plugins/${module}.js`)
+  return myDefault[name]
+}
+async function read_plugin_config() {
+  Promise.all(plugin_config.map(async config => config.advanced?.addConfigHandler ? (await import_from_module(config.name, config.advanced.addConfigHandler))(plugin_config, import_from_module) : null))
+
+}
+
+async function boot() {
+  const platform = plugin_config[0]
+  ;(await import_from_module(platform, platform.advanced?.addConfigHandler))(plugin_config, import_from_module)
+}
+
+await boot()
 render(render_ui, document.body)

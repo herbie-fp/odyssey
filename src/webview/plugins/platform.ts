@@ -18,6 +18,13 @@ import { createStore, produce, unwrap } from "solid-js/store";
 function init(plugin_config, import_from_module) {
   console.log('init:', plugin_config)
 
+  // TODO general issue--these tables should behave like other tables.
+  // in particular, they should set up any other items that are added to them
+  // at any time. ie if I add a plugin to the plugin table, its config should be read
+  // and appropriate entries should be added to the other tables.
+  // (Ignore deletion rules for now.)
+  // 
+
   // NOTE (Ideally these parts would be split into separate modules)
 
   
@@ -38,6 +45,7 @@ function init(plugin_config, import_from_module) {
   setTables(produce((draft :any[]) => draft.find(t => t.name == 'platform.Plugin').items = plugin_config))
 
   // TODO not sure what to do with plugin ids
+  // it's not clear if these should be generated or live with the plugin definition
 
   // create the views 
   const all_views = plugin_config.map(c => c.views.map(v => ({module: c.name, ...v}))).flat()
@@ -51,7 +59,7 @@ function init(plugin_config, import_from_module) {
   const [actions, setActions] = createStore(all_actions)
 
   // add the actions to the API object
-  all_actions.map( ({module, fn}) => setAPI(module, fn, import_from_module(module, fn)))  // TODO pass `tables` into the created functions via an argument here? Is there other stuff that actions will need? Most actions shouldn't need direct access, though...
+  all_actions.map( ({module, fn}) => setAPI(module, fn, import_from_module(module, fn)))  // TODO pass `tables` into the created functions via an argument here? Is there other stuff that actions will need? Most actions shouldn't need direct access to more than that, though.
 
   function create(tableName, object) {
     return tables.find(t => t.name === tableName)

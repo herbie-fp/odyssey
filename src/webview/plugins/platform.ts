@@ -1,21 +1,67 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-// class Table {
-//   name : string
-//   array : Array<any>
-//   _includeSelf : boolean
-//   constructor(name, array : any[] = [], _includeSelf=false) {
-//     this.name = name
-//     this.array = _includeSelf ? [this, ...array] : array
-//     this._includeSelf = _includeSelf
-//     Object.freeze(this)
-//   }
-//   add()
-// }
-
 import { createStore, produce, unwrap } from "solid-js/store";
 
+function applyRule(rule, item, table, import_from_module) {
+  return rule.selector !== table ? []
+    : rule.fn(item, import_from_module)
+}
 
+function getPluginRules(plugin_config, import_from_module) {
+  return Promise.all(plugin_config.rules.map(async r => ({
+    ...r,
+    fn: await import_from_module(plugin_config.name, r.fn)
+  })))
+}
+
+function getPluginTables(plugin_config) {
+  return plugin_config.tables.map(t => ({ plugin: plugin_config.name, name: t, items: [] }))
+}
+
+async function getAPI(plugin_config, import_from_module) {
+  // goal: return an api
+
+  const [tables, setTables] = createStore([
+    { plugin: 'platform', name: 'Plugins', items: [] as any[] },
+    { plugin: 'platform', name: 'Rules', items: [] as any[] }])
+
+  function create(tname, item) {
+    const [plugin, name] = tname.split('.')
+    const table = tables.find(t => t.plugin === plugin && t.name === name)
+    if (plugin === 'platform' && name === 'Tables') {
+      // special case: we are creating a table
+      setTables(produce(tables => tables.push(item)))
+    } else {
+      setTables(produce(tables => table?.items.push(item)))
+    }
+    
+    // apply all existing rules to created item
+    tables.find(t => t.name === 'Rules')?.items.map(r =>
+      stepRule(r, item, table))
+
+    if (plugin === 'platform' && name === 'Rules') {
+      // apply the new rule to all existing items in all tables
+      const rule = item
+      const all_items = tables.map(t => t.items.map(v => ([t, v]))).flat().map(([t, v]) => stepRule(rule, v, t))
+    }
+  }
+
+  function createAll(tname, items) {
+    items.map(v => create(tname, v))
+  }
+
+  function stepRule(rule, item, table) {
+    const rule_output = applyRule(rule, item, table, import_from_module)
+      createAll(rule.table, rule_output)
+  }
+
+  (await getPluginRules(plugin_config, import_from_module)).map(r => stepRule(r, plugin_config, 'Plugins'))
+}
+
+function init2(plugin_config, import_from_module) {
+  // goal: return an api
+  return getAPI(plugin_config, import_from_module)
+}
 function init(plugin_config, import_from_module) {
   console.log('init:', plugin_config)
 
@@ -41,10 +87,10 @@ function init(plugin_config, import_from_module) {
 
   // create plugin table
   // create the API object with the plugin names
-  const [api, setAPI] = createStore(Object.fromEntries(plugin_config.map(c => ([c.name, {}]))))
+  //const [api, setAPI] = createStore(Object.fromEntries(plugin_config.map(c => ([c.name, {}]))))
 
   // HACK just dump the config file
-  setTables(produce((draft :any[]) => draft.find(t => t.name == 'platform.Plugin').items.push(plugin_config)))
+  setTables(produce((draft :any[]) => draft.find(t => t.name === 'platform.Plugin').items.push(plugin_config)))
 
   // TODO not sure what to do with plugin ids
   // it's not clear if these should be generated or live with the plugin definition

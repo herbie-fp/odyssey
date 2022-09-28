@@ -3,13 +3,37 @@ export default [
     id: -1,
     name: 'platform',
     tables: [
+      // 'API'
+      'Plugins',
       'Tables',
       'Selections',
-      'Plugins',
-      'Actions', 
+      'Rules',
+      'Actions',
       'Views', 
       'Tasks' ],
-    actions: [ 'create' ],  // (actions on tables)
+    actions: ['create'],
+    rules: [
+      {
+        selector: 'Plugins',
+        table: 'Tables',
+        fn: 'getPluginTables'
+      },
+      {
+        selector: 'Plugins',
+        table: 'Rules',
+        fn: 'getPluginRules'
+      },
+      {
+        selector: 'Plugins',
+        table: 'Views',
+        fn: 'getPluginViews'
+      },
+      {
+        selector: 'Plugins',
+        table: 'Actions',
+        fn: 'getPluginActions'
+      }
+    ],
     advanced: {
       addConfigHandler: 'init'  // Call this function on the plugin configuration list to change configuration behavior.
       // TODO (export init in platform module)

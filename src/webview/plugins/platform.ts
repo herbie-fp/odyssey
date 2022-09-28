@@ -15,6 +15,7 @@
 
 import { createStore, produce, unwrap } from "solid-js/store";
 
+
 function init(plugin_config, import_from_module) {
   console.log('init:', plugin_config)
 
@@ -27,10 +28,11 @@ function init(plugin_config, import_from_module) {
 
   // NOTE (Ideally these parts would be split into separate modules)
 
+  const {tables: tableNames, name: pluginName, views: viewFns, actions: actionFns} = plugin_config
   
   // look through the plugin config to get names + other info (just namespaced names for now)
   // HACK ignore tasks for now
-  const all_tables = plugin_config.map(c => c.tables.map(t => `${c.name}.${t}`)).flat()
+  const all_tables = tableNames.map(tname => `${pluginName}.${tname}`)
   // Create the table of Tables
 
   // Create the actual Tables (empty)
@@ -42,36 +44,33 @@ function init(plugin_config, import_from_module) {
   const [api, setAPI] = createStore(Object.fromEntries(plugin_config.map(c => ([c.name, {}]))))
 
   // HACK just dump the config file
-  setTables(produce((draft :any[]) => draft.find(t => t.name == 'platform.Plugin').items = plugin_config))
+  setTables(produce((draft :any[]) => draft.find(t => t.name == 'platform.Plugin').items.push(plugin_config)))
 
   // TODO not sure what to do with plugin ids
   // it's not clear if these should be generated or live with the plugin definition
 
   // create the views 
-  const all_views = plugin_config.map(c => c.views.map(v => ({module: c.name, ...v}))).flat()
+  const all_views = viewFns.map(v => ({plugin: pluginName, ...v}))
   const [views, setViews] = createStore(all_views)
 
   // add the views to the API object
-  all_views.map( ({module, fn}) => setAPI(module, fn, import_from_module(module, fn)))
+  all_views.map( ({plugin, fn}) => setAPI(plugin, fn, import_from_module(plugin, fn)))
 
   // Fill the actions table
-  const all_actions = plugin_config.map(c => c.actions.map(v => ({module: c.name, fn: v}))).flat()
+  const all_actions = actionFns.map(v => ({plugin: pluginName, fn: v}))
   const [actions, setActions] = createStore(all_actions)
 
   // add the actions to the API object
-  all_actions.map( ({module, fn}) => setAPI(module, fn, import_from_module(module, fn)))  // TODO pass `tables` into the created functions via an argument here? Is there other stuff that actions will need? Most actions shouldn't need direct access to more than that, though.
+  all_actions.map( ({plugin, fn}) => setAPI(plugin, fn, import_from_module(plugin, fn)))  // TODO pass `tables` into the created functions via an argument here? Is there other stuff that actions will need? Most actions shouldn't need direct access to more than that, though.
 
   function create(tableName, object) {
     return tables.find(t => t.name === tableName)
   }
 
-  
-
-  Promise.all(plugin_config.map(async config => null))
-
-
   // Run any additional plugin config handlers
   Promise.all(plugin_config.map(async config => config.name !== 'platform' && config.advanced?.addConfigHandler ? (await import_from_module(config.name, config.advanced.addConfigHandler))(plugin_config, import_from_module) : null))
+
+  // Create the Rules table, which does all of the above...
 
 }
 

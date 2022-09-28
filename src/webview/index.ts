@@ -8,7 +8,7 @@ import { render } from 'solid-js/web'
 import html from 'solid-js/html'
 import expressions from './expressions.json'
 
-import plugin_config from './plugin.config.js'
+import plugin_configs from './plugin.config.js'
 // const expressions :any= [0, 1, 2]  //import expressions from './expressions.json'
 // expressions[0] = {error: new Array(100).map(v => 'test'), id: 1, fpcore: '', sample: 0, expression: 0}
 // expressions[1] = {error: [], id: 1, fpcore: '', sample: 0, expression: 0}
@@ -396,8 +396,10 @@ async function read_plugin_config() {
 }
 
 async function boot() {
-  const platform = plugin_config[0]
-  ;(await import_from_module(platform, platform.advanced?.addConfigHandler))(plugin_config, import_from_module)
+  const platform = plugin_configs[0]
+  const api = (await import_from_module(platform, platform.advanced?.addConfigHandler))(platform, import_from_module)
+  // then add each other plugin in the plugin_config list to the Plugins table
+  
 }
 
 await boot()

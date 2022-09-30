@@ -4,6 +4,7 @@ export default [
     name: 'platform',
     tables: [
       // 'API'
+      'Logs',
       'Plugins',
       'Tables',
       'Selections',
@@ -16,6 +17,7 @@ export default [
       {
         selector: 'Plugins',
         table: 'Tables',
+        name: 'Set up tables',
         fn: 'getPluginTables'
       },
       {

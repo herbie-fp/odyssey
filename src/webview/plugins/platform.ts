@@ -2,28 +2,25 @@
 console.log('Loading platform code...')
 import { createStore, produce, unwrap } from "../../dependencies/dependencies.js";
 
-function applyRule(rule, item, table, import_from_module) {
-  console.log('Applying rule', rule, 'to item', item, 'and putting in table', table)
-  return rule.selector !== table ? []
-    : rule.fn(item, import_from_module)
+async function applyRule(rule, item, import_from_module) {
+  return rule.fn(item, import_from_module)
 }
 
 function getPluginRules(plugin_config, import_from_module) {
-  console.log(plugin_config)
-  return Promise.all(plugin_config.rules.map(async r => ({
+  return Promise.all(plugin_config.rules?.map(async r => ({
     ...r,
+    plugin: plugin_config.name,
+    name: r.name ? r.name : r.fn,
     fn: await import_from_module(plugin_config.name, r.fn)
   })))
 }
 
 function getPluginViews(plugin_config, import_from_module) {
-  console.log(plugin_config)
   // TODO
   return []
 }
 
 function getPluginActions(plugin_config, import_from_module) {
-  console.log(plugin_config)
   // TODO
   return []
 }
@@ -35,45 +32,73 @@ function getPluginTables(plugin_config) {
 async function getAPI(plugin_config, import_from_module) {
   // goal: return an api
 
-  const [tables, setTables] = createStore([
-    //@ts-ignore
-    { plugin: 'platform', name: 'Plugins', items: [] as any[] },
-    { plugin: 'platform', name: 'Rules', items: [] as any[] }])
+  const [tables, setTables] = createStore([] as any[])
 
-  function create(tname, item) {
-    const [plugin, name] = tname.split('.')
-    const table = tables.find(t => t.plugin === plugin && t.name === name)
+  // TODO better logging--stack trace/whyline-ish features
+  function log(...values) {
+    console.log(...values)
+    create('platform', 'Logs', values)
+  }
+
+  function create(callerPlugin, tname, item) {
+    const [plugin, name] = tname.split('.').length > 1 ? tname.split('.') 
+      : [callerPlugin, tname]
+    
+    if (name !== 'Logs') {log(plugin, 'is adding to table', tname, ':', item)}
+
     if (plugin === 'platform' && name === 'Tables') {
       // special case: we are creating a table
       setTables(produce(tables => tables.push(item)))
     } else {
-      setTables(produce(tables => table?.items.push(item)))
+      setTables(produce(tables => tables.find(t => t.plugin === plugin && t.name === name)?.items.push(item)))
     }
     
     // apply all existing rules to created item
     tables.find(t => t.name === 'Rules')?.items.map(r =>
-      stepRule(r, item, table))
+      selectorMatch(r.selector, tname, item) ? stepRule(callerPlugin, r, item, tname) : null)
 
     if (plugin === 'platform' && name === 'Rules') {
-      // apply the new rule to all existing items in all tables
+      // HACK -- selectors should probably only apply to all items in special cases
+      // apply the new rule to all existing items in all tables that match the selector
       const rule = item
-      const all_items = tables.map(t => t.items.map(v => ([t, v]))).flat().map(([t, v]) => stepRule(rule, v, t))
+      const all_matches = tables.map(t => t.items.filter(v => selectorMatch(rule.selector, t.name, v)).map(v => ([t, v]))).flat()
+      all_matches.map(([t, v]) => stepRule(callerPlugin, rule, v, t))
     }
   }
 
-  function createAll(tname, items) {
-    console.log('creating items', items, 'in table', tname)
-    items.map(v => create(tname, v))
+  function selectorMatch(selector, tname, item) {
+    return selector === tname // HACK
   }
 
-  async function stepRule(rule, item, table) {
-    const rule_output = await applyRule(rule, item, table, import_from_module)
-    createAll(rule.table, rule_output)
+  function createAll(callerPlugin, tname, items) {
+    items.map(v => create(callerPlugin, tname, v))
+  }
+
+  async function stepRule(callerPlugin, rule, item, table: string) {
+    if (table !== 'Logs') {log(rule.plugin, ': Generating 0+ items for', rule.table, 'from one in', table, 'using', rule.name, '\nrule', rule, '\nitem', item)}
+    const rule_output = await applyRule(rule, item, import_from_module)
+    if (!Array.isArray(rule_output)) {
+      throw new Error('Rule output must be an array.')
+    }
+    if (rule_output.length > 0) {
+      createAll(rule.plugin, rule.table, rule_output)
+    }
   }
 
   const rules = (await getPluginRules(plugin_config, import_from_module))
   console.log('Resolved rules', rules)
-  rules.map(r => stepRule(r, plugin_config, 'Plugins'))
+  rules.map(r => stepRule('platform', r, plugin_config, 'Plugins'))
+
+  //@ts-ignore
+  window.tables = tables
+  //@ts-ignore
+  window.create = create
+  //@ts-ignore
+  window.unwrap = unwrap
+  //@ts-ignore
+  window.createStore = createStore
+  //@ts-ignore
+  window.produce = produce
   
   return {createAll}
 }

@@ -17,6 +17,7 @@
 		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
 	},
 	"exclude" : [
-		"src/webview/*"
+		"src/webview/*",
+		"src/dependencies/*"
 	]
 }

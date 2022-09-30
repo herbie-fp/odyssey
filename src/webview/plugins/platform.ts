@@ -1,17 +1,31 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-
-import { createStore, produce, unwrap } from "solid-js/store";
+console.log('Loading platform code...')
+import { createStore, produce, unwrap } from "../../dependencies/dependencies.js";
 
 function applyRule(rule, item, table, import_from_module) {
+  console.log('Applying rule', rule, 'to item', item, 'and putting in table', table)
   return rule.selector !== table ? []
     : rule.fn(item, import_from_module)
 }
 
 function getPluginRules(plugin_config, import_from_module) {
+  console.log(plugin_config)
   return Promise.all(plugin_config.rules.map(async r => ({
     ...r,
     fn: await import_from_module(plugin_config.name, r.fn)
   })))
+}
+
+function getPluginViews(plugin_config, import_from_module) {
+  console.log(plugin_config)
+  // TODO
+  return []
+}
+
+function getPluginActions(plugin_config, import_from_module) {
+  console.log(plugin_config)
+  // TODO
+  return []
 }
 
 function getPluginTables(plugin_config) {
@@ -22,6 +36,7 @@ async function getAPI(plugin_config, import_from_module) {
   // goal: return an api
 
   const [tables, setTables] = createStore([
+    //@ts-ignore
     { plugin: 'platform', name: 'Plugins', items: [] as any[] },
     { plugin: 'platform', name: 'Rules', items: [] as any[] }])
 
@@ -47,15 +62,20 @@ async function getAPI(plugin_config, import_from_module) {
   }
 
   function createAll(tname, items) {
+    console.log('creating items', items, 'in table', tname)
     items.map(v => create(tname, v))
   }
 
-  function stepRule(rule, item, table) {
-    const rule_output = applyRule(rule, item, table, import_from_module)
-      createAll(rule.table, rule_output)
+  async function stepRule(rule, item, table) {
+    const rule_output = await applyRule(rule, item, table, import_from_module)
+    createAll(rule.table, rule_output)
   }
 
-  (await getPluginRules(plugin_config, import_from_module)).map(r => stepRule(r, plugin_config, 'Plugins'))
+  const rules = (await getPluginRules(plugin_config, import_from_module))
+  console.log('Resolved rules', rules)
+  rules.map(r => stepRule(r, plugin_config, 'Plugins'))
+  
+  return {createAll}
 }
 
 function init2(plugin_config, import_from_module) {
@@ -100,14 +120,14 @@ function init(plugin_config, import_from_module) {
   const [views, setViews] = createStore(all_views)
 
   // add the views to the API object
-  all_views.map( ({plugin, fn}) => setAPI(plugin, fn, import_from_module(plugin, fn)))
+  //all_views.map( ({plugin, fn}) => setAPI(plugin, fn, import_from_module(plugin, fn)))
 
   // Fill the actions table
   const all_actions = actionFns.map(v => ({plugin: pluginName, fn: v}))
   const [actions, setActions] = createStore(all_actions)
 
   // add the actions to the API object
-  all_actions.map( ({plugin, fn}) => setAPI(plugin, fn, import_from_module(plugin, fn)))  // TODO pass `tables` into the created functions via an argument here? Is there other stuff that actions will need? Most actions shouldn't need direct access to more than that, though.
+  //all_actions.map( ({plugin, fn}) => setAPI(plugin, fn, import_from_module(plugin, fn)))  // TODO pass `tables` into the created functions via an argument here? Is there other stuff that actions will need? Most actions shouldn't need direct access to more than that, though.
 
   function create(tableName, object) {
     return tables.find(t => t.name === tableName)
@@ -120,4 +140,4 @@ function init(plugin_config, import_from_module) {
 
 }
 
-export default {init, create}
+export default {init2, getPluginRules, getPluginTables, getPluginViews, getPluginActions}

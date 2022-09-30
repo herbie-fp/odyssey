@@ -35,7 +35,7 @@ export default [
       }
     ],
     advanced: {
-      addConfigHandler: 'init'  // Call this function on the plugin configuration list to change configuration behavior.
+      addConfigHandler: 'init2'  // Call this function on the plugin configuration list to change configuration behavior.
       // TODO (export init in platform module)
     }
   },

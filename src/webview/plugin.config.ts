@@ -9,9 +9,8 @@ export default [
       'Tables',
       'Selections',
       'Rules',
-      'Actions',
-      'Views', 
-      'Tasks' ],
+      'Actions'
+    ],
     actions: ['create'],
     rules: [
       {
@@ -27,24 +26,31 @@ export default [
       },
       {
         selector: 'Plugins',
-        table: 'Views',
-        fn: 'getPluginViews'
-      },
-      {
-        selector: 'Plugins',
         table: 'Actions',
         fn: 'getPluginActions'
       }
     ],
     advanced: {
-      addConfigHandler: 'init2'  // Call this function on the plugin configuration list to change configuration behavior.
-      // TODO (export init in platform module)
+      addConfigHandler: 'init2'
     }
   },
   {
+    name: 'ui',
+    tables: [ 
+      'Views',
+      'Pages'
+    ],
+    rules: [
+      {
+        selector: 'Plugins',
+        table: 'Views',
+        fn: 'getPluginViews'
+      },
+    ]
+  },
+  {
     id: -1,
-    name: 'defaults',  // (Last definition wins.)
-    tables: [ 'Pane' ],  // Use Panes for UI-related view info
+    name: 'defaults',
     views: [{
         type: 'table',
         //keys: 'all',

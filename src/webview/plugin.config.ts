@@ -10,7 +10,7 @@ export default [
       'Selections',
       'Rules',
       'Actions',
-      'ActionLog'
+      'ActionLogs'
     ],
     actions: ['create', 'select'],
     rules: [
@@ -96,11 +96,16 @@ export default [
     //     table: 'Panes',
     //     fn: 'TableView'
     // ],
-    rules: [
+    rules: [  // TODO scope to explore page
       {
         selector: 'platform.Tables',
-        table: 'Panes',
-        fn: 'TableView'
+        table: 'ui.Panes',
+        fn: 'getTableViewPane'
+      },
+      {
+        selector: 'isShowAction',
+        table: 'ui.Panes',
+        fn: 'getPane'
       }
     ],
     views: [{  // earlier views have higher priority
@@ -119,6 +124,23 @@ export default [
       // there are none
     }]
   },
+  // {
+  //   name: 'demo',
+  //   tables: ['Foos', 'Bars'],
+  //   action: ['runFoo'],
+  //   rules: [
+  //     {
+  //       selector: 'Foos',
+  //       table: 'Bars',
+  //       fn: 'convertFoosToBars'
+  //     },
+  //     {
+  //       selector: 'runFooAction',
+  //       table: 'Bars',
+  //       fn: 'runFoo'
+  //     }
+  //   ],
+  // },
   {
     id: 1, 
     name: 'herbie', 

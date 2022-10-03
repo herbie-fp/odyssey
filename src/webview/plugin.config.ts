@@ -4,19 +4,20 @@ export default [
     name: 'platform',
     tables: [
       // 'API'
-      'Logs',
+      'Logs',  // maybe we don't need this table, just ActionLog?
       'Plugins',
       'Tables',
       'Selections',
       'Rules',
-      'Actions'
+      'Actions',
+      'ActionLog'
     ],
-    actions: ['create'],
+    actions: ['create', 'select'],
     rules: [
       {
+        name: 'Set up tables',
         selector: 'Plugins',
         table: 'Tables',
-        name: 'Set up tables',
         fn: 'getPluginTables'
       },
       {
@@ -31,62 +32,115 @@ export default [
       }
     ],
     advanced: {
-      addConfigHandler: 'init2'
+      addConfigHandler: 'init'
     }
   },
   {
     name: 'ui',
-    tables: [ 
+    tables: [
       'Views',
+      'Panes',
       'Pages'
     ],
+    actions: ['show'],
     rules: [
       {
-        selector: 'Plugins',
+        selector: 'platform.Plugins',
         table: 'Views',
         fn: 'getPluginViews'
       },
-    ]
+      {
+        selector: 'platform.Plugins',
+        table: 'Pages',
+        fn: 'getPluginPages'
+      },
+      { // NOTE. Under the hood, Rules + Views are quite similar,
+        // and Panes could be generated using Rules without losing information.
+        //
+        // However, we need special treatment for Views.
+        // Most basically, when an object is shown, we don't want to generate
+        // panes for every matching View.
+        //
+        // This special treatment could be accomplished with additional rule
+        // attributes, though. For example, by marking rules as "mutex" and
+        // adding precedence information, only one matching rule would fire.
+        //
+        // Nonetheless, reifying Views seems important and practical.
+        // (The above strategy could be used to make Views/Pages into a kind of
+        // syntactic sugar so the actual representation can be treated uniformly
+        // as just tables and rules?)
+        selector: 'isShowAction',
+        table: 'Panes',
+        fn: 'getPane'  // Must route object to correct view
+      }
+    ],
+    advanced: {
+      addConfigHandler: 'initUI'
+    }
   },
   {
     id: -1,
-    name: 'defaults',
-    views: [{
-        type: 'table',
-        //keys: 'all',
+    name: 'default',
+    // rules: [   // example of uniform treatment
+    //   {
+    //     selector: 'platform.Tables',
+    //     table: 'Panes',
+    //     fn: 'TableView'
+    //   },
+    //   {
+    //     selector: 'isShowAction',
+    //     table: 'Panes',
+    //     fn: 'DetailView'
+    //   },
+    //     selector: 'isShowOnMultiselection',
+    //     table: 'Panes',
+    //     fn: 'TableView'
+    // ],
+    rules: [
+      {
+        selector: 'platform.Tables',
+        table: 'Panes',
+        fn: 'TableView'
+      }
+    ],
+    views: [{  // earlier views have higher priority
+        selector: 'platform.Tables',
         fn: 'TableView'
       }, {
-        type: 'selection',
-        //keys: 'all',
-        fn: 'DetailView'
-      }, {
-        type: 'multiselection',
-        //keys: 'all',
+        selector: 'isMultiSelection',
         fn: 'ComparisonView'
+      }, {
+        selector: 'isSelection',  // basically matches anything
+        fn: 'DetailView'
       }],
-    tasks: [ 'ExploreTask' ]  // TODO show all tables + allow opening panes like the general interaction model sketch
+    pages: [{
+      fn: 'ExplorePage',
+      // rules that only run when the page is selected would go here, but 
+      // there are none
+    }]
   },
   {
     id: 1, 
     name: 'herbie', 
-    tasks: [{
-      // **for now**, just attach views to the tables directly (not reusable)
-      tables: [{  // special configuration variable for defining tables with views
-          name: 'Spec',
-          view: {
-            table: 'SpecTableView',    // TODO grab the first related analysis as a visual?
-            select: 'SpecDetailView'
-          }
-        }, 
-        'Sample', 
-        { name: 'Expression',
-          view: {
-            table: 'ExpressionTableView',
-            select: 'ExpressionDetailView',
-            compare: 'ExpressionComparisonView'
-          }
-        }, 'Analysis'],
-      target: 'ErrorGraphTask'  // TODO different structure--focus on entering + visualizing expressions
-    }]
+    views: [],
+    // tasks: [{
+    //   // **for now**, just attach views to the tables directly (not reusable)
+    //   tables: [{  // special configuration variable for defining tables with views
+    //       name: 'Spec',
+    //       view: {
+    //         table: 'SpecTableView',    // TODO grab the first related analysis as a visual?
+    //         select: 'SpecDetailView'
+    //       }
+    //     }, 
+    //     'Sample', 
+    //     { name: 'Expression',
+    //       view: {
+    //         table: 'ExpressionTableView',
+    //         select: 'ExpressionDetailView',
+    //         compare: 'ExpressionComparisonView'
+    //       }
+    //     }, 'Analysis'],
+    //   target: 'ErrorGraphTask'  // TODO different structure--focus on entering + visualizing expressions
+    // }]
   }
 ]

@@ -24,6 +24,7 @@ async function boot() {
   // TODO (add the platform to plugin table for uniformity, but don't run anything)
   api.addPlugin(ui)
   api.addPlugin(plugin_configs.find(o => o.name === 'default'))
+  api.addPlugin(plugin_configs.find(o => o.name === 'demo'))
   // add api to window for debugging
   //@ts-ignore
   window.api = api

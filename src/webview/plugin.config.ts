@@ -124,23 +124,26 @@ export default [
       // there are none
     }]
   },
-  // {
-  //   name: 'demo',
-  //   tables: ['Foos', 'Bars'],
-  //   action: ['runFoo'],
-  //   rules: [
-  //     {
-  //       selector: 'Foos',
-  //       table: 'Bars',
-  //       fn: 'convertFoosToBars'
-  //     },
-  //     {
-  //       selector: 'runFooAction',
-  //       table: 'Bars',
-  //       fn: 'runFoo'
-  //     }
-  //   ],
-  // },
+  {
+    name: 'demo',
+    tables: ['Specs'],
+    //action: ['runFoo'],
+    // rules: [
+    //   {
+    //     selector: 'Foos',
+    //     table: 'Bars',
+    //     fn: 'convertFoosToBars'
+    //   },
+    //   {
+    //     selector: 'runFooAction',
+    //     table: 'Bars',
+    //     fn: 'runFoo'
+    //   }
+    // ],
+    pages: [{
+      fn: 'mainPage'
+    }]
+  },
   {
     id: 1, 
     name: 'herbie', 

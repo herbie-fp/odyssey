@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { create } from "domain";
 import { html, For } from "../../dependencies/dependencies.js";
 
 //// Rule helpers
@@ -80,20 +79,33 @@ function render(api) {
   //<div id="setPane">
   //</div>
   //return html`<div>hello!</div>`
-  const showSelectedButton = pane =>
-    html`<button onClick=${() => api.action('show', 'ui', api.getLastSelected((obj, table) => pane.view.selector(obj, table)))}>Show selected</button>`
+  function getCurrentPage() {
+    // returns the last selected Page
+    // TODO update getLastSelected to take a namespaced table/work out clear selector def.
+    console.log('marker', api.tables.tables.find(t => t.name === "Pages"))
+    console.log(api.getLastSelected((_, t) => t === "Pages")?.selection, api.tables.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage"))
+    return api.getLastSelected((_, t) => t === "Pages")?.selection || api.tables.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage")
+  }
+
+  const currentPage = getCurrentPage()
+  // TODO figure out how to get the page names/selection working
+  const pageSelect = html`<select onChange=${e => api.action('select', 'Pages', (o) => `${o.plugin}.${o.name}` === e.target.value)}>
+    <${For} each=${() => api.tables.tables.find(t => t.name === "Pages")}>${ () => 
+      // HACK value needs to be the page's id
+      html`<option value="${page => `${page.plugin}.${page.name}`}">${page => page.name}</option>`}<//>
+    </select>`
+  
   return html`
-    <div id="allTables">
-    <${For} each=${() => api.tables.tables.find(t => t.name === 'Panes')?.items.filter(p => p.view.name === 'TableView')}>${(pane) => {
-      console.debug('Rendering', pane)  
-      return html`${pane.div}${showSelectedButton(pane)}`
-    }
-    }<//>
+    <div id="toolbar">
+      This is the toolbar!
+      ${pageSelect}
     </div>
-    <div id="showPane">
-    ${() => { api.getLastSelected((_, table) => table === 'Panes')?.div }}
+    <div id="currentPage">
+      ${() => getCurrentPage()?.fn(api, api.tables.tables.find(t => t.name === "Panes").items).div}
     </div>
+    
   `
+  
 }
 
 function initUI(plugin_config, import_from_module, api) {

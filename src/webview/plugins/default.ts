@@ -100,8 +100,25 @@ function ComparisonView(multiselection) {
 
 //// Pages
 
-function ExplorePage(panes) {
+function ExplorePage(api, panes) {
+  const showSelectedButton = pane =>
+  html`<button onClick=${() => api.action('show', 'ui', api.getLastSelected((obj, table) => pane.view.selector(obj, table)))}>Show selected</button>`
+  const div = html`
+  <div id="allTables">
+  <${For} each=${() => api.tables.tables.find(t => t.name === 'Panes')?.items.filter(p => p.view.name === 'TableView')}>${(pane) => {
+    console.debug('Rendering', pane)  
+    return html`${() => pane.div}${showSelectedButton(pane)}`
+  }
+  }<//>
+  </div>
+  <div id="showPane">
+  ${() => { api.getLastSelected((_, table) => table === 'Panes')?.div }}
+  </div>
+  `
 
+  return {
+    div
+  }
 }
 
 export default {

@@ -34,7 +34,7 @@ export default [{
     format: 'es',
     //inlineDynamicImports: true
   },
-  plugins: [ nodeResolve(), json(),   /* typescript({compilerOptions: platform_compilerOptions, include: 'src/webview/plugins/platform.ts'}) */ /*dynamicImportVars({})*/]
+  plugins: [ nodeResolve(), json(),  /* typescript({compilerOptions: platform_compilerOptions, include: 'src/webview/plugins/platform.ts'}) */ /*dynamicImportVars({})*/]
 },
 // this isn't working right now for some reason (seems to not understand typescript)
 // {

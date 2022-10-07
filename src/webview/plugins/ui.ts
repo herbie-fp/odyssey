@@ -79,12 +79,14 @@ function render(api) {
   //<div id="setPane">
   //</div>
   //return html`<div>hello!</div>`
+  let pages = undefined as any
   function getCurrentPage() {
     // returns the last selected Page
     // TODO update getLastSelected to take a namespaced table/work out clear selector def.
-    console.log('marker', api.tables.tables.find(t => t.name === "Pages"))
-    console.log(api.getLastSelected((_, t) => t === "Pages")?.selection, api.tables.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage"))
-    return api.getLastSelected((_, t) => t === "Pages")?.selection || api.tables.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage")
+    pages = pages || api.tables.tables.find(t => t.name === "Pages")
+    console.trace('marker', pages)
+    //.log(api.getLastSelected((_, t) => t === "Pages")?.selection, api.tables.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage"))
+    return pages?.selection || pages.items.find(p => p.plugin === 'demo' && p.name === "mainPage")
   }
 
   const currentPage = getCurrentPage()
@@ -94,12 +96,14 @@ function render(api) {
       // HACK value needs to be the page's id
       html`<option value="${page => `${page.plugin}.${page.name}`}">${page => page.name}</option>`}<//>
     </select>`
-  
+  // <!-- hide toolbar for now
+  // <div id="toolbar">
+  //   This is the toolbar!
+  //   ${pageSelect}
+  // </div>
+  // -->
   return html`
-    <div id="toolbar">
-      This is the toolbar!
-      ${pageSelect}
-    </div>
+    
     <div id="currentPage">
       ${() => getCurrentPage()?.fn(api, api.tables.tables.find(t => t.name === "Panes").items).div}
     </div>

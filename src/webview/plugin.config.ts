@@ -108,7 +108,7 @@ export default [
         fn: 'getPane'
       }
     ],
-    views: [{  // earlier views have higher priority
+    views: [{  // earlier views have higher priority (& later plugins have higher priority)
         selector: 'platform.Tables',
         fn: 'TableView'
       }, {
@@ -126,7 +126,7 @@ export default [
   },
   {
     name: 'demo',
-    tables: ['Specs'],
+    tables: ['Specs', 'Expressions'],
     //action: ['runFoo'],
     // rules: [
     //   {

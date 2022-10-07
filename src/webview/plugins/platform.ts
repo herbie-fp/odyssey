@@ -48,6 +48,7 @@ function log(tables, setTables, api, import_from_module, ...values) {
 
 
 // TODO refactor
+// TODO make actions awaitable?
 // I think actions don't need to be exported -- except for primitive platform
 // actions, all actions just write to the ActionLog to trigger rules.
 // Even primitive actions could do this (external "create" runs

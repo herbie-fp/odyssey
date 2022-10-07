@@ -142,7 +142,13 @@ export default [
     // ],
     pages: [{
       fn: 'mainPage'
-    }]
+    }],
+    views: [
+      {
+        selector: 'Expressions',
+        fn: 'ExpressionView'
+      }
+    ]
   },
   {
     id: 1, 

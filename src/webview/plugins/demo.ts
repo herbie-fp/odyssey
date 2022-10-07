@@ -97,9 +97,9 @@ function mainPage(api) {
     const sampleSelect = html`<select>
       <${For} each=${relevantSamples}>${sample => html`<option>${sample.id}</option>`}<//>
     </select>`
+    // <span>${spec.id}</span>
     return html`<div class="specRow">
       <span>${spec.math} from A to B</span>
-      <span>${spec.id}</span>
       <span>${addSampleButton}</span>
       <${Show} when=${() => relevantSamples().length !== 0}>
         <span>${sampleSelect}</span>
@@ -112,9 +112,10 @@ function mainPage(api) {
   }
 
   const getExpressionRow = expression => {
-    console.log('here', expression)
-    return html`<div class="expressionRow" onClick=${selectExpression(expression)}>
-      <span>${expression.fpcore}</span>
+    // TODO slow operation simulation
+    return html`<div class="expressionRow" >
+      <span onClick=${selectExpression(expression)}>${expression.fpcore}</span>
+      <span><button>Run Analysis</button></span>
     </div>`
   }
 
@@ -122,7 +123,7 @@ function mainPage(api) {
 
   /** expressions where spec.math === expr's spec.math (or ditto fpcore) */ 
   const expressionsForSpec = spec => {
-    console.log('CHecking expressions for the spec...', spec, unwrap(expressions()), unwrap(specs()), getExprSpec((expressions() || [{}])[0] || {}))
+    console.debug('Checking expressions for the spec...', spec, unwrap(expressions()), unwrap(specs()), getExprSpec((expressions() || [{}])[0] || {}))
     return expressions().filter(expr => {
       const exprSpec = getExprSpec(expr)
       return spec.math === exprSpec.math 
@@ -131,36 +132,69 @@ function mainPage(api) {
   }
   const noExpressionsForSpec = spec => expressionsForSpec(spec).length === 0
   const makeExpressionFromSpec = spec => () => {
-    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore: spec.fpcore, id: expressionId++}, api.tables, api.setTables)
+    const id = expressionId++
+    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore: spec.fpcore, id}, api.tables, api.setTables)
+    api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables)
     //setExpressions(produce(expressions => expressions.push({specId: spec.id, fpcore: spec.fpcore, id: expressionId++})))
   }
   const noExpressionsRow = spec => {
-    return html`<div>
+    return html`<div class="noExpressionsRow">
       <span><button onClick=${makeExpressionFromSpec(spec)}>Create the default expression for this spec</button></span>
     </div>`
   }
   const getSpecBlock = spec => {
-    return html`<div>
+    return html`<div id="specBlock">
       ${getSpecRow(spec)}
       <${For} each=${() => expressionsForSpec(spec)}>${getExpressionRow}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
-      ${/* TODO show selected item: api.getLastSelected((obj, table) => (obj, table))*/ '' }
+      
     </div>`
   }
+  const lastSelectedExpression = () => api.tables.tables.find(t => t.name === "Expressions")?.items?.find(api.getLastSelected((o, table) => table === "Expressions") || (() => undefined))
+
+  const expressionView = () => ExpressionView(lastSelectedExpression(), api)
   
-  const analyzeUI = html`<div>
-    <${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
-    ${newSpecInput}
+  const analyzeUI = html`<div id="analyzeUI">
+    <div id="specsAndExpressions">
+      <${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
+      ${newSpecInput}
+    </div>
+    <${Show} when=${lastSelectedExpression}>
+      ${expressionView}
+    <//>
   </div>
   `
   
   const contents = () => analyzeUI
   const div = html`<div id="demo">
+    <style>
+      #analyzeUI div {
+        border: 1px solid black;
+        margin: 2px;
+        padding: 2px;
+      }
+      #analyzeUI span {
+        border: 1px solid black;
+        margin: 2px;
+      }
+      #analyzeUI .expressionRow, #analyzeUI .noExpressionsRow {
+        margin-left: 15px;
+      }
+
+    </style>
     ${contents}
   </div>
   `
-  setTimeout(() => submit(), 0)  // HACK jump to a submitted expression
+  //setTimeout(() => submit(), 0)  // HACK jump to a submitted expression
   return {div}
 }
 
-export default {mainPage}
+function ExpressionView(expression, api) {
+  //<div>...expression plot here...</div>
+  return html`<div>
+    <h3>Details for ${expression.fpcore}</h3>
+    <div><button>Run Analysis</button></div>
+  </div>`
+}
+
+export default {mainPage, ExpressionView}

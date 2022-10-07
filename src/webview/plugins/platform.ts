@@ -130,7 +130,7 @@ async function getAPI(plugin_config, import_from_module, api) {
   // HACK for now, mutate the api
   Object.assign(api, {
     action, tables, setTables,
-    getLastSelected: selector => tables.tables.find(t => t.name === "Selections")?.items.find(selection => selector(selection.selection, selection.table))?.selection,
+    getLastSelected: selector => tables.tables.find(t => t.name === "Selections")?.items.findLast(selection => selector(selection.selection, selection.table))?.selection,
     addPlugin: plugin_config => create('platform', 'Plugins', plugin_config, tables, setTables, api, import_from_module)
   })
 

@@ -1,19 +1,30 @@
 import { create } from "domain";
-import { html, For, Show, unwrap } from "../../dependencies/dependencies.js";
-import {createStore, createEffect, produce} from "../../dependencies/dependencies.js";
+import { html, For, Show, Switch, Match, unwrap } from "../../dependencies/dependencies.js";
+import {createStore, createEffect, createMemo, produce} from "../../dependencies/dependencies.js";
 
 let specId = 1
 let sampleId = 1
 let expressionId = 1
 
-function computable(cacheValue, fn, ...args) {
+/**
+ * 
+ * @param cacheValue a signal for the value being computed
+ * @param fn the function to run, can be async; must set cacheValue to mark the value as computed
+ * @param args other arguments to pass to the function
+ * @returns an object representing the computation state with a status field whose value may be 'unrequested', 'requested', 'computed', or 'error'.
+ */
+function computable(cacheValue=()=>undefined, fn, ...args) {
   // promise-ish, but not exactly the same
   
-  const compute = () => {
+  const compute = async () => {
+      setStore(produce(store => {
+        //store.promise = p
+        store.status = 'requested'
+      }))
     //const p = new Promise((resolve, reject) => {
       try {
         // TODO something with log capture here
-        fn(...args)
+        await fn(...args)
         // NOTE we rely on fn to set the cacheValue for termination
         //resolve(out)
         // setStore(produce(store => {
@@ -28,10 +39,6 @@ function computable(cacheValue, fn, ...args) {
         }))
       }
     //})
-    setStore(produce(store => {
-      //store.promise = p
-      store.status = 'requested'
-    }))
   }
 
   const [store, setStore] = createStore({
@@ -44,12 +51,16 @@ function computable(cacheValue, fn, ...args) {
   })
 
   createEffect(() => {  // if the cache gets updated before compute, just resolve
+    console.log('effect running')
     const value = cacheValue()
+    console.log(value)
     if (value !== undefined) {
+      console.log('setting computed')
       setStore(produce(store => {
         store.status = 'computed'
         store.value = value
       }))
+      console.log(store.status)
     }
   })
   return store
@@ -78,6 +89,13 @@ function mainPage(api) {
     <button onClick=${submit}>Submit</button>
   </div>
   `
+  const modifyRange = startingSpec => html`
+  <div id="modifyRange">
+    <div>Add input range:</div>
+    <div>Other spec config here...</div>
+    <button onClick=${submit}>Submit</button>
+  </div>
+  `
   const specs = () => api.tables.tables.find(t => t.name === 'Specs').items
 
   
@@ -87,6 +105,7 @@ function mainPage(api) {
   //const [expressions, setExpressions] = createStore([] as any[])
   const expressions = () => api.tables.tables.find(t => t.name === 'Expressions').items
   
+  // TODO rename as specRow for consistency, no get...
   const getSpecRow = spec => {
     // HACK all samples are relevant for now
     //const samples = relevantSamples(spec)
@@ -98,9 +117,9 @@ function mainPage(api) {
       <${For} each=${relevantSamples}>${sample => html`<option>${sample.id}</option>`}<//>
     </select>`
     // <span>${spec.id}</span>
+    //<span>${addSampleButton}</span>
     return html`<div class="specRow">
-      <span>${spec.math} from A to B</span>
-      <span>${addSampleButton}</span>
+      <span>A to B</span>
       <${Show} when=${() => relevantSamples().length !== 0}>
         <span>${sampleSelect}</span>
         <span>...Spec/sample summary goes here...</span>
@@ -111,11 +130,30 @@ function mainPage(api) {
     api.action('select', 'demo', 'Expressions', o => o.id === expression.id, api.tables, api.setTables)
   }
 
+  const analyses = () => api.tables.tables.find(t => t.name === 'Analyses').items
+
   const getExpressionRow = expression => {
     // TODO slow operation simulation
+    // <span><button>Get more expressions with Herbie</button></span>
+    const c = analysisComputable(expression, api)
     return html`<div class="expressionRow" >
       <span onClick=${selectExpression(expression)}>${expression.fpcore}</span>
-      <span><button>Run Analysis</button></span>
+      <span>
+        <${Switch}>
+          <${Match} when=${() => c.status === 'unrequested'}>
+            <button onClick=${c.compute}>Run Analysis</button>
+          <//>
+          <${Match} when=${() => c.status === 'requested'}>
+            waiting...
+          <//>
+          <${Match} when=${() => c.status === 'computed'}>
+            ${() => JSON.stringify(c.value)}
+          <//>
+          <${Match} when=${() => c.status === 'error'}>
+            error during computation :(
+          <//>
+        <//>
+      </span>
     </div>`
   }
 
@@ -131,22 +169,30 @@ function mainPage(api) {
     })
   }
   const noExpressionsForSpec = spec => expressionsForSpec(spec).length === 0
-  const makeExpressionFromSpec = spec => () => {
+  
+  const makeExpression = (spec, fpcore) => () => {
+    console.log('makeExpression called')
     const id = expressionId++
-    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore: spec.fpcore, id}, api.tables, api.setTables)
+    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore: fpcore, id}, api.tables, api.setTables)
     api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables)
-    //setExpressions(produce(expressions => expressions.push({specId: spec.id, fpcore: spec.fpcore, id: expressionId++})))
   }
+  
+  const makeExpressionFromSpec = spec => makeExpression(spec, spec.fpcore)
+
   const noExpressionsRow = spec => {
     return html`<div class="noExpressionsRow">
       <span><button onClick=${makeExpressionFromSpec(spec)}>Create the default expression for this spec</button></span>
     </div>`
   }
+  const addExpressionRow = spec => html`<div class="addExpressionRow">
+    <button onClick=${makeExpression(spec, 'custom')}>Add another expression</button>
+    </div>`
   const getSpecBlock = spec => {
     return html`<div id="specBlock">
       ${getSpecRow(spec)}
       <${For} each=${() => expressionsForSpec(spec)}>${getExpressionRow}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
+      ${() => addExpressionRow(spec)}
       
     </div>`
   }
@@ -154,14 +200,22 @@ function mainPage(api) {
 
   const expressionView = () => ExpressionView(lastSelectedExpression(), api)
   
-  const analyzeUI = html`<div id="analyzeUI">
+  const specsAndExpressions = (startingSpec) => html`
     <div id="specsAndExpressions">
+      <div id="specTitle">The Spec: ${startingSpec.fpcore}</div>
       <${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
-      ${newSpecInput}
-    </div>
-    <${Show} when=${lastSelectedExpression}>
-      ${expressionView}
+      ${() => modifyRange(startingSpec)}
+    </div>`
+
+  const analyzeUI = html`<div id="analyzeUI">
+    <${Show} when=${() => specs()[0]}
+      fallback=${newSpecInput}>
+      ${() => specsAndExpressions(specs()[0])}
+      <${Show} when=${lastSelectedExpression}>
+        ${expressionView}
+      <//>
     <//>
+    
   </div>
   `
   
@@ -177,7 +231,7 @@ function mainPage(api) {
         border: 1px solid black;
         margin: 2px;
       }
-      #analyzeUI .expressionRow, #analyzeUI .noExpressionsRow {
+      #analyzeUI .expressionRow, #analyzeUI .noExpressionsRow, #analyzeUI .addExpressionRow {
         margin-left: 15px;
       }
 
@@ -185,15 +239,68 @@ function mainPage(api) {
     ${contents}
   </div>
   `
-  //setTimeout(() => submit(), 0)  // HACK jump to a submitted expression
+
+  // HACK jump to a submitted spec + expression
+  setTimeout(() => submit(), 0)  
+  createEffect(() => {
+    if (specs().length === 1 && expressions().length === 0) {
+      makeExpressionFromSpec(specs()[0])()
+    }
+  })
+
   return {div}
+}
+
+function analysisComputable(expression, api) {
+  const analyses = () => api.tables.tables.find(t => t.name === 'Analyses').items
+  const analysis = () => analyses().find(a => a.expressionId === expression.id)
+  const specs = () => api.tables.tables.find(t => t.name === 'Specs').items
+  const samples = () => api.tables.tables.find(t => t.name === 'Samples').items
+  
+  async function getHerbieAnalysis(expression, api) {
+    const spec = specs().find(s => s.id === expression.specId)
+    const data = {
+      expression,
+      spec,
+      // NOTE sending the sample means a lot of data will be passed here...
+      sample: samples().find(s => s.id === expression.sampleId)  // HACK for now, we are assuming expressions are per-sample
+    }
+    return (await fetch('localhost:8000/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }))?.json()
+  }
+
+
+  function mockData(expression, api) {
+    return new Promise(resolve => setTimeout(() => resolve({bitsError: 10, expressionId: expression.id}), 2000))
+  }
+
+  return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await mockData(expression, api), api.tables, api.setTables))
 }
 
 function ExpressionView(expression, api) {
   //<div>...expression plot here...</div>
+  const c = analysisComputable(expression, api)
   return html`<div>
     <h3>Details for ${expression.fpcore}</h3>
-    <div><button>Run Analysis</button></div>
+    <${Switch}>
+      <${Match} when=${() => c.status === 'unrequested'}>
+        <button onClick=${c.compute}>Run Analysis</button>
+      <//>
+      <${Match} when=${() => c.status === 'requested'}>
+        waiting...
+      <//>
+      <${Match} when=${() => c.status === 'computed'}>
+        ${() => JSON.stringify(c.value)}
+      <//>
+      <${Match} when=${() => c.status === 'error'}>
+        error during computation :(
+      <//>
+    <//>
   </div>`
 }
 

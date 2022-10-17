@@ -39,6 +39,11 @@ function select(callerPlugin, tname, item, tables, setTables) {
   setTables(produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname }) }))
 }
 
+function multiselect(callerPlugin, tname, item, tables, setTables) {
+  console.debug(callerPlugin, tname, item, tables, setTables)
+  setTables(produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname, multiselection: true }) }))
+}
+
 // TODO better logging--stack trace/whyline-ish features
 function log(tables, setTables, api, import_from_module, ...values) {
   console.log(...values)
@@ -127,10 +132,14 @@ async function getAPI(plugin_config, import_from_module, api) {
   }
 
   // HACK for now, when we select something, we just put the whole item in the .selection attribute (should use foreign key)
+  // HACK the demo stores selector functions in the selection attribute, so we are just storing and getting
+  // functions that need to be called the right way on the appropriate table. ugly, but good enough for now.
+
   // HACK for now, mutate the api
   Object.assign(api, {
     action, tables, setTables,
-    getLastSelected: selector => tables.tables.find(t => t.name === "Selections")?.items.findLast(selection => selector(selection.selection, selection.table))?.selection,
+    getLastSelected: selector => tables.tables.find(t => t.name === "Selections")?.items.findLast(selection => !selection.multiselection && selector(selection.selection, selection.table))?.selection,
+    getLastMultiselected: selector => tables.tables.find(t => t.name === "Selections")?.items.findLast(selection => selection.multiselection && selector(selection.selection, selection.table))?.selection,
     addPlugin: plugin_config => create('platform', 'Plugins', plugin_config, tables, setTables, api, import_from_module)
   })
 
@@ -169,4 +178,4 @@ function init(plugin_config, import_from_module, api = null) {
   return api ? api : getAPI(plugin_config, import_from_module, {})
 }
 
-export default {init, getPluginRules, getPluginTables, getPluginActions, create, select}
+export default {init, getPluginRules, getPluginTables, getPluginActions, create, select, multiselect}

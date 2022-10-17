@@ -12,7 +12,7 @@ export default [
       'Actions',
       'ActionLogs'
     ],
-    actions: ['create', 'select'],
+    actions: ['create', 'select', 'multiselect'],
     rules: [
       {
         name: 'Set up tables',
@@ -128,6 +128,23 @@ export default [
     name: 'demo',
     tables: ['Specs', 'Expressions', 'Analyses'],
     //action: ['runFoo'],
+    rules: [
+      {
+        selector: 'Expressions',
+        table: 'Analyses',
+        fn: 'analyzeExpression'
+      },
+      {
+        selector: 'Specs',
+        table: 'Expressions',
+        fn: 'addNaiveExpression'
+      },
+      // {
+      //   selector: 'Specs',
+      //   table: 'platform.Selections',
+      //   fn: 'selectNaiveExpression'
+      // },
+    ],
     // rules: [
     //   {
     //     selector: 'Foos',

@@ -458,6 +458,7 @@ function mainPage(api) {
     // <span>${spec.id}</span>
     //<span>${addSampleButton}</span>
     const genHerbieAlts = () => {
+      // TODO hook up to Herbie here
       let id1 = expressionId++
       api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' A', id1, provenance: 'herbie' }, api.tables, api.setTables, api)
       let id2 = expressionId++
@@ -672,7 +673,7 @@ function mainPage(api) {
       }
       #analyzeUI {
         display: grid;
-        grid-template-areas: 'table focus focus focus';
+        grid-template-areas: 'table focus';
         justify-content: start;
       }
       #analyzeUI #focus {

@@ -1,6 +1,7 @@
 import { create } from "domain";
-import { html, For, Show, Switch, Match, unwrap } from "../../dependencies/dependencies.js";
-import {createStore, createEffect, createMemo, produce} from "../../dependencies/dependencies.js";
+import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
+import { createStore, createEffect, createRenderEffect, createMemo, produce } from "../../dependencies/dependencies.js";
+import { math } from "../../dependencies/dependencies.js"
 
 let specId = 1
 let sampleId = 1
@@ -50,12 +51,12 @@ function computable(cacheValue=()=>undefined, fn, ...args) {
     value: undefined
   })
 
-  createEffect(() => {  // if the cache gets updated before compute, just resolve
-    //console.log('effect running')
+  createRenderEffect(() => {  // if the cache gets updated before compute, just resolve
+    console.log('effect running')
     const value = cacheValue()
     //console.log(value)
     if (value !== undefined) {
-      //console.log('setting computed')
+      console.log('setting computed', value)
       setStore(produce(store => {
         store.status = 'computed'
         store.value = value
@@ -66,45 +67,377 @@ function computable(cacheValue=()=>undefined, fn, ...args) {
   return store
 }
 
+const fpcorejs = (() => {
+  const CONSTANTS = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool" }
+
+  const FUNCTIONS = {}
+
+  "+ - * / pow copysign fdim fmin fmax fmod hypot remainder".split(" ").forEach(function (op) {
+    FUNCTIONS[op] = [["real", "real"], "real"];
+  });
+  ("fabs sqrt exp log sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh " +
+    "cbrt ceil erf erfc exp2 expm1 floor lgamma log10 log1p log2 logb rint " +
+    "round tgamma trunc").split(" ").forEach(function (op) {
+      FUNCTIONS[op] = [["real"], "real"];
+    });
+  FUNCTIONS["fma"] = [["real", "real", "real"], "real"];
+  "< > == != <= >=".split(" ").forEach(function (op) {
+    FUNCTIONS[op] = [["real", "real"], "bool"];
+  });
+  "and or".split(" ").forEach(function (op) {
+    FUNCTIONS[op] = [["bool", "bool"], "bool"];
+  });
+
+  const SECRETFUNCTIONS = { "^": "pow", "**": "pow", "abs": "fabs", "min": "fmin", "max": "fmax", "mod": "fmod" }
+
+  function tree_errors(tree, expected) /* tree -> list */ {
+    var messages = [] as any[];
+    var names = [] as any[];
+
+    var rtype = bottom_up(tree, function (node, path, parent) {
+      switch (node.type) {
+        case "ConstantNode":
+          if (["number", "boolean"].indexOf(node.valueType) === -1) {
+            messages.push("Constants that are " + node.valueType + "s not supported.");
+          }
+          return ({ "number": "real", "boolean": "bool" })[node.valueType] || "real";
+        case "FunctionNode":
+          const name = SECRETFUNCTIONS[node.name] || node.name;
+          if (!FUNCTIONS[name]) {
+            messages.push("Function <code>" + name + "</code> unsupported.");
+          } else if (FUNCTIONS[name][0].length !== node.args.length) {
+            messages.push("Function <code>" + name + "</code> expects " +
+              FUNCTIONS[name][0].length + " arguments");
+          } else if ("" + extract(node.args) !== "" + FUNCTIONS[name][0]) {
+            messages.push("Function <code>" + name + "</code>" +
+              " expects arguments of type " +
+              FUNCTIONS[name][0].join(", ") +
+              ", got " + extract(node.args).join(", "));
+          }
+          return (FUNCTIONS[name] || [[], "real"])[1];
+        case "OperatorNode":
+          // NOTE changed from node.op reassignment to be compatible with mathjs 4.4.2
+          node = { ...node, op: SECRETFUNCTIONS[node.op] || node.op }
+          //node.op = SECRETFUNCTIONS[node.op] || node.op;
+          if (!FUNCTIONS[node.op]) {
+            messages.push("Operator <code>" + node.op + "</code> unsupported.");
+          } else if (FUNCTIONS[node.op][0].length !== node.args.length &&
+            !(node.op === "-" && node.args.length === 1)) {
+            messages.push("Operator <code>" + node.op + "</code> expects " +
+              FUNCTIONS[node.op][0].length + " arguments");
+          } else if ("" + extract(node.args) !== "" + FUNCTIONS[node.op][0] &&
+            !(node.op === "-" && "" + extract(node.args) === "real") &&
+            !(is_comparison(node.op) /* TODO improve */)) {
+            messages.push("Operator <code>" + node.op + "</code>" +
+              " expects arguments of type " +
+              FUNCTIONS[node.op][0].join(", ") +
+              ", got " + extract(node.args).join(", "));
+          }
+          return (FUNCTIONS[node.op] || [[], "real"])[1];
+        case "SymbolNode":
+          if (!CONSTANTS[node.name]) {
+            names.push(node.name);
+            return "real";
+          } else {
+            return CONSTANTS[node.name];
+          }
+        case "ConditionalNode":
+          if (node.condition.res !== "bool") {
+            messages.push("Conditional has type " + node.condition.res + " instead of bool");
+          }
+          if (node.trueExpr.res !== node.falseExpr.res) {
+            messages.push("Conditional branches have different types " + node.trueExpr.res + " and " + node.falseExpr.res);
+          }
+          return node.trueExpr.res;
+        default:
+          messages.push("Unsupported syntax; found unexpected <code>" + node.type + "</code>.")
+          return "real";
+      }
+    }).res;
+
+    if (rtype !== expected) {
+      messages.push("Expected an expression of type " + expected + ", got " + rtype);
+    }
+
+    return messages;
+  }
+
+  function bottom_up(tree, cb) {
+    if (tree.args) {
+      tree.args = tree.args.map(function (node) { return bottom_up(node, cb) });
+    } else if (tree.condition) {
+      tree.condition = bottom_up(tree.condition, cb);
+      tree.trueExpr = bottom_up(tree.trueExpr, cb);
+      tree.falseExpr = bottom_up(tree.falseExpr, cb);
+    }
+    tree.res = cb(tree);
+    return tree;
+  }
+
+  function dump_fpcore(formula, ranges) {  // NOTE modified get_precondition...
+    var tree = math.parse(formula);
+
+    var names = [];
+    var body = dump_tree(tree, names);
+    var precondition = ranges ? get_precondition_from_input_ranges(ranges) : null;
+
+    var dnames = [];
+    for (var i = 0; i < names.length; i++) {
+      if (dnames.indexOf(names[i]) === -1) dnames.push(names[i]);
+    }
+
+    var name = formula.replace("\\", "\\\\").replace("\"", "\\\"");
+    var fpcore = "(FPCore (" + dnames.join(" ") + ")\n  :name \"" + name + "\"";
+    if (precondition) fpcore += "\n  :pre " + precondition;
+
+    return fpcore + "\n  " + body + ")";
+  }
+
+  function is_comparison(name) {
+    return ["==", "!=", "<", ">", "<=", ">="].indexOf(name) !== -1;
+  }
+
+  function flatten_comparisons(node) {
+    var terms = [] as any[];
+    (function collect_terms(node) {
+      if (node.type == "OperatorNode" && is_comparison(node.op)) {
+        collect_terms(node.args[0]);
+        collect_terms(node.args[1]);
+      } else {
+        terms.push(node.res);
+      }
+    })(node);
+    var conjuncts = [] as any[];
+    var iters = 0;
+    (function do_flatten(node) {
+      if (node.type == "OperatorNode" && is_comparison(node.op)) {
+        do_flatten(node.args[0]);
+        var i = iters++; // save old value and increment it
+        var prev = conjuncts[conjuncts.length - 1];
+        if (prev && prev[0] == node.op && prev[2] == terms[i]) {
+          prev.push(terms[i + 1]);
+        } else {
+          conjuncts.push([node.op, terms[i], terms[i + 1]]);
+        }
+        do_flatten(node.args[1]);
+      }
+    })(node);
+    var comparisons = [] as any[];
+    for (var i = 0; i < conjuncts.length; i++) {
+      comparisons.push("(" + conjuncts[i].join(" ") + ")");
+    }
+    if (comparisons.length == 0) {
+      return "TRUE";
+    } else if (comparisons.length == 1) {
+      return comparisons[0];
+    } else {
+      return "(and " + comparisons.join(" ") + ")";
+    }
+  }
+
+  function extract(args) { return args.map(function (n) { return n.res }); }
+
+  function dump_tree(tree, names) {
+    return bottom_up(tree, function (node) {
+      switch (node.type) {
+        case "ConstantNode":
+          return "" + node.value;
+        case "FunctionNode":
+          // NOTE changed from node.name reassignment to be compatible with mathjs 4.4.2
+          const name = SECRETFUNCTIONS[node.name] || node.name;
+          return "(" + name + " " + extract(node.args).join(" ") + ")";
+        case "OperatorNode":
+          // NOTE changed from node.op reassignment to be compatible with mathjs 4.4.2
+          const op = SECRETFUNCTIONS[node.op] || node.op;
+          if (is_comparison(op)) {
+            return flatten_comparisons({ ...node, op });
+          } else {
+            return "(" + op + " " + extract(node.args).join(" ") + ")";
+          }
+        case "SymbolNode":
+          if (!CONSTANTS[node.name])
+            names.push(node.name);
+          return node.name;
+        case "ConditionalNode":
+          return "(if " + node.condition.res +
+            " " + node.trueExpr.res +
+            " " + node.falseExpr.res + ")";
+        default:
+          throw SyntaxError("Invalid tree!");
+      }
+    }).res;
+  }
+
+  function get_varnames_mathjs(mathjs_text) {
+    const names = []
+    dump_tree(math.parse(mathjs_text), names)
+    var dnames = [];
+    for (var i = 0; i < names.length; i++) {
+      if (dnames.indexOf(names[i]) === -1) dnames.push(names[i]);
+    }
+    return dnames
+  }
+
+  function get_precondition_from_input_ranges(ranges) {  // NOTE modified get_precondition...
+    // ranges should be like [["x", [-1, 1]], ["y", [0, 1000]]
+    // assumes ranges was already checked for validity using eg. get_input_range_errors
+    const exprs = ranges.map(([name, [start, end]]) => `(<= ${start} ${name} ${end})`).join(' ')
+    return `(and ${exprs})`
+  }
+
+  function get_input_range_errors([low, high] = [undefined, undefined], empty_if_missing = false) {
+    if ((low === undefined || low === '') || (high === undefined || high === '')) return empty_if_missing ? [] : ['input missing']
+    const A = [] as any[]
+    if (!(low === undefined || low === '') && isNaN(Number(low))) {
+      A.push(`The start of the range (${low}) is not a number.`)
+    } else if (!Number.isFinite(Number(low))) {
+      A.push(`The start of the range (${low}) is outside the floating point range.`)
+    }
+
+    if (!(high === undefined || high === '') && isNaN(Number(high))) {
+      A.push(`The end of the range (${high}) is not a number.`)
+    } else if (!Number.isFinite(Number(high))) {
+      A.push(`The end of the range (${high}) is outside the floating point range.`)
+    }
+
+    if (Number(low) > Number(high)) A.push(`The start of the range is higher than the end.`)
+
+    return A
+  }
+  function FPCoreBody(mathJSExpr) {
+    return dump_tree(math.parse(mathJSExpr), [])
+  }
+
+  return {
+    //dumpFPCore: dump_fpcore,  // Currently has no error handling!
+    rangeErrors: get_input_range_errors,
+    FPCorePrecondition: get_precondition_from_input_ranges,
+    getVarnamesMathJS: get_varnames_mathjs,
+    parseErrors: mathJSExpr => {
+      function mathJSErrors(mathJSExpr) {
+        try { math.parse(mathJSExpr) } catch (e : any) { return [e.message] }
+        return []
+      }
+      const mjserrors = mathJSErrors(mathJSExpr)
+      return mjserrors.length > 0 ? mjserrors : tree_errors(math.parse(mathJSExpr), 'real')
+    },
+    FPCoreBody,
+    makeFPCore: ({ specMathJS, ranges, targetFPCoreBody=undefined, name=specMathJS }) => {
+      const vars = get_varnames_mathjs(specMathJS)
+      const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
+      return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${get_precondition_from_input_ranges(ranges)}\n  ${target}${FPCoreBody(specMathJS)})`
+    }
+  }
+})()
+
+const herbiejs = (() => {
+  async function graphHtmlAndPointsJson(fpcore, host, log) {
+    const sendJobResponse = await fetch( host + "/improve-start", {
+      "headers": {
+          "Content-Type": "application/x-www-form-urlencoded",
+      },
+      "body": `formula=${encodeURIComponent(fpcore)}`,
+      "method": "POST",
+      "mode": "cors"
+    });
+    const checkStatusLocation = sendJobResponse.headers.get('location')
+    const checkStatusResponse = await (async () => {
+      let out = null as any
+      while (!out) {
+        const check = await fetch(`${host}${checkStatusLocation}`, {
+          "method": "GET",
+          "mode": "cors"
+        });
+        const text = await check.text()
+        if (text) {log(text); await new Promise(resolve => setTimeout(() => resolve(null), 500))}
+        else {out = check}
+      }
+      return out
+    })()
+    const graphHtmlLocation = checkStatusResponse.headers.get('location')
+    const graphHtmlResponse = await fetch(`${host}${graphHtmlLocation}`, {
+      "method": "GET",
+      "mode": "cors"
+    });
+    const graphHtml = await graphHtmlResponse.text()
+    const pointsJsonLocation = [...graphHtmlLocation.split('/').slice(0, -1), 'points.json'].join('/')
+    const pointsJsonResponse = await fetch(`${host}${pointsJsonLocation}`, {
+      "method": "GET",
+      "mode": "cors"
+    });
+    const pointsJson = await pointsJsonResponse.json()
+    return { graphHtml, pointsJson }
+  }
+  return ({
+    getSample: async (fpcore, host, log) => {
+      const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
+      return pointsJson.points
+    },
+    suggestExpressions: async (fpcore, host, log, html) => {
+      const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
+      console.log(graphHtml)
+      //@ts-ignore
+      window.html = html
+      const page = document.createElement('div') as any
+      page.innerHTML = graphHtml
+      //const page = html`${graphHtml}`
+      console.log('good parse')
+      return [ Object.fromEntries([...page.querySelectorAll('.implementation')].map(d => [d.getAttribute('data-language'), {spec: d.textContent.split('↓')[0], suggestion: d.textContent.split('↓')[1]}])).FPCore.suggestion ].map( v => {
+        const body = v.slice(v.slice(9).indexOf('(') + 9, -1)
+        return body
+    })
+    },
+    analyzeExpression: async (spec, targetFPCoreBody, host, log) => {
+        const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
+        const meanBitsError = pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length
+        return {graphHtml, pointsJson, meanBitsError}
+    }
+  })
+})()
+
 function mainPage(api) {
   console.clear()
   console.log('Setting up main demo page...')
-  const specHTMLInput = html`<input type="text" placeholder="sqrt(x+1) - sqrt(x)" value="sqrt(x+1) - sqrt(x)"></input>` as HTMLInputElement
-  const submit = () => {
-    const math = specHTMLInput.value
-    // if (specs().find(spec => spec.math === math)) {
-    //   api.action('select', 'demo', 'Specs', (o) => o.math === math, api.tables, api.setTables)
-    //   return
-    // }
+  const textarea = (value=JSON.stringify({mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [0, 1000]]]}, undefined, 2)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
+
+  const addSpec = ({ mathjs, ranges }) => { 
     const id = specId++
-    const spec = {math: specHTMLInput.value, fpcore: `(fpcore for ${math})`, ranges: `Input Ranges: ${id}`, id}
-    api.action('create', 'demo', 'Specs', spec, api.tables, api.setTables)
+    const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, ranges }), ranges, id}
+    api.action('create', 'demo', 'Specs', spec, api.tables, api.setTables) //untrack(() => api))  // HACK untrack here is weird
     api.action('select', 'demo', 'Specs', (o) => o.id === id, api.tables, api.setTables)
     const curr = currentMultiselection(api).map(o => o.id)
     api.action('multiselect', 'demo', 'Expressions', (o) => o.specId === id || curr.includes(o.id), api.tables, api.setTables)
   }
-  
 
-  const newSpecInput = html`
+  const newSpecInput = () => {
+    const text = textarea()
+    return html`
   <div id="newSpecInput">
-    Add Spec: ${specHTMLInput}
-    <div>Other sampling config here...</div>
-    <button onClick=${submit}>Submit</button>
+    Add Spec:
+    <div>
+    ${text}
+    </div>
+    <button onClick=${() => addSpec(JSON.parse(text.value))}>Submit</button>
   </div>
-  `
+  `}
   /*
     <div>Add input range:</div>
     <div>Other spec config here...</div>
     <button onClick=${submit}>Add input range</button>
   */
-  const modifyRange = startingSpec => html`
-  <div id="modifyRange">
-    <button onClick=${submit}>Add input range</button>
-  </div>
-  `
+  const modifyRange = startingSpec => {
+    const text = textarea(JSON.stringify(startingSpec.ranges))
+    return html`
+      <div id="modifyRange">
+        Add Ranges:
+          <div>
+          ${text}
+          </div>
+        <button onClick=${() => addSpec({ ...startingSpec, ranges: JSON.parse(text.value) })}>Add input range</button>
+      </div>
+      `
+  }
   const specs = () => api.tables.tables.find(t => t.name === 'Specs').items
-
-  
 
   // HACK just use stores, put into tables later
   const [samples, setSamples] = createStore([] as any[])
@@ -126,18 +459,18 @@ function mainPage(api) {
     //<span>${addSampleButton}</span>
     const genHerbieAlts = () => {
       let id1 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' A', id1, provenance: 'herbie' }, api.tables, api.setTables)
+      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' A', id1, provenance: 'herbie' }, api.tables, api.setTables, api)
       let id2 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' B', id2, provenance: 'herbie' }, api.tables, api.setTables)
+      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' B', id2, provenance: 'herbie' }, api.tables, api.setTables, api)
       let id3 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' C', id3, provenance: 'herbie' }, api.tables, api.setTables)
+      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' C', id3, provenance: 'herbie' }, api.tables, api.setTables, api)
       api.action('multiselect', 'demo', 'Expressions', o => [id1, id2, id3].includes(o.id), api.tables, api.setTables)
       // TODO (implement multiselect action -- just put all matches in an array)
     }
     const c = altGenComputable(spec, api) // TODO probably should be done with an action + rule
     const selectSpec = spec => api.action('select', 'demo', 'Specs', o => o.id === spec.id, api.tables, api.setTables)
     return html`<div class="specRow">
-      <span onClick=${() => selectSpec(spec)}>${spec.ranges}</span>
+      <span onClick=${() => selectSpec(spec)}>Range with id ${spec.id}</span>
       <${Show} when=${() => relevantSamples().length !== 0}>
         <span>${sampleSelect}</span>
         <span>...Spec/sample summary goes here...</span>
@@ -154,7 +487,15 @@ function mainPage(api) {
             [alternatives shown]
           <//>
           <${Match} when=${() => c.status === 'error'}>
+          ${() => console.log('suggest error', c)}
             error during computation :(
+          <//>
+          <${Match} when=${() => true}>
+            ${() => {
+      console.log('here', c)
+      return 'other case'
+              } 
+            }
           <//>
         <//>
       </span>
@@ -197,13 +538,13 @@ function mainPage(api) {
       <span>
         <${Switch}>
           <${Match} when=${() => c.status === 'unrequested'}>
-            waiting for analysis...
+            waiting for analysis (unreq)...
           <//>
           <${Match} when=${() => c.status === 'requested'}>
             waiting for analysis...
           <//>
           <${Match} when=${() => c.status === 'computed'}>
-            ${() => JSON.stringify(c.value)}
+            ${() => JSON.stringify(Object.fromEntries(Object.entries(c.value as any).filter(([k, v]) => ['meanBitsError', 'performance', 'expressionId'].includes(k))))}
           <//>
           <${Match} when=${() => c.status === 'error'}>
             error during computation :(
@@ -215,13 +556,13 @@ function mainPage(api) {
 
   const getExprSpec = expr => specs().find(spec => spec.id === expr.specId)
 
-  /** expressions where spec.math === expr's spec.math (or ditto fpcore) */ 
+  /** expressions where spec.mathjs === expr's spec.mathjs (or ditto fpcore) */ 
   const expressionsForSpec = spec => {
     return expressions().filter(e => e.specId === spec.id)
     // console.debug('Checking expressions for the spec...', spec, unwrap(expressions()), unwrap(specs()), getExprSpec((expressions() || [{}])[0] || {}))
     // return expressions().filter(expr => {
     //   const exprSpec = getExprSpec(expr)
-    //   return spec.id === exprSpec.math 
+    //   return spec.id === exprSpec.mathjs 
     //   || spec.fpcore === exprSpec.fpcore
     // })
   }
@@ -230,22 +571,30 @@ function mainPage(api) {
   const makeExpression = (spec, fpcore) => () => {
     console.log('makeExpression called')
     const id = expressionId++
-    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore: fpcore, id}, api.tables, api.setTables)
-    api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables)
+    // ugly HACK duplicate the spec on the expression, see analyzeExpression
+    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec}, api.tables, api.setTables, api)
+    api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.action('multiselect', 'demo', 'Expressions', (o, table) => [...curr, id].includes(o.id), api.tables, api.setTables)
   }
   
-  const makeExpressionFromSpec = spec => makeExpression(spec, spec.fpcore)
+  const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreBody(spec.mathjs))
 
   const noExpressionsRow = spec => {
     return html`<div class="noExpressionsRow">
       <span><button onClick=${makeExpressionFromSpec(spec)}>Create the default expression for this spec</button></span>
     </div>`
   }
-  const addExpressionRow = spec => html`<div class="addExpressionRow">
-    <button onClick=${makeExpression(spec, 'custom')}>Add another expression</button>
+  const addExpressionRow = spec => {
+    const text = textarea(spec.mathjs)
+    
+    return html`<div class="addExpressionRow">
+    <div>
+    ${text}
+    </div>
+    <button onClick=${() => makeExpression(spec, fpcorejs.FPCoreBody(text.value))()}>Add expression</button>
     </div>`
+  }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
   const getSpecBlock = spec => {
     return html`<div id="specBlock">
@@ -267,7 +616,7 @@ function mainPage(api) {
       .filter(e => e.specId === specId)
   }
   const specView = () => html`<div>
-    <h3>Details for Spec with ${specs().find(api.getLastSelected((_, t) => t === "Specs")).ranges}</h3>
+    <h3>Details for Spec with ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs")).ranges)}</h3>
     <div>[todo]</div>
     </div>`
   const comparisonView = () => ExpressionComparisonView(lastMultiselectedExpressions(), api)
@@ -286,7 +635,7 @@ function mainPage(api) {
 // <//>
   const analyzeUI = html`<div id="analyzeUI">
     <${Show} when=${() => specs()[0]}
-      fallback=${newSpecInput}>
+      fallback=${newSpecInput()}>
       ${() => specsAndExpressions(specs()[0])}
       <div id="focus">
         <${Switch}>
@@ -329,7 +678,14 @@ function mainPage(api) {
       #analyzeUI #focus {
         grid-area: focus
       }
-
+      #analyzeUI textarea {
+        width: 400px;
+        height: 100px;
+      }
+      #analyzeUI .addExpressionRow textarea {
+        width: 400px;
+        height: 40px;
+      }
     </style>
     ${contents}
   </div>
@@ -357,21 +713,23 @@ const currentMultiselection = (api) => {
 function altGenComputable(spec, api) {
   // TODO probably should be done with an action + rule
   const expressions = () => api.tables.tables.find(t => t.name === 'Expressions').items
-  let id1 = expressionId++
-  let id2 = expressionId++
-  let id3 = expressionId++
+  let ids = [expressionId++] as any
   async function genHerbieAlts () {
-    await new Promise(resolve => setTimeout(() => resolve(null), 2000))
-    // TODO replace with a server call
-    api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' alt A', id: id1, provenance: 'herbie' }, api.tables, api.setTables)
-    api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' alt B', id: id2, provenance: 'herbie' }, api.tables, api.setTables)
-    api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' alt C', id: id3, provenance: 'herbie' }, api.tables, api.setTables)
+    //await new Promise(resolve => setTimeout(() => resolve(null), 2000))
+    // HACK expression.spec (see analyzeExpression)
+    // HACK assuming only one suggestion for now
+    console.log('spec fpcore is', spec.fpcore)
+    const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
+      return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
+    })
+    expressions.map(e => api.action('create', 'demo', 'Expressions', e, api.tables, api.setTables, api))
+    //ids = expressions.map(e => e.id)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.action('multiselect', 'demo', 'Expressions', o => [...curr, id1, id2, id3].includes(o.id), api.tables, api.setTables)
+    api.action('multiselect', 'demo', 'Expressions', o => [...curr, ...ids].includes(o.id), api.tables, api.setTables)
     return 'done'
   }
 
-  return computable(() => expressions().find(o => o.id === id1) && expressions().find(o => o.id === id2) && expressions().find(o => o.id === id3), genHerbieAlts)
+  return computable(() => ids.every(id => expressions().find(o => o.id === id)) || undefined, genHerbieAlts)
 }
 
 function analysisComputable(expression, api) {
@@ -402,7 +760,7 @@ function analysisComputable(expression, api) {
     return new Promise(resolve => setTimeout(() => resolve({bitsError: 10, performance: 100 * Math.random(), expressionId: expression.id}), 2000))
   }
 
-  return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await mockData(expression, api), api.tables, api.setTables))
+  return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await analyzeExpression(expression, api), api.tables, api.setTables, api))
 }
 
 function ExpressionView(expression, api) {
@@ -421,6 +779,7 @@ function ExpressionView(expression, api) {
         ${() => JSON.stringify(c.value)}
       <//>
       <${Match} when=${() => c.status === 'error'}>
+        ${() => console.log(c)}
         error during computation :(
       <//>
     <//>
@@ -447,18 +806,26 @@ function ExpressionComparisonView(expressions, api) {
    
   const lastSpec = () => api.tables.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false))
   return html`<div>
-    <h3>Comparison of ${()=> expressions.length} expressions for ${() => lastSpec()?.ranges}</h3>
+    <h3>Comparison of ${()=> expressions.length} expressions for Range with id ${() => lastSpec()?.id}</h3>
     ${() => JSON.stringify(expressions)}
   </div>`
 }
+const HOST = 'http://127.0.0.1:8080/127.0.0.1:8000'
 
-async function analyzeExpression(expression) {
-  return await (new Promise(resolve => setTimeout(() => resolve({bitsError: Math.round(64 * Math.random()), performance: Math.round(100 * Math.random()), expressionId: expression.id}), 2000)))
+async function analyzeExpression(expression, api) {
+  // const specs = () => api.tables.tables.find(t => t.name === 'Specs').items
+  // const spec = specs().find(s => s.id === expression.specId)
+  // // TODO log properly
+  // TODO there's a reactive loop being created by properly looking up the spec above, need to figure out later
+  // and remove expression.spec
+  return { ...await herbiejs.analyzeExpression(expression.spec, expression.fpcore, HOST, logval => console.log(logval)), expressionId: expression.id }
+  //return await (new Promise(resolve => setTimeout(() => resolve({bitsError: Math.round(64 * Math.random()), performance: Math.round(100 * Math.random()), expressionId: expression.id}), 2000)))
 }
 
 // TODO def need to attach ids automatically on object generation in platform
 function addNaiveExpression(spec) {
-  return {specId: spec.id, fpcore: spec.fpcore, id: expressionId++}
+  // HACK expression.spec is duplicated, see analyzeExpression
+  return {specId: spec.id, fpcore: fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec}
 }
 
 function selectNaiveExpression(spec, api) {

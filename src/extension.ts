@@ -57,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 						<meta
 							http-equiv="Content-Security-Policy"
-							content="default-src 'none'; img-src ${panel.webview.cspSource} https:; script-src ${panel.webview.cspSource} 'unsafe-eval'; style-src ${panel.webview.cspSource} 'unsafe-inline';"
+							content="default-src http://127.0.0.1:* ; img-src ${panel.webview.cspSource} https:; script-src ${panel.webview.cspSource} 'unsafe-eval'; style-src ${panel.webview.cspSource} 'unsafe-inline';"
 						/>
 
 						<script src="${panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'out', 'webview', 'index.js')))}" type="module"></script>

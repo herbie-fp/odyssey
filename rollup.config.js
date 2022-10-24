@@ -4,6 +4,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import json from '@rollup/plugin-json';
 import typescript from '@rollup/plugin-typescript'
 import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
+import commonjs from '@rollup/plugin-commonjs';
 
 const platform_compilerOptions = {
   "esModuleInterop": true,
@@ -34,7 +35,7 @@ export default [{
     format: 'es',
     //inlineDynamicImports: true
   },
-  plugins: [ nodeResolve(), json(),  /* typescript({compilerOptions: platform_compilerOptions, include: 'src/webview/plugins/platform.ts'}) */ /*dynamicImportVars({})*/]
+  plugins: [ nodeResolve(), json(), commonjs() /* typescript({compilerOptions: platform_compilerOptions, include: 'src/webview/plugins/platform.ts'}) */ /*dynamicImportVars({})*/]
 },
 // this isn't working right now for some reason (seems to not understand typescript)
 // {

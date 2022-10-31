@@ -1,7 +1,7 @@
 import { create } from "domain";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
 import { createStore, createEffect, createRenderEffect, createMemo, produce } from "../../dependencies/dependencies.js";
-import { math } from "../../dependencies/dependencies.js"
+import { math, Plot } from "../../dependencies/dependencies.js"
 
 let specId = 1
 let sampleId = 1
@@ -52,7 +52,7 @@ function computable(cacheValue=()=>undefined, fn, ...args) {
   })
 
   createRenderEffect(() => {  // if the cache gets updated before compute, just resolve
-    console.log('effect running')
+    //console.log('effect running')
     const value = cacheValue()
     //console.log(value)
     if (value !== undefined) {
@@ -330,6 +330,148 @@ const fpcorejs = (() => {
   }
 })()
 
+// let REQUEST_ID = 0
+
+// async function fetch(url, data) : Promise<Response> {
+  
+//   // HACK We want to avoid CORS restrictions, so we pass the request to the
+//   // server via [message passing](https://code.visualstudio.com/api/extension-guides/webview#scripts-and-message-passing)
+//   // and wait for a result.
+//   //@ts-ignore
+//   const vscode = acquireVsCodeApi();
+//   const requestId = REQUEST_ID++
+
+//   // Removes the listener via controller.abort()
+//   const controller = new AbortController();
+//   const signal = controller.signal;
+
+//   let resolve;  // get a promise resolve function
+//   const promise = new Promise(r => resolve = r)
+
+//   window.addEventListener('message', event => {
+//     const message = event.data; // The JSON data our extension sent
+//     if (message.command === 'fetchResponse' && message.requestId === requestId) {
+//       resolve(message.response)
+//       controller.abort() // + { signal } below removes listener.
+//     }
+//   }, { signal });
+
+//   vscode.postMessage({
+//     command: 'fetch',  // switch for the command to invoke
+//     url,
+//     data,
+//     requestId
+//   })
+  
+//   return promise as Promise<Response>
+// }
+//@ts-ignore
+window.Plot = Plot
+const plotError = (varName, function_names, all_vars, points_json, Plot) => {
+  //console.log(varName, function_names, all_vars, points_json, Plot)
+  /* Returns an SVG plot. Requires Observable Plot. */
+  const functions = [
+      { name: 'start', line: { stroke: '#aa3333ff' }, area: { fill: "#c001"}, dot: { stroke: '#ff000035'} },
+      { name: 'end', line: { stroke: '#0000ffff' }, area: { fill: "#00c1"}, dot: { stroke: '#0000ff35'} },
+      { name: 'target', line: { stroke: 'green' }, dot: { stroke: '#00ff0035'}}
+  ].filter(o => function_names.includes(o.name))
+  const index = all_vars.indexOf(varName)
+  // NOTE ticks and splitpoints include all vars, so we must index
+  const { bits, points, error, ticks_by_varidx, splitpoints_by_varidx } = points_json
+  const ticks = ticks_by_varidx[index]
+  if (!ticks) {
+      return html`<div>The function could not be plotted on the given range for this input.</div>`
+  }
+  const tick_strings = ticks.map(t => t[0])
+  const tick_ordinals = ticks.map(t => t[1])
+  const tick_0_index = tick_strings.indexOf("0")
+  const splitpoints = splitpoints_by_varidx[index]
+  const grouped_data = points.map((p, i) => ({
+      input: p,
+      error: Object.fromEntries(function_names.map(name => ([name, error[name][i]])))
+  }))
+  const domain = [Math.min(...tick_ordinals), Math.max(...tick_ordinals)]
+
+  function extra_axes_and_ticks() {
+      return [
+          ...splitpoints.map(p => Plot.ruleX([p], { stroke: "lightgray", strokeWidth: 4 })),
+          ...(tick_0_index > -1 ? [Plot.ruleX([tick_ordinals[tick_0_index]])] : []),
+      ]
+  }
+
+  function line_and_dot_graphs({ name, fn, line, dot, area }) {
+      const key_fn = fn => (a, b) => fn(a) - fn(b)
+      const index = all_vars.indexOf(varName)
+      const data = grouped_data.map(({ input, error }) => ({
+              x: input[index],
+              y: error[name]
+      })).sort(key_fn(d => d.x))
+          .map(({ x, y }, i) => ({ x, y, i }))
+      const sliding_window = (A, size) => {
+          const half = Math.floor(size / 2)
+          const running_sum = A.reduce((acc, v) => (acc.length > 0 ? acc.push(v.y + acc[acc.length - 1]) : acc.push(v.y), acc), [])
+          // const xs = 
+          //console.log('running', running_sum)
+          return running_sum.reduce((acc, v, i) => {
+          const length = 
+              (i - half) < 0 ? half + i
+              : (i + half) >= running_sum.length ? (running_sum.length - (i - half))
+              : size
+          const top =
+              (i + half) >= running_sum.length ? running_sum[running_sum.length - 1]
+              : running_sum[i + half]
+          const bottom =
+              (i - half) < 0 ? 0
+              : running_sum[i - half]
+          acc.push({average: (top - bottom) / length, x: A[i].x, length})
+          return acc
+          }, [])
+      }
+      const compress = (L, out_len, chunk_compressor = points => points[0]) => L.reduce((acc, pt, i) => i % Math.floor(L.length / out_len) == 0 ? (acc.push(chunk_compressor(L.slice(i, i + Math.floor(L.length / out_len)))), acc) : acc, [])
+      const bin_size = 128
+      const sliding_window_data = compress(
+          sliding_window(data, bin_size), 800, points => ({
+              average: points.reduce((acc, e) => e.average + acc, 0) / points.length,
+              x: points.reduce((acc, e) => e.x + acc, 0) / points.length
+          }))
+      return [
+          Plot.line(sliding_window_data, {
+              x: "x",
+              y: "average",
+              strokeWidth: 2, ...line,
+          }),
+          Plot.dot(compress(data, 800), {x: "x", y: "y", r: 1.3,
+              title: d => `x: ${d.x} \n i: ${d.i} \n bits of error: ${d.y}`,
+              ...dot
+          }),
+      ]
+  }
+  // console.log([...extra_axes_and_ticks(),
+  //   ...functions.map((config:any) =>
+  //                   line_and_dot_graphs(config)).flat()])
+  const out = Plot.plot({
+      width: '800',
+      height: '400',                
+          x: {
+              tickFormat: d => tick_strings[tick_ordinals.indexOf(d)],
+              ticks: tick_ordinals, label: `value of ${varName}`,
+              labelAnchor: 'center', /*labelOffset: [200, 20], tickRotate: 70, */
+              domain,
+              grid: true
+          },
+          y: {
+              label: "Bits of error", domain: [0, bits],
+              ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
+              tickFormat: d => d % 8 != 0 ? '' : d
+          },
+          marks: [...extra_axes_and_ticks(),
+              ...functions.map((config:any) =>
+                              line_and_dot_graphs(config)).flat()]
+  })
+  out.setAttribute('viewBox', '0 0 800 430')
+  return out
+}
+
 const herbiejs = (() => {
   async function graphHtmlAndPointsJson(fpcore, host, log) {
     const sendJobResponse = await fetch( host + "/improve-start", {
@@ -375,13 +517,13 @@ const herbiejs = (() => {
     },
     suggestExpressions: async (fpcore, host, log, html) => {
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
-      console.log(graphHtml)
+      //console.log(graphHtml)
       //@ts-ignore
       window.html = html
       const page = document.createElement('div') as any
       page.innerHTML = graphHtml
       //const page = html`${graphHtml}`
-      console.log('good parse')
+      //console.log('good parse')
       return [ Object.fromEntries([...page.querySelectorAll('.implementation')].map(d => [d.getAttribute('data-language'), {spec: d.textContent.split('↓')[0], suggestion: d.textContent.split('↓')[1]}])).FPCore.suggestion ].map( v => {
         const body = v.slice(v.slice(9).indexOf('(') + 9, -1)
         return body
@@ -488,12 +630,10 @@ function mainPage(api) {
             [alternatives shown]
           <//>
           <${Match} when=${() => c.status === 'error'}>
-          ${() => console.log('suggest error', c)}
             error during computation :(
           <//>
           <${Match} when=${() => true}>
             ${() => {
-      console.log('here', c)
       return 'other case'
               } 
             }
@@ -519,7 +659,7 @@ function mainPage(api) {
       const newSelectionIds = [
         ...currentMultiselection(api).map(o => o.id).filter(id => id !== expression.id),
         ...[boxChecked() ? [] : expression.id]]
-      console.log(newSelectionIds)
+      //console.log(newSelectionIds)
       api.action('select', 'demo', 'Specs', (o, table) => o.id === expression.specId, api.tables, api.setTables)
       api.action('multiselect', 'demo', 'Expressions', o => {
         return newSelectionIds.includes(o.id)
@@ -570,11 +710,11 @@ function mainPage(api) {
   const noExpressionsForSpec = spec => expressionsForSpec(spec).length === 0
   
   const makeExpression = (spec, fpcore) => () => {
-    console.log('makeExpression called')
+    //console.log('makeExpression called')
     const id = expressionId++
     // ugly HACK duplicate the spec on the expression, see analyzeExpression
     api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec}, api.tables, api.setTables, api)
-    api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
+    //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.action('multiselect', 'demo', 'Expressions', (o, table) => [...curr, id].includes(o.id), api.tables, api.setTables)
   }
@@ -611,7 +751,7 @@ function mainPage(api) {
 
   const lastMultiselectedExpressions = () => {
     const specId = specs().find(api.getLastSelected((o, table) => table === "Specs") || (() => false))?.id
-    console.log('test', specId)
+    //console.log('test', specId)
     return expressions()
       .filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false))
       .filter(e => e.specId === specId)
@@ -634,6 +774,9 @@ function mainPage(api) {
 //   <${Show} when=${lastMultiselectedExpressions}>
 //   ${comparisonView}
 // <//>
+  //@ts-ignore
+  window.lastSelection = lastSelection
+  createEffect(() => console.log('lastSelection changed:', lastSelection()))
   const analyzeUI = html`<div id="analyzeUI">
     <${Show} when=${() => specs()[0]}
       fallback=${newSpecInput()}>
@@ -644,10 +787,20 @@ function mainPage(api) {
             ${specView}
           <//>
           <${Match} when=${() => lastSelection()?.multiselection}>
-            ${comparisonView}
+            ${() =>
+  { console.log('compare', lastSelection());  return comparisonView() }
+            }
           <//>
-          <${Match} when=${() => lastSelection() && !(lastSelection().multiselection)}>
-            ${expressionView}
+          <${Match} when=${() => {
+            console.log('when', lastSelection())
+      return lastSelection() && !(lastSelection().multiselection)
+    }
+    }>
+            ${() => {
+              console.log('lastSelection', lastSelection(), lastSelection().multiselection)
+               return expressionView()
+              }
+              }
           <//>
         <//>
       </div>
@@ -787,6 +940,12 @@ function ExpressionView(expression, api) {
   </div>`
 }
 
+//@ts-ignore
+//async (url, module = {exports:{}}) =>
+//  (Function('module', 'exports', await (await fetch(url)).text()).call(module, module, module.exports), module).exports
+//import Plot from 'http://127.0.0.1:8080/https://cdn.skypack.dev/@observablehq/plot'
+//console.log('got plot')
+//let Plot = await import('https://cdn.skypack.dev/pin/@observablehq/plot@v0.6.0-abLuPgcZQ9pCNl0q9t7s/mode=imports,min/optimized/@observablehq/plot.js')
 function ExpressionComparisonView(expressions, api) {
   //<div>...expression plot here...</div>
   // <button onClick=${c.compute}>Run Analysis</button>
@@ -806,11 +965,20 @@ function ExpressionComparisonView(expressions, api) {
   //   <//>
    
   const lastSpec = () => api.tables.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false))
+  const pointsJson = () => api.tables.tables.find(t => t.name === 'Analyses').items.find(a => a.expressionId === expressions[0]?.id)?.pointsJson
   return html`<div>
     <h3>Comparison of ${()=> expressions.length} expressions for Range with id ${() => lastSpec()?.id}</h3>
-    ${() => JSON.stringify(expressions)}
+    ${() => {
+      //console.log('pointsJson', pointsJson())
+    if (!pointsJson()) { return 'analysis incomplete' }
+      //console.log(plotError('x', ['target'], ['x'], pointsJson(), Plot))
+      return html`<div>${plotError('x', ['target'], ['x'], pointsJson(), Plot)}</div>`
+    }
+    }
   </div>`
 }
+
+// Pipe requests to Herbie through a CORS-anywhere proxy
 const HOST = 'http://127.0.0.1:8080/127.0.0.1:8000'
 
 async function analyzeExpression(expression, api) {

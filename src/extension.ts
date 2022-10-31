@@ -13,6 +13,20 @@ export function activate(context: vscode.ExtensionContext) {
 	* - check for version updates on load
 	* - start the Herbie server
 	*/
+	// const corsProxy = require('cors-anywhere');
+	// const corsHost = '0.0.0.0'
+	// const corsPort = 8080
+	// try {
+	// 		corsProxy.createServer({
+	// 			originWhitelist: [], // Allow all origins
+	// 			requireHeader: ['origin', 'x-requested-with'],
+	// 			removeHeaders: ['cookie', 'cookie2']
+	// 	}).listen(corsPort, corsHost, function() {
+	// 			console.log('Running CORS Anywhere on ' + corsHost + ':' + corsPort);
+	// 	});
+	// } catch (error) {
+	// 	console.log('CORS proxy probably already up?:', error)
+	// }
 
 	// for now, assume the Herbie server is running already at localhost 8000
 
@@ -47,6 +61,21 @@ export function activate(context: vscode.ExtensionContext) {
 				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))]
 			}
 		)
+		// Handle messages from the webview
+		panel.webview.onDidReceiveMessage(
+			async message => {
+				switch (message.command) {
+					// case 'fetch':
+					// 	const { url, data, requestId } = message
+					// 	const response = await fetch(url, data)
+					// 	panel.webview.postMessage({ command: 'fetchResponse', requestId, response })
+					// 	//vscode.window.showErrorMessage(message.text);
+					// 	return;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
 		
 		// And set its HTML content
 		panel.webview.html = `<!DOCTYPE html>
@@ -57,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 						<meta
 							http-equiv="Content-Security-Policy"
-							content="default-src http://127.0.0.1:* ; img-src ${panel.webview.cspSource} https:; script-src ${panel.webview.cspSource} 'unsafe-eval'; style-src ${panel.webview.cspSource} 'unsafe-inline';"
+							content="default-src http://127.0.0.1:* ; img-src ${panel.webview.cspSource} https:; script-src http://127.0.0.1:* ${panel.webview.cspSource} 'unsafe-eval'; style-src ${panel.webview.cspSource} 'unsafe-inline';"
 						/>
 
 						<script src="${panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'out', 'webview', 'index.js')))}" type="module"></script>

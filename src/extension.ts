@@ -13,20 +13,20 @@ export function activate(context: vscode.ExtensionContext) {
 	* - check for version updates on load
 	* - start the Herbie server
 	*/
-	// const corsProxy = require('cors-anywhere');
-	// const corsHost = '0.0.0.0'
-	// const corsPort = 8080
-	// try {
-	// 		corsProxy.createServer({
-	// 			originWhitelist: [], // Allow all origins
-	// 			requireHeader: ['origin', 'x-requested-with'],
-	// 			removeHeaders: ['cookie', 'cookie2']
-	// 	}).listen(corsPort, corsHost, function() {
-	// 			console.log('Running CORS Anywhere on ' + corsHost + ':' + corsPort);
-	// 	});
-	// } catch (error) {
-	// 	console.log('CORS proxy probably already up?:', error)
-	// }
+	const corsProxy = require('cors-anywhere');
+	const corsHost = '0.0.0.0'
+	const corsPort = 8080
+	try {
+			corsProxy.createServer({
+				originWhitelist: [], // Allow all origins
+				requireHeader: ['origin', 'x-requested-with'],
+				removeHeaders: ['cookie', 'cookie2']
+		}).listen(corsPort, corsHost, function() {
+				console.log('Running CORS Anywhere on ' + corsHost + ':' + corsPort);
+		});
+	} catch (error) {
+		console.log('CORS proxy probably already up?:', error)
+	}
 
 	// for now, assume the Herbie server is running already at localhost 8000
 

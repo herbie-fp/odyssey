@@ -367,6 +367,106 @@ const fpcorejs = (() => {
 // }
 //@ts-ignore
 window.Plot = Plot
+
+/**
+   * Generate a plot with the given data and associated styles.
+   */
+function plotError2 ({ticks, splitpoints, error, bits, points, styles, width, height}) : SVGElement {
+  const tick_strings = ticks.map(t => t[0])
+  const tick_ordinals = ticks.map(t => t[1])
+  const tick_0_index = tick_strings.indexOf("0")
+  // TODO refactor
+  // const grouped_data = points.map((p, i) => ({
+  //     input: p,
+  //     error: Object.fromEntries(function_names.map(name => ([name, error[name][i]])))
+  // }))
+  const domain = [Math.min(...tick_ordinals), Math.max(...tick_ordinals)]
+  
+  /** Vertical axes for splitpoints and var=0. */
+  function extra_axes_and_ticks() {
+    return [
+        ...splitpoints.map(p => Plot.ruleX([p], { stroke: "lightgray", strokeWidth: 4 })),
+        ...(tick_0_index > -1 ? [Plot.ruleX([tick_ordinals[tick_0_index]])] : []),
+    ]
+  }
+
+  /** Takes an array of {x, y} data points.
+   * Handles sorting data on x.
+   * Creates a line graph based on a sliding window of width binSize.
+   * Further compresses points to width.
+   * */
+  function line_and_dot_graphs({ data, line, dot, binSize=128, width=800 }) {
+    const MAGIC_NUMBER = width // TODO rename properly
+    const key_fn = fn => (a, b) => fn(a) - fn(b)
+    //const index = all_vars.indexOf(varName)
+    // data = grouped_data.map(({ input, error }) => ({
+    //         x: input[index],
+    //         y: error[name]
+    // }))
+    data = data
+      .sort(key_fn(d => d.x))
+      .map(({ x, y }, i) => ({ x, y, i }))
+    const sliding_window = (A, size) => {
+        const half = Math.floor(size / 2)
+        const running_sum = A.reduce((acc, v) => (acc.length > 0 ? acc.push(v.y + acc[acc.length - 1]) : acc.push(v.y), acc), [])
+        return running_sum.reduce((acc, v, i) => {
+        const length = 
+            (i - half) < 0 ? half + i
+            : (i + half) >= running_sum.length ? (running_sum.length - (i - half))
+            : size
+        const top =
+            (i + half) >= running_sum.length ? running_sum[running_sum.length - 1]
+            : running_sum[i + half]
+        const bottom =
+            (i - half) < 0 ? 0
+            : running_sum[i - half]
+        acc.push({average: (top - bottom) / length, x: A[i].x, length})
+        return acc
+        }, [])
+    }
+    const compress = (L, out_len, chunk_compressor = points => points[0]) => L.reduce((acc, pt, i) => i % Math.floor(L.length / out_len) == 0 ? (acc.push(chunk_compressor(L.slice(i, i + Math.floor(L.length / out_len)))), acc) : acc, [])
+    const sliding_window_data = compress(
+        sliding_window(data, binSize), MAGIC_NUMBER, points => ({
+            average: points.reduce((acc, e) => e.average + acc, 0) / points.length,
+            x: points.reduce((acc, e) => e.x + acc, 0) / points.length
+        }))
+    return [
+        Plot.line(sliding_window_data, {
+            x: "x",
+            y: "average",
+            strokeWidth: 2, ...line,
+        }),
+        Plot.dot(compress(data, MAGIC_NUMBER), {x: "x", y: "y", r: 1.3,
+            title: d => `x: ${d.x} \n i: ${d.i} \n bits of error: ${d.y}`,
+            ...dot
+        }),
+    ]
+  }
+
+  const out = Plot.plot({
+    width: width.toString(),
+    height: height.toString(),                
+    x: {
+        tickFormat: d => tick_strings[tick_ordinals.indexOf(d)],
+        ticks: tick_ordinals, /*label: `value of ${varName}`,*/
+        labelAnchor: 'center', /*labelOffset: [200, 20], tickRotate: 70, */
+        domain,
+        grid: true
+    },
+    y: {
+        label: "Bits of error", domain: [0, bits],
+        ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
+        tickFormat: d => d % 8 != 0 ? '' : d
+    },
+    marks: [
+      ...extra_axes_and_ticks(),
+      // TODO pass data to line_and_dot_graphs.
+      ...functions.map((config:any) => line_and_dot_graphs(config)).flat()]
+})
+out.setAttribute('viewBox', '0 0 800 430')
+return out
+  return out
+}
 const plotError = (varName, function_names, all_vars, points_json, Plot) => {
   //console.log(varName, function_names, all_vars, points_json, Plot)
   /* Returns an SVG plot. Requires Observable Plot. */

@@ -68,6 +68,7 @@ function computable(cacheValue=()=>undefined, fn, ...args) {
 }
 
 const fpcorejs = (() => {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   const CONSTANTS = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool" }
 
   const FUNCTIONS = {}
@@ -88,6 +89,7 @@ const fpcorejs = (() => {
     FUNCTIONS[op] = [["bool", "bool"], "bool"];
   });
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   const SECRETFUNCTIONS = { "^": "pow", "**": "pow", "abs": "fabs", "min": "fmin", "max": "fmax", "mod": "fmod" }
 
   function tree_errors(tree, expected) /* tree -> list */ {
@@ -368,78 +370,95 @@ const fpcorejs = (() => {
 //@ts-ignore
 window.Plot = Plot
 
+interface Point {
+  x: number,
+  y: number
+}
+interface PlotArgs {
+  /** For each function being plotted, for each `x` in the input, a `y` for the error. */
+  data: Point[][]
+
+  /** styles for each function */
+  styles: { line: { stroke: string }, dot: { stroke: string } }[]
+
+  /** A string<->ordinal mapping to let us label ticks, eg [['1e10', 12345678], ...] */
+  ticks: [string, number][]
+  splitpoints: [number]
+
+  /** SVG width */
+  width?: number
+  /** SVG height */
+  height?: number
+
+  [propName: string]: any  // could have other properties
+}
+
+const zip = (arr1, arr2) => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i]]), acc), [])
 /**
    * Generate a plot with the given data and associated styles.
    */
-function plotError2 ({ticks, splitpoints, error, bits, points, styles, width, height}) : SVGElement {
-  const tick_strings = ticks.map(t => t[0])
-  const tick_ordinals = ticks.map(t => t[1])
-  const tick_0_index = tick_strings.indexOf("0")
-  // TODO refactor
-  // const grouped_data = points.map((p, i) => ({
-  //     input: p,
-  //     error: Object.fromEntries(function_names.map(name => ([name, error[name][i]])))
-  // }))
-  const domain = [Math.min(...tick_ordinals), Math.max(...tick_ordinals)]
-  
-  /** Vertical axes for splitpoints and var=0. */
-  function extra_axes_and_ticks() {
-    return [
-        ...splitpoints.map(p => Plot.ruleX([p], { stroke: "lightgray", strokeWidth: 4 })),
-        ...(tick_0_index > -1 ? [Plot.ruleX([tick_ordinals[tick_0_index]])] : []),
-    ]
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function plotError({ ticks, splitpoints, data, bits, styles, width=800, height=400 }: PlotArgs, Plot) : SVGElement {
+  const tickStrings = ticks.map(t => t[0])
+  const tickOrdinals = ticks.map(t => t[1])
+  const tickZeroIndex = tickStrings.indexOf("0")
+  const domain = [Math.min(...tickOrdinals), Math.max(...tickOrdinals)]
+
+  /** Compress `arr` to length `outLen` by dividing into chunks and applying `chunkCompressor` to each chunk. */
+  function compress(arr, outLen, chunkCompressor = points => points[0]) {
+    return arr.reduce((acc, pt, i) =>
+      i % Math.floor(arr.length / outLen) !== 0 ? acc
+      : (acc.push(chunkCompressor(arr.slice(i, i + Math.floor(arr.length / outLen)))), acc)
+      , [])
+  }
+
+  /** Compute a new array of the same length as `points` by averaging on a window of size `size` at each point. */
+  const slidingWindow = (points: Point[], size : number) => {
+    const half = Math.floor(size / 2)
+    const runningSum = points.reduce((acc, v) => (
+        acc.length > 0 ? acc.push(v.y + acc[acc.length - 1])
+        : acc.push(v.y), acc)
+      , [] as number[])
+    return runningSum.reduce((acc, v, i) => {
+      const length = 
+          (i - half) < 0 ? half + i
+          : (i + half) >= runningSum.length ? (runningSum.length - (i - half))
+          : size
+      const top =
+          (i + half) >= runningSum.length ? runningSum[runningSum.length - 1]
+          : runningSum[i + half]
+      const bottom =
+          (i - half) < 0 ? 0
+          : runningSum[i - half]
+      acc.push({y: (top - bottom) / length, x: points[i].x})
+      return acc
+    }, [] as Point[])
   }
 
   /** Takes an array of {x, y} data points.
-   * Handles sorting data on x.
    * Creates a line graph based on a sliding window of width binSize.
    * Further compresses points to width.
    * */
-  function line_and_dot_graphs({ data, line, dot, binSize=128, width=800 }) {
-    const MAGIC_NUMBER = width // TODO rename properly
-    const key_fn = fn => (a, b) => fn(a) - fn(b)
-    //const index = all_vars.indexOf(varName)
-    // data = grouped_data.map(({ input, error }) => ({
-    //         x: input[index],
-    //         y: error[name]
-    // }))
-    data = data
-      .sort(key_fn(d => d.x))
-      .map(({ x, y }, i) => ({ x, y, i }))
-    const sliding_window = (A, size) => {
-        const half = Math.floor(size / 2)
-        const running_sum = A.reduce((acc, v) => (acc.length > 0 ? acc.push(v.y + acc[acc.length - 1]) : acc.push(v.y), acc), [])
-        return running_sum.reduce((acc, v, i) => {
-        const length = 
-            (i - half) < 0 ? half + i
-            : (i + half) >= running_sum.length ? (running_sum.length - (i - half))
-            : size
-        const top =
-            (i + half) >= running_sum.length ? running_sum[running_sum.length - 1]
-            : running_sum[i + half]
-        const bottom =
-            (i - half) < 0 ? 0
-            : running_sum[i - half]
-        acc.push({average: (top - bottom) / length, x: A[i].x, length})
-        return acc
-        }, [])
-    }
-    const compress = (L, out_len, chunk_compressor = points => points[0]) => L.reduce((acc, pt, i) => i % Math.floor(L.length / out_len) == 0 ? (acc.push(chunk_compressor(L.slice(i, i + Math.floor(L.length / out_len)))), acc) : acc, [])
-    const sliding_window_data = compress(
-        sliding_window(data, binSize), MAGIC_NUMBER, points => ({
-            average: points.reduce((acc, e) => e.average + acc, 0) / points.length,
-            x: points.reduce((acc, e) => e.x + acc, 0) / points.length
-        }))
+  function lineAndDotGraphs({data, style: { line, dot }, binSize = 128, width = 800 }) {
+    const average = points => ({
+      y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
+      x: points.reduce((acc, e) => e.x + acc, 0) / points.length
+    })
+    // console.log(data)
+    // console.log(slidingWindow(data, binSize))
+    const compressedSlidingWindow = compress(
+      slidingWindow(data, binSize), width, average)
+    //console.log(compressedSlidingWindow)
     return [
-        Plot.line(sliding_window_data, {
+        Plot.line(compressedSlidingWindow, {
             x: "x",
-            y: "average",
+            y: "y",
             strokeWidth: 2, ...line,
         }),
-        Plot.dot(compress(data, MAGIC_NUMBER), {x: "x", y: "y", r: 1.3,
+        Plot.dot(compress(data, width), {x: "x", y: "y", r: 1.3,
             title: d => `x: ${d.x} \n i: ${d.i} \n bits of error: ${d.y}`,
             ...dot
-        }),
+        })
     ]
   }
 
@@ -447,8 +466,8 @@ function plotError2 ({ticks, splitpoints, error, bits, points, styles, width, he
     width: width.toString(),
     height: height.toString(),                
     x: {
-        tickFormat: d => tick_strings[tick_ordinals.indexOf(d)],
-        ticks: tick_ordinals, /*label: `value of ${varName}`,*/
+        tickFormat: d => tickStrings[tickOrdinals.indexOf(d)],
+        ticks: tickOrdinals, /*label: `value of ${varName}`,*/  // LATER axis label
         labelAnchor: 'center', /*labelOffset: [200, 20], tickRotate: 70, */
         domain,
         grid: true
@@ -456,126 +475,132 @@ function plotError2 ({ticks, splitpoints, error, bits, points, styles, width, he
     y: {
         label: "Bits of error", domain: [0, bits],
         ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
-        tickFormat: d => d % 8 != 0 ? '' : d
+        tickFormat: d => d % 8 !== 0 ? '' : d
     },
     marks: [
-      ...extra_axes_and_ticks(),
-      // TODO pass data to line_and_dot_graphs.
-      ...functions.map((config:any) => line_and_dot_graphs(config)).flat()]
-})
-out.setAttribute('viewBox', '0 0 800 430')
-return out
-  return out
-}
-const plotError = (varName, function_names, all_vars, points_json, Plot) => {
-  //console.log(varName, function_names, all_vars, points_json, Plot)
-  /* Returns an SVG plot. Requires Observable Plot. */
-  const functions = [
-      { name: 'start', line: { stroke: '#aa3333ff' }, area: { fill: "#c001"}, dot: { stroke: '#ff000035'} },
-      { name: 'end', line: { stroke: '#0000ffff' }, area: { fill: "#00c1"}, dot: { stroke: '#0000ff35'} },
-      { name: 'target', line: { stroke: 'green' }, dot: { stroke: '#00ff0035'}}
-  ].filter(o => function_names.includes(o.name))
-  const index = all_vars.indexOf(varName)
-  // NOTE ticks and splitpoints include all vars, so we must index
-  const { bits, points, error, ticks_by_varidx, splitpoints_by_varidx } = points_json
-  const ticks = ticks_by_varidx[index]
-  if (!ticks) {
-      return html`<div>The function could not be plotted on the given range for this input.</div>`
-  }
-  const tick_strings = ticks.map(t => t[0])
-  const tick_ordinals = ticks.map(t => t[1])
-  const tick_0_index = tick_strings.indexOf("0")
-  const splitpoints = splitpoints_by_varidx[index]
-  const grouped_data = points.map((p, i) => ({
-      input: p,
-      error: Object.fromEntries(function_names.map(name => ([name, error[name][i]])))
-  }))
-  const domain = [Math.min(...tick_ordinals), Math.max(...tick_ordinals)]
-
-  function extra_axes_and_ticks() {
-      return [
-          ...splitpoints.map(p => Plot.ruleX([p], { stroke: "lightgray", strokeWidth: 4 })),
-          ...(tick_0_index > -1 ? [Plot.ruleX([tick_ordinals[tick_0_index]])] : []),
-      ]
-  }
-
-  function line_and_dot_graphs({ name, fn, line, dot, area }) {
-      const key_fn = fn => (a, b) => fn(a) - fn(b)
-      const index = all_vars.indexOf(varName)
-      const data = grouped_data.map(({ input, error }) => ({
-              x: input[index],
-              y: error[name]
-      })).sort(key_fn(d => d.x))
-          .map(({ x, y }, i) => ({ x, y, i }))
-      const sliding_window = (A, size) => {
-          const half = Math.floor(size / 2)
-          const running_sum = A.reduce((acc, v) => (acc.length > 0 ? acc.push(v.y + acc[acc.length - 1]) : acc.push(v.y), acc), [])
-          // const xs = 
-          //console.log('running', running_sum)
-          return running_sum.reduce((acc, v, i) => {
-          const length = 
-              (i - half) < 0 ? half + i
-              : (i + half) >= running_sum.length ? (running_sum.length - (i - half))
-              : size
-          const top =
-              (i + half) >= running_sum.length ? running_sum[running_sum.length - 1]
-              : running_sum[i + half]
-          const bottom =
-              (i - half) < 0 ? 0
-              : running_sum[i - half]
-          acc.push({average: (top - bottom) / length, x: A[i].x, length})
-          return acc
-          }, [])
-      }
-      const compress = (L, out_len, chunk_compressor = points => points[0]) => L.reduce((acc, pt, i) => i % Math.floor(L.length / out_len) == 0 ? (acc.push(chunk_compressor(L.slice(i, i + Math.floor(L.length / out_len)))), acc) : acc, [])
-      const bin_size = 128
-      const sliding_window_data = compress(
-          sliding_window(data, bin_size), 800, points => ({
-              average: points.reduce((acc, e) => e.average + acc, 0) / points.length,
-              x: points.reduce((acc, e) => e.x + acc, 0) / points.length
-          }))
-      return [
-          Plot.line(sliding_window_data, {
-              x: "x",
-              y: "average",
-              strokeWidth: 2, ...line,
-          }),
-          Plot.dot(compress(data, 800), {x: "x", y: "y", r: 1.3,
-              title: d => `x: ${d.x} \n i: ${d.i} \n bits of error: ${d.y}`,
-              ...dot
-          }),
-      ]
-  }
-  // console.log([...extra_axes_and_ticks(),
-  //   ...functions.map((config:any) =>
-  //                   line_and_dot_graphs(config)).flat()])
-  const out = Plot.plot({
-      width: '800',
-      height: '400',                
-          x: {
-              tickFormat: d => tick_strings[tick_ordinals.indexOf(d)],
-              ticks: tick_ordinals, label: `value of ${varName}`,
-              labelAnchor: 'center', /*labelOffset: [200, 20], tickRotate: 70, */
-              domain,
-              grid: true
-          },
-          y: {
-              label: "Bits of error", domain: [0, bits],
-              ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
-              tickFormat: d => d % 8 != 0 ? '' : d
-          },
-          marks: [...extra_axes_and_ticks(),
-              ...functions.map((config:any) =>
-                              line_and_dot_graphs(config)).flat()]
+      ...[ // Vertical bars ("rules")
+        // The splitpoints
+        ...splitpoints.map(p => Plot.ruleX([p], { stroke: "lightgray", strokeWidth: 4 })),
+        // The 0-rule
+        ...(tickZeroIndex > -1 ? [Plot.ruleX([tickOrdinals[tickZeroIndex]])] : []),
+      ],
+      // The graphs
+      ...zip(data, styles).map(([data, style]) => lineAndDotGraphs({ data, style, width })).flat()]
   })
-  out.setAttribute('viewBox', '0 0 800 430')
+  out.setAttribute('viewBox', `0 0 ${width} ${height + 30}`)
   return out
 }
+
+// const plotError = (varName, function_names, all_vars, points_json, Plot) => {
+//   //console.log(varName, function_names, all_vars, points_json, Plot)
+//   /* Returns an SVG plot. Requires Observable Plot. */
+//   const functions = [
+//       { name: 'start', line: { stroke: '#aa3333ff' }, area: { fill: "#c001"}, dot: { stroke: '#ff000035'} },
+//       { name: 'end', line: { stroke: '#0000ffff' }, area: { fill: "#00c1"}, dot: { stroke: '#0000ff35'} },
+//       { name: 'target', line: { stroke: 'green' }, dot: { stroke: '#00ff0035'}}
+//   ].filter(o => function_names.includes(o.name))
+//   const index = all_vars.indexOf(varName)
+//   // NOTE ticks and splitpoints include all vars, so we must index
+//   const { bits, points, error, ticks_by_varidx, splitpoints_by_varidx } = points_json
+//   const ticks = ticks_by_varidx[index]
+//   if (!ticks) {
+//       return html`<div>The function could not be plotted on the given range for this input.</div>`
+//   }
+//   const tick_strings = ticks.map(t => t[0])
+//   const tick_ordinals = ticks.map(t => t[1])
+//   const tick_0_index = tick_strings.indexOf("0")
+//   const splitpoints = splitpoints_by_varidx[index]
+//   const grouped_data = points.map((p, i) => ({
+//       input: p,
+//       error: Object.fromEntries(function_names.map(name => ([name, error[name][i]])))
+//   }))
+//   const domain = [Math.min(...tick_ordinals), Math.max(...tick_ordinals)]
+
+//   function extra_axes_and_ticks() {
+//       return [
+//           ...splitpoints.map(p => Plot.ruleX([p], { stroke: "lightgray", strokeWidth: 4 })),
+//           ...(tick_0_index > -1 ? [Plot.ruleX([tick_ordinals[tick_0_index]])] : []),
+//       ]
+//   }
+
+//   function line_and_dot_graphs({ name, fn, line, dot, area }) {
+//       const key_fn = fn => (a, b) => fn(a) - fn(b)
+//       const index = all_vars.indexOf(varName)
+//       const data = grouped_data.map(({ input, error }) => ({
+//               x: input[index],
+//               y: error[name]
+//       })).sort(key_fn(d => d.x))
+//           .map(({ x, y }, i) => ({ x, y, i }))
+//       const sliding_window = (A, size) => {
+//           const half = Math.floor(size / 2)
+//           const running_sum = A.reduce((acc, v) => (acc.length > 0 ? acc.push(v.y + acc[acc.length - 1]) : acc.push(v.y), acc), [])
+//           // const xs = 
+//           //console.log('running', running_sum)
+//           return running_sum.reduce((acc, v, i) => {
+//           const length = 
+//               (i - half) < 0 ? half + i
+//               : (i + half) >= running_sum.length ? (running_sum.length - (i - half))
+//               : size
+//           const top =
+//               (i + half) >= running_sum.length ? running_sum[running_sum.length - 1]
+//               : running_sum[i + half]
+//           const bottom =
+//               (i - half) < 0 ? 0
+//               : running_sum[i - half]
+//           acc.push({average: (top - bottom) / length, x: A[i].x, length})
+//           return acc
+//           }, [])
+//       }
+//       const compress = (L, out_len, chunk_compressor = points => points[0]) => L.reduce((acc, pt, i) => i % Math.floor(L.length / out_len) == 0 ? (acc.push(chunk_compressor(L.slice(i, i + Math.floor(L.length / out_len)))), acc) : acc, [])
+//       const bin_size = 128
+//       const sliding_window_data = compress(
+//           sliding_window(data, bin_size), 800, points => ({
+//               average: points.reduce((acc, e) => e.average + acc, 0) / points.length,
+//               x: points.reduce((acc, e) => e.x + acc, 0) / points.length
+//           }))
+//       return [
+//           Plot.line(sliding_window_data, {
+//               x: "x",
+//               y: "average",
+//               strokeWidth: 2, ...line,
+//           }),
+//           Plot.dot(compress(data, 800), {x: "x", y: "y", r: 1.3,
+//               title: d => `x: ${d.x} \n i: ${d.i} \n bits of error: ${d.y}`,
+//               ...dot
+//           }),
+//       ]
+//   }
+//   // console.log([...extra_axes_and_ticks(),
+//   //   ...functions.map((config:any) =>
+//   //                   line_and_dot_graphs(config)).flat()])
+//   const out = Plot.plot({
+//       width: '800',
+//       height: '400',                
+//           x: {
+//               tickFormat: d => tick_strings[tick_ordinals.indexOf(d)],
+//               ticks: tick_ordinals, label: `value of ${varName}`,
+//               labelAnchor: 'center', /*labelOffset: [200, 20], tickRotate: 70, */
+//               domain,
+//               grid: true
+//           },
+//           y: {
+//               label: "Bits of error", domain: [0, bits],
+//               ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
+//               tickFormat: d => d % 8 != 0 ? '' : d
+//           },
+//           marks: [...extra_axes_and_ticks(),
+//               ...functions.map((config:any) =>
+//                               line_and_dot_graphs(config)).flat()]
+//   })
+//   out.setAttribute('viewBox', '0 0 800 430')
+//   return out
+// }
 
 const herbiejs = (() => {
   async function graphHtmlAndPointsJson(fpcore, host, log) {
     const sendJobResponse = await fetch( host + "/improve-start", {
       "headers": {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
           "Content-Type": "application/x-www-form-urlencoded",
       },
       "body": `formula=${encodeURIComponent(fpcore)}`,
@@ -640,7 +665,7 @@ const herbiejs = (() => {
 function mainPage(api) {
   console.clear()
   console.log('Setting up main demo page...')
-  const textarea = (value=JSON.stringify({mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [0, 1000]]]}, undefined, 2)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
+  const textarea = (value=JSON.stringify({mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]]}, undefined, 2)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
 
   const addSpec = ({ mathjs, ranges }) => { 
     const id = specId++
@@ -860,8 +885,8 @@ function mainPage(api) {
     <h3>Details for Spec with ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs")).ranges)}</h3>
     <div>[todo]</div>
     </div>`
-  const comparisonView = () => ExpressionComparisonView(lastMultiselectedExpressions(), api)
-  const expressionView = () => ExpressionView(lastSelectedExpression(), api)
+  const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
+  const exprView = () => expressionView(lastSelectedExpression(), api)
   
   const specsAndExpressions = (startingSpec) => html`
     <div id="specsAndExpressions">
@@ -898,7 +923,7 @@ function mainPage(api) {
     }>
             ${() => {
               console.log('lastSelection', lastSelection(), lastSelection().multiselection)
-               return expressionView()
+               return exprView()
               }
               }
           <//>
@@ -1003,6 +1028,7 @@ function analysisComputable(expression, api) {
     return (await fetch('localhost:8000/analyze', {
         method: 'POST',
         headers: {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
@@ -1017,7 +1043,7 @@ function analysisComputable(expression, api) {
   return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await analyzeExpression(expression, api), api.tables, api.setTables, api))
 }
 
-function ExpressionView(expression, api) {
+function expressionView(expression, api) {
   //<div>...expression plot here...</div>
   const c = analysisComputable(expression, api)
   return html`<div>
@@ -1046,7 +1072,8 @@ function ExpressionView(expression, api) {
 //import Plot from 'http://127.0.0.1:8080/https://cdn.skypack.dev/@observablehq/plot'
 //console.log('got plot')
 //let Plot = await import('https://cdn.skypack.dev/pin/@observablehq/plot@v0.6.0-abLuPgcZQ9pCNl0q9t7s/mode=imports,min/optimized/@observablehq/plot.js')
-function ExpressionComparisonView(expressions, api) {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function expressionComparisonView(expressions, api) {
   //<div>...expression plot here...</div>
   // <button onClick=${c.compute}>Run Analysis</button>
   // <${Switch}>
@@ -1065,14 +1092,42 @@ function ExpressionComparisonView(expressions, api) {
   //   <//>
    
   const lastSpec = () => api.tables.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false))
-  const pointsJson = () => api.tables.tables.find(t => t.name === 'Analyses').items.find(a => a.expressionId === expressions[0]?.id)?.pointsJson
+  const pointsJsons = () => expressions.map(expression => ({
+    expression,
+    pointsJson: api.tables.tables
+      .find(t => t.name === 'Analyses')
+      .items
+      .find(a => a.expressionId === expression.id)
+      ?.pointsJson
+  }))
   return html`<div>
     <h3>Comparison of ${()=> expressions.length} expressions for Range with id ${() => lastSpec()?.id}</h3>
     ${() => {
+    const validPointsJsons = pointsJsons()
+      .filter(({ expression, pointsJson }) => pointsJson)
       //console.log('pointsJson', pointsJson())
-    if (!pointsJson()) { return 'analysis incomplete' }
+    if (validPointsJsons.length === 0) { return 'analysis incomplete' }
       //console.log(plotError('x', ['target'], ['x'], pointsJson(), Plot))
-      return html`<div>${plotError('x', ['target'], ['x'], pointsJson(), Plot)}</div>`
+    let { points, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits } = validPointsJsons[0].pointsJson
+    const idx = 0
+    const ticks = ticksByVarIdx[idx]
+    const splitpoints = splitpointsByVarIdx[idx]
+    const pointsSlice = points.map(p => p[idx])
+    const data = validPointsJsons.map(({ expression, pointsJson: { error } }) => {
+      //let { error } = pointsJson
+      const keyFn = fn => (a, b) => fn(a) - fn(b)
+      return zip(pointsSlice, error['target']).map(([x, y]) => ({ x, y })).sort(keyFn(p => p.x))
+    })
+    const styles = validPointsJsons.map(({ expression }) => {
+      // LATER color should be RGB string, will append alpha
+      const color = '#00ff00'
+      //const color = api.tables.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
+      /** alpha value for dots on the graph */
+      const dotAlpha = '35'
+      return { line: { stroke: color }, dot: { stroke: color + dotAlpha } }
+    })
+    //console.log(data)
+    return html`<div>${plotError({ data, styles, ticks, splitpoints, bits }, Plot)}</div>`
     }
     }
   </div>`
@@ -1102,4 +1157,4 @@ function selectNaiveExpression(spec, api) {
   return {multiselection: true, selection: (o, table) => table === "Expressions" && o.fpcore === spec.fpcore || curr.includes(o.id)}
 }
 
-export default {mainPage, ExpressionView, ExpressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression}
+export default {mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression}

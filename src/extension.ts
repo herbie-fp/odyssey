@@ -17,11 +17,13 @@ export function activate(context: vscode.ExtensionContext) {
 	const corsHost = '0.0.0.0'
 	const corsPort = 8080
 	try {
-			corsProxy.createServer({
+			const server = corsProxy.createServer({
 				originWhitelist: [], // Allow all origins
 				requireHeader: ['origin', 'x-requested-with'],
 				removeHeaders: ['cookie', 'cookie2']
-		}).listen(corsPort, corsHost, function() {
+			})
+				server.on('error', (...args : any[]) => console.log('CORS proxy error', args))
+				server.listen(corsPort, corsHost, function () {
 				console.log('Running CORS Anywhere on ' + corsHost + ':' + corsPort);
 		});
 	} catch (error) {

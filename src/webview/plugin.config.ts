@@ -163,7 +163,7 @@ export default [
     views: [
       {
         selector: 'Expressions',
-        fn: 'ExpressionView'
+        fn: 'expressionView'
       }
     ]
   },

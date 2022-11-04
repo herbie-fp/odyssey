@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 console.log('Loading platform code...')
-import { createStore, produce, unwrap } from "../../dependencies/dependencies.js";
+import { createStore, produce, unwrap, untrack } from "../../dependencies/dependencies.js";
 
 async function applyRule(rule, item, api, import_from_module) {
   return rule.fn(item, api, import_from_module)
@@ -36,12 +36,16 @@ function getPluginTables(plugin_config, api) {
 
 function select(callerPlugin, tname, item, tables, setTables) {
   console.debug(callerPlugin, tname, item, tables, setTables)
-  setTables(produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname }) }))
+  const idx = tables.tables.findIndex(t => t.name === 'Selections')
+  //HACK we are resetting all the entries in the table because it guarantees that listeners to the table will see an update
+  // might not be necessary, test if performance is an issue
+  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname}])//*/produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname }) }))
 }
 
 function multiselect(callerPlugin, tname, item, tables, setTables) {
   console.debug(callerPlugin, tname, item, tables, setTables)
-  setTables(produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname, multiselection: true }) }))
+  const idx = tables.tables.findIndex(t => t.name === 'Selections')
+  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname, multiselection: true}])//*/produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname, multiselection: true }) }))
 }
 
 // TODO better logging--stack trace/whyline-ish features
@@ -77,9 +81,26 @@ function create(callerPlugin, tname, item, tables, setTables, api, import_from_m
 
   if (plugin === 'platform' && name === 'Tables') {
     // special case: we are creating a table
-    setTables(produce((tables:any) => tables.tables.push(item)))
+    //console.log('adding table:', item)
+    setTables(/*'tables', l => [...l, item])/*/produce((tables:any) => {
+      tables.tables = [...tables.tables, item]
+    }))
+    //console.log('added')
   } else {
-    setTables(produce((tables:any) => tables.tables.find(t => t.plugin === plugin && t.name === name)?.items.push(item)))
+    //console.log('adding item', item, plugin, name, unwrap(tables.tables), tables.tables.indexOf(t => t.plugin === plugin && t.name === name))
+    // const idx = tables.tables.findIndex(t => t.plugin === plugin && t.name === name)
+    // //console.log(idx)
+    // if (idx >= 0) {
+    //   //console.log('will set')
+    //   setTables('tables', idx, 'items', l => [...l, item])
+    //   //console.log('done setting')
+    // }
+    setTables(produce((tables:any) => {
+      const table = tables.tables.find(t => t.plugin === plugin && t.name === name)
+      if (table) {
+        table.items.push(item)
+      }
+    }))
   }
   
   // apply all existing rules to created item

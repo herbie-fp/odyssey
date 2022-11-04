@@ -1,4 +1,5 @@
 import { create } from "domain";
+import { applyTransformDependencies } from "mathjs";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
 import { createStore, createEffect, createRenderEffect, createMemo, produce } from "../../dependencies/dependencies.js";
 import { math, Plot } from "../../dependencies/dependencies.js"
@@ -16,7 +17,9 @@ let expressionId = 1
  */
 function computable(cacheValue=()=>undefined, fn, ...args) {
   // promise-ish, but not exactly the same
-  
+  const computeN = COMPUTE_N++
+  console.log('make compute:', computeN)
+
   const compute = async () => {
       setStore(produce(store => {
         //store.promise = p
@@ -51,12 +54,13 @@ function computable(cacheValue=()=>undefined, fn, ...args) {
     value: undefined
   })
 
-  createRenderEffect(() => {  // if the cache gets updated before compute, just resolve
-    //console.log('effect running')
+  createEffect(() => {  // if the cache gets updated before compute, just resolve
+    // TODO might need to bail here if already computed? Don't want to constantly reset value...
+    console.log('effect running for', computeN)
     const value = cacheValue()
-    //console.log(value)
+    console.log(value)
     if (value !== undefined) {
-      console.log('setting computed', value)
+      console.log('setting computed', value, 'for', computeN)
       setStore(produce(store => {
         store.status = 'computed'
         store.value = value
@@ -736,6 +740,11 @@ function mainPage(api) {
       // TODO (implement multiselect action -- just put all matches in an array)
     }
     const c = altGenComputable(spec, api) // TODO probably should be done with an action + rule
+    const request = () => api.tables.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
+    const makeRequest = () => api.action('create', 'demo', 'Requests', {specId: spec.id}, api.tables, api.setTables)
+    console.log('rerendering')
+    const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
+
     const selectSpec = spec => api.action('select', 'demo', 'Specs', o => o.id === spec.id, api.tables, api.setTables)
     return html`<div class="specRow">
       <span onClick=${() => selectSpec(spec)}>Range with id ${spec.id}</span>
@@ -745,13 +754,13 @@ function mainPage(api) {
       <//>
       <span>
         <${Switch}>
-          <${Match} when=${() => c.status === 'unrequested' && !(expressions().find(o => o.specId === spec.id && o.provenance === 'herbie'))}>
-            <button onClick=${c.compute}>Get alternatives with Herbie</button>
+          <${Match} when=${() => /*c.status === 'unrequested' &&*/!request() && !herbieSuggestion()}>
+            <button onClick=${() => (c.compute(), makeRequest())}>Get alternatives with Herbie</button>
           <//>
-          <${Match} when=${() => c.status === 'requested'}>
+          <${Match} when=${() => /*c.status === 'requested' */ request() && !herbieSuggestion()}>
             waiting for alternatives...
           <//>
-          <${Match} when=${() => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')}>
+          <${Match} when=${() => herbieSuggestion()}>
             [alternatives shown]
           <//>
           <${Match} when=${() => c.status === 'error'}>
@@ -776,8 +785,15 @@ function mainPage(api) {
   const getExpressionRow = (expression) => {
     // TODO there might be a runaway reactive rendering bug around here
     // (seems to impact performance only)
-    const c = analysisComputable(expression, api)
+    //const c = analysisComputable(expression, api)
+    const analysis = () => analyses().find(a => a.expressionId === expression.id)
+    
+    //const request = () => api.tables.tables.find(t => t.name === "Requests").items.find(r => r.expressionId === expression.id)
     //console.log('rerendering')
+    // if (!analysis() && !request()) {
+    //   api.action('create', 'demo', 'Requests', {expressionId: expression.id}, api.tables, api.setTables)
+    //   analyzeExpression(expression, api).then(a => api.action('create', 'demo', 'Analyses', a, api.tables, api.setTables, api))
+    // }
 
     //console.log(currentSelection())
     const toggleMultiselected = () => {
@@ -796,6 +812,7 @@ function mainPage(api) {
     // <span>
     // <button>inline details</button>
     // </span>
+    //console.log('here 800', c, analysis, expression)
     return html`<div class="expressionRow" >
       <span>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
@@ -803,16 +820,16 @@ function mainPage(api) {
       <span onClick=${selectExpression(expression)}>${expression.fpcore}</span>
       <span>
         <${Switch}>
-          <${Match} when=${() => c.status === 'unrequested'}>
+          <${Match} when=${() => false && /* c.status === 'unrequested' && */ !analysis() /* && !request() */}>
             waiting for analysis (unreq)...
           <//>
-          <${Match} when=${() => c.status === 'requested'}>
+          <${Match} when=${() => /*c.status === 'requested' */ !analysis() /*&& request() */}>
             waiting for analysis...
           <//>
-          <${Match} when=${() => c.status === 'computed'}>
-            ${() => JSON.stringify(Object.fromEntries(Object.entries(c.value as any).filter(([k, v]) => ['meanBitsError', 'performance', 'expressionId'].includes(k))))}
+          <${Match} when=${() => analysis() /*c.status === 'computed'*/}>
+            ${() => JSON.stringify(Object.fromEntries(Object.entries(analysis()).filter(([k, v]) => ['meanBitsError', 'performance', 'expressionId'].includes(k))))}
           <//>
-          <${Match} when=${() => c.status === 'error'}>
+          <${Match} when=${() => false /*(c.status === 'error' */}>
             error during computation :(
           <//>
         <//>
@@ -838,7 +855,7 @@ function mainPage(api) {
     //console.log('makeExpression called')
     const id = expressionId++
     // ugly HACK duplicate the spec on the expression, see analyzeExpression
-    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec}, api.tables, api.setTables, api)
+    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec}, api.tables, api.setTables)
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.action('multiselect', 'demo', 'Expressions', (o, table) => [...curr, id].includes(o.id), api.tables, api.setTables)
@@ -901,7 +918,6 @@ function mainPage(api) {
 // <//>
   //@ts-ignore
   window.lastSelection = lastSelection
-  createEffect(() => console.log('lastSelection changed:', lastSelection()))
   const analyzeUI = html`<div id="analyzeUI">
     <${Show} when=${() => specs()[0]}
       fallback=${newSpecInput()}>
@@ -911,7 +927,10 @@ function mainPage(api) {
           <${Match} when=${() => lastSelection()?.table === 'Specs'}>
             ${specView}
           <//>
-          <${Match} when=${() => lastSelection()?.multiselection}>
+          <${Match} when=${() => {
+            console.log('here', lastSelection(), lastSelection()?.multiselection)
+            return lastSelection()?.multiselection !== undefined
+          }}>
             ${() =>
   { console.log('compare', lastSelection());  return comparisonView() }
             }
@@ -1001,15 +1020,17 @@ function altGenComputable(spec, api) {
     const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
       return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
     })
-    expressions.map(e => api.action('create', 'demo', 'Expressions', e, api.tables, api.setTables, api))
+    expressions.map(e => api.action('create', 'demo', 'Expressions', e, api.tables, api.setTables))
     //ids = expressions.map(e => e.id)
     const curr = currentMultiselection(api).map(o => o.id)
     api.action('multiselect', 'demo', 'Expressions', o => [...curr, ...ids].includes(o.id), api.tables, api.setTables)
     return 'done'
   }
 
-  return computable(() => ids.every(id => expressions().find(o => o.id === id)) || undefined, genHerbieAlts)
+  return {compute: genHerbieAlts, status: 'fine'} //computable(() => ids.every(id => expressions().find(o => o.id === id)) || undefined, genHerbieAlts)
 }
+
+let COMPUTE_N = 0
 
 function analysisComputable(expression, api) {
   const analyses = () => api.tables.tables.find(t => t.name === 'Analyses').items
@@ -1045,6 +1066,7 @@ function analysisComputable(expression, api) {
 
 function expressionView(expression, api) {
   //<div>...expression plot here...</div>
+  // TODO remove this computable
   const c = analysisComputable(expression, api)
   return html`<div>
     <h3>Details for Expression ${expression.fpcore}</h3>
@@ -1135,6 +1157,8 @@ function expressionComparisonView(expressions, api) {
 
 // Pipe requests to Herbie through a CORS-anywhere proxy
 const HOST = 'http://127.0.0.1:8080/127.0.0.1:8000'
+
+// NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
 
 async function analyzeExpression(expression, api) {
   // const specs = () => api.tables.tables.find(t => t.name === 'Specs').items

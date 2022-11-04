@@ -126,7 +126,7 @@ export default [
   },
   {
     name: 'demo',
-    tables: ['Specs', 'Expressions', 'Analyses'],
+    tables: ['Specs', 'Expressions', 'Analyses', 'Requests'],
     //action: ['runFoo'],
     rules: [
       {

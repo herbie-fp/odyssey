@@ -86,16 +86,17 @@ function render(api) {
     pages = pages || api.tables.tables.find(t => t.name === "Pages")
     console.trace('marker', pages)
     //.log(api.getLastSelected((_, t) => t === "Pages")?.selection, api.tables.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage"))
-    return pages?.selection || pages.items.find(p => p.plugin === 'demo' && p.name === "mainPage")
+    return pages?.selection || pages?.items.find(p => p.plugin === 'demo' && p.name === "mainPage")
   }
 
   const currentPage = getCurrentPage()
   // TODO figure out how to get the page names/selection working
-  const pageSelect = html`<select onChange=${e => api.action('select', 'Pages', (o) => `${o.plugin}.${o.name}` === e.target.value)}>
-    <${For} each=${() => api.tables.tables.find(t => t.name === "Pages")}>${ () => 
-      // HACK value needs to be the page's id
-      html`<option value="${page => `${page.plugin}.${page.name}`}">${page => page.name}</option>`}<//>
-    </select>`
+  // const pageSelect = html`<select onChange=${e => api.action('select', 'Pages', (o) => `${o.plugin}.${o.name}` === e.target.value)}>
+  //   <${For} each=${() => api.tables.tables.find(t => t.name === "Pages").items}>${ (page) => 
+  //     // HACK value needs to be the page's id
+  //     (!page) ? 'no page' :
+  //     html`<option value="${() => `${page.plugin}.${page.name}`}">${() => page.name}</option>`}<//>
+  //   </select>`
   // <!-- hide toolbar for now
   // <div id="toolbar">
   //   This is the toolbar!

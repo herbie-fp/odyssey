@@ -49,12 +49,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// TODO show that we can connect to the server and get a response (let's try a webview of the index)
 
-	let disposable1 = vscode.commands.registerCommand('interactive-herbie.webViewTest', () => {
+	let disposable1 = vscode.commands.registerCommand('interactive-herbie.openWindow', () => {
 		
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(
 			'herbieIndex', // Identifies the type of the webview. Used internally
-			'webViewTest Title', // Title of the panel displayed to the user
+			'FPSynth: Herbie', // Title of the panel displayed to the user
 			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
 			{
 				// Enable scripts in the webview
@@ -100,7 +100,7 @@ export function activate(context: vscode.ExtensionContext) {
 				</body>
 				</html>`
 
-		vscode.window.showInformationMessage('Created WebView.');
+		//vscode.window.showInformationMessage('Created WebView.');
 	});
 
 	context.subscriptions.push(disposable1);

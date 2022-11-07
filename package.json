@@ -13,7 +13,7 @@
   ],
   "activationEvents": [
     "onCommand:interactive-herbie.helloWorld",
-    "onCommand:interactive-herbie.webViewTest"
+    "onCommand:interactive-herbie.openWindow"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -23,8 +23,8 @@
         "title": "Herbie: Hello World"
       },
       {
-        "command": "interactive-herbie.webViewTest",
-        "title": "Herbie: webview test"
+        "command": "interactive-herbie.openWindow",
+        "title": "FPSynth: Herbie"
       }
     ]
   },

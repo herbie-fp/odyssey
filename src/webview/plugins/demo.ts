@@ -8,6 +8,24 @@ let specId = 1
 let sampleId = 1
 let expressionId = 1
 
+function getColorCode(seed) {
+  var makeColorCode = '0123456789ABCDEF';
+  var code = '#';
+  // 1993 Park-Miller LCG, courtesy of https://gist.github.com/blixt/f17b47c62508be59987b
+  function LCG(s) {
+    return function() {
+      s = Math.imul(48271, s) | 0 % 2147483647;
+      return (s & 2147483647) / 2147483648;
+    }
+  }
+  const rand = LCG(seed + 15)
+  rand()  //burn first result
+  for (var count = 0; count < 6; count++) {
+     code =code+ makeColorCode[Math.floor(rand() * 16)];
+  }
+  return code;
+}
+
 /**
  * 
  * @param cacheValue a signal for the value being computed
@@ -813,11 +831,13 @@ function mainPage(api) {
     // <button>inline details</button>
     // </span>
     //console.log('here 800', c, analysis, expression)
+    //style="color: ${() => getColorCode(expression.id)};"
     return html`<div class="expressionRow" >
       <span>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </span>
       <span onClick=${selectExpression(expression)}>${expression.fpcore}</span>
+      <span style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</span>
       <span>
         <${Switch}>
           <${Match} when=${() => false && /* c.status === 'unrequested' && */ !analysis() /* && !request() */}>
@@ -1142,7 +1162,7 @@ function expressionComparisonView(expressions, api) {
     })
     const styles = validPointsJsons.map(({ expression }) => {
       // LATER color should be RGB string, will append alpha
-      const color = '#00ff00'
+      const color = getColorCode(expression.id)//'#00ff00'
       //const color = api.tables.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
       /** alpha value for dots on the graph */
       const dotAlpha = '35'

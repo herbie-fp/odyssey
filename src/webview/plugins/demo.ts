@@ -1188,9 +1188,10 @@ function expressionComparisonView(expressions, api) {
     return html`<div>${plotError({ data, styles, ticks, splitpoints, bits }, Plot)}</div>`
     }
     }
-    ${() => getTable(api, 'Variables').map(v => {
+    ${() => getTable(api, 'Variables').filter(v => v.specId === expressions?.[0]?.specId).map(v => {
       console.log(currentVarname())
-      return html`<span class="varname" style=${() => currentVarname() === v.varname ? { "background-color": 'lightgray' } : {}} onClick=${() => select(api, 'Variables', o => o.varname === v.varname)}>${v.varname}</span>`
+      /* ts-styled-plugin: disable-next-line */
+      return html`<span class="varname" style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', o => o.varname === v.varname)}>${v.varname}</span>`
     })}
   </div>`
 }

@@ -15,6 +15,12 @@
 		"sourceMap": true,
     "jsx": "preserve",
     "resolveJsonModule": true,
-		"strict": true
+		"strict": true,
+		"plugins": [
+      {
+        "name": "typescript-styled-plugin",
+        "validate": false
+      }
+    ]
 	}
 }

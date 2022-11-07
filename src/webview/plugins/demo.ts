@@ -835,11 +835,12 @@ function mainPage(api) {
     //console.log('here 800', c, analysis, expression)
     //style="color: ${() => getColorCode(expression.id)};"
     return html`<div class="expressionRow" >
+      <span style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</span>
       <span>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </span>
       <span onClick=${selectExpression(expression)}>${expression.mathjs ? expression.mathjs : expression.fpcore}</span>
-      <span style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</span>
+      
       <span>
         <${Switch}>
           <${Match} when=${() => false && /* c.status === 'unrequested' && */ !analysis() /* && !request() */}>

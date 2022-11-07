@@ -685,9 +685,11 @@ const herbiejs = (() => {
 })()
 
 function mainPage(api) {
-  console.clear()
+  //console.clear()
   console.log('Setting up main demo page...')
-  const textarea = (value=JSON.stringify({mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]]}, undefined, 2)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
+  const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
+  //const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(y)", ranges: [["x", [1, 1e9]], ["y", [-1e9, 1]]] }
+  const textarea = (value=JSON.stringify(defaultSpec, undefined, 2)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
 
   const addSpec = ({ mathjs, ranges }) => { 
     const id = specId++
@@ -836,7 +838,7 @@ function mainPage(api) {
       <span>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </span>
-      <span onClick=${selectExpression(expression)}>${expression.fpcore}</span>
+      <span onClick=${selectExpression(expression)}>${expression.mathjs ? expression.mathjs : expression.fpcore}</span>
       <span style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</span>
       <span>
         <${Switch}>
@@ -871,17 +873,17 @@ function mainPage(api) {
   }
   const noExpressionsForSpec = spec => expressionsForSpec(spec).length === 0
   
-  const makeExpression = (spec, fpcore) => () => {
+  const makeExpression = (spec, fpcore, mathjs) => () => {
     //console.log('makeExpression called')
     const id = expressionId++
     // ugly HACK duplicate the spec on the expression, see analyzeExpression
-    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec}, api.tables, api.setTables)
+    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec, mathjs}, api.tables, api.setTables)
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.action('multiselect', 'demo', 'Expressions', (o, table) => [...curr, id].includes(o.id), api.tables, api.setTables)
   }
   
-  const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreBody(spec.mathjs))
+  const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreBody(spec.mathjs), spec.mathjs)
 
   const noExpressionsRow = spec => {
     return html`<div class="noExpressionsRow">
@@ -895,7 +897,7 @@ function mainPage(api) {
     <div>
     ${text}
     </div>
-    <button onClick=${() => makeExpression(spec, fpcorejs.FPCoreBody(text.value))()}>Add expression</button>
+    <button onClick=${() => makeExpression(spec, fpcorejs.FPCoreBody(text.value), text.value)()}>Add expression</button>
     </div>`
   }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
@@ -927,7 +929,7 @@ function mainPage(api) {
   
   const specsAndExpressions = (startingSpec) => html`
     <div id="specsAndExpressions">
-      <div id="specTitle">The Spec: ${startingSpec.fpcore}</div>
+      <div id="specTitle">The Spec: ${startingSpec.mathjs}</div>
       <${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
       ${() => modifyRange(startingSpec)}
     </div>`
@@ -976,12 +978,12 @@ function mainPage(api) {
   const contents = () => analyzeUI
   const div = html`<div id="demo">
     <style>
-      #analyzeUI div {
+      #analyzeUI div:not(.math *) {
         border: 1px solid black;
         margin: 2px;
         padding: 2px;
       }
-      #analyzeUI span {
+      #analyzeUI span:not(.math *) {
         border: 1px solid black;
         margin: 2px;
       }
@@ -1089,7 +1091,7 @@ function expressionView(expression, api) {
   // TODO remove this computable
   const c = analysisComputable(expression, api)
   return html`<div>
-    <h3>Details for Expression ${expression.fpcore}</h3>
+    <h3>Details for Expression ${expression.mathjs || expression.fpcore}</h3>
     <${Switch}>
       <${Match} when=${() => c.status === 'unrequested'}>
         <button onClick=${c.compute}>Run Analysis</button>
@@ -1098,7 +1100,19 @@ function expressionView(expression, api) {
         waiting...
       <//>
       <${Match} when=${() => c.status === 'computed'}>
-        ${() => JSON.stringify(c.value)}
+        ${() => {
+    if (expression.provenance !== 'herbie') { return 'No details.'}
+      const el = document.createElement('div') as HTMLElement
+    el.innerHTML = (c as any).value?.graphHtml;
+    (window as any).renderMathInElement(el.querySelector('#history'))
+      return html`
+          <div>
+            ${el.querySelector('#history')}
+            ${el.querySelector('#reproduce')}
+          </div>
+    `
+    }
+    }
       <//>
       <${Match} when=${() => c.status === 'error'}>
         ${() => console.log(c)}
@@ -1142,6 +1156,7 @@ function expressionComparisonView(expressions, api) {
       .find(a => a.expressionId === expression.id)
       ?.pointsJson
   }))
+  const currentVarname = () => getLastSelected(api, "Variables")?.varname || getTable(api, 'Variables')?.[0].varname
   return html`<div>
     <h3>Comparison of ${()=> expressions.length} expressions for Range with id ${() => lastSpec()?.id}</h3>
     ${() => {
@@ -1150,8 +1165,9 @@ function expressionComparisonView(expressions, api) {
       //console.log('pointsJson', pointsJson())
     if (validPointsJsons.length === 0) { return 'analysis incomplete' }
       //console.log(plotError('x', ['target'], ['x'], pointsJson(), Plot))
-    let { points, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits } = validPointsJsons[0].pointsJson
-    const idx = 0
+    let { points, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars } = validPointsJsons[0].pointsJson
+    const idx = Math.max(vars.findIndex(v => v === currentVarname()), 0)
+    console.log(idx)
     const ticks = ticksByVarIdx[idx]
     const splitpoints = splitpointsByVarIdx[idx]
     const pointsSlice = points.map(p => p[idx])
@@ -1172,7 +1188,22 @@ function expressionComparisonView(expressions, api) {
     return html`<div>${plotError({ data, styles, ticks, splitpoints, bits }, Plot)}</div>`
     }
     }
+    ${() => getTable(api, 'Variables').map(v => {
+      console.log(currentVarname())
+      return html`<span class="varname" style=${() => currentVarname() === v.varname ? { "background-color": 'lightgray' } : {}} onClick=${() => select(api, 'Variables', o => o.varname === v.varname)}>${v.varname}</span>`
+    })}
   </div>`
+}
+
+function getTable(api, tname) {
+  return api.tables.tables.find(t => t.name === tname).items
+}
+function select(api, tname, selectFn) {
+  return api.action('select', 'demo', tname, selectFn, api.tables, api.setTables)
+}
+
+function getLastSelected(api, tname) {
+  return getTable(api, tname).find(api.getLastSelected((o, table) => table === tname) || (() => false))
 }
 
 // Pipe requests to Herbie through a CORS-anywhere proxy
@@ -1193,7 +1224,11 @@ async function analyzeExpression(expression, api) {
 // TODO def need to attach ids automatically on object generation in platform
 function addNaiveExpression(spec) {
   // HACK expression.spec is duplicated, see analyzeExpression
-  return {specId: spec.id, fpcore: fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec}
+  return {specId: spec.id, fpcore: fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs}
+}
+
+function addVariables(spec) {
+  return fpcorejs.getVarnamesMathJS(spec.mathjs).map(v => ({specId: spec.id, varname: v}))
 }
 
 function selectNaiveExpression(spec, api) {
@@ -1201,4 +1236,4 @@ function selectNaiveExpression(spec, api) {
   return {multiselection: true, selection: (o, table) => table === "Expressions" && o.fpcore === spec.fpcore || curr.includes(o.id)}
 }
 
-export default {mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression}
+export default {mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression, addVariables}

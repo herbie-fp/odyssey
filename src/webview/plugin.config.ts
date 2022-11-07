@@ -126,7 +126,7 @@ export default [
   },
   {
     name: 'demo',
-    tables: ['Specs', 'Expressions', 'Analyses', 'Requests'],
+    tables: ['Specs', 'Expressions', 'Analyses', 'Requests', 'Variables'],
     //action: ['runFoo'],
     rules: [
       {
@@ -138,6 +138,11 @@ export default [
         selector: 'Specs',
         table: 'Expressions',
         fn: 'addNaiveExpression'
+      },
+      {
+        selector: 'Specs',
+        table: 'Variables',
+        fn: 'addVariables'
       },
       // {
       //   selector: 'Specs',

@@ -620,15 +620,31 @@ function plotError({ ticks, splitpoints, data, bits, styles, width=800, height=4
 
 const herbiejs = (() => {
   async function graphHtmlAndPointsJson(fpcore, host, log) {
-    const sendJobResponse = await fetch( host + "/improve-start", {
+    const improveStartLoc = host === 'http://127.0.0.1:8080/http://herbie.uwplse.org' ? host + '/demo/improve-start' : host + '/improve-start'
+    const sendJobResponse = await fetch( improveStartLoc, {
       "headers": {
           // eslint-disable-next-line @typescript-eslint/naming-convention
-          "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Sec-Fetch-Site": "same-origin"
       },
       "body": `formula=${encodeURIComponent(fpcore)}`,
+      "referrer": "https://herbie.uwplse.org/demo/",
       "method": "POST",
       "mode": "cors"
     });
+    // await fetch("https://herbie.uwplse.org/demo/improve-start", {
+    // "credentials": "omit",
+    // "headers": {
+    //     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
+    //     "Accept": "*/*",
+    //     "Accept-Language": "en-US,en;q=0.5",
+    //     "Content-Type": "application/x-www-form-urlencoded",
+    //     "Sec-Fetch-Dest": "empty",
+    //     "Sec-Fetch-Mode": "cors",
+    //     "Sec-Fetch-Site": "same-origin"
+    // },
+    // ,
+
     const checkStatusLocation = sendJobResponse.headers.get('location')
     const checkStatusResponse = await (async () => {
       let out = null as any
@@ -1209,7 +1225,7 @@ function getLastSelected(api, tname) {
 }
 
 // Pipe requests to Herbie through a CORS-anywhere proxy
-const HOST = 'http://127.0.0.1:8080/127.0.0.1:8000'
+const HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org'//127.0.0.1:8000'
 
 // NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
 

@@ -106,7 +106,26 @@ function render(api) {
   return html`
     
     <div id="currentPage">
-      ${() => getCurrentPage()?.fn(api, api.tables.find(t => t.name === "Panes").items).div}
+      ${() => {
+      const page = getCurrentPage()
+      const apiHandler = {
+        get(target, prop, receiver) {  // kind of a HACK; we want the calling plugin name to be included automatically in the record
+          if (prop === "select") {
+            return (...args) => api.action('select', page.plugin, ...args)
+          }
+          if (prop === "multiselect") {
+            return (...args) => api.action('multiselect', page.plugin, ...args)
+          }
+          if (prop === "create") {  // TODO also fix 'create' calls
+            return (...args) => api.action('create', page.plugin, ...args)
+          }
+          //@ts-ignore
+          return Reflect.get(...arguments);
+        }
+      }
+      const proxy = new Proxy(api, apiHandler)
+      return page?.fn(proxy, api.tables.find(t => t.name === "Panes").items).div
+    }}
     </div>
     
   `

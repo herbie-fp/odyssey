@@ -606,9 +606,9 @@ function mainPage(api) {
     const id = specId++
     const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, ranges }), ranges, id}
     api.action('create', 'demo', 'Specs', spec)//, api.tables, api.setTables) //untrack(() => api))  // HACK untrack here is weird
-    api.action('select', 'demo', 'Specs', (o) => o.id === id)//, api.tables, api.setTables)
+    api.select('Specs', (o) => o.id === id)//, api.tables, api.setTables)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.action('multiselect', 'demo', 'Expressions', (o) => o.specId === id || curr.includes(o.id))//, api.tables, api.setTables)
+    api.multiselect('Expressions', (o) => o.specId === id || curr.includes(o.id))//, api.tables, api.setTables)
   }
 
   const newSpecInput = () => {
@@ -667,7 +667,7 @@ function mainPage(api) {
       api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' B', id2, provenance: 'herbie' })//, api.tables, api.setTables, api)
       let id3 = expressionId++
       api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' C', id3, provenance: 'herbie' })//, api.tables, api.setTables, api)
-      api.action('multiselect', 'demo', 'Expressions', o => [id1, id2, id3].includes(o.id))//, api.tables, api.setTables)
+      api.multiselect('Expressions', o => [id1, id2, id3].includes(o.id))//, api.tables, api.setTables)
       // TODO (implement multiselect action -- just put all matches in an array)
     }
     const c = altGenComputable(spec, api) // TODO probably should be done with an action + rule
@@ -676,7 +676,7 @@ function mainPage(api) {
     console.log('rerendering')
     const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
 
-    const selectSpec = spec => api.action('select', 'demo', 'Specs', o => o.id === spec.id)//, api.tables, api.setTables)
+    const selectSpec = spec => api.select('Specs', o => o.id === spec.id)//, api.tables, api.setTables)
     return html`<div class="specRow">
       <span onClick=${() => selectSpec(spec)}>Range with id ${spec.id}</span>
       <${Show} when=${() => relevantSamples().length !== 0}>
@@ -708,7 +708,7 @@ function mainPage(api) {
     </div>`
   }
   const selectExpression = expression => () => {
-    api.action('select', 'demo', 'Expressions', o => o.id === expression.id)//, api.tables, api.setTables)
+    api.select('Expressions', o => o.id === expression.id)//, api.tables, api.setTables)
   }
 
   const analyses = () => api.tables.find(t => t.name === 'Analyses').items
@@ -723,8 +723,8 @@ function mainPage(api) {
         ...currentMultiselection(api).map(o => o.id).filter(id => id !== expression.id),
         ...[boxChecked() ? [] : expression.id]]
       //console.log(newSelectionIds)
-      api.action('select', 'demo', 'Specs', (o, table) => o.id === expression.specId)//, api.tables, api.setTables)
-      api.action('multiselect', 'demo', 'Expressions', o => {
+      api.select('Specs', (o, table) => o.id === expression.specId)//, api.tables, api.setTables)
+      api.multiselect('Expressions', o => {
         return newSelectionIds.includes(o.id)
       })//, api.tables, api.setTables)
     }
@@ -783,7 +783,7 @@ function mainPage(api) {
     api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec, mathjs})//, api.tables, api.setTables)
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.action('multiselect', 'demo', 'Expressions', (o, table) => [...curr, id].includes(o.id))//, api.tables, api.setTables)
+    api.multiselect('Expressions', (o, table) => [...curr, id].includes(o.id))//, api.tables, api.setTables)
   }
   
   const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreBody(spec.mathjs), spec.mathjs)
@@ -915,7 +915,7 @@ function mainPage(api) {
   `
 
   // HACK immediately multiselect the initial expression
-  setTimeout(() => api.action('multiselect', 'demo', 'Expressions', o => true))//, api.tables, api.setTables))
+  setTimeout(() => api.multiselect('Expressions', o => true))//, api.tables, api.setTables))
   // HACK jump to a submitted spec + expression
   //setTimeout(() => submit(), 0)  
   // createEffect(() => {
@@ -948,7 +948,7 @@ function altGenComputable(spec, api) {
     expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
     //ids = expressions.map(e => e.id)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.action('multiselect', 'demo', 'Expressions', o => [...curr, ...ids].includes(o.id))//, api.tables, api.setTables)
+    api.multiselect('Expressions', o => [...curr, ...ids].includes(o.id))//, api.tables, api.setTables)
     return 'done'
   }
 
@@ -1103,7 +1103,7 @@ function getTable(api, tname) {
   return api.tables.find(t => t.name === tname).items
 }
 function select(api, tname, selectFn) {
-  return api.action('select', 'demo', tname, selectFn)//, api.tables, api.setTables)
+  return api.select(tname, selectFn)//, api.tables, api.setTables)
 }
 
 function getLastSelected(api, tname) {

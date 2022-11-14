@@ -513,111 +513,6 @@ function plotError({ ticks, splitpoints, data, bits, styles, width=800, height=4
   return out
 }
 
-// const plotError = (varName, function_names, all_vars, points_json, Plot) => {
-//   //console.log(varName, function_names, all_vars, points_json, Plot)
-//   /* Returns an SVG plot. Requires Observable Plot. */
-//   const functions = [
-//       { name: 'start', line: { stroke: '#aa3333ff' }, area: { fill: "#c001"}, dot: { stroke: '#ff000035'} },
-//       { name: 'end', line: { stroke: '#0000ffff' }, area: { fill: "#00c1"}, dot: { stroke: '#0000ff35'} },
-//       { name: 'target', line: { stroke: 'green' }, dot: { stroke: '#00ff0035'}}
-//   ].filter(o => function_names.includes(o.name))
-//   const index = all_vars.indexOf(varName)
-//   // NOTE ticks and splitpoints include all vars, so we must index
-//   const { bits, points, error, ticks_by_varidx, splitpoints_by_varidx } = points_json
-//   const ticks = ticks_by_varidx[index]
-//   if (!ticks) {
-//       return html`<div>The function could not be plotted on the given range for this input.</div>`
-//   }
-//   const tick_strings = ticks.map(t => t[0])
-//   const tick_ordinals = ticks.map(t => t[1])
-//   const tick_0_index = tick_strings.indexOf("0")
-//   const splitpoints = splitpoints_by_varidx[index]
-//   const grouped_data = points.map((p, i) => ({
-//       input: p,
-//       error: Object.fromEntries(function_names.map(name => ([name, error[name][i]])))
-//   }))
-//   const domain = [Math.min(...tick_ordinals), Math.max(...tick_ordinals)]
-
-//   function extra_axes_and_ticks() {
-//       return [
-//           ...splitpoints.map(p => Plot.ruleX([p], { stroke: "lightgray", strokeWidth: 4 })),
-//           ...(tick_0_index > -1 ? [Plot.ruleX([tick_ordinals[tick_0_index]])] : []),
-//       ]
-//   }
-
-//   function line_and_dot_graphs({ name, fn, line, dot, area }) {
-//       const key_fn = fn => (a, b) => fn(a) - fn(b)
-//       const index = all_vars.indexOf(varName)
-//       const data = grouped_data.map(({ input, error }) => ({
-//               x: input[index],
-//               y: error[name]
-//       })).sort(key_fn(d => d.x))
-//           .map(({ x, y }, i) => ({ x, y, i }))
-//       const sliding_window = (A, size) => {
-//           const half = Math.floor(size / 2)
-//           const running_sum = A.reduce((acc, v) => (acc.length > 0 ? acc.push(v.y + acc[acc.length - 1]) : acc.push(v.y), acc), [])
-//           // const xs = 
-//           //console.log('running', running_sum)
-//           return running_sum.reduce((acc, v, i) => {
-//           const length = 
-//               (i - half) < 0 ? half + i
-//               : (i + half) >= running_sum.length ? (running_sum.length - (i - half))
-//               : size
-//           const top =
-//               (i + half) >= running_sum.length ? running_sum[running_sum.length - 1]
-//               : running_sum[i + half]
-//           const bottom =
-//               (i - half) < 0 ? 0
-//               : running_sum[i - half]
-//           acc.push({average: (top - bottom) / length, x: A[i].x, length})
-//           return acc
-//           }, [])
-//       }
-//       const compress = (L, out_len, chunk_compressor = points => points[0]) => L.reduce((acc, pt, i) => i % Math.floor(L.length / out_len) == 0 ? (acc.push(chunk_compressor(L.slice(i, i + Math.floor(L.length / out_len)))), acc) : acc, [])
-//       const bin_size = 128
-//       const sliding_window_data = compress(
-//           sliding_window(data, bin_size), 800, points => ({
-//               average: points.reduce((acc, e) => e.average + acc, 0) / points.length,
-//               x: points.reduce((acc, e) => e.x + acc, 0) / points.length
-//           }))
-//       return [
-//           Plot.line(sliding_window_data, {
-//               x: "x",
-//               y: "average",
-//               strokeWidth: 2, ...line,
-//           }),
-//           Plot.dot(compress(data, 800), {x: "x", y: "y", r: 1.3,
-//               title: d => `x: ${d.x} \n i: ${d.i} \n bits of error: ${d.y}`,
-//               ...dot
-//           }),
-//       ]
-//   }
-//   // console.log([...extra_axes_and_ticks(),
-//   //   ...functions.map((config:any) =>
-//   //                   line_and_dot_graphs(config)).flat()])
-//   const out = Plot.plot({
-//       width: '800',
-//       height: '400',                
-//           x: {
-//               tickFormat: d => tick_strings[tick_ordinals.indexOf(d)],
-//               ticks: tick_ordinals, label: `value of ${varName}`,
-//               labelAnchor: 'center', /*labelOffset: [200, 20], tickRotate: 70, */
-//               domain,
-//               grid: true
-//           },
-//           y: {
-//               label: "Bits of error", domain: [0, bits],
-//               ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
-//               tickFormat: d => d % 8 != 0 ? '' : d
-//           },
-//           marks: [...extra_axes_and_ticks(),
-//               ...functions.map((config:any) =>
-//                               line_and_dot_graphs(config)).flat()]
-//   })
-//   out.setAttribute('viewBox', '0 0 800 430')
-//   return out
-// }
-
 const herbiejs = (() => {
   async function graphHtmlAndPointsJson(fpcore, host, log) {
     const improveStartLoc = host === 'http://127.0.0.1:8080/http://herbie.uwplse.org' ? host + '/demo/improve-start' : host + '/improve-start'
@@ -819,17 +714,8 @@ function mainPage(api) {
   const analyses = () => api.tables.tables.find(t => t.name === 'Analyses').items
 
   const getExpressionRow = (expression) => {
-    // TODO there might be a runaway reactive rendering bug around here
-    // (seems to impact performance only)
-    //const c = analysisComputable(expression, api)
     const analysis = () => analyses().find(a => a.expressionId === expression.id)
     
-    //const request = () => api.tables.tables.find(t => t.name === "Requests").items.find(r => r.expressionId === expression.id)
-    //console.log('rerendering')
-    // if (!analysis() && !request()) {
-    //   api.action('create', 'demo', 'Requests', {expressionId: expression.id}, api.tables, api.setTables)
-    //   analyzeExpression(expression, api).then(a => api.action('create', 'demo', 'Analyses', a, api.tables, api.setTables, api))
-    // }
 
     //console.log(currentSelection())
     const toggleMultiselected = () => {

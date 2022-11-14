@@ -51,10 +51,32 @@ function multiselect(callerPlugin, tname, item, tables, setTables) {
 // TODO better logging--stack trace/whyline-ish features
 function log(tables, setTables, api, import_from_module, ...values) {
   console.log(...values)
-  create('platform', 'Logs', values, tables, setTables, api, import_from_module)
+  try {
+    JSON.stringify(values)
+  } catch (e) {
+    console.error(e)
+    console.error('There was a circular reference in:', values)
+    console.error(`The same object, with circular refs and fns removed:`, JSON.parse(JSON.stringify(values, removeCircularReferences(values))))
+    //console.log(e, values, JSON.parse(JSON.stringify(values, removeCircularReferences(values))))
+  }
+  create('platform', 'Logs', JSON.parse(JSON.stringify(values, removeCircularReferences(values))), tables, setTables, api, import_from_module)
 }
 
-
+function removeCircularReferences(obj) {
+  const seen = new WeakSet();
+  return (key, value) => {
+    if (typeof value === "object" && value !== null) {
+      if (seen.has(value)) {
+        return; // drop the current key-value pair
+      } else {
+        seen.add(value); // add the current key-value pair to the set
+      }
+    }
+    return value; // return the current key-value pair
+  }
+}
+  
+(window as any).removeCircularReferences = removeCircularReferences
 
 // TODO refactor
 // TODO make actions awaitable?
@@ -149,7 +171,7 @@ async function getAPI(plugin_config, import_from_module, api) {
     create(callerPlugin, 'platform.ActionLogs', { name, args }, tables, setTables, api, import_from_module)
     
     // run the action named name with the specified arguments
-    actions.items.find(a => a.name === name).fn(callerPlugin, ...args)
+    actions.items.find(a => a.name === name).fn(callerPlugin, ...args, tables, setTables)
   }
 
   // HACK for now, when we select something, we just put the whole item in the .selection attribute (should use foreign key)

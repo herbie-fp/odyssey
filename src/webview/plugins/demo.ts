@@ -589,7 +589,7 @@ const herbiejs = (() => {
     },
     analyzeExpression: async (spec, targetFPCoreBody, host, log) => {
         const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
-        const meanBitsError = pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length
+        const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
         return {graphHtml, pointsJson, meanBitsError}
     }
   })
@@ -605,10 +605,10 @@ function mainPage(api) {
   const addSpec = ({ mathjs, ranges }) => { 
     const id = specId++
     const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, ranges }), ranges, id}
-    api.action('create', 'demo', 'Specs', spec, api.tables, api.setTables) //untrack(() => api))  // HACK untrack here is weird
-    api.action('select', 'demo', 'Specs', (o) => o.id === id, api.tables, api.setTables)
+    api.action('create', 'demo', 'Specs', spec)//, api.tables, api.setTables) //untrack(() => api))  // HACK untrack here is weird
+    api.action('select', 'demo', 'Specs', (o) => o.id === id)//, api.tables, api.setTables)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.action('multiselect', 'demo', 'Expressions', (o) => o.specId === id || curr.includes(o.id), api.tables, api.setTables)
+    api.action('multiselect', 'demo', 'Expressions', (o) => o.specId === id || curr.includes(o.id))//, api.tables, api.setTables)
   }
 
   const newSpecInput = () => {
@@ -662,21 +662,21 @@ function mainPage(api) {
     const genHerbieAlts = () => {
       // TODO hook up to Herbie here
       let id1 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' A', id1, provenance: 'herbie' }, api.tables, api.setTables, api)
+      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' A', id1, provenance: 'herbie' })//, api.tables, api.setTables, api)
       let id2 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' B', id2, provenance: 'herbie' }, api.tables, api.setTables, api)
+      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' B', id2, provenance: 'herbie' })//, api.tables, api.setTables, api)
       let id3 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' C', id3, provenance: 'herbie' }, api.tables, api.setTables, api)
-      api.action('multiselect', 'demo', 'Expressions', o => [id1, id2, id3].includes(o.id), api.tables, api.setTables)
+      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' C', id3, provenance: 'herbie' })//, api.tables, api.setTables, api)
+      api.action('multiselect', 'demo', 'Expressions', o => [id1, id2, id3].includes(o.id))//, api.tables, api.setTables)
       // TODO (implement multiselect action -- just put all matches in an array)
     }
     const c = altGenComputable(spec, api) // TODO probably should be done with an action + rule
     const request = () => api.tables.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
-    const makeRequest = () => api.action('create', 'demo', 'Requests', {specId: spec.id}, api.tables, api.setTables)
+    const makeRequest = () => api.action('create', 'demo', 'Requests', {specId: spec.id})//, api.tables, api.setTables)
     console.log('rerendering')
     const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
 
-    const selectSpec = spec => api.action('select', 'demo', 'Specs', o => o.id === spec.id, api.tables, api.setTables)
+    const selectSpec = spec => api.action('select', 'demo', 'Specs', o => o.id === spec.id)//, api.tables, api.setTables)
     return html`<div class="specRow">
       <span onClick=${() => selectSpec(spec)}>Range with id ${spec.id}</span>
       <${Show} when=${() => relevantSamples().length !== 0}>
@@ -708,7 +708,7 @@ function mainPage(api) {
     </div>`
   }
   const selectExpression = expression => () => {
-    api.action('select', 'demo', 'Expressions', o => o.id === expression.id, api.tables, api.setTables)
+    api.action('select', 'demo', 'Expressions', o => o.id === expression.id)//, api.tables, api.setTables)
   }
 
   const analyses = () => api.tables.tables.find(t => t.name === 'Analyses').items
@@ -723,10 +723,10 @@ function mainPage(api) {
         ...currentMultiselection(api).map(o => o.id).filter(id => id !== expression.id),
         ...[boxChecked() ? [] : expression.id]]
       //console.log(newSelectionIds)
-      api.action('select', 'demo', 'Specs', (o, table) => o.id === expression.specId, api.tables, api.setTables)
+      api.action('select', 'demo', 'Specs', (o, table) => o.id === expression.specId)//, api.tables, api.setTables)
       api.action('multiselect', 'demo', 'Expressions', o => {
         return newSelectionIds.includes(o.id)
-      }, api.tables, api.setTables)
+      })//, api.tables, api.setTables)
     }
     // <button onClick=${c.compute}>Run Analysis</button>
     // 
@@ -780,10 +780,10 @@ function mainPage(api) {
     //console.log('makeExpression called')
     const id = expressionId++
     // ugly HACK duplicate the spec on the expression, see analyzeExpression
-    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec, mathjs}, api.tables, api.setTables)
+    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec, mathjs})//, api.tables, api.setTables)
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.action('multiselect', 'demo', 'Expressions', (o, table) => [...curr, id].includes(o.id), api.tables, api.setTables)
+    api.action('multiselect', 'demo', 'Expressions', (o, table) => [...curr, id].includes(o.id))//, api.tables, api.setTables)
   }
   
   const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreBody(spec.mathjs), spec.mathjs)
@@ -915,7 +915,7 @@ function mainPage(api) {
   `
 
   // HACK immediately multiselect the initial expression
-  setTimeout(() => api.action('multiselect', 'demo', 'Expressions', o => true, api.tables, api.setTables))
+  setTimeout(() => api.action('multiselect', 'demo', 'Expressions', o => true))//, api.tables, api.setTables))
   // HACK jump to a submitted spec + expression
   //setTimeout(() => submit(), 0)  
   // createEffect(() => {
@@ -945,10 +945,10 @@ function altGenComputable(spec, api) {
     const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
       return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
     })
-    expressions.map(e => api.action('create', 'demo', 'Expressions', e, api.tables, api.setTables))
+    expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
     //ids = expressions.map(e => e.id)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.action('multiselect', 'demo', 'Expressions', o => [...curr, ...ids].includes(o.id), api.tables, api.setTables)
+    api.action('multiselect', 'demo', 'Expressions', o => [...curr, ...ids].includes(o.id))//, api.tables, api.setTables)
     return 'done'
   }
 
@@ -986,7 +986,7 @@ function analysisComputable(expression, api) {
     return new Promise(resolve => setTimeout(() => resolve({bitsError: 10, performance: 100 * Math.random(), expressionId: expression.id}), 2000))
   }
 
-  return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await analyzeExpression(expression, api), api.tables, api.setTables, api))
+  return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await analyzeExpression(expression, api)))//, api.tables, api.setTables, api))
 }
 
 function expressionView(expression, api) {
@@ -1103,7 +1103,7 @@ function getTable(api, tname) {
   return api.tables.tables.find(t => t.name === tname).items
 }
 function select(api, tname, selectFn) {
-  return api.action('select', 'demo', tname, selectFn, api.tables, api.setTables)
+  return api.action('select', 'demo', tname, selectFn)//, api.tables, api.setTables)
 }
 
 function getLastSelected(api, tname) {

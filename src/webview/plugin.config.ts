@@ -69,7 +69,7 @@ export default [
         // (The above strategy could be used to make Views/Pages into a kind of
         // syntactic sugar so the actual representation can be treated uniformly
         // as just tables and rules?)
-        selector: 'isShowAction',
+        selector: 'isShowAction',  // NOTE custom selectors are not yet implemented
         table: 'Panes',
         fn: 'getPane'  // Must route object to correct view
       }
@@ -103,7 +103,7 @@ export default [
         fn: 'getTableViewPane'
       },
       {
-        selector: 'isShowAction',
+        selector: 'isShowAction',  // NOTE custom selectors are not yet implemented
         table: 'ui.Panes',
         fn: 'getPane'
       }

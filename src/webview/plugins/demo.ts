@@ -602,13 +602,12 @@ function mainPage(api) {
   //const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(y)", ranges: [["x", [1, 1e9]], ["y", [-1e9, 1]]] }
   const textarea = (value=JSON.stringify(defaultSpec, undefined, 2)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
 
-  const addSpec = ({ mathjs, ranges }) => { 
+  const addSpec = async ({ mathjs, ranges }) => { 
     const id = specId++
     const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, ranges }), ranges, id}
-    api.action('create', 'demo', 'Specs', spec)//, api.tables, api.setTables) //untrack(() => api))  // HACK untrack here is weird
-    api.select('Specs', (o) => o.id === id)//, api.tables, api.setTables)
-    const curr = currentMultiselection(api).map(o => o.id)
-    api.multiselect('Expressions', (o) => o.specId === id || curr.includes(o.id))//, api.tables, api.setTables)
+    await api.action('create', 'demo', 'Specs', spec)
+    api.select('Specs', id)
+    api.multiselect('Expressions', expressions().filter(e => e.specId === id).map(e => e.id))
   }
 
   const newSpecInput = () => {
@@ -667,7 +666,7 @@ function mainPage(api) {
       api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' B', id2, provenance: 'herbie' })//, api.tables, api.setTables, api)
       let id3 = expressionId++
       api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' C', id3, provenance: 'herbie' })//, api.tables, api.setTables, api)
-      api.multiselect('Expressions', o => [id1, id2, id3].includes(o.id))//, api.tables, api.setTables)
+      api.multiselect('Expressions', [id1, id2, id3])//, api.tables, api.setTables)
       // TODO (implement multiselect action -- just put all matches in an array)
     }
     const c = altGenComputable(spec, api) // TODO probably should be done with an action + rule
@@ -676,7 +675,7 @@ function mainPage(api) {
     console.log('rerendering')
     const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
 
-    const selectSpec = spec => api.select('Specs', o => o.id === spec.id)//, api.tables, api.setTables)
+    const selectSpec = spec => api.select('Specs', spec.id)//, api.tables, api.setTables)
     return html`<div class="specRow">
       <span onClick=${() => selectSpec(spec)}>Range with id ${spec.id}</span>
       <${Show} when=${() => relevantSamples().length !== 0}>
@@ -708,7 +707,7 @@ function mainPage(api) {
     </div>`
   }
   const selectExpression = expression => () => {
-    api.select('Expressions', o => o.id === expression.id)//, api.tables, api.setTables)
+    api.select('Expressions', expression.id)//, api.tables, api.setTables)
   }
 
   const analyses = () => api.tables.find(t => t.name === 'Analyses').items
@@ -723,10 +722,8 @@ function mainPage(api) {
         ...currentMultiselection(api).map(o => o.id).filter(id => id !== expression.id),
         ...[boxChecked() ? [] : expression.id]]
       //console.log(newSelectionIds)
-      api.select('Specs', (o, table) => o.id === expression.specId)//, api.tables, api.setTables)
-      api.multiselect('Expressions', o => {
-        return newSelectionIds.includes(o.id)
-      })//, api.tables, api.setTables)
+      api.select('Specs', expression.specId)//, api.tables, api.setTables)
+      api.multiselect('Expressions', newSelectionIds)//, api.tables, api.setTables)
     }
     // <button onClick=${c.compute}>Run Analysis</button>
     // 
@@ -783,7 +780,7 @@ function mainPage(api) {
     api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec, mathjs})//, api.tables, api.setTables)
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.multiselect('Expressions', (o, table) => [...curr, id].includes(o.id))//, api.tables, api.setTables)
+    api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
   }
   
   const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreBody(spec.mathjs), spec.mathjs)
@@ -824,7 +821,7 @@ function mainPage(api) {
       .filter(e => e.specId === specId)
   }
   const specView = () => html`<div>
-    <h3>Details for Spec with ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs")).ranges)}</h3>
+    <h3>Details for Spec with ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs"))?.ranges)}</h3>
     <div>[todo]</div>
     </div>`
   const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
@@ -837,7 +834,7 @@ function mainPage(api) {
       ${() => modifyRange(startingSpec)}
     </div>`
 
-  const lastSelection = () => api.tables.find(t => t.name === 'Selections').items.findLast(s => s.table === 'Expressions' || s.table === 'Specs')
+  const lastSelection = () => /*api.getLastSelected((objs, tname) => ['Expressions', 'Specs'].includes(tname))*/api.tables.find(t => t.name === 'Selections').items.findLast(s => s.table === 'Expressions' || s.table === 'Specs')  // may be selection or multiselection
 //   <${Show} when=${lastMultiselectedExpressions}>
 //   ${comparisonView}
 // <//>
@@ -915,7 +912,7 @@ function mainPage(api) {
   `
 
   // HACK immediately multiselect the initial expression
-  setTimeout(() => api.multiselect('Expressions', o => true))//, api.tables, api.setTables))
+  //setTimeout(() => api.multiselect('Expressions', expressions().map(e => e.id)), 1000)//, api.tables, api.setTables))
   // HACK jump to a submitted spec + expression
   //setTimeout(() => submit(), 0)  
   // createEffect(() => {
@@ -948,7 +945,7 @@ function altGenComputable(spec, api) {
     expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
     //ids = expressions.map(e => e.id)
     const curr = currentMultiselection(api).map(o => o.id)
-    api.multiselect('Expressions', o => [...curr, ...ids].includes(o.id))//, api.tables, api.setTables)
+    api.multiselect('Expressions', [...curr, ...ids])//, api.tables, api.setTables)
     return 'done'
   }
 
@@ -1094,7 +1091,7 @@ function expressionComparisonView(expressions, api) {
     ${() => getTable(api, 'Variables').filter(v => v.specId === expressions?.[0]?.specId).map(v => {
       console.log(currentVarname())
       /* ts-styled-plugin: disable-next-line */
-      return html`<span class="varname" style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', o => o.varname === v.varname)}>${v.varname}</span>`
+      return html`<span class="varname" style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', v.id)}>${v.varname}</span>`
     })}
   </div>`
 }
@@ -1102,8 +1099,8 @@ function expressionComparisonView(expressions, api) {
 function getTable(api, tname) {
   return api.tables.find(t => t.name === tname).items
 }
-function select(api, tname, selectFn) {
-  return api.select(tname, selectFn)//, api.tables, api.setTables)
+function select(api, tname, id) {
+  return api.select(tname, id)//, api.tables, api.setTables)
 }
 
 function getLastSelected(api, tname) {
@@ -1128,7 +1125,7 @@ async function analyzeExpression(expression, api) {
 // TODO def need to attach ids automatically on object generation in platform
 function addNaiveExpression(spec) {
   // HACK expression.spec is duplicated, see analyzeExpression
-  return {specId: spec.id, fpcore: fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs}
+  return {specId: spec.id, fpcore: fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
 }
 
 function addVariables(spec) {

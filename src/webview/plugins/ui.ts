@@ -111,10 +111,10 @@ function render(api) {
       const apiHandler = {
         get(target, prop, receiver) {  // kind of a HACK; we want the calling plugin name to be included automatically in the record
           if (prop === "select") {
-            return (...args) => api.action('select', page.plugin, ...args)
+            return (tname, id) => api.action('select', page.plugin, tname, o => o.id === id, id)//...args)
           }
           if (prop === "multiselect") {
-            return (...args) => api.action('multiselect', page.plugin, ...args)
+            return (tname, ids) => api.action('multiselect', page.plugin, tname, o => ids.includes(o.id), ids)
           }
           if (prop === "create") {  // TODO also fix 'create' calls
             return (...args) => api.action('create', page.plugin, ...args)

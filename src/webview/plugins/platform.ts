@@ -34,18 +34,16 @@ function getPluginTables(plugin_config, api) {
   return plugin_config.tables?.map(t => ({ plugin: plugin_config.name, name: t, items: [] })) || []
 }
 
-function select(callerPlugin, tname, item, tables, setTables) {
+function select(callerPlugin, tname, item, id, tables, setTables) {
   console.debug(callerPlugin, tname, item, tables, setTables)
   const idx = tables.findIndex(t => t.name === 'Selections')
-  //HACK we are resetting all the entries in the table because it guarantees that listeners to the table will see an update
-  // might not be necessary, test if performance is an issue
-  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname}])//*/produce((tables: any) => { tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname }) }))
+  setTables(produce((tables: any) => { tables.find(t => t.name === 'Selections').items.push({ selectionId:id, table: tname }) }))
 }
 
-function multiselect(callerPlugin, tname, item, tables, setTables) {
+function multiselect(callerPlugin, tname, item, ids, tables, setTables) {
   console.debug(callerPlugin, tname, item, tables, setTables)
   const idx = tables.findIndex(t => t.name === 'Selections')
-  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname, multiselection: true}])//*/produce((tables: any) => { tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname, multiselection: true }) }))
+  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname, multiselection: true}])//*/produce((tables: any) => { tables.find(t => t.name === 'Selections').items.push({ table: tname, selectionIds:ids, multiselection: true }) }))
 }
 
 // TODO better logging--stack trace/whyline-ish features
@@ -84,7 +82,7 @@ function removeCircularReferences(obj) {
 // actions, all actions just write to the ActionLog to trigger rules.
 // Even primitive actions could do this (external "create" runs
 // wrappedCreate or something like that).
-function create(callerPlugin, tname, item, tables, setTables, api, import_from_module) {
+async function create(callerPlugin, tname, item, tables, setTables, api, import_from_module) {
 
   function selectorMatch(selector, tname, item, selectorPlugin, itemPlugin) {
     //console.log(selector, tname, selectorPlugin, itemPlugin)
@@ -126,8 +124,9 @@ function create(callerPlugin, tname, item, tables, setTables, api, import_from_m
   }
   
   // apply all existing rules to created item
-  tables.find(t => t.name === 'Rules')?.items.map(r =>
-    selectorMatch(r.selector, tname, item, r.plugin, plugin) ? stepRule(callerPlugin, r, item, tname, tables, setTables, api, import_from_module) : null)
+  const ruleApplications = tables.find(t => t.name === 'Rules')?.items.map(async r =>
+    selectorMatch(r.selector, tname, item, r.plugin, plugin) ? await stepRule(callerPlugin, r, item, tname, tables, setTables, api, import_from_module) : null)
+  if (ruleApplications) { await Promise.all(ruleApplications) }
 
   if (plugin === 'platform' && name === 'Rules') {
     // HACK -- selectors should probably only apply to all items in special cases
@@ -136,7 +135,7 @@ function create(callerPlugin, tname, item, tables, setTables, api, import_from_m
     // HACK to handle tables
     const table_matches = tables.filter(t => selectorMatch(rule.selector, 'Tables', t, rule.plugin, 'platform')).map(t => ([t, t]))
     const all_matches = [...table_matches, ...tables.map(t => t.items.filter(v => selectorMatch(rule.selector, t.name, v, rule.plugin, t.plugin)).map(v => ([t, v]))).flat()]
-    all_matches.map(([t, v]) => stepRule(callerPlugin, rule, v, t.name, tables, setTables, api, import_from_module))
+    await Promise.all(all_matches.map(async ([t, v]) => await stepRule(callerPlugin, rule, v, t.name, tables, setTables, api, import_from_module)))
   }
 }
 
@@ -163,7 +162,7 @@ async function getAPI(plugin_config, import_from_module, api) {
   const [tables, setTables] = createStore([] as any)
   //let [apiGetter, apiSetter] = createStore({})
 
-  function action(name, callerPlugin, ...args) {
+  async function action(name, callerPlugin, ...args) {
     // NOTE this does the lookup every time
     
     const actions = tables.find(t => t.name === 'Actions')
@@ -171,7 +170,7 @@ async function getAPI(plugin_config, import_from_module, api) {
     create(callerPlugin, 'platform.ActionLogs', { name, args }, tables, setTables, api, import_from_module)
     
     // run the action named name with the specified arguments
-    actions.items.find(a => a.name === name).fn(callerPlugin, ...args, tables, setTables)
+    await (actions.items.find(a => a.name === name).fn(callerPlugin, ...args, tables, setTables))
   }
 
   // HACK for now, when we select something, we just put the whole item in the .selection attribute (should use foreign key)
@@ -181,8 +180,19 @@ async function getAPI(plugin_config, import_from_module, api) {
   // HACK for now, mutate the api
   Object.assign(api, {
     action, tables, setTables,
-    getLastSelected: selector => tables.find(t => t.name === "Selections")?.items.findLast(selection => !selection.multiselection && selector(selection.selection, selection.table))?.selection,
-    getLastMultiselected: selector => tables.find(t => t.name === "Selections")?.items.findLast(selection => selection.multiselection && selector(selection.selection, selection.table))?.selection,
+    getLastSelected: selector => {
+      const ret = o => selection.selectionId === o.id
+      const selection = tables.find(t => t.name === "Selections")?.items.findLast(selection => !selection.multiselection && selector(ret, selection.table))
+      console.log('got selection', selector, selection)
+      return selection ? ret : undefined
+    },
+    getLastMultiselected: selector => {
+      const ret = o => selection.selectionIds.includes(o.id)
+      const selection = tables.find(t => t.name === "Selections")?.items.findLast(selection => selection.multiselection && selector(ret, selection.table))
+      console.log('got multiselection', selector, selection)
+      return selection ? ret : undefined
+      
+    },
     addPlugin: plugin_config => create('platform', 'Plugins', plugin_config, tables, setTables, api, import_from_module)
   })
 

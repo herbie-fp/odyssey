@@ -21,7 +21,7 @@ function getPane(obj, api, import_from_module) {
 
 function getTableViewPane(table, api, import_from_module) {
   // HACK make this general later
-  console.debug(api.tables.tables.find(t => t.plugin === 'ui' && t.name === 'Views').items)
+  console.debug(api.tables.find(t => t.plugin === 'ui' && t.name === 'Views').items)
   return {
     view: {
       // HACK hard coding
@@ -105,7 +105,7 @@ function ExplorePage(api, panes) {
   html`<button onClick=${() => api.action('show', 'ui', api.getLastSelected((obj, table) => pane.view.selector(obj, table)))}>Show selected</button>`
   const div = html`
   <div id="allTables">
-  <${For} each=${() => api.tables.tables.find(t => t.name === 'Panes')?.items.filter(p => p.view.name === 'TableView')}>${(pane) => {
+  <${For} each=${() => api.tables.find(t => t.name === 'Panes')?.items.filter(p => p.view.name === 'TableView')}>${(pane) => {
     console.debug('Rendering', pane)  
     return html`${() => pane.div}${showSelectedButton(pane)}`
   }

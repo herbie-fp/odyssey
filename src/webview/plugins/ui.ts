@@ -29,7 +29,7 @@ function getPluginViews(plugin_config, api, import_from_module) {
     const [plugin, name] = tname.split('.').length > 1 ? tname.split('.') 
       : [plugin_config.name, tname]
     //if (plugin_config.tables?.filter(tname1 => tname1 === tname)) { return true }
-    return api.tables.tables.find(t => t.plugin === plugin && t.name === name)
+    return api.tables.find(t => t.plugin === plugin && t.name === name)
   }
   return Promise.all(plugin_config.views?.map(async v => ({
     ...v,
@@ -83,16 +83,16 @@ function render(api) {
   function getCurrentPage() {
     // returns the last selected Page
     // TODO update getLastSelected to take a namespaced table/work out clear selector def.
-    pages = pages || api.tables.tables.find(t => t.name === "Pages")
+    pages = pages || api.tables.find(t => t.name === "Pages")
     console.trace('marker', pages)
-    //.log(api.getLastSelected((_, t) => t === "Pages")?.selection, api.tables.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage"))
+    //.log(api.getLastSelected((_, t) => t === "Pages")?.selection, api.tables.find(t => t.name === "Pages").items.find(p => p.plugin === 'demo' && p.name === "mainPage"))
     return pages?.selection || pages?.items.find(p => p.plugin === 'demo' && p.name === "mainPage")
   }
 
   const currentPage = getCurrentPage()
   // TODO figure out how to get the page names/selection working
   // const pageSelect = html`<select onChange=${e => api.action('select', 'Pages', (o) => `${o.plugin}.${o.name}` === e.target.value)}>
-  //   <${For} each=${() => api.tables.tables.find(t => t.name === "Pages").items}>${ (page) => 
+  //   <${For} each=${() => api.tables.find(t => t.name === "Pages").items}>${ (page) => 
   //     // HACK value needs to be the page's id
   //     (!page) ? 'no page' :
   //     html`<option value="${() => `${page.plugin}.${page.name}`}">${() => page.name}</option>`}<//>
@@ -106,7 +106,7 @@ function render(api) {
   return html`
     
     <div id="currentPage">
-      ${() => getCurrentPage()?.fn(api, api.tables.tables.find(t => t.name === "Panes").items).div}
+      ${() => getCurrentPage()?.fn(api, api.tables.find(t => t.name === "Panes").items).div}
     </div>
     
   `

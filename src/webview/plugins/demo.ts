@@ -639,12 +639,12 @@ function mainPage(api) {
       </div>
       `
   }
-  const specs = () => api.tables.tables.find(t => t.name === 'Specs').items
+  const specs = () => api.tables.find(t => t.name === 'Specs').items
 
   // HACK just use stores, put into tables later
   const [samples, setSamples] = createStore([] as any[])
   //const [expressions, setExpressions] = createStore([] as any[])
-  const expressions = () => api.tables.tables.find(t => t.name === 'Expressions')?.items
+  const expressions = () => api.tables.find(t => t.name === 'Expressions')?.items
   
   // TODO rename as specRow for consistency, no get...
   const getSpecRow = spec => {
@@ -671,7 +671,7 @@ function mainPage(api) {
       // TODO (implement multiselect action -- just put all matches in an array)
     }
     const c = altGenComputable(spec, api) // TODO probably should be done with an action + rule
-    const request = () => api.tables.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
+    const request = () => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
     const makeRequest = () => api.action('create', 'demo', 'Requests', {specId: spec.id})//, api.tables, api.setTables)
     console.log('rerendering')
     const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
@@ -711,7 +711,7 @@ function mainPage(api) {
     api.action('select', 'demo', 'Expressions', o => o.id === expression.id)//, api.tables, api.setTables)
   }
 
-  const analyses = () => api.tables.tables.find(t => t.name === 'Analyses').items
+  const analyses = () => api.tables.find(t => t.name === 'Analyses').items
 
   const getExpressionRow = (expression) => {
     const analysis = () => analyses().find(a => a.expressionId === expression.id)
@@ -814,7 +814,7 @@ function mainPage(api) {
       
     </div>`
   }
-  const lastSelectedExpression = () => api.tables.tables.find(t => t.name === "Expressions")?.items?.find(api.getLastSelected((o, table) => table === "Expressions") || (() => undefined))
+  const lastSelectedExpression = () => api.tables.find(t => t.name === "Expressions")?.items?.find(api.getLastSelected((o, table) => table === "Expressions") || (() => undefined))
 
   const lastMultiselectedExpressions = () => {
     const specId = specs().find(api.getLastSelected((o, table) => table === "Specs") || (() => false))?.id
@@ -837,7 +837,7 @@ function mainPage(api) {
       ${() => modifyRange(startingSpec)}
     </div>`
 
-  const lastSelection = () => api.tables.tables.find(t => t.name === 'Selections').items.findLast(s => s.table === 'Expressions' || s.table === 'Specs')
+  const lastSelection = () => api.tables.find(t => t.name === 'Selections').items.findLast(s => s.table === 'Expressions' || s.table === 'Specs')
 //   <${Show} when=${lastMultiselectedExpressions}>
 //   ${comparisonView}
 // <//>
@@ -929,13 +929,13 @@ function mainPage(api) {
 
 const currentMultiselection = (api) => {
   //console.log(api.getLastMultiselected((objs, table) => table === 'Expressions'), expressions(), expressions().filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false)))
-  const expressions = () => api.tables.tables.find(t => t.name === 'Expressions').items
+  const expressions = () => api.tables.find(t => t.name === 'Expressions').items
   return expressions().filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false))
 }
 
 function altGenComputable(spec, api) {
   // TODO probably should be done with an action + rule
-  const expressions = () => api.tables.tables.find(t => t.name === 'Expressions').items
+  const expressions = () => api.tables.find(t => t.name === 'Expressions').items
   let ids = [expressionId++] as any
   async function genHerbieAlts () {
     //await new Promise(resolve => setTimeout(() => resolve(null), 2000))
@@ -958,10 +958,10 @@ function altGenComputable(spec, api) {
 let COMPUTE_N = 0
 
 function analysisComputable(expression, api) {
-  const analyses = () => api.tables.tables.find(t => t.name === 'Analyses').items
+  const analyses = () => api.tables.find(t => t.name === 'Analyses').items
   const analysis = () => analyses().find(a => a.expressionId === expression.id)
-  const specs = () => api.tables.tables.find(t => t.name === 'Specs').items
-  const samples = () => api.tables.tables.find(t => t.name === 'Samples').items
+  const specs = () => api.tables.find(t => t.name === 'Specs').items
+  const samples = () => api.tables.find(t => t.name === 'Samples').items
   
   async function getHerbieAnalysis(expression, api) {
     const spec = specs().find(s => s.id === expression.specId)
@@ -1050,10 +1050,10 @@ function expressionComparisonView(expressions, api) {
   //     <//>
   //   <//>
    
-  const lastSpec = () => api.tables.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false))
+  const lastSpec = () => api.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false))
   const pointsJsons = () => expressions.map(expression => ({
     expression,
-    pointsJson: api.tables.tables
+    pointsJson: api.tables
       .find(t => t.name === 'Analyses')
       .items
       .find(a => a.expressionId === expression.id)
@@ -1082,7 +1082,7 @@ function expressionComparisonView(expressions, api) {
     const styles = validPointsJsons.map(({ expression }) => {
       // LATER color should be RGB string, will append alpha
       const color = getColorCode(expression.id)//'#00ff00'
-      //const color = api.tables.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
+      //const color = api.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
       /** alpha value for dots on the graph */
       const dotAlpha = '35'
       return { line: { stroke: color }, dot: { stroke: color + dotAlpha } }
@@ -1100,7 +1100,7 @@ function expressionComparisonView(expressions, api) {
 }
 
 function getTable(api, tname) {
-  return api.tables.tables.find(t => t.name === tname).items
+  return api.tables.find(t => t.name === tname).items
 }
 function select(api, tname, selectFn) {
   return api.action('select', 'demo', tname, selectFn)//, api.tables, api.setTables)
@@ -1116,7 +1116,7 @@ const HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org'//127.0.0.1:8000'
 // NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
 
 async function analyzeExpression(expression, api) {
-  // const specs = () => api.tables.tables.find(t => t.name === 'Specs').items
+  // const specs = () => api.tables.find(t => t.name === 'Specs').items
   // const spec = specs().find(s => s.id === expression.specId)
   // // TODO log properly
   // TODO there's a reactive loop being created by properly looking up the spec above, need to figure out later

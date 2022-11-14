@@ -36,16 +36,16 @@ function getPluginTables(plugin_config, api) {
 
 function select(callerPlugin, tname, item, tables, setTables) {
   console.debug(callerPlugin, tname, item, tables, setTables)
-  const idx = tables.tables.findIndex(t => t.name === 'Selections')
+  const idx = tables.findIndex(t => t.name === 'Selections')
   //HACK we are resetting all the entries in the table because it guarantees that listeners to the table will see an update
   // might not be necessary, test if performance is an issue
-  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname}])//*/produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname }) }))
+  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname}])//*/produce((tables: any) => { tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname }) }))
 }
 
 function multiselect(callerPlugin, tname, item, tables, setTables) {
   console.debug(callerPlugin, tname, item, tables, setTables)
-  const idx = tables.tables.findIndex(t => t.name === 'Selections')
-  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname, multiselection: true}])//*/produce((tables: any) => { tables.tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname, multiselection: true }) }))
+  const idx = tables.findIndex(t => t.name === 'Selections')
+  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname, multiselection: true}])//*/produce((tables: any) => { tables.find(t => t.name === 'Selections').items.push({ selection: item, table: tname, multiselection: true }) }))
 }
 
 // TODO better logging--stack trace/whyline-ish features
@@ -105,12 +105,12 @@ function create(callerPlugin, tname, item, tables, setTables, api, import_from_m
     // special case: we are creating a table
     //console.log('adding table:', item)
     setTables(/*'tables', l => [...l, item])/*/produce((tables:any) => {
-      tables.tables = [...tables.tables, item]
+      tables.push(item)
     }))
     //console.log('added')
   } else {
-    //console.log('adding item', item, plugin, name, unwrap(tables.tables), tables.tables.indexOf(t => t.plugin === plugin && t.name === name))
-    // const idx = tables.tables.findIndex(t => t.plugin === plugin && t.name === name)
+    //console.log('adding item', item, plugin, name, unwrap(tables), tables.indexOf(t => t.plugin === plugin && t.name === name))
+    // const idx = tables.findIndex(t => t.plugin === plugin && t.name === name)
     // //console.log(idx)
     // if (idx >= 0) {
     //   //console.log('will set')
@@ -118,7 +118,7 @@ function create(callerPlugin, tname, item, tables, setTables, api, import_from_m
     //   //console.log('done setting')
     // }
     setTables(produce((tables:any) => {
-      const table = tables.tables.find(t => t.plugin === plugin && t.name === name)
+      const table = tables.find(t => t.plugin === plugin && t.name === name)
       if (table) {
         table.items.push(item)
       }
@@ -126,7 +126,7 @@ function create(callerPlugin, tname, item, tables, setTables, api, import_from_m
   }
   
   // apply all existing rules to created item
-  tables.tables.find(t => t.name === 'Rules')?.items.map(r =>
+  tables.find(t => t.name === 'Rules')?.items.map(r =>
     selectorMatch(r.selector, tname, item, r.plugin, plugin) ? stepRule(callerPlugin, r, item, tname, tables, setTables, api, import_from_module) : null)
 
   if (plugin === 'platform' && name === 'Rules') {
@@ -134,8 +134,8 @@ function create(callerPlugin, tname, item, tables, setTables, api, import_from_m
     // apply the new rule to all existing items in all tables that match the selector
     const rule = item
     // HACK to handle tables
-    const table_matches = tables.tables.filter(t => selectorMatch(rule.selector, 'Tables', t, rule.plugin, 'platform')).map(t => ([t, t]))
-    const all_matches = [...table_matches, ...tables.tables.map(t => t.items.filter(v => selectorMatch(rule.selector, t.name, v, rule.plugin, t.plugin)).map(v => ([t, v]))).flat()]
+    const table_matches = tables.filter(t => selectorMatch(rule.selector, 'Tables', t, rule.plugin, 'platform')).map(t => ([t, t]))
+    const all_matches = [...table_matches, ...tables.map(t => t.items.filter(v => selectorMatch(rule.selector, t.name, v, rule.plugin, t.plugin)).map(v => ([t, v]))).flat()]
     all_matches.map(([t, v]) => stepRule(callerPlugin, rule, v, t.name, tables, setTables, api, import_from_module))
   }
 }
@@ -160,13 +160,13 @@ async function stepRule(callerPlugin, rule, item, table: string, tables, setTabl
 
 async function getAPI(plugin_config, import_from_module, api) {
 
-  const [tables, setTables] = createStore({ tables: [] as any[] })
+  const [tables, setTables] = createStore([] as any)
   //let [apiGetter, apiSetter] = createStore({})
 
   function action(name, callerPlugin, ...args) {
     // NOTE this does the lookup every time
     
-    const actions = tables.tables.find(t => t.name === 'Actions')
+    const actions = tables.find(t => t.name === 'Actions')
     // record the action in the action log
     create(callerPlugin, 'platform.ActionLogs', { name, args }, tables, setTables, api, import_from_module)
     
@@ -181,8 +181,8 @@ async function getAPI(plugin_config, import_from_module, api) {
   // HACK for now, mutate the api
   Object.assign(api, {
     action, tables, setTables,
-    getLastSelected: selector => tables.tables.find(t => t.name === "Selections")?.items.findLast(selection => !selection.multiselection && selector(selection.selection, selection.table))?.selection,
-    getLastMultiselected: selector => tables.tables.find(t => t.name === "Selections")?.items.findLast(selection => selection.multiselection && selector(selection.selection, selection.table))?.selection,
+    getLastSelected: selector => tables.find(t => t.name === "Selections")?.items.findLast(selection => !selection.multiselection && selector(selection.selection, selection.table))?.selection,
+    getLastMultiselected: selector => tables.find(t => t.name === "Selections")?.items.findLast(selection => selection.multiselection && selector(selection.selection, selection.table))?.selection,
     addPlugin: plugin_config => create('platform', 'Plugins', plugin_config, tables, setTables, api, import_from_module)
   })
 

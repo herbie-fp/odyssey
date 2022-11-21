@@ -60,7 +60,8 @@ export function activate(context: vscode.ExtensionContext) {
 				// Enable scripts in the webview
 				enableScripts: true,
 				// Only allow the webview to access resources in these directories
-				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))]
+				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
+				retainContextWhenHidden: true
 			}
 		)
 		// Handle messages from the webview

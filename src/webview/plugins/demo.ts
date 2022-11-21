@@ -1108,7 +1108,7 @@ function getLastSelected(api, tname) {
 }
 
 // Pipe requests to Herbie through a CORS-anywhere proxy
-const HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org'//127.0.0.1:8000'
+const HOST = '127.0.0.1:8000'//http://127.0.0.1:8080/http://herbie.uwplse.org'
 
 // NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
 

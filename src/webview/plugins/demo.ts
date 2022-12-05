@@ -727,7 +727,7 @@ function mainPage(api) {
       </span>
       <span onClick=${selectExpression(expression)}>${expression.mathjs ? expression.mathjs : expression.fpcore}</span>
       
-      <span>
+      <span onClick=${() => api.select('Specs', expression.specId)}>
         <${Switch}>
           <${Match} when=${() => false && /* c.status === 'unrequested' && */ !analysis() /* && !request() */}>
             waiting for analysis (unreq)...
@@ -824,7 +824,7 @@ function mainPage(api) {
       /*.filter(e => e.specId === specId)*/
   }
   const specView = () => html`<div>
-    <h3>Details for Spec with ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs"))?.ranges)}</h3>
+    <h3>Details for ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs"))?.ranges)}</h3>
     <div>[todo]</div>
     </div>`
   const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)

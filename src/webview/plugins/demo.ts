@@ -656,20 +656,7 @@ function mainPage(api) {
     const sampleSelect = html`<select>
       <${For} each=${relevantSamples}>${sample => html`<option>${sample.id}</option>`}<//>
     </select>`
-    // <span>${spec.id}</span>
-    //<span>${addSampleButton}</span>
-    const genHerbieAlts = () => {
-      // TODO hook up to Herbie here
-      let id1 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' A', id1, provenance: 'herbie' })//, api.tables, api.setTables, api)
-      let id2 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' B', id2, provenance: 'herbie' })//, api.tables, api.setTables, api)
-      let id3 = expressionId++
-      api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore: spec.fpcore + ' C', id3, provenance: 'herbie' })//, api.tables, api.setTables, api)
-      api.multiselect('Expressions', [id1, id2, id3])//, api.tables, api.setTables)
-      // TODO (implement multiselect action -- just put all matches in an array)
-    }
-    const c = altGenComputable(spec, api) // TODO probably should be done with an action + rule
+
     const request = () => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
     const makeRequest = () => api.action('create', 'demo', 'Requests', {specId: spec.id})//, api.tables, api.setTables)
     console.log('rerendering')
@@ -685,7 +672,7 @@ function mainPage(api) {
       <span>
         <${Switch}>
           <${Match} when=${() => /*c.status === 'unrequested' &&*/!request() && !herbieSuggestion()}>
-            <button onClick=${() => (c.compute(), makeRequest())}>Get alternatives with Herbie</button>
+            <button onClick=${() => (genHerbieAlts(spec, api), makeRequest())}>Get alternatives with Herbie</button>
           <//>
           <${Match} when=${() => /*c.status === 'requested' */ request() && !herbieSuggestion()}>
             waiting for alternatives...
@@ -693,7 +680,7 @@ function mainPage(api) {
           <${Match} when=${() => herbieSuggestion()}>
             [alternatives shown]
           <//>
-          <${Match} when=${() => c.status === 'error'}>
+          <${Match} when=${() => /* TODO check associated request for error */ false}>
             error during computation :(
           <//>
           <${Match} when=${() => true}>
@@ -722,7 +709,7 @@ function mainPage(api) {
         ...currentMultiselection(api).map(o => o.id).filter(id => id !== expression.id),
         ...[boxChecked() ? [] : expression.id]]
       //console.log(newSelectionIds)
-      api.select('Specs', expression.specId)//, api.tables, api.setTables)
+      //api.select('Specs', expression.specId)//, api.tables, api.setTables)
       api.multiselect('Expressions', newSelectionIds)//, api.tables, api.setTables)
     }
     // <button onClick=${c.compute}>Run Analysis</button>
@@ -749,7 +736,7 @@ function mainPage(api) {
             waiting for analysis...
           <//>
           <${Match} when=${() => analysis() /*c.status === 'computed'*/}>
-            ${() => JSON.stringify(Object.fromEntries(Object.entries(analysis()).filter(([k, v]) => ['meanBitsError', 'performance', 'expressionId'].includes(k))))}
+            ${() => JSON.stringify(Object.fromEntries(Object.entries(analysis()).filter(([k, v]) => ['meanBitsError', 'performance', 'expressionId'].includes(k)).map(([k, v]) => k === 'expressionId' ? ['rangeId', expressions().find(e => e.id === v)?.specId] : [k, v])))}
           <//>
           <${Match} when=${() => false /*(c.status === 'error' */}>
             error during computation :(
@@ -792,20 +779,36 @@ function mainPage(api) {
   }
   const addExpressionRow = spec => {
     const text = textarea(spec.mathjs)
-    
+    const rangeText = textarea(JSON.stringify(spec.ranges))
+    const specWithRanges = ranges => getTable(api, 'Specs').find(s => JSON.stringify(ranges) === JSON.stringify(s.ranges))
+    async function ensureSpecWithThoseRangesExists(ranges) {
+      if (specWithRanges(ranges)) { return; }
+      await addSpec({ ...spec, ranges })
+    }
+    async function addExpression() {
+      const ranges = JSON.parse(rangeText.value)
+      await ensureSpecWithThoseRangesExists(ranges)
+      makeExpression(specWithRanges(ranges), fpcorejs.FPCoreBody(text.value), text.value)()
+    }
     return html`<div class="addExpressionRow">
     <div>
     ${text}
     </div>
-    <button onClick=${() => makeExpression(spec, fpcorejs.FPCoreBody(text.value), text.value)()}>Add expression</button>
+    <div id="modifyRange">
+      Ranges:
+        <div>
+        ${rangeText}
+        </div>
+    </div>
+    <button onClick=${addExpression}>Add expression</button>
     </div>`
   }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
+  // ${getSpecRow(spec)}
   const getSpecBlock = spec => {
     return html`<div id="specBlock">
-      ${getSpecRow(spec)}
       
-      <${For} each=${() => expressionsForSpec(spec)}>${getExpressionRow}<//>
+      <${For} each=${ expressions /* expressionsForSpec(spec) */}>${getExpressionRow}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
       ${() => addExpressionRow(spec)}
       
@@ -818,7 +821,7 @@ function mainPage(api) {
     //console.log('test', specId)
     return expressions()
       .filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false))
-      .filter(e => e.specId === specId)
+      /*.filter(e => e.specId === specId)*/
   }
   const specView = () => html`<div>
     <h3>Details for Spec with ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs"))?.ranges)}</h3>
@@ -827,17 +830,40 @@ function mainPage(api) {
   const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
   const exprView = () => expressionView(lastSelectedExpression(), api)
   
+  const makeRequest = (spec) => api.action('create', 'demo', 'Requests', { specId: spec.id })
+  const herbieSuggestion = (spec) => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
+  const request = (spec) => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
+  //<${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
   const specsAndExpressions = (startingSpec) => html`
     <div id="specsAndExpressions">
-      <div id="specTitle">The Spec: ${startingSpec.mathjs}</div>
-      <${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
-      ${() => modifyRange(startingSpec)}
+      <div id="specInfo">
+        <span id="specTitle">The Spec: ${startingSpec.mathjs}</span>
+        <${Switch}>
+          <${Match} when=${() => !request(startingSpec) && !herbieSuggestion(startingSpec)}>
+            <button onClick=${() => (genHerbieAlts(startingSpec, api), makeRequest(startingSpec))}>Get alternatives with Herbie</button>
+          <//>
+          <${Match} when=${() => request(startingSpec) && !herbieSuggestion(startingSpec)}>
+            waiting for alternatives...
+          <//>
+          <${Match} when=${() => herbieSuggestion(startingSpec)}>
+            [alternatives shown]
+          <//>
+          <${Match} when=${() => /* TODO check associated request for error */ false}>
+            error during computation :(
+          <//>
+          <${Match} when=${() => true}>
+            ${() => {
+      return 'other case'
+              } 
+            }
+          <//>
+        <//>
+      </div>
+      ${() => getSpecBlock(startingSpec)}
     </div>`
 
   const lastSelection = () => /*api.getLastSelected((objs, tname) => ['Expressions', 'Specs'].includes(tname))*/api.tables.find(t => t.name === 'Selections').items.findLast(s => s.table === 'Expressions' || s.table === 'Specs')  // may be selection or multiselection
-//   <${Show} when=${lastMultiselectedExpressions}>
-//   ${comparisonView}
-// <//>
+
   //@ts-ignore
   window.lastSelection = lastSelection
   const analyzeUI = html`<div id="analyzeUI">
@@ -892,7 +918,8 @@ function mainPage(api) {
       }
       #analyzeUI {
         display: grid;
-        grid-template-areas: 'table focus';
+        grid-template-areas: 
+          'table focus';
         justify-content: start;
       }
       #analyzeUI #focus {
@@ -930,31 +957,26 @@ const currentMultiselection = (api) => {
   return expressions().filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false))
 }
 
-function altGenComputable(spec, api) {
-  // TODO probably should be done with an action + rule
-  const expressions = () => api.tables.find(t => t.name === 'Expressions').items
+async function genHerbieAlts(spec, api) {
   let ids = [expressionId++] as any
-  async function genHerbieAlts () {
-    //await new Promise(resolve => setTimeout(() => resolve(null), 2000))
-    // HACK expression.spec (see analyzeExpression)
-    // HACK assuming only one suggestion for now
-    console.log('spec fpcore is', spec.fpcore)
-    const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
-      return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
-    })
-    expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
-    //ids = expressions.map(e => e.id)
-    const curr = currentMultiselection(api).map(o => o.id)
-    api.multiselect('Expressions', [...curr, ...ids])//, api.tables, api.setTables)
-    return 'done'
-  }
+  // HACK assuming only one suggestion for now
+  console.log('spec fpcore is', spec.fpcore)
+  const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
+    return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
+  })
+  expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
+  //ids = expressions.map(e => e.id)
+  const curr = currentMultiselection(api).map(o => o.id)
 
-  return {compute: genHerbieAlts, status: 'fine'} //computable(() => ids.every(id => expressions().find(o => o.id === id)) || undefined, genHerbieAlts)
+  /* NOTE selects the alts after getting them */
+  api.multiselect('Expressions', [...curr, ...ids])
+  return 'done'
 }
 
 let COMPUTE_N = 0
 
 function analysisComputable(expression, api) {
+  /*TODO replace computable with Request table entry */
   const analyses = () => api.tables.find(t => t.name === 'Analyses').items
   const analysis = () => analyses().find(a => a.expressionId === expression.id)
   const specs = () => api.tables.find(t => t.name === 'Specs').items
@@ -1066,15 +1088,20 @@ function expressionComparisonView(expressions, api) {
     if (validPointsJsons.length === 0) { return 'analysis incomplete' }
       //console.log(plotError('x', ['target'], ['x'], pointsJson(), Plot))
     let { points, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars } = validPointsJsons[0].pointsJson
+    /* TODO: open issues:
+    * splitpoints can vary across expressions, how do we distinguish what they apply to?
+    * how do we get the proper ticks for the full range? Probably Herbie has to pass us this information.
+    * HACK: for now, just take the first one.
+     */
     const idx = Math.max(vars.findIndex(v => v === currentVarname()), 0)
     console.log(idx)
     const ticks = ticksByVarIdx[idx]
     const splitpoints = splitpointsByVarIdx[idx]
     const pointsSlice = points.map(p => p[idx])
-    const data = validPointsJsons.map(({ expression, pointsJson: { error } }) => {
+    const data = validPointsJsons.map(({ expression, pointsJson: { points, error } }) => {
       //let { error } = pointsJson
       const keyFn = fn => (a, b) => fn(a) - fn(b)
-      return zip(pointsSlice, error['target']).map(([x, y]) => ({ x, y })).sort(keyFn(p => p.x))
+      return zip(points.map(p => p[idx]), error['target']).map(([x, y]) => ({ x, y })).sort(keyFn(p => p.x))
     })
     const styles = validPointsJsons.map(({ expression }) => {
       // LATER color should be RGB string, will append alpha
@@ -1107,8 +1134,8 @@ function getLastSelected(api, tname) {
   return getTable(api, tname).find(api.getLastSelected((o, table) => table === tname) || (() => false))
 }
 
-// Pipe requests to Herbie through a CORS-anywhere proxy
-const HOST = '127.0.0.1:8000'//http://127.0.0.1:8080/http://herbie.uwplse.org'
+// NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
+const HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'//http://127.0.0.1:8080/http://herbie.uwplse.org'
 
 // NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
 

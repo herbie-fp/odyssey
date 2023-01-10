@@ -302,6 +302,10 @@ const fpcorejs = (() => {
     return dnames
   }
 
+  function get_varnames_fpcore(fpcore) {
+    return fpcore.split(/[()]/)[2].split(' ')
+  }
+
   function get_precondition_from_input_ranges(ranges) {  // NOTE modified get_precondition...
     // ranges should be like [["x", [-1, 1]], ["y", [0, 1000]]
     // assumes ranges was already checked for validity using eg. get_input_range_errors
@@ -332,11 +336,71 @@ const fpcorejs = (() => {
     return dump_tree(math.parse(mathJSExpr), [])
   }
 
+  function FPCoreGetBody(fpcore) {
+    function readToken (token) {
+      if (token === '(') {
+        return {
+          type: 'OPENING_PARENS'
+        };
+      } else if (token === ')') {
+        return {
+          type: 'CLOSING_PARENS'
+        };
+      } else if (token.match(/^\d+$/)) {
+        return {
+          type: 'INTEGER',
+          value: parseInt(token)
+        };
+      } else {
+        return {
+          type: 'SYMBOL',
+          value: token
+        };
+      }
+    }
+    
+    function tokenize (expression) {
+      return expression
+        .replace(/\(/g, ' ( ')
+        .replace(/\)/g, ' ) ')
+        .trim()
+        .split(/\s+/)
+        .map(readToken);
+    }
+    
+    function buildAST (tokens) {
+      return tokens.reduce((ast, token) => {
+        if (token.type === 'OPENING_PARENS') {
+          ast.push([]);
+        } else if (token.type === 'CLOSING_PARENS') {
+          const current_expression = ast.pop();
+          ast[ast.length - 1].push(current_expression);
+        } else {
+          const current_expression = ast.pop();
+          current_expression.push(token);
+          ast.push(current_expression);
+        }
+        return ast;
+      }, [[]])[0][0];
+    }
+    
+    function parse (expression) {
+      return buildAST(tokenize(expression));
+    }
+
+    function astToString(ast) {
+      return ast.value || `(${ast.map(t => astToString(t)).join(' ')})`
+    }
+
+    return astToString(parse(fpcore).slice(-1)[0])
+  }
+
   return {
     //dumpFPCore: dump_fpcore,  // Currently has no error handling!
     rangeErrors: get_input_range_errors,
     FPCorePrecondition: get_precondition_from_input_ranges,
     getVarnamesMathJS: get_varnames_mathjs,
+    getVarnamesFPCore: get_varnames_fpcore,
     parseErrors: mathJSExpr => {
       function mathJSErrors(mathJSExpr) {
         try { math.parse(mathJSExpr) } catch (e : any) { return [e.message] }
@@ -346,10 +410,11 @@ const fpcorejs = (() => {
       return mjserrors.length > 0 ? mjserrors : tree_errors(math.parse(mathJSExpr), 'real')
     },
     FPCoreBody,
-    makeFPCore: ({ specMathJS, ranges, targetFPCoreBody=undefined, name=specMathJS }) => {
-      const vars = get_varnames_mathjs(specMathJS)
+    FPCoreGetBody,  // HACK just the fpcore version of the above, gets just the body
+    makeFPCore: ({ specMathJS, ranges, specFPCore, targetFPCoreBody=undefined, name=specMathJS }) => {
+      const vars = specFPCore ? get_varnames_fpcore(specFPCore) : get_varnames_mathjs(specMathJS)
       const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
-      return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${get_precondition_from_input_ranges(ranges)}\n  ${target}${FPCoreBody(specMathJS)})`
+      return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${get_precondition_from_input_ranges(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
     }
   }
 })()
@@ -588,7 +653,7 @@ const herbiejs = (() => {
     })
     },
     analyzeExpression: async (spec, targetFPCoreBody, host, log) => {
-        const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
+        const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
         const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
         return {graphHtml, pointsJson, meanBitsError}
     }
@@ -600,11 +665,11 @@ function mainPage(api) {
   console.log('Setting up main demo page...')
   const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
   //const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(y)", ranges: [["x", [1, 1e9]], ["y", [-1e9, 1]]] }
-  const textarea = (value=JSON.stringify(defaultSpec, undefined, 2)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
+  const textarea = (value='') => html`<textarea value="${value}"></textarea>` as HTMLInputElement
 
-  const addSpec = async ({ mathjs, ranges }) => { 
+  const addSpec = async ({ mathjs, ranges, fpcore }) => { 
     const id = specId++
-    const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, ranges }), ranges, id}
+    const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, specFPCore: fpcore, ranges }), ranges, id}
     await api.action('create', 'demo', 'Specs', spec)
     api.select('Specs', id)
     api.multiselect('Expressions', expressions().filter(e => e.specId === id).map(e => e.id))
@@ -770,7 +835,7 @@ function mainPage(api) {
     api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
   }
   
-  const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreBody(spec.mathjs), spec.mathjs)
+  const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreGetBody(spec.fpcore) || fpcorejs.FPCoreBody(spec.mathjs), spec.mathjs)
 
   const noExpressionsRow = spec => {
     return html`<div class="noExpressionsRow">
@@ -788,7 +853,7 @@ function mainPage(api) {
     async function addExpression() {
       const ranges = JSON.parse(rangeText.value)
       await ensureSpecWithThoseRangesExists(ranges)
-      makeExpression(specWithRanges(ranges), fpcorejs.FPCoreBody(text.value), text.value)()
+      makeExpression(specWithRanges(ranges), text.value.startsWith('[[') ? text.value.slice(2) : fpcorejs.FPCoreBody(text.value), text.value.startsWith('[[') ? text.value.slice(2) : text.value)()  // HACK to support FPCore submission
     }
     return html`<div class="addExpressionRow">
     <div>
@@ -1118,7 +1183,8 @@ function expressionComparisonView(expressions, api) {
     ${() => getTable(api, 'Variables').filter(v => v.specId === expressions?.[0]?.specId).map(v => {
       console.log(currentVarname())
       /* ts-styled-plugin: disable-next-line */
-      return html`<span class="varname" style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', v.id)}>${v.varname}</span>`
+      // style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', v.id)}
+      return html`<span class="varname" >${v.varname}</span>`
     })}
   </div>`
 }
@@ -1152,11 +1218,32 @@ async function analyzeExpression(expression, api) {
 // TODO def need to attach ids automatically on object generation in platform
 function addNaiveExpression(spec) {
   // HACK expression.spec is duplicated, see analyzeExpression
-  return {specId: spec.id, fpcore: fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
+  return {specId: spec.id, fpcore: fpcorejs.FPCoreGetBody(spec.fpcore) || fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
 }
 
+// TESTING 
+// {
+//   "fpcore": "(FPCore modulus_sqr (re im) :name \"math.abs on complex (squared)\" (+ (* re re) (* im im)))",
+//   "ranges": [
+//     [
+//       "re",
+//       [
+//         1,
+//         1000000000
+//       ]
+//     ],
+// [
+//       "im",
+//       [
+//         1,
+//         1000000000
+//       ]
+//     ]
+//   ]
+// }
+
 function addVariables(spec) {
-  return fpcorejs.getVarnamesMathJS(spec.mathjs).map(v => ({specId: spec.id, varname: v}))
+  return spec.fpcore ? fpcorejs.getVarnamesFPCore(spec.fpcore) : fpcorejs.getVarnamesMathJS(spec.mathjs).map(v => ({specId: spec.id, varname: v}))
 }
 
 function selectNaiveExpression(spec, api) {

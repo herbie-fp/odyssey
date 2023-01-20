@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(
 			'herbieIndex', // Identifies the type of the webview. Used internally
-			'FPSynth: Herbie', // Title of the panel displayed to the user
+			'Odyssey: Herbie', // Title of the panel displayed to the user
 			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
 			{
 				// Enable scripts in the webview

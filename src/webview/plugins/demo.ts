@@ -970,12 +970,12 @@ function mainPage(api) {
   const div = html`<div id="demo">
     <style>
       #analyzeUI div:not(.math *) {
-        border: 1px solid black;
+        /*border: 1px solid black;*/
         margin: 2px;
         padding: 2px;
       }
       #analyzeUI span:not(.math *) {
-        border: 1px solid black;
+        /*border: 1px solid black;*/
         margin: 2px;
       }
       #analyzeUI .expressionRow, #analyzeUI .noExpressionsRow, #analyzeUI .addExpressionRow {

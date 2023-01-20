@@ -665,7 +665,7 @@ function mainPage(api) {
   console.log('Setting up main demo page...')
   const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
   //const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(y)", ranges: [["x", [1, 1e9]], ["y", [-1e9, 1]]] }
-  const textarea = (value='') => html`<textarea value="${value}"></textarea>` as HTMLInputElement
+  const textarea = (value=JSON.stringify(defaultSpec)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
 
   const addSpec = async ({ mathjs, ranges, fpcore }) => { 
     const id = specId++
@@ -1088,7 +1088,7 @@ function expressionView(expression, api) {
       <//>
       <${Match} when=${() => c.status === 'computed'}>
         ${() => {
-    if (expression.provenance !== 'herbie') { return 'No details.'}
+    if (expression.provenance !== 'herbie') { return 'User-submitted expression.'}
       const el = document.createElement('div') as HTMLElement
     el.innerHTML = (c as any).value?.graphHtml;
     (window as any).renderMathInElement(el.querySelector('#history'))

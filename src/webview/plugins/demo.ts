@@ -173,8 +173,8 @@ const fpcorejs = (() => {
             messages.push("Conditional branches have different types " + node.trueExpr.res + " and " + node.falseExpr.res);
           }
           return node.trueExpr.res;
-        case "ParenthesisNode":
-          return node_processor(node.content, path, parent)
+        // case "ParenthesisNode":
+        //   return node_processor(node.content, path, parent)
         default:
           messages.push("Unsupported syntax; found unexpected <code>" + node.type + "</code>.")
           return "real";
@@ -274,8 +274,8 @@ const fpcorejs = (() => {
           // NOTE changed from node.name reassignment to be compatible with mathjs 4.4.2
           const name = SECRETFUNCTIONS[node.name] || node.name;
           return "(" + name + " " + extract(node.args).join(" ") + ")";
-        case "ParenthesisNode":
-          return node_processor(node.content)
+        // case "ParenthesisNode":
+        //   return node_processor(node.content)
         case "OperatorNode":
           // NOTE changed from node.op reassignment to be compatible with mathjs 4.4.2
           const op = SECRETFUNCTIONS[node.op] || node.op;
@@ -298,6 +298,10 @@ const fpcorejs = (() => {
     }
     return bottom_up(tree, node_processor).res;
   }
+  //@ts-ignore
+  window.dump_tree = dump_tree
+  //@ts-ignore
+  window.math = math
 
   function get_varnames_mathjs(mathjs_text) {
     const names = []
@@ -396,7 +400,7 @@ const fpcorejs = (() => {
     }
 
     function astToString(ast) {
-      return ast.value || `(${ast.map(t => astToString(t)).join(' ')})`
+      return ast.value === 0 ? ast.value : ast.value || `(${ast.map(t => astToString(t)).join(' ')})`
     }
 
     return astToString(parse(fpcore).slice(-1)[0])
@@ -995,7 +999,8 @@ function mainPage(api) {
         justify-content: start;
       }
       #analyzeUI #focus {
-        grid-area: focus
+        grid-area: focus;
+        width: 800px;
       }
       #analyzeUI textarea {
         width: 400px;
@@ -1009,7 +1014,6 @@ function mainPage(api) {
     ${contents}
   </div>
   `
-
   // HACK immediately multiselect the initial expression
   //setTimeout(() => api.multiselect('Expressions', expressions().map(e => e.id)), 1000)//, api.tables, api.setTables))
   // HACK jump to a submitted spec + expression

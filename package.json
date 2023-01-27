@@ -60,8 +60,9 @@
   "dependencies": {
     "@observablehq/plot": "^0.6.0",
     "cors-anywhere": "^0.4.4",
+    "decimal.js": "^10.4.3",
     "lit-dom-expressions": "^0.34.4",
-    "mathjs": "^11.5.0",
+    "mathjs": "^1.6.0",
     "solid-js": "^1.5.3",
     "vsce": "^2.11.0"
   }

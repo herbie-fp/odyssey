@@ -118,7 +118,7 @@ const fpcorejs = (() => {
     var messages = [] as any[];
     var names = [] as any[];
 
-    var rtype = bottom_up(tree, function (node, path, parent) {
+    function node_processor(node, path, parent) {
       switch (node.type) {
         case "ConstantNode":
           if (["number", "boolean"].indexOf(node.valueType) === -1) {
@@ -173,11 +173,15 @@ const fpcorejs = (() => {
             messages.push("Conditional branches have different types " + node.trueExpr.res + " and " + node.falseExpr.res);
           }
           return node.trueExpr.res;
+        case "ParenthesisNode":
+          return node_processor(node.content, path, parent)
         default:
           messages.push("Unsupported syntax; found unexpected <code>" + node.type + "</code>.")
           return "real";
       }
-    }).res;
+    }
+
+    var rtype = bottom_up(tree, node_processor).res;
 
     if (rtype !== expected) {
       messages.push("Expected an expression of type " + expected + ", got " + rtype);
@@ -262,7 +266,7 @@ const fpcorejs = (() => {
   function extract(args) { return args.map(function (n) { return n.res }); }
 
   function dump_tree(tree, names) {
-    return bottom_up(tree, function (node) {
+    function node_processor(node) {
       switch (node.type) {
         case "ConstantNode":
           return "" + node.value;
@@ -270,6 +274,8 @@ const fpcorejs = (() => {
           // NOTE changed from node.name reassignment to be compatible with mathjs 4.4.2
           const name = SECRETFUNCTIONS[node.name] || node.name;
           return "(" + name + " " + extract(node.args).join(" ") + ")";
+        case "ParenthesisNode":
+          return node_processor(node.content)
         case "OperatorNode":
           // NOTE changed from node.op reassignment to be compatible with mathjs 4.4.2
           const op = SECRETFUNCTIONS[node.op] || node.op;
@@ -289,7 +295,8 @@ const fpcorejs = (() => {
         default:
           throw SyntaxError("Invalid tree!");
       }
-    }).res;
+    }
+    return bottom_up(tree, node_processor).res;
   }
 
   function get_varnames_mathjs(mathjs_text) {
@@ -1201,7 +1208,11 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-const HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'//http://127.0.0.1:8080/http://herbie.uwplse.org'
+let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'//http://127.0.0.1:8080/http://herbie.uwplse.org'
+
+// HACK to let us dynamically set the host
+//@ts-ignore
+window.setHOST = host => HOST = host
 
 // NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
 

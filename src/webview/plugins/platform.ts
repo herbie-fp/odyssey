@@ -183,13 +183,13 @@ async function getAPI(plugin_config, import_from_module, api) {
     getLastSelected: selector => {
       const ret = o => selection.selectionId === o.id
       const selection = tables.find(t => t.name === "Selections")?.items.findLast(selection => !selection.multiselection && selector(ret, selection.table))
-      console.log('got selection', selector, selection)
+      console.debug('got selection', selector, selection)
       return selection ? ret : undefined
     },
     getLastMultiselected: selector => {
       const ret = o => selection.selectionIds.includes(o.id)
       const selection = tables.find(t => t.name === "Selections")?.items.findLast(selection => selection.multiselection && selector(ret, selection.table))
-      console.log('got multiselection', selector, selection)
+      console.debug('got multiselection', selector, selection)
       return selection ? ret : undefined
       
     },

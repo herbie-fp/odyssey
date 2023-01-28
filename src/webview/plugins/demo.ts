@@ -10,6 +10,8 @@ let sampleId = 1
 let expressionId = 1
 let variableId = 1
 
+let RETRY = true
+
 function getColorCode(seed) {
   var makeColorCode = '0123456789ABCDEF';
   var code = '#';
@@ -649,7 +651,19 @@ const herbiejs = (() => {
   }
   return ({
     getSample: async (fpcore, host, log=txt=>console.log(txt)) => {
-      return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json())  // TODO change seed to resample
+      try {
+        return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json())  // TODO change seed to resample
+      } catch (e) {
+        console.error('Bad /sample call, error was', e)
+        if (RETRY) {  // HACK to just retry once
+          RETRY = false
+          console.log('retrying /sample')
+          return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json())  // TODO change seed to resample
+        } else {
+          throw e
+        }
+      }
+      
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
       return pointsJson
     },

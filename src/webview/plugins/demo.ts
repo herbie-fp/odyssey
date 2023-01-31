@@ -400,7 +400,7 @@ const fpcorejs = (() => {
     }
 
     function astToString(ast) {
-      return ast.value === 0 ? ast.value : ast.value || `(${ast.map(t => astToString(t)).join(' ')})`
+      return ast.value === 0 ? ast.value.toString() : ast.value?.toString() || `(${ast.map(t => astToString(t)).join(' ')})`
     }
 
     return astToString(parse(fpcore).slice(-1)[0])
@@ -646,10 +646,15 @@ const herbiejs = (() => {
   }
   return ({
     getSample: async (fpcore, host, log) => {
+      return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json()).points  // TODO change seed to resample
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
-      return pointsJson.points
+      return pointsJson
     },
-    suggestExpressions: async (fpcore, host, log, html) => {
+    suggestExpressions: async (fpcore, sample, host, log, html) => {
+      return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })).json()).alternatives.map(alt => {
+        console.log(alt, fpcorejs.FPCoreGetBody(alt))
+        return fpcorejs.FPCoreGetBody(alt).replaceAll('.f64', '')
+      })
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
       //console.log(graphHtml)
       //@ts-ignore
@@ -1034,19 +1039,28 @@ const currentMultiselection = (api) => {
 }
 
 async function genHerbieAlts(spec, api) {
-  let ids = [expressionId++] as any
+  //let ids = [expressionId++] as any
   // HACK assuming only one suggestion for now
   console.log('spec fpcore is', spec.fpcore)
-  const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
-    return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
+  const sample = await herbiejs.getSample(spec.fpcore, HOST, logval => console.log(logval))
+  console.log(sample)
+  //const sample2 = sample.points.map((p, i) => [p, sample.exacts[i]])
+  //console.log(sample2)
+  const alts = await herbiejs.suggestExpressions(spec.fpcore, sample, HOST, logval => console.log(logval), html)
+  const expressions = alts.map(fpcorebody => {
+    return { fpcore: fpcorebody, specId: spec.id, id: expressionId++, provenance: 'herbie', spec}
   })
+  const ids = expressions.map(e => e.id)
+  // const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
+  //   return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
+  // })
   expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
   //ids = expressions.map(e => e.id)
   const curr = currentMultiselection(api).map(o => o.id)
 
   /* NOTE selects the alts after getting them */
   api.multiselect('Expressions', [...curr, ...ids])
-  return 'done'
+  //return 'done'  // uh, remove this
 }
 
 let COMPUTE_N = 0

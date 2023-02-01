@@ -753,7 +753,7 @@ function mainPage(api) {
       <span>
         <${Switch}>
           <${Match} when=${() => /*c.status === 'unrequested' &&*/!request() && !herbieSuggestion()}>
-            <button onClick=${() => (genHerbieAlts(spec, api), makeRequest())}>Get alternatives with Herbie</button>
+            <button onClick=${() => (genHerbieAlts(spec, api), makeRequest())}>Suggest alternative expressions</button>
           <//>
           <${Match} when=${() => /*c.status === 'requested' */ request() && !herbieSuggestion()}>
             waiting for alternatives...

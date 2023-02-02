@@ -669,7 +669,11 @@ const herbiejs = (() => {
         return body
     })
     },
-    analyzeExpression: async (spec, targetFPCoreBody, host, log) => {
+    analyzeExpression: async (spec, targetFPCoreBody, sample, host, log) => {
+      // TODO
+      //   const fpcore = fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join('')
+      // return (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })).json())
+      // fields: { points, ticks_by_varidx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars, error.target }
         const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
         const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
         return {graphHtml, pointsJson, meanBitsError}
@@ -1227,7 +1231,7 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore
@@ -1241,7 +1245,7 @@ async function analyzeExpression(expression, api) {
   // // TODO log properly
   // TODO there's a reactive loop being created by properly looking up the spec above, need to figure out later
   // and remove expression.spec
-  return { ...await herbiejs.analyzeExpression(expression.spec, expression.fpcore, HOST, logval => console.log(logval)), expressionId: expression.id }
+  return { ...await herbiejs.analyzeExpression(expression.spec, expression.fpcore, undefined, HOST, logval => console.log(logval)), expressionId: expression.id }
   //return await (new Promise(resolve => setTimeout(() => resolve({bitsError: Math.round(64 * Math.random()), performance: Math.round(100 * Math.random()), expressionId: expression.id}), 2000)))
 }
 

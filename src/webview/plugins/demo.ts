@@ -7,6 +7,7 @@ import { math, Plot } from "../../dependencies/dependencies.js"
 let specId = 1
 let sampleId = 1
 let expressionId = 1
+let variableId = 1
 
 function getColorCode(seed) {
   var makeColorCode = '0123456789ABCDEF';
@@ -1170,7 +1171,7 @@ function expressionComparisonView(expressions, api) {
   }))
   const currentVarname = () => getLastSelected(api, "Variables")?.varname || getTable(api, 'Variables')?.[0].varname
   return html`<div>
-    <h3>Comparison of ${()=> expressions.length} expressions for Range with id ${() => lastSpec()?.id}</h3>
+    <h3>Error of ${()=> expressions.length} selected expression${expressions.length === 1 ? '' : 's'} over the range ${currentVarname} = [${(lastSpec().ranges.find(e => e[0] == currentVarname()) || ['name', [-1.79e308, 1.79e308]] )[1].join(',')}]:</h3>
     ${() => {
     const validPointsJsons = pointsJsons()
       .filter(({ expression, pointsJson }) => pointsJson)
@@ -1206,10 +1207,10 @@ function expressionComparisonView(expressions, api) {
     }
     }
     ${() => getTable(api, 'Variables').filter(v => v.specId === expressions?.[0]?.specId).map(v => {
-      console.log(currentVarname())
+      console.log('VARNAME', v, currentVarname())
       /* ts-styled-plugin: disable-next-line */
       // style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', v.id)}
-      return html`<span class="varname" >${v.varname}</span>`
+      return html`<span class="varname" onclick=${() => select(api, 'Variables', v.id)}>${v.varname}</span>`
     })}
   </div>`
 }
@@ -1272,7 +1273,7 @@ function addNaiveExpression(spec) {
 // }
 
 function addVariables(spec) {
-  return spec.fpcore ? fpcorejs.getVarnamesFPCore(spec.fpcore) : fpcorejs.getVarnamesMathJS(spec.mathjs).map(v => ({specId: spec.id, varname: v}))
+  return spec.fpcore ? fpcorejs.getVarnamesFPCore(spec.fpcore).map(v => ({specId: spec.id, varname: v, id: variableId++})) : fpcorejs.getVarnamesMathJS(spec.mathjs).map(v => ({specId: spec.id, varname: v, id: variableId++}))
 }
 
 function selectNaiveExpression(spec, api) {

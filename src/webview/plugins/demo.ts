@@ -654,7 +654,7 @@ const herbiejs = (() => {
     suggestExpressions: async (fpcore, sample, host, log, html) => {
       return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })).json()).alternatives.map(alt => {
         console.log(alt, fpcorejs.FPCoreGetBody(alt))
-        return fpcorejs.FPCoreGetBody(alt).replaceAll('.f64', '')
+        return alt.replaceAll('.f64', '')
       })
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
       //console.log(graphHtml)
@@ -677,6 +677,9 @@ const herbiejs = (() => {
         const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
         const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
         return {graphHtml, pointsJson, meanBitsError}
+    },
+    fPCoreToMathJS: async (fpcore, host) => {
+      return (await (await fetch(`${host}/api/mathjs`, { method: 'POST', body: JSON.stringify({ formula: fpcore}) })).json()).mathjs
     }
   })
 })()
@@ -1052,9 +1055,9 @@ async function genHerbieAlts(spec, api) {
   //const sample2 = sample.points.map((p, i) => [p, sample.exacts[i]])
   //console.log(sample2)
   const alts = await herbiejs.suggestExpressions(spec.fpcore, sample, HOST, logval => console.log(logval), html)
-  const expressions = alts.map(fpcorebody => {
-    return { fpcore: fpcorebody, specId: spec.id, id: expressionId++, provenance: 'herbie', spec}
-  })
+  const expressions = await Promise.all(alts.map(async alt => {
+    return { fpcore: fpcorejs.FPCoreGetBody(alt), specId: spec.id, id: expressionId++, provenance: 'herbie', spec, mathjs: await herbiejs.fPCoreToMathJS(alt, HOST)}
+  }))
   const ids = expressions.map(e => e.id)
   // const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
   //   return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}

@@ -1,8 +1,9 @@
 import { create } from "domain";
 import { applyTransformDependencies } from "mathjs";
+import { expression } from "mathjs11";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
 import { createStore, createEffect, createRenderEffect, createMemo, produce } from "../../dependencies/dependencies.js";
-import { math, Plot } from "../../dependencies/dependencies.js"
+import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
 
 let specId = 1
 let sampleId = 1
@@ -427,7 +428,8 @@ const fpcorejs = (() => {
       const vars = specFPCore ? get_varnames_fpcore(specFPCore) : get_varnames_mathjs(specMathJS)
       const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
       return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${get_precondition_from_input_ranges(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
-    }
+    },
+    mathjsToFPCore: (mathjs) => `(FPCore (${get_varnames_mathjs(mathjs).join(' ')}) ${FPCoreBody(mathjs)})`
   }
 })()
 
@@ -572,7 +574,7 @@ function plotError({ ticks, splitpoints, data, bits, styles, width=800, height=4
         grid: true
     },
     y: {
-        label: "Bits of error", domain: [0, bits],
+        label: "Bits of Error", domain: [0, bits],
         ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
         tickFormat: d => d % 8 !== 0 ? '' : d
     },
@@ -646,14 +648,14 @@ const herbiejs = (() => {
     return { graphHtml, pointsJson }
   }
   return ({
-    getSample: async (fpcore, host, log) => {
-      return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json()).points  // TODO change seed to resample
+    getSample: async (fpcore, host, log=txt=>console.log(txt)) => {
+      return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json())  // TODO change seed to resample
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
       return pointsJson
     },
     suggestExpressions: async (fpcore, sample, host, log, html) => {
-      return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })).json()).alternatives.map(alt => {
-        console.log(alt, fpcorejs.FPCoreGetBody(alt))
+      return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json()).alternatives.map(alt => {
+        //console.log(alt, fpcorejs.FPCoreGetBody(alt))
         return alt.replaceAll('.f64', '')
       })
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
@@ -669,19 +671,167 @@ const herbiejs = (() => {
         return body
     })
     },
-    analyzeExpression: async (spec, targetFPCoreBody, sample, host, log) => {
-      // TODO
-      //   const fpcore = fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join('')
-      // return (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })).json())
+    analyzeExpression: async (fpcore, sample, host, log) => {
+      // const floatToOrdinal = float => 42  // TODO
+      // const chooseTicks = sample => []  // TODO
+      console.trace('host', host, fpcore)//(await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })))
+      const pointsAndErrors = (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore.split('\n').join(''), sample: sample.points }) })).json()).points
+      const ordinalSample = sample.points.map(p => p[0].map(v => ordinalsjs.floatToApproximateOrdinal(v)))
+      
+      const vars = fpcorejs.getVarnamesFPCore(fpcore)
+      const ticksByVarIdx = vars.map((v, i) => {
+        const values = sample.points.map(p => p[0][i])
+        return ordinalsjs.chooseTicks(fastMin(values), fastMax(values)).map(v => [displayNumber(v), ordinalsjs.floatToApproximateOrdinal(v)])
+      })
+
+      console.log(`ticksByVarIdx`, sample, ticksByVarIdx)
+      
+      const splitpointsByVarIdx = vars.map(v => [])  // HACK no splitpoints for now
+      //console.log('pointsAndErrors', pointsAndErrors)
+      const errors = pointsAndErrors.map(([point, error]) => new Number(error))
+      const meanBitsError = new Number((errors.reduce((sum, v) => sum + v, 0)/errors.length).toFixed(2))
+      return { pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { target: errors } }, meanBitsError }
       // fields: { points, ticks_by_varidx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars, error.target }
-        const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
-        const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
-        return {graphHtml, pointsJson, meanBitsError}
+        // const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
+        // const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
+        // return {graphHtml, pointsJson, meanBitsError}
     },
     fPCoreToMathJS: async (fpcore, host) => {
       return (await (await fetch(`${host}/api/mathjs`, { method: 'POST', body: JSON.stringify({ formula: fpcore}) })).json()).mathjs
     }
   })
+})()
+
+const displayNumber = v => {
+  const s = v.toPrecision(1)
+  const [base, exponent] = s.split('e')
+  if (!exponent) {
+    return v.toPrecision(1) == v ? v.toPrecision(1) : v.toPrecision(6)
+  }
+  if (exponent <= 1 && -1 <= exponent) {
+    const a = v.toString()
+    const b = v.toPrecision(6)
+    return a.length < b.length ? a : b
+  }
+  return v.toPrecision(1)
+}
+
+function fastMin(arr) {
+  var len = arr.length, min = Infinity;
+  while (len--) {
+    if (arr[len] < min) {
+      min = arr[len];
+    }
+  }
+  return min;
+};
+
+function fastMax(arr) {
+  var len = arr.length, max = -Infinity;
+  while (len--) {
+    if (arr[len] > max) {
+      max = arr[len];
+    }
+  }
+  return max;
+};
+
+const ordinalsjs = (() => {
+  const math = math11
+  function to_signed_int (float64) {
+    const buffer = new ArrayBuffer(8)
+    const view = new DataView(buffer)
+    view.setFloat64(0, float64)
+    return view.getBigInt64(0)
+  }
+
+  function real_from_signed_int (signed) {
+    const buffer = new ArrayBuffer(8)
+    const view = new DataView(buffer)
+    view.setBigInt64(0, signed)
+    return view.getFloat64(0)
+  }
+
+  function mbn(x) {
+    return math.bignumber(to_signed_int(x).toString())
+  }
+
+  const mbn_neg_0 = mbn(-0.0)
+
+  function real_to_ordinal(real) {
+    let signed = to_signed_int(real)
+    let mbn = math.bignumber(signed.toString())
+    return signed >= 0 ? mbn : math.subtract(mbn_neg_0, mbn)
+  }
+
+  function ordinal_to_real(ordinal) {
+    return ordinal >=0 ? real_from_signed_int(BigInt(ordinal)) : real_from_signed_int(BigInt(math.subtract(mbn_neg_0, math.bignumber(ordinal))))
+  }
+
+  function clamp(x, lo, hi) {
+    return Math.min(hi, Math.max(x, lo))
+  }
+
+  function first_power10(min, max) {
+    let value = max < 0 ? - (10 ** Math.ceil(Math.log(-max)/ Math.log(10))) : 10 ** (Math.floor(Math.log(max) / Math.log(10)))
+    return value <= min ? false : value
+  }
+
+  function choose_between(min, max, number) {
+    // ; Returns a given number of ticks, roughly evenly spaced, between min and max
+    // ; For any tick, n divisions below max, the tick is an ordinal corresponding to:
+    // ;  (a) a power of 10 between n and (n + ε) divisions below max where ε is some tolerance, or
+    // ;  (b) a value, n divisions below max
+    let sub_range = Math.round((max - min) / (1 + number))
+    let near = (x, n) => (x <= n) && (Math.abs((x - n) / sub_range) <= .2)  // <= tolerance
+    return [...Array(number)].map((_, i) => i + 1).map(itr => {
+      let power10 = first_power10(
+        ordinal_to_real(clamp(max - ((itr + 1) * sub_range), min, max)),
+        ordinal_to_real(clamp(max - (itr * sub_range), min, max))
+      )
+      return power10 && near(real_to_ordinal(power10), max - (itr * sub_range)) ? real_to_ordinal(power10)
+        : max - (itr * sub_range)
+    })
+  }
+
+  function pick_spaced_ordinals(necessary, min, max, number) {
+    // NOTE that subtle use of mathjs bignumbers is required in this function...
+    let sub_range = math.divide(math.bignumber(math.subtract(math.bignumber(max), math.bignumber(min))), math.bignumber(number)) // size of a division on the ordinal range
+    let necessary_star = (function loop(necessary) {
+      return necessary.length < 2 ? necessary
+        : math.smaller(math.subtract(necessary[1], necessary[0]), sub_range) ? loop(necessary.slice(1)) 
+        : [necessary[0], ...loop(necessary.slice(1))]
+    })(necessary) // filter out necessary points that are too close
+    let all = (function loop(necessary, min_star, start) {
+      if (start >= number) { return [] }
+      if (necessary.length == 0) { return choose_between(min_star, max, number - start) }
+      let idx :any = false
+      for (let i = 0; i < number; i++) {
+        //@ts-ignore
+        if (math.smallerEq(math.subtract(necessary[0], math.add(min, math.bignumber(math.multiply(i, sub_range)))), sub_range)) {
+          idx = i
+          break
+        }
+      }
+      return [...choose_between(min_star, necessary[0], idx - start), ...loop(necessary.slice(1), necessary[0], idx + 1)]
+    })(necessary_star, min, 0)
+    return [...all, ...necessary_star].sort((a, b) => math.subtract(math.bignumber(a), math.bignumber(b)))
+  }
+
+  function choose_ticks(min, max) {
+    let tick_count = 13
+    let necessary = [min, -1.0, 0, 1.0, max].filter(v => (min <= v) && (v <= max) && (min <= max)).map(v => real_to_ordinal(v))
+    let major_ticks = pick_spaced_ordinals(necessary, real_to_ordinal(min), real_to_ordinal(max), tick_count).map(v => ordinal_to_real(v))
+    return major_ticks
+  }
+
+  function float_to_approximate_ordinal(float) {
+    return real_to_ordinal(float).toNumber()
+  }
+  return {
+    chooseTicks: choose_ticks,
+    floatToApproximateOrdinal: float_to_approximate_ordinal
+  }
 })()
 
 function mainPage(api) {
@@ -788,7 +938,7 @@ function mainPage(api) {
 
   const analyses = () => api.tables.find(t => t.name === 'Analyses').items
 
-  const getExpressionRow = (expression) => {
+  const getExpressionRow = (expression, spec) => {
     const analysis = () => analyses().find(a => a.expressionId === expression.id)
     
 
@@ -809,30 +959,35 @@ function mainPage(api) {
     // </span>
     //console.log('here 800', c, analysis, expression)
     //style="color: ${() => getColorCode(expression.id)};"
-    return html`<div class="expressionRow" >
-      <span style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</span>
-      <span>
+    // onClick=${selectExpression(expression)}
+    // onClick=${() => api.select('Specs', expression.specId)}
+    return html`<tr class="expressionRow" >
+      <td style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</td>
+      <td>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
-      </span>
-      <span onClick=${selectExpression(expression)}>${expression.mathjs ? expression.mathjs : expression.fpcore}</span>
+      </td>
+      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}">${expression.mathjs}</td>
       
-      <span onClick=${() => api.select('Specs', expression.specId)}>
+      <td class="meanBitsError">
         <${Switch}>
           <${Match} when=${() => false && /* c.status === 'unrequested' && */ !analysis() /* && !request() */}>
             waiting for analysis (unreq)...
           <//>
           <${Match} when=${() => /*c.status === 'requested' */ !analysis() /*&& request() */}>
-            waiting for analysis...
+            ...
           <//>
           <${Match} when=${() => analysis() /*c.status === 'computed'*/}>
-            ${() => JSON.stringify(Object.fromEntries(Object.entries(analysis()).filter(([k, v]) => ['meanBitsError', 'performance', 'expressionId'].includes(k)).map(([k, v]) => k === 'expressionId' ? ['rangeId', expressions().find(e => e.id === v)?.specId] : [k, v])))}
+            ${() => JSON.stringify(analysis().meanBitsError)/*.meanBitsError/*JSON.stringify(Object.fromEntries(Object.entries(analysis()).filter(([k, v]) => ['meanBitsError', 'performance', 'expressionId'].includes(k)).map(([k, v]) => k === 'expressionId' ? ['rangeId', expressions().find(e => e.id === v)?.specId] : [k, v])))*/}
           <//>
           <${Match} when=${() => false /*(c.status === 'error' */}>
             error during computation :(
           <//>
         <//>
-      </span>
-    </div>`
+      </td>
+      <td >
+        <button>x</button>
+      </td>
+    </tr>`
   }
 
   const getExprSpec = expr => specs().find(spec => spec.id === expr.specId)
@@ -859,7 +1014,7 @@ function mainPage(api) {
     api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
   }
   
-  const makeExpressionFromSpec = spec => makeExpression(spec, fpcorejs.FPCoreGetBody(spec.fpcore) || fpcorejs.FPCoreBody(spec.mathjs), spec.mathjs)
+  const makeExpressionFromSpec = spec => console.log('Not implemented yet.')//makeExpression(spec, spec.fpcore /*fpcorejs.FPCoreGetBody(spec.fpcore) || fpcorejs.FPCoreBody(spec.mathjs)*/, spec.mathjs)
 
   const noExpressionsRow = spec => {
     return html`<div class="noExpressionsRow">
@@ -877,7 +1032,7 @@ function mainPage(api) {
     async function addExpression() {
       const ranges = JSON.parse(rangeText.value)
       await ensureSpecWithThoseRangesExists(ranges)
-      makeExpression(specWithRanges(ranges), text.value.startsWith('[[') ? text.value.slice(2) : fpcorejs.FPCoreBody(text.value), text.value.startsWith('[[') ? text.value.slice(2) : text.value)()  // HACK to support FPCore submission
+      makeExpression(specWithRanges(ranges), text.value.startsWith('[[') ? text.value.slice(2) : fpcorejs.mathjsToFPCore(text.value), text.value.startsWith('[[') ? text.value.slice(2) : text.value)()  // HACK to support FPCore submission
     }
     return html`<div class="addExpressionRow">
     <div>
@@ -894,11 +1049,45 @@ function mainPage(api) {
   }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
   // ${getSpecRow(spec)}
+  const sortBy = fn => (a, b) => fn(a) - fn(b)
+  
+  // super ugly HACK: use a timer to keep the list sorted. Works.
+  setInterval(() => {
+    api.setTables(produce((tables: any) => {
+      tables.find(t => t.name === 'Expressions').items = tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses().find(a => a.expressionId === e.id)?.meanBitsError)) 
+    }))
+    console.log('effect finished!!2')
+  }, 1000)
+  
   const getSpecBlock = spec => {
+    // createEffect(() => {  // HACK keep the expressions sorted by error (also this doesn't work...)
+    //   console.log('effect ran!!')
+    //   const analyses1 = analyses()
+    //   //@ts-ignore
+    //   api.setTables(produce((tables: any) => {
+    //     tables.find(t => t.name === 'Expressions').items = []//tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses1.find(a => a.expressionId === e.id)?.meanBitsError)) 
+    //   }))
+    //   console.log('effect finished!!')
+    // })
     return html`<div id="specBlock">
-      
-      <${For} each=${ expressions /* expressionsForSpec(spec) */}>${getExpressionRow}<//>
+    <div id="expressionTable">
+      <table>
+        <thead>
+          <tr>
+            <th>&nbsp;</th>
+            <th>&nbsp;</th>
+            <th class="expression">Expression</th>
+            <th class="meanBitsError">Error</th>
+            <th>&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody>
+    
+      <${For} each=${ expressions /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
+        </tbody>
+      </table>
+      </div>
       ${() => addExpressionRow(spec)}
       
     </div>`
@@ -923,19 +1112,22 @@ function mainPage(api) {
   const herbieSuggestion = (spec) => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
   const request = (spec) => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
   //<${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
+  // ${Inputs.table([{a: 42}, {a: 64}])}  TODO figure out tables
   const specsAndExpressions = (startingSpec) => html`
     <div id="specsAndExpressions">
       <div id="specInfo">
-        <span id="specTitle">The Spec: ${startingSpec.mathjs}</span>
+        <h4 style="margin-top: 0px; margin-bottom:0px;">Approximating</h4>
+        <h1 id="specTitle" style="margin-top:0px;">${startingSpec.mathjs}</h1>
+        
         <${Switch}>
           <${Match} when=${() => !request(startingSpec) && !herbieSuggestion(startingSpec)}>
             <button onClick=${() => (genHerbieAlts(startingSpec, api), makeRequest(startingSpec))}>Get alternatives with Herbie</button>
           <//>
           <${Match} when=${() => request(startingSpec) && !herbieSuggestion(startingSpec)}>
-            waiting for alternatives...
+            <button disabled>waiting for alternatives... (may take up to 15 seconds)</button>
           <//>
           <${Match} when=${() => herbieSuggestion(startingSpec)}>
-            [alternatives shown]
+            <button disabled>alternatives shown</button>
           <//>
           <${Match} when=${() => /* TODO check associated request for error */ false}>
             error during computation :(
@@ -1005,6 +1197,52 @@ function mainPage(api) {
       #analyzeUI .expressionRow, #analyzeUI .noExpressionsRow, #analyzeUI .addExpressionRow {
         margin-left: 15px;
       }
+      #analyzeUI .expressionRow .naive-expression {
+        font-weight: bold;
+      }
+      #analyzeUI #specBlock table {
+        width:100%;
+        table-layout:auto;
+      }
+      #analyzeUI #expressionTable {
+        max-height: 300px;
+        overflow: auto;
+        border: 1px solid #6161615c;
+        border-radius: 5px;
+        padding: 0px;
+        width: fit-content;
+        margin: auto;
+      }
+      #analyzeUI #expressionTable tbody {
+        display:block;
+        overflow:auto;
+        max-height:200px;
+        width:100%;
+      }
+      #expressionTable th.expression {
+        text-align: left;
+        padding-left: 20px;
+      }
+      #expressionTable .expression {
+        width:300px
+      }
+      #expressionTable .meanBitsError {
+        width:40px;
+      }
+      #expressionTable th, #expressionTable td {
+        width:auto;
+      }
+      
+      #analyzeUI #expressionTable thead tr {
+        display: block;
+      }
+      
+      #analyzeUI #expressionTable button {
+        width:-webkit-fill-available;
+      }
+      #analyzeUI #specBlock table tr:nth-child(even) {
+        background-color: #D6EEEE;
+      }
       #analyzeUI {
         display: grid;
         grid-template-areas: 
@@ -1051,12 +1289,11 @@ async function genHerbieAlts(spec, api) {
   // HACK assuming only one suggestion for now
   console.log('spec fpcore is', spec.fpcore)
   const sample = await herbiejs.getSample(spec.fpcore, HOST, logval => console.log(logval))
-  console.log(sample)
   //const sample2 = sample.points.map((p, i) => [p, sample.exacts[i]])
   //console.log(sample2)
   const alts = await herbiejs.suggestExpressions(spec.fpcore, sample, HOST, logval => console.log(logval), html)
   const expressions = await Promise.all(alts.map(async alt => {
-    return { fpcore: fpcorejs.FPCoreGetBody(alt), specId: spec.id, id: expressionId++, provenance: 'herbie', spec, mathjs: await herbiejs.fPCoreToMathJS(alt, HOST)}
+    return { fpcore: alt/*fpcorejs.FPCoreGetBody(alt)*/, specId: spec.id, id: expressionId++, provenance: 'herbie', spec, mathjs: await herbiejs.fPCoreToMathJS(alt, HOST)}
   }))
   const ids = expressions.map(e => e.id)
   // const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
@@ -1177,8 +1414,19 @@ function expressionComparisonView(expressions, api) {
       ?.pointsJson
   }))
   const currentVarname = () => getLastSelected(api, "Variables")?.varname || getTable(api, 'Variables')?.[0].varname
+  const currentVarIdx = () => fpcorejs.getVarnamesFPCore(lastSpec().fpcore).indexOf(currentVarname())
+  const points = () => {
+    //return [-1, 1]
+    const specId = lastSpec().id
+    const idx = currentVarIdx()
+    //await waitUntil(() => getByKey(api, 'Samples', 'specId', specId));
+    return getByKey(api, 'Samples', 'specId', lastSpec().id).points.map(p => p[0][idx])
+  }
+  const minPt = () => displayNumber(fastMin(points()))
+  const maxPt = () => displayNumber(fastMax(points()))
+
   return html`<div>
-    <h3>Error of ${()=> expressions.length} selected expression${expressions.length === 1 ? '' : 's'} over the range ${currentVarname} = [${(lastSpec().ranges.find(e => e[0] == currentVarname()) || ['name', [-1.79e308, 1.79e308]] )[1].join(',')}]:</h3>
+    <h3>Error of ${()=> expressions.length} selected expression${expressions.length === 1 ? '' : 's'} over the range ${currentVarname} = [${minPt} , ${maxPt}]:</h3>
     ${() => {
     const validPointsJsons = pointsJsons()
       .filter(({ expression, pointsJson }) => pointsJson)
@@ -1228,6 +1476,9 @@ function getTable(api, tname) {
 function select(api, tname, id) {
   return api.select(tname, id)//, api.tables, api.setTables)
 }
+function getByKey(api, tname, key, value) {
+  return getTable(api, tname).find(v => v[key]=== value)
+}
 
 function getLastSelected(api, tname) {
   return getTable(api, tname).find(api.getLastSelected((o, table) => table === tname) || (() => false))
@@ -1240,22 +1491,34 @@ let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127
 //@ts-ignore
 window.setHOST = host => HOST = host
 
-// NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
+async function waitUntil(testFn, interval=1000) {
+  if (testFn()) {return;}
+  let resolve :any = undefined
+  const p = new Promise(r => resolve = r)
+  const id = setInterval(() => { if (testFn()) { clearInterval(id); resolve() }}, interval )
+  await p
+}
 
+// NOTE passing api into rules was breaking reactivity before (even though it wasn't used, probably due to logging use?)
 async function analyzeExpression(expression, api) {
   // const specs = () => api.tables.find(t => t.name === 'Specs').items
   // const spec = specs().find(s => s.id === expression.specId)
   // // TODO log properly
   // TODO there's a reactive loop being created by properly looking up the spec above, need to figure out later
   // and remove expression.spec
-  return { ...await herbiejs.analyzeExpression(expression.spec, expression.fpcore, undefined, HOST, logval => console.log(logval)), expressionId: expression.id }
+  //
+  // HACK we will only have one sample per page for now, would have to add an analysis for each existing sample (and have a separate generator to add an analysis for each existing expression for a new sample)
+  const getSample = () => getByKey(api, 'Samples', 'specId', expression.specId)
+  await waitUntil(getSample, 1000)  // HACK kind of, we need to wait for a sample to be added (this is a general problem with things generated from multiple items)
+  const sample = getSample()
+  return { ...await herbiejs.analyzeExpression(expression.fpcore, sample, HOST, logval => console.log(logval)), expressionId: expression.id }
   //return await (new Promise(resolve => setTimeout(() => resolve({bitsError: Math.round(64 * Math.random()), performance: Math.round(100 * Math.random()), expressionId: expression.id}), 2000)))
 }
 
 // TODO def need to attach ids automatically on object generation in platform
 function addNaiveExpression(spec) {
   // HACK expression.spec is duplicated, see analyzeExpression
-  return {specId: spec.id, fpcore: fpcorejs.FPCoreGetBody(spec.fpcore) || fpcorejs.FPCoreBody(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
+  return { specId: spec.id, fpcore: spec.fpcore /*fpcorejs.FPCoreGetBody(spec.fpcore)*/ || fpcorejs.mathjsToFPCore(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
 }
 
 // TESTING 
@@ -1283,9 +1546,13 @@ function addVariables(spec) {
   return spec.fpcore ? fpcorejs.getVarnamesFPCore(spec.fpcore).map(v => ({specId: spec.id, varname: v, id: variableId++})) : fpcorejs.getVarnamesMathJS(spec.mathjs).map(v => ({specId: spec.id, varname: v, id: variableId++}))
 }
 
+async function addSample(spec) {
+  return { ...(await herbiejs.getSample(spec.fpcore, HOST, txt => console.log(txt))), id: sampleId++, specId: spec.id }
+}
+
 function selectNaiveExpression(spec, api) {
   const curr = currentMultiselection(api).map(o => o.id)
   return {multiselection: true, selection: (o, table) => table === "Expressions" && o.fpcore === spec.fpcore || curr.includes(o.id)}
 }
 
-export default {mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression, addVariables}
+export default {mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression, addVariables, addSample}

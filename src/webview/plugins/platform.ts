@@ -170,7 +170,8 @@ async function getAPI(plugin_config, import_from_module, api) {
     create(callerPlugin, 'platform.ActionLogs', { name, args }, tables, setTables, api, import_from_module)
     
     // run the action named name with the specified arguments
-    await (actions.items.find(a => a.name === name).fn(callerPlugin, ...args, tables, setTables))
+    // NOTE api and import_from_module weren't here before? was that intentional?
+    await (actions.items.find(a => a.name === name).fn(callerPlugin, ...args, tables, setTables, api, import_from_module))  
   }
 
   // HACK for now, when we select something, we just put the whole item in the .selection attribute (should use foreign key)

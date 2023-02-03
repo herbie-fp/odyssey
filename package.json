@@ -58,11 +58,13 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@observablehq/inputs": "^0.10.4",
     "@observablehq/plot": "^0.6.0",
     "cors-anywhere": "^0.4.4",
     "decimal.js": "^10.4.3",
     "lit-dom-expressions": "^0.34.4",
     "mathjs": "^1.6.0",
+    "mathjs11": "npm:mathjs@^11.5.1",
     "solid-js": "^1.5.3",
     "vsce": "^2.11.0"
   }

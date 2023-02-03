@@ -1219,6 +1219,9 @@ function mainPage(api) {
         max-height:200px;
         width:100%;
       }
+      #expressionTable thead {
+        box-shadow: 2px 1px 7px 2px lightblue;
+      }
       #expressionTable th.expression {
         text-align: left;
         padding-left: 20px;

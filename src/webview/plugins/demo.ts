@@ -977,7 +977,7 @@ function mainPage(api) {
       <td>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </td>
-      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${selectExpression(expression)}>>${expression.mathjs}</td>
+      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${selectExpression(expression)}>${expression.mathjs}</td>
       
       <td class="meanBitsError">
         <${Switch}>

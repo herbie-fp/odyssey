@@ -977,7 +977,7 @@ function mainPage(api) {
       <td>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </td>
-      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}">${expression.mathjs}</td>
+      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${selectExpression(expression)}>>${expression.mathjs}</td>
       
       <td class="meanBitsError">
         <${Switch}>
@@ -1368,38 +1368,55 @@ function analysisComputable(expression, api) {
 
 function expressionView(expression, api) {
   //<div>...expression plot here...</div>
-  // TODO remove this computable
-  const c = analysisComputable(expression, api)
+  const history = getByKey(api, 'Histories', 'specId', expression.specId)
   return html`<div>
     <h3>Details for Expression ${expression.mathjs || expression.fpcore}</h3>
-    <${Switch}>
-      <${Match} when=${() => c.status === 'unrequested'}>
-        <button onClick=${c.compute}>Run Analysis</button>
-      <//>
-      <${Match} when=${() => c.status === 'requested'}>
-        waiting...
-      <//>
-      <${Match} when=${() => c.status === 'computed'}>
-        ${() => {
-    if (expression.provenance !== 'herbie') { return 'User-submitted expression.'}
-      const el = document.createElement('div') as HTMLElement
-    el.innerHTML = (c as any).value?.graphHtml;
-    (window as any).renderMathInElement(el.querySelector('#history'))
-      return html`
-          <div>
-            ${el.querySelector('#history')}
-            ${el.querySelector('#reproduce')}
-          </div>
-    `
+    ${() => {
+      if (expression.provenance !== 'herbie') {
+        return 'User-submitted expression.'
+      } else {
+        const el = document.createElement('div') as HTMLElement
+        el.innerHTML = history.html
+        return html`<div id=history>
+          ${el}
+        </div>`
+      }
     }
     }
-      <//>
-      <${Match} when=${() => c.status === 'error'}>
-        ${() => console.log(c)}
-        error during computation :(
-      <//>
-    <//>
   </div>`
+  // const c = analysisComputable(expression, api)
+  // const history = getByKey(api, 'Histories', 'specId', expression.specId)
+  // console.log(history)
+  // return html`<div>
+  //   <h3>Details for Expression ${expression.mathjs || expression.fpcore}</h3>
+  //   <${Switch}>
+  //     <${Match} when=${() => c.status === 'unrequested'}>
+  //       <button onClick=${c.compute}>Run Analysis</button>
+  //     <//>
+  //     <${Match} when=${() => c.status === 'requested'}>
+  //       waiting...
+  //     <//>
+  //     <${Match} when=${() => c.status === 'computed'}>
+  //       ${() => {
+  //   if (expression.provenance !== 'herbie') { return 'User-submitted expression.'}
+  //     const el = document.createElement('div') as HTMLElement
+  //   el.innerHTML = (c as any).value?.graphHtml;
+  //   (window as any).renderMathInElement(el.querySelector('#history'))
+  //     return html`
+  //         <div>
+  //           ${el.querySelector('#history')}
+  //           ${el.querySelector('#reproduce')}
+  //         </div>
+  //   `
+  //   }
+  //   }
+  //     <//>
+  //     <${Match} when=${() => c.status === 'error'}>
+  //       ${() => console.log(c)}
+  //       error during computation :(
+  //     <//>
+  //   <//>
+  // </div>`
 }
 
 //@ts-ignore

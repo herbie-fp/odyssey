@@ -668,10 +668,7 @@ const herbiejs = (() => {
       return pointsJson
     },
     suggestExpressions: async (fpcore, sample, host, log, html) => {
-      return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json()).alternatives.map(alt => {
-        //console.log(alt, fpcorejs.FPCoreGetBody(alt))
-        return alt.replaceAll('.f64', '')
-      })
+      return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json())
       const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
       //console.log(graphHtml)
       //@ts-ignore
@@ -1308,15 +1305,24 @@ async function genHerbieAlts(spec, api) {
   const sample = await herbiejs.getSample(spec.fpcore, HOST, logval => console.log(logval))
   //const sample2 = sample.points.map((p, i) => [p, sample.exacts[i]])
   //console.log(sample2)
-  const alts = await herbiejs.suggestExpressions(spec.fpcore, sample, HOST, logval => console.log(logval), html)
+  const fetch = await herbiejs.suggestExpressions(spec.fpcore, sample, HOST, logval => console.log(logval), html)
+  const alts = fetch.alternatives
+  const histories = fetch.histories
+
+  var derivExpressionId = expressionId
   const expressions = await Promise.all(alts.map(async alt => {
     return { fpcore: alt/*fpcorejs.FPCoreGetBody(alt)*/, specId: spec.id, id: expressionId++, provenance: 'herbie', spec, mathjs: await herbiejs.fPCoreToMathJS(alt, HOST)}
   }))
+  const derivations = await Promise.all(histories.map(async html => {
+    return { html: html, specId: spec.id, id: derivExpressionId++, provenance: 'herbie', spec, }
+  }))
+
   const ids = expressions.map(e => e.id)
   // const expressions = ([await herbiejs.suggestExpressions(spec.fpcore, HOST, logval => console.log(logval), html)]).map(fpcorebody => {
   //   return { fpcore: fpcorebody, specId: spec.id, id: ids[0], provenance: 'herbie', spec}
   // })
   expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
+  derivations.map(e => api.action('create', 'demo', 'Histories', e))
   //ids = expressions.map(e => e.id)
   const curr = currentMultiselection(api).map(o => o.id)
 
@@ -1502,7 +1508,8 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'
+//let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore

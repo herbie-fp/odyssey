@@ -1368,7 +1368,7 @@ function analysisComputable(expression, api) {
 
 function expressionView(expression, api) {
   //<div>...expression plot here...</div>
-  const history = getByKey(api, 'Histories', 'specId', expression.specId)
+  const history = getByKey(api, 'Histories', 'id', expression.id)
   return html`<div>
     <h3>Details for Expression ${expression.mathjs || expression.fpcore}</h3>
     ${() => {
@@ -1376,9 +1376,10 @@ function expressionView(expression, api) {
         return 'User-submitted expression.'
       } else {
         const el = document.createElement('div') as HTMLElement
-        el.innerHTML = history.html
-        return html`<div id=history>
-          ${el}
+        el.innerHTML = history.html;
+        (window as any).renderMathInElement(el.querySelector("#history"))
+        return html`<div>
+          ${el.querySelector('#history')}
         </div>`
       }
     }

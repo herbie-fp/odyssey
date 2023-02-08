@@ -1055,7 +1055,7 @@ function mainPage(api) {
         ${rangeText}
         </div>
     </div>
-    <button onClick=${addExpression}>Add expression</button>
+    <button onClick=${addExpression}>Add approximation</button>
     </div>`
   }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
@@ -1132,7 +1132,7 @@ function mainPage(api) {
         
         <${Switch}>
           <${Match} when=${() => !request(startingSpec) && !herbieSuggestion(startingSpec)}>
-            <button onClick=${() => (genHerbieAlts(startingSpec, api), makeRequest(startingSpec))}>Get alternatives with Herbie</button>
+            <button onClick=${() => (genHerbieAlts(startingSpec, api), makeRequest(startingSpec))}>Get alternative expressions with Herbie</button>
           <//>
           <${Match} when=${() => request(startingSpec) && !herbieSuggestion(startingSpec)}>
             <button disabled>waiting for alternatives... (may take up to 15 seconds)</button>
@@ -1467,7 +1467,7 @@ function expressionComparisonView(expressions, api) {
   const maxPt = () => displayNumber(fastMax(points()))
 
   return html`<div>
-    <h3>Error of ${()=> expressions.length} selected expression${expressions.length === 1 ? '' : 's'} over the range ${currentVarname} = [${minPt} , ${maxPt}]:</h3>
+    <h3>Bits of error over the range ${currentVarname} = [${minPt} , ${maxPt}]:</h3>
     ${() => {
     const validPointsJsons = pointsJsons()
       .filter(({ expression, pointsJson }) => pointsJson)

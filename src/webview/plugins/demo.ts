@@ -972,6 +972,12 @@ function mainPage(api) {
     //style="color: ${() => getColorCode(expression.id)};"
     // onClick=${selectExpression(expression)}
     // onClick=${() => api.select('Specs', expression.specId)}
+    const hideExpression = async expression => {
+      await api.action('create', 'demo', 'HiddenExpressions', { specId: spec.id, expressionId: expression.id })//, api.tables, api.setTables) // TODO implement
+
+      const curr = currentMultiselection(api).map(o => o.id)
+      api.multiselect('Expressions', curr.filter(id => !getByKey(api, 'HiddenExpressions', 'expressionId', id)))//, api.tables, api.setTables)
+    }
     return html`<tr class="expressionRow" >
       <td style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</td>
       <td>
@@ -996,7 +1002,7 @@ function mainPage(api) {
         <//>
       </td>
       <td >
-        <button>x</button>
+        <button onClick=${() => hideExpression(expression)} class="hideExpression">x</button>
       </td>
     </tr>`
   }
@@ -1045,16 +1051,17 @@ function mainPage(api) {
       await ensureSpecWithThoseRangesExists(ranges)
       makeExpression(specWithRanges(ranges), text.value.startsWith('[[') ? text.value.slice(2) : fpcorejs.mathjsToFPCore(text.value), text.value.startsWith('[[') ? text.value.slice(2) : text.value)()  // HACK to support FPCore submission
     }
+    // <div id="modifyRange">
+    //   Ranges:
+    //     <div>
+    //     ${rangeText}
+    //     </div>
+    // </div>
     return html`<div class="addExpressionRow">
     <div>
     ${text}
     </div>
-    <div id="modifyRange">
-      Ranges:
-        <div>
-        ${rangeText}
-        </div>
-    </div>
+    
     <button onClick=${addExpression}>Add approximation</button>
     </div>`
   }
@@ -1094,7 +1101,7 @@ function mainPage(api) {
         </thead>
         <tbody>
     
-      <${For} each=${ expressions /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
+      <${For} each=${() => expressions().filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id)) /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
         </tbody>
       </table>
@@ -1128,14 +1135,14 @@ function mainPage(api) {
     <div id="specsAndExpressions">
       <div id="specInfo">
         <h4 style="margin-top: 0px; margin-bottom:0px;">Approximating</h4>
-        <h1 id="specTitle" style="margin-top:0px;">${startingSpec.mathjs}</h1>
+        <div id="specTitle" style="margin-top:0px;">${renderTex(math11.parse(startingSpec.mathjs).toTex())}</div>
         
         <${Switch}>
           <${Match} when=${() => !request(startingSpec) && !herbieSuggestion(startingSpec)}>
             <button onClick=${() => (genHerbieAlts(startingSpec, api), makeRequest(startingSpec))}>Get alternative expressions with Herbie</button>
           <//>
           <${Match} when=${() => request(startingSpec) && !herbieSuggestion(startingSpec)}>
-            <button disabled>waiting for alternatives... (may take up to 15 seconds)</button>
+            <button disabled>waiting for alternatives... (may take up to 20 seconds)</button>
           <//>
           <${Match} when=${() => herbieSuggestion(startingSpec)}>
             <button disabled>alternatives shown</button>
@@ -1238,7 +1245,10 @@ function mainPage(api) {
         padding-left: 20px;
       }
       #expressionTable .expression {
-        width:300px
+        width:300px;
+      }
+      #expressionTable td.expression {
+        cursor: pointer;
       }
       #expressionTable .meanBitsError {
         width:40px;
@@ -1249,6 +1259,23 @@ function mainPage(api) {
       
       #analyzeUI #expressionTable thead tr {
         display: block;
+      }
+
+      .varname-selected {
+        background-color: lightgrey;
+      }
+      .hideExpression {
+        border: 1px solid gray;
+        transition-duration: .2s;
+      }
+      .hideExpression:hover {
+        background-color: #ff5555;
+        color: white;
+        border: 1px solid gray;
+      }
+
+      #analyzeUI .errorPlot svg {
+        padding-top: 30px;
       }
       
       #analyzeUI #expressionTable button {
@@ -1327,7 +1354,7 @@ async function genHerbieAlts(spec, api) {
   const curr = currentMultiselection(api).map(o => o.id)
 
   /* NOTE selects the alts after getting them */
-  api.multiselect('Expressions', [...curr, ...ids])
+  api.multiselect('Expressions', [...curr, ...ids.slice(0, 3)])
   //return 'done'  // uh, remove this
 }
 
@@ -1365,20 +1392,32 @@ function analysisComputable(expression, api) {
 
   return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await analyzeExpression(expression, api)))//, api.tables, api.setTables, api))
 }
+const renderTex = html => {
+  const el = document.createElement('div') as HTMLElement
+  el.innerHTML = '\\(' + html + '\\)';
+  (window as any).renderMathInElement(el)
+  return el
+}
+const math2Tex = mathjs => {
+  return math11.parse(mathjs).toTex()
+}
 
 function expressionView(expression, api) {
   //<div>...expression plot here...</div>
   const history = getByKey(api, 'Histories', 'id', expression.id)
   return html`<div>
-    <h3>Details for Expression ${expression.mathjs || expression.fpcore}</h3>
+    <h3>Expression Details: ${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</h3>
     ${() => {
       if (expression.provenance !== 'herbie') {
-        return 'User-submitted expression.'
+        return 'You submitted this expression.'
       } else {
         const el = document.createElement('div') as HTMLElement
         el.innerHTML = history.html;
         (window as any).renderMathInElement(el.querySelector("#history"))
         return html`<div>
+        <h3>
+          Herbie's derivation
+        </h3>
           ${el.querySelector('#history')}
         </div>`
       }
@@ -1499,15 +1538,18 @@ function expressionComparisonView(expressions, api) {
       return { line: { stroke: color }, dot: { stroke: color + dotAlpha } }
     })
     //console.log(data)
-    return html`<div>${plotError({ data, styles, ticks, splitpoints, bits }, Plot)}</div>`
+    return html`<div class="errorPlot">${plotError({ data, styles, ticks, splitpoints, bits }, Plot)}</div>`
     }
     }
+    <div>
+    <span> Select input axis: </span>
     ${() => getTable(api, 'Variables').filter(v => v.specId === expressions?.[0]?.specId).map(v => {
       console.log('VARNAME', v, currentVarname())
       /* ts-styled-plugin: disable-next-line */
       // style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', v.id)}
-      return html`<span class="varname" onclick=${() => select(api, 'Variables', v.id)}>${v.varname}</span>`
+      return html`<span class="varname ${currentVarname() === v.varname ? 'varname-selected' : ''}" onclick=${() => select(api, 'Variables', v.id)}>${v.varname}</span>`
     })}
+    </div>
   </div>`
 }
 

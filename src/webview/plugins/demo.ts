@@ -2,8 +2,24 @@ import { create } from "domain";
 import { applyTransformDependencies } from "mathjs";
 import { expression } from "mathjs11";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
-import { createStore, createEffect, createRenderEffect, createMemo, produce } from "../../dependencies/dependencies.js";
+import { createStore, createEffect, createRenderEffect, createMemo, produce, createSignal, createResource } from "../../dependencies/dependencies.js";
 import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
+
+const vscodeApi = await (window as any).acquireVsCodeApi()
+
+window.addEventListener('message', event => {
+  console.log("FOOBAR got message")
+  const message = event.data 
+  switch (message.command) {
+    case 'openNewTab':
+      const { mathjs, ranges } = message
+      //@ts-ignore
+      document.querySelector('#newSpecInput textarea').value = JSON.stringify({ mathjs, ranges })
+      //@ts-ignore
+      document.querySelector('button').click()
+      break;
+  }
+})
 
 let specId = 1
 let sampleId = 1
@@ -850,11 +866,11 @@ function mainPage(api) {
   console.log('Setting up main demo page...')
   const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
   //const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(y)", ranges: [["x", [1, 1e9]], ["y", [-1e9, 1]]] }
-  const textarea = (value=JSON.stringify(defaultSpec)) => html`<textarea value="${value}"></textarea>` as HTMLInputElement
+  const textarea = (value: any = JSON.stringify(defaultSpec), setValue = (v) => { }) => html`<textarea value="${value}" oninput=${e => setValue(e.target.value)}></textarea>` as HTMLInputElement
 
-  const addSpec = async ({ mathjs, ranges, fpcore }) => { 
+  const addSpec = async ({ mathjs, ranges, fpcore }) => {
     const id = specId++
-    const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, specFPCore: fpcore, ranges }), ranges, id}
+    const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, specFPCore: fpcore, ranges }), ranges, id }
     await api.action('create', 'demo', 'Specs', spec)
     api.select('Specs', id)
     api.multiselect('Expressions', expressions().filter(e => e.specId === id).map(e => e.id))
@@ -901,14 +917,14 @@ function mainPage(api) {
     //const samples = relevantSamples(spec)
     const relevantSamples = () => samples.filter(sample => sample.specId === spec.id)
     // HACK mock sample retrieval
-    const getSampleHandler = () => setSamples(produce(samples => samples.push({specId: spec.id, id: sampleId++})))
+    const getSampleHandler = () => setSamples(produce(samples => samples.push({ specId: spec.id, id: sampleId++ })))
     const addSampleButton = html`<button onClick=${getSampleHandler}>Add Sample</button>`
     const sampleSelect = html`<select>
       <${For} each=${relevantSamples}>${sample => html`<option>${sample.id}</option>`}<//>
     </select>`
 
     const request = () => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
-    const makeRequest = () => api.action('create', 'demo', 'Requests', {specId: spec.id})//, api.tables, api.setTables)
+    const makeRequest = () => api.action('create', 'demo', 'Requests', { specId: spec.id })//, api.tables, api.setTables)
     console.log('rerendering')
     const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
 
@@ -935,15 +951,17 @@ function mainPage(api) {
           <//>
           <${Match} when=${() => true}>
             ${() => {
-      return 'other case'
-              } 
-            }
+        return 'other case'
+      }
+      }
           <//>
         <//>
       </span>
     </div>`
   }
   const selectExpression = expression => () => {
+    console.log
+    if (lastSelectedExpression()?.id === expression.id) { return }
     api.select('Expressions', expression.id)//, api.tables, api.setTables)
   }
 
@@ -1009,7 +1027,7 @@ function mainPage(api) {
 
   const getExprSpec = expr => specs().find(spec => spec.id === expr.specId)
 
-  /** expressions where spec.mathjs === expr's spec.mathjs (or ditto fpcore) */ 
+  /** expressions where spec.mathjs === expr's spec.mathjs (or ditto fpcore) */
   const expressionsForSpec = spec => {
     return expressions().filter(e => e.specId === spec.id)
     // console.debug('Checking expressions for the spec...', spec, unwrap(expressions()), unwrap(specs()), getExprSpec((expressions() || [{}])[0] || {}))
@@ -1025,7 +1043,7 @@ function mainPage(api) {
     //console.log('makeExpression called')
     const id = expressionId++
     // ugly HACK duplicate the spec on the expression, see analyzeExpression
-    api.action('create', 'demo', 'Expressions', {specId: spec.id, fpcore, id, spec, mathjs})//, api.tables, api.setTables)
+    api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore, id, spec, mathjs })//, api.tables, api.setTables)
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
@@ -1038,8 +1056,25 @@ function mainPage(api) {
       <span><button onClick=${makeExpressionFromSpec(spec)}>Create the default expression for this spec</button></span>
     </div>`
   }
+  // const [spec0] : any= createResource(async () => {
+  //   await waitUntil(() => specs().length > 0)
+  //   return specs()[0]
+  // })
+  const [addExpressionText, setAddExpressionText] = createSignal('')
+  //setTimeout(() => setAddExpressionText(specs()?.[0]?.mathjs), 1000)
+  createEffect(() => specs()?.[0]?.mathjs && setAddExpressionText(specs()[0].mathjs))
+  let firstTime = true
   const addExpressionRow = spec => {
-    const text = textarea(spec.mathjs)
+    const text = addExpressionText
+    const setText = setAddExpressionText
+    function debounce( callback, delay ) {
+      let timeout;
+      return function(...args) {
+          clearTimeout( timeout );
+          timeout = setTimeout(() => callback(...args), delay );
+      }
+  }
+    const textArea = textarea(text, debounce(v => setText(v), 500))
     const rangeText = textarea(JSON.stringify(spec.ranges))
     const specWithRanges = ranges => getTable(api, 'Specs').find(s => JSON.stringify(ranges) === JSON.stringify(s.ranges))
     async function ensureSpecWithThoseRangesExists(ranges) {
@@ -1049,7 +1084,7 @@ function mainPage(api) {
     async function addExpression() {
       const ranges = JSON.parse(rangeText.value)
       await ensureSpecWithThoseRangesExists(ranges)
-      makeExpression(specWithRanges(ranges), text.value.startsWith('[[') ? text.value.slice(2) : fpcorejs.mathjsToFPCore(text.value), text.value.startsWith('[[') ? text.value.slice(2) : text.value)()  // HACK to support FPCore submission
+      makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text()), text().startsWith('[[') ? text().slice(2) : text())()  // HACK to support FPCore submission
     }
     // <div id="modifyRange">
     //   Ranges:
@@ -1057,24 +1092,81 @@ function mainPage(api) {
     //     ${rangeText}
     //     </div>
     // </div>
+    const [projectedError, { refetch }] = createResource(text, async (text) => {
+      if (text === '') {
+        return 0
+      }
+      try {
+        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text), getByKey(api, 'Samples', 'specId', spec.id), HOST, txt => console.log(txt))).meanBitsError
+      } catch (err:any) {
+        return 'loading...'  // HACK
+      }
+    })
+    
+    //setTimeout(() => refetch(), 7000)  // HACK
+    const [projectedNaiveError] = createResource(text, async (text) => {
+      if (text === '') {
+        return 0
+      }
+      try {
+        const result = (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text), await herbiejs.getSample(fpcorejs.makeFPCore({ specMathJS: text, ranges: spec.ranges, specFPCore: undefined }), HOST, txt => console.log(txt)), HOST, txt => console.log(txt))).meanBitsError
+        if (firstTime) {
+          refetch() // HACK
+          firstTime = false
+        }
+        return result
+      } catch (err:any) {
+        return err.toString()
+      }
+    })
+    const openNewTab = () => vscodeApi.postMessage(JSON.stringify({command: 'openNewTab', mathjs: text(), ranges: spec.ranges}))
     return html`<div class="addExpressionRow">
     <div>
-    ${text}
+    ${textArea}
     </div>
     
     <button onClick=${addExpression}>Add approximation</button>
+    <button onClick=${openNewTab}>Open in New Tab</button>
+    <div style="height: 50px; overflow: auto;">
+    ${() => {
+      try {
+        if (text() === '') { return '' }
+        return html`<span innerHTML=${(window as any).katex.renderToString(math2Tex(text()), {
+          throwOnError: false
+        })}></span>`
+      } catch (err :any) {
+        return err.toString()
+      }
+    }}
+      </div>
+      <div>
+      <div>
+        Projected error (vs. Spec): 
+        <${Switch}>
+           <${Match} when=${() => projectedError.loading}> loading...<//>
+           <${Match} when=${() => true}> ${() => projectedError()?.toString()}<//>
+          <//>
+        </div>
+        <div>
+        Projected error (vs. self-as-spec): 
+          <${Switch}>
+           <${Match} when=${() => projectedNaiveError.loading}> loading...<//>
+           <${Match} when=${() => true}> ${() => projectedNaiveError()?.toString()}<//>
+          <//>
+        </div>
+      </div>
     </div>`
   }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
   // ${getSpecRow(spec)}
   const sortBy = fn => (a, b) => fn(a) - fn(b)
   
-  // super ugly HACK: use a timer to keep the list sorted. Works.
+  // super super ugly HACK: use a timer to keep the list sorted. Works.
   setInterval(() => {
     api.setTables(produce((tables: any) => {
       tables.find(t => t.name === 'Expressions').items = tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses().find(a => a.expressionId === e.id)?.meanBitsError)) 
     }))
-    console.log('effect finished!!2')
+    //console.log('effect finished!!2')
   }, 1000)
   
   const getSpecBlock = spec => {
@@ -1124,7 +1216,7 @@ function mainPage(api) {
     <div>[todo]</div>
     </div>`
   const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
-  const exprView = () => expressionView(lastSelectedExpression(), api)
+  const exprView = () => lastSelectedExpression() && expressionView(lastSelectedExpression(), api)
   
   const makeRequest = (spec) => api.action('create', 'demo', 'Requests', { specId: spec.id })
   const herbieSuggestion = (spec) => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
@@ -1134,7 +1226,7 @@ function mainPage(api) {
   const specsAndExpressions = (startingSpec) => html`
     <div id="specsAndExpressions">
       <div id="specInfo">
-        <h4 style="margin-top: 0px; margin-bottom:0px;">Approximating</h4>
+        <h4 style="margin-top: 0px; margin-bottom:0px;">Expression to approximate (the Spec)</h4>
         <div id="specTitle" style="margin-top:0px;">${renderTex(math11.parse(startingSpec.mathjs).toTex())}</div>
         
         <${Switch}>
@@ -1165,36 +1257,63 @@ function mainPage(api) {
 
   //@ts-ignore
   window.lastSelection = lastSelection
+  const shownExpressions = () => expressions().filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id))
+//   <${Match} when=${() => {
+//     console.log('when', lastSelection())
+// return lastSelection() && !(lastSelection().multiselection)
+// }
+// }>
+//     ${() => {
+//       console.log('lastSelection', lastSelection(), lastSelection().multiselection)
+//        return exprView()
+//       }
+//       }
+//   <//>
+// <${Switch}>
+// <${Match} when=${() => lastSelection()?.table === 'Specs'}>
+//   ${specView}
+// <//>
+// <${Match} when=${() => {
+//   console.log('here', lastSelection(), lastSelection()?.multiselection)
+//   return lastSelection()?.multiselection !== undefined
+// }}>
+//   ${() =>
+// { console.log('compare', lastSelection());  return comparisonView() }
+//   }
+// <//>
+// <${Match} when=${() => true}> other case <//>
+// <//>
+  // createEffect(() => {
+  //   console.log('TEST 1')
+  //   exprView()
+  // })
+  // createEffect(() => {
+  //   console.log('TEST 2')
+  //   specs()
+  // })
+  // createEffect(() => {
+  //   console.log('TEST 3')
+  //   specs()[0] && specsAndExpressions(specs()[0])
+  // })
+  // createEffect(() => {
+  //   console.log('TEST 4')
+  //   lastMultiselectedExpressions().length > 0 && expressionComparisonView(lastMultiselectedExpressions(), api)
+  // })
+  // createEffect(() => {
+  //   console.log('TEST 5')
+  //   lastMultiselectedExpressions()
+  // })
   const analyzeUI = html`<div id="analyzeUI">
     <${Show} when=${() => specs()[0]}
       fallback=${newSpecInput()}>
       ${() => specsAndExpressions(specs()[0])}
       <div id="focus">
-        <${Switch}>
-          <${Match} when=${() => lastSelection()?.table === 'Specs'}>
-            ${specView}
-          <//>
-          <${Match} when=${() => {
-            console.log('here', lastSelection(), lastSelection()?.multiselection)
-            return lastSelection()?.multiselection !== undefined
-          }}>
-            ${() =>
-  { console.log('compare', lastSelection());  return comparisonView() }
-            }
-          <//>
-          <${Match} when=${() => {
-            console.log('when', lastSelection())
-      return lastSelection() && !(lastSelection().multiselection)
-    }
-    }>
-            ${() => {
-              console.log('lastSelection', lastSelection(), lastSelection().multiselection)
-               return exprView()
-              }
-              }
-          <//>
-        <//>
+      <${Show} when=${() => lastMultiselectedExpressions().length > 0}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)} <//>
+        
       </div>
+      <${Show} when=${() => lastSelectedExpression()}>
+        ${() => exprView()}
+      <//>
     <//>
     
   </div>
@@ -1229,7 +1348,7 @@ function mainPage(api) {
         border-radius: 5px;
         padding: 0px;
         width: fit-content;
-        margin: auto;
+        /*margin: auto;*/
       }
       #analyzeUI #expressionTable tbody {
         display:block;
@@ -1392,10 +1511,13 @@ function analysisComputable(expression, api) {
 
   return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await analyzeExpression(expression, api)))//, api.tables, api.setTables, api))
 }
-const renderTex = html => {
-  const el = document.createElement('div') as HTMLElement
-  el.innerHTML = '\\(' + html + '\\)';
-  (window as any).renderMathInElement(el)
+const renderTex = h => {
+  
+  const el = document.createElement('span') as HTMLElement
+  el.innerHTML = (window as any).katex.renderToString(h, {
+    throwOnError: false
+  });//'\\(' + html + '\\)';
+  //(window as any).renderMathInElement(el)
   return el
 }
 const math2Tex = mathjs => {
@@ -1406,7 +1528,8 @@ function expressionView(expression, api) {
   //<div>...expression plot here...</div>
   const history = getByKey(api, 'Histories', 'id', expression.id)
   return html`<div>
-    <h3>Expression Details: ${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</h3>
+    <h3>Expression Details: </h3>
+    <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     ${() => {
       if (expression.provenance !== 'herbie') {
         return 'You submitted this expression.'

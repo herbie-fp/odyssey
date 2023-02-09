@@ -64,21 +64,84 @@ export function activate(context: vscode.ExtensionContext) {
 				retainContextWhenHidden: true
 			}
 		)
+		const addMessageHandler = (panel:vscode.WebviewPanel) => {
+			panel.webview.onDidReceiveMessage(
+				async message => {
+					message = JSON.parse(message)
+					switch (message.command) {
+						case 'openNewTab':
+							const { mathjs, ranges } = message
+							
+							const panel2 = vscode.window.createWebviewPanel(
+								'herbieIndex', // Identifies the type of the webview. Used internally
+								mathjs, // Title of the panel displayed to the user
+								vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+								{
+									// Enable scripts in the webview
+									enableScripts: true,
+									// Only allow the webview to access resources in these directories
+									localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
+									retainContextWhenHidden: true
+								}
+							)
+	
+							panel2.webview.html = `<!DOCTYPE html>
+							<html lang="en">
+							<head>
+									<meta charset="UTF-8">
+									<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			
+									<meta
+										http-equiv="Content-Security-Policy"
+										content="default-src http://127.0.0.1:* https://cdn.jsdelivr.net:*; img-src ${panel2.webview.cspSource} https:; script-src http://127.0.0.1:* https://cdn.jsdelivr.net:* ${panel2.webview.cspSource} 'unsafe-eval'  'unsafe-inline'; style-src https://cdn.jsdelivr.net:* ${panel2.webview.cspSource} 'unsafe-inline';"
+									/>
+									<!--
+									<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/katex.min.css" integrity="sha384-Juol1FqnotbkyZUT5Z7gUPjQ9gzlwCENvUZTpQBAPxtusdwFLRy382PSDx5UUJ4/" crossorigin="anonymous">
+									-->
+									<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css" integrity="sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0" crossorigin="anonymous">
+			
+									<!-- The loading of KaTeX is deferred to speed up page rendering -->
+									<!--
+									<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/katex.min.js" integrity="sha384-97gW6UIJxnlKemYavrqDHSX3SiygeOwIZhwyOKRfSaf0JWKRVj9hLASHgFTzT+0O" crossorigin="anonymous"></script>
+									-->
+									<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js" integrity="sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4" crossorigin="anonymous"></script>
+			
+									<!-- To automatically render math in text elements, include the auto-render extension: -->
+									<!--
+									<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+									-->
+									<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+											onload="renderMathInElement(document.body);"></script>
+									<script src="${panel2.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'out', 'webview', 'index.js')))}" type="module"></script>
+									
+									<title>Interactive Herbie</title>
+							</head>
+							<body>
+									
+									<div id="app"></div>
+									
+							</body>
+							</html>`
+							// <script>
+							// 		setTimeout(() => {
+							// 			console.log("FOOBAR")
+							// 			document.querySelector('#newSpecInput textarea').value = JSON.stringify(${JSON.stringify({ mathjs, ranges })})
+							// 			document.querySelector('button').click()
+							// 		}, 2000)
+							// 		</script>
+							console.log('FOOBAR sending message', message)
+							setTimeout(() => panel2.webview.postMessage(message), 1000)
+							addMessageHandler(panel2)
+							//vscode.window.showErrorMessage(message.text);
+							return;
+					}
+				},
+				undefined,
+				context.subscriptions
+			);
+		}
 		// Handle messages from the webview
-		panel.webview.onDidReceiveMessage(
-			async message => {
-				switch (message.command) {
-					// case 'fetch':
-					// 	const { url, data, requestId } = message
-					// 	const response = await fetch(url, data)
-					// 	panel.webview.postMessage({ command: 'fetchResponse', requestId, response })
-					// 	//vscode.window.showErrorMessage(message.text);
-					// 	return;
-				}
-			},
-			undefined,
-			context.subscriptions
-		);
+		addMessageHandler(panel)
 		
 		// And set its HTML content
 		panel.webview.html = `<!DOCTYPE html>

@@ -702,6 +702,9 @@ const herbiejs = (() => {
         return body
     })
     },
+    analyzeLocalError: async (fpcore, sample, host) => {
+      return (await (await fetch(`${host}/api/localerror`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json())
+    },
     analyzeExpression: async (fpcore, sample, host, log) => {
       // const floatToOrdinal = float => 42  // TODO
       // const chooseTicks = sample => []  // TODO
@@ -1579,62 +1582,45 @@ const math2Tex = mathjs => {
   return math11.parse(mathjs).toTex()
 }
 
+async function localErrorView(expression, api) {
+  const tree = getByKey(api, 'LocalErrors', 'id', expression.id)
+  if (tree) {
+    return tree
+  } else {
+    const specs = () => api.tables.find(t => t.name === 'Specs').items
+    const spec = specs().find(s => s.id === expression.specId)
+    const sample = getByKey(api, 'Samples', 'specId', expression.specId)
+    const localError = await herbiejs.analyzeLocalError(expression.fpcore, sample, HOST)
+
+    console.log(localError)
+    return localError
+  }
+}
+
 function expressionView(expression, api) {
-  //<div>...expression plot here...</div>
+  // get history and local error
   const history = getByKey(api, 'Histories', 'id', expression.id)
+  const tree = localErrorView(expression, api)
   return html`<div class="expressionView">
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
-    ${() => {
-      if (expression.provenance !== 'herbie') {
-        return 'You submitted this expression.'
-      } else {
-        const el = document.createElement('div') as HTMLElement
-        el.innerHTML = history.html;
-        (window as any).renderMathInElement(el.querySelector("#history"))
-        return html`<div>
-        <h3>
-          Herbie's derivation
-        </h3>
-          ${el.querySelector('#history')}
-        </div>`
-      }
-    }
-    }
+    <div>
+       <h3>Local Error Analysis</h3>
+    </div>
+    <div>
+      <h3>Herbie's derivation</h3>
+      ${() => {
+        if (expression.provenance !== 'herbie') {
+          return 'You submitted this expression.'
+        } else {
+          const el = document.createElement('div') as HTMLElement
+          el.innerHTML = history.html;
+          (window as any).renderMathInElement(el.querySelector("#history"))
+          return html`<div>${el.querySelector('#history')}</div>`
+        }
+      }}
+    </div>
   </div>`
-  // const c = analysisComputable(expression, api)
-  // const history = getByKey(api, 'Histories', 'specId', expression.specId)
-  // console.log(history)
-  // return html`<div>
-  //   <h3>Details for Expression ${expression.mathjs || expression.fpcore}</h3>
-  //   <${Switch}>
-  //     <${Match} when=${() => c.status === 'unrequested'}>
-  //       <button onClick=${c.compute}>Run Analysis</button>
-  //     <//>
-  //     <${Match} when=${() => c.status === 'requested'}>
-  //       waiting...
-  //     <//>
-  //     <${Match} when=${() => c.status === 'computed'}>
-  //       ${() => {
-  //   if (expression.provenance !== 'herbie') { return 'User-submitted expression.'}
-  //     const el = document.createElement('div') as HTMLElement
-  //   el.innerHTML = (c as any).value?.graphHtml;
-  //   (window as any).renderMathInElement(el.querySelector('#history'))
-  //     return html`
-  //         <div>
-  //           ${el.querySelector('#history')}
-  //           ${el.querySelector('#reproduce')}
-  //         </div>
-  //   `
-  //   }
-  //   }
-  //     <//>
-  //     <${Match} when=${() => c.status === 'error'}>
-  //       ${() => console.log(c)}
-  //       error during computation :(
-  //     <//>
-  //   <//>
-  // </div>`
 }
 
 //@ts-ignore
@@ -1746,7 +1732,8 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'
+//let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore

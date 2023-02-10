@@ -491,9 +491,13 @@ window.Plot = Plot
 
 interface Point {
   x: number,
-  y: number
+  y: number,
+  orig: number[]  // the original point associated with this input
 }
 interface PlotArgs {
+  /** A list of variable names for the original points. */
+  varnames: string[];
+
   /** For each function being plotted, for each `x` in the input, a `y` for the error. */
   data: Point[][]
 
@@ -512,12 +516,12 @@ interface PlotArgs {
   [propName: string]: any  // could have other properties
 }
 
-const zip = (arr1, arr2) => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i]]), acc), [])
+const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [])
 /**
    * Generate a plot with the given data and associated styles.
    */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function plotError({ ticks, splitpoints, data, bits, styles, width=800, height=400 }: PlotArgs, Plot) : SVGElement {
+function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800, height=400 }: PlotArgs, Plot) : SVGElement {
   const tickStrings = ticks.map(t => t[0])
   const tickOrdinals = ticks.map(t => t[1])
   const tickZeroIndex = tickStrings.indexOf("0")
@@ -549,7 +553,7 @@ function plotError({ ticks, splitpoints, data, bits, styles, width=800, height=4
       const bottom =
           (i - half) < 0 ? 0
           : runningSum[i - half]
-      acc.push({y: (top - bottom) / length, x: points[i].x})
+      acc.push({y: (top - bottom) / length, x: points[i].x, orig: points[i].orig})
       return acc
     }, [] as Point[])
   }
@@ -574,8 +578,8 @@ function plotError({ ticks, splitpoints, data, bits, styles, width=800, height=4
             y: "y",
             strokeWidth: 2, ...line,
         }),
-        Plot.dot(compress(data, width), {x: "x", y: "y", r: 1.3,
-            title: d => `x: ${d.x} \n i: ${d.i} \n bits of error: ${d.y}`,
+        Plot.dot(compress(data, width), {x: "x", y: "y", r: 3,
+            title: d => d.orig.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
             ...dot
         })
     ]
@@ -729,6 +733,7 @@ const herbiejs = (() => {
   })
 })()
 
+/** v is a normal JS FP number. */
 const displayNumber = v => {
   const s = v.toPrecision(1)
   const [base, exponent] = s.split('e')
@@ -857,7 +862,8 @@ const ordinalsjs = (() => {
   }
   return {
     chooseTicks: choose_ticks,
-    floatToApproximateOrdinal: float_to_approximate_ordinal
+    floatToApproximateOrdinal: float_to_approximate_ordinal,
+    ordinalToFloat: ordinal_to_real
   }
 })()
 
@@ -1344,7 +1350,7 @@ function mainPage(api) {
       // }
 
   const div = html`<div id="demo">
-  <style>  
+  <style>
       #specTitle, #expressionTable, .addExpressionRow>div {
         margin-top: 7px;
         margin-bottom: 7px;
@@ -1371,6 +1377,10 @@ function mainPage(api) {
         overflow:auto;
         max-height:200px;
         width:100%;
+      }
+      #analyzeUI svg circle:hover {
+        fill-opacity: 1;
+        r: 4;
       }
       #expressionTable thead {
         box-shadow: 2px 1px 7px 2px lightblue;
@@ -1678,18 +1688,18 @@ function expressionComparisonView(expressions, api) {
     const data = validPointsJsons.map(({ expression, pointsJson: { points, error } }) => {
       //let { error } = pointsJson
       const keyFn = fn => (a, b) => fn(a) - fn(b)
-      return zip(points.map(p => p[idx]), error['target']).map(([x, y]) => ({ x, y })).sort(keyFn(p => p.x))
+      return zip(points.map(p => p[idx]), error['target'], points).map(([x, y, orig]) => ({ x, y, orig })).sort(keyFn(p => p.x))
     })
     const styles = validPointsJsons.map(({ expression }) => {
       // LATER color should be RGB string, will append alpha
       const color = getColorCode(expression.id)//'#00ff00'
       //const color = api.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
       /** alpha value for dots on the graph */
-      const dotAlpha = '35'
-      return { line: { stroke: color }, dot: { stroke: color + dotAlpha } }
+      const dotAlpha = '25'
+      return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 } }
     })
     //console.log(data)
-    return html`<div class="errorPlot">${plotError({ data, styles, ticks, splitpoints, bits }, Plot)}</div>`
+    return html`<div class="errorPlot">${plotError({ data, styles, ticks, splitpoints, bits, varnames:vars }, Plot)}</div>`
     }
     }
     <div>

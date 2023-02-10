@@ -1382,9 +1382,7 @@ function mainPage(api) {
         fill-opacity: 1;
         r: 4;
       }
-      #expressionTable thead {
-        box-shadow: 2px 1px 7px 2px lightblue;
-      }
+      
       #expressionTable th.expression {
         text-align: left;
         padding-left: 20px;
@@ -1438,9 +1436,27 @@ function mainPage(api) {
       #analyzeUI #expressionTable button {
         width:-webkit-fill-available;
       }
-      #analyzeUI #specBlock table tr:nth-child(even) {
-        background-color: #D6EEEE;
+      @media (prefers-color-scheme: dark) {
+        #analyzeUI #specBlock table tr:nth-child(even) {
+          background-color: #333333;
+        }
+        #expressionTable thead {
+          box-shadow: 2px 1px 7px 2px black;
+        }
+        #analyzeUI #focus svg {
+          background-color: black;
+        }
       }
+      @media (prefers-color-scheme: light) {
+        #analyzeUI #specBlock table tr:nth-child(even) {
+          background-color: #D6EEEE;
+        }
+        #expressionTable thead {
+          box-shadow: 2px 1px 7px 2px lightblue;
+        }
+      }
+
+      
       #analyzeUI {
         display: grid;
         grid-template-areas: 
@@ -1454,6 +1470,7 @@ function mainPage(api) {
       #analyzeUI textarea {
         width: 400px;
         height: 100px;
+        font-family: system-ui;
       }
       #analyzeUI .addExpressionRow textarea {
         width: 400px;

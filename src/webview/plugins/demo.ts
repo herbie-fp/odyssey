@@ -1126,7 +1126,7 @@ function mainPage(api) {
     </div>
     
     <button onClick=${addExpression}>Add approximation</button>
-    <button onClick=${openNewTab}>Open in New Tab</button>
+    <button onClick=${openNewTab}>Use as spec (opens new tab)</button>
     <div style="height: 50px; overflow: auto;">
     ${() => {
       try {
@@ -1163,11 +1163,22 @@ function mainPage(api) {
   
   // super super ugly HACK: use a timer to keep the list sorted. Works.
   setInterval(() => {
+    const newOrder = api.tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses().find(a => a.expressionId === e.id)?.meanBitsError))
+    const oldOrder = api.tables.find(t => t.name === 'Expressions').items
+    if (newOrder.map(e => e.mathjs).join('') == oldOrder.join('')) {  // don't resort unnecessarily
+      return;
+    }
     api.setTables(produce((tables: any) => {
       tables.find(t => t.name === 'Expressions').items = tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses().find(a => a.expressionId === e.id)?.meanBitsError)) 
     }))
     //console.log('effect finished!!2')
   }, 1000)
+  // createEffect(() => {
+  //   console.log('HERE', analyses())
+  //   api.setTables(produce((tables: any) => {
+  //     tables.find(t => t.name === 'Expressions').items = tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses().find(a => a.expressionId === e.id)?.meanBitsError)) 
+  //   }))
+  // })
   
   const getSpecBlock = spec => {
     // createEffect(() => {  // HACK keep the expressions sorted by error (also this doesn't work...)
@@ -1226,8 +1237,8 @@ function mainPage(api) {
   const specsAndExpressions = (startingSpec) => html`
     <div id="specsAndExpressions">
       <div id="specInfo">
-        <h4 style="margin-top: 0px; margin-bottom:0px;">Expression to approximate (the Spec)</h4>
-        <div id="specTitle" style="margin-top:0px;">${renderTex(math11.parse(startingSpec.mathjs).toTex())}</div>
+        <h4 id="specLabel">Expression to approximate (the Spec)</h4>
+        <div id="specTitle">${renderTex(math11.parse(startingSpec.mathjs).toTex())}</div>
         
         <${Switch}>
           <${Match} when=${() => !request(startingSpec) && !herbieSuggestion(startingSpec)}>
@@ -1303,12 +1314,13 @@ function mainPage(api) {
   //   console.log('TEST 5')
   //   lastMultiselectedExpressions()
   // })
+  const lastSpec = () => api.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false));
   const analyzeUI = html`<div id="analyzeUI">
     <${Show} when=${() => specs()[0]}
       fallback=${newSpecInput()}>
       ${() => specsAndExpressions(specs()[0])}
       <div id="focus">
-      <${Show} when=${() => lastMultiselectedExpressions().length > 0}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)} <//>
+      <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec()}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)} <//>
         
       </div>
       <${Show} when=${() => lastSelectedExpression()}>
@@ -1320,19 +1332,23 @@ function mainPage(api) {
   `
   
   const contents = () => analyzeUI
+      // 
+      // #analyzeUI div:not(.math *) {
+      //   /*border: 1px solid black;*/
+      //   margin: 2px;
+      //   padding: 2px;
+      // }
+      // #analyzeUI span:not(.math *) {
+      //   /*border: 1px solid black;*/
+      //   margin: 2px;
+      // }
+
   const div = html`<div id="demo">
-    <style>
-      #analyzeUI div:not(.math *) {
-        /*border: 1px solid black;*/
-        margin: 2px;
-        padding: 2px;
-      }
-      #analyzeUI span:not(.math *) {
-        /*border: 1px solid black;*/
-        margin: 2px;
-      }
-      #analyzeUI .expressionRow, #analyzeUI .noExpressionsRow, #analyzeUI .addExpressionRow {
-        margin-left: 15px;
+  <style>  
+      #specTitle, #expressionTable, .addExpressionRow>div {
+        margin-top: 7px;
+        margin-bottom: 7px;
+        margin-right: 5px;
       }
       #analyzeUI .expressionRow .naive-expression {
         font-weight: bold;
@@ -1342,7 +1358,7 @@ function mainPage(api) {
         table-layout:auto;
       }
       #analyzeUI #expressionTable {
-        max-height: 300px;
+        max-height: 350px;
         overflow: auto;
         border: 1px solid #6161615c;
         border-radius: 5px;
@@ -1375,11 +1391,19 @@ function mainPage(api) {
       #expressionTable th, #expressionTable td {
         width:auto;
       }
+      /* Allow line breaks in display equations (see https://katex.org/docs/issues.html) */
+      .katex-display > .katex { white-space: normal }
+      .katex-display .base { margin: 0.25em 0 }
+      .katex-display { margin: 0.5em 0; }
+      .katex-version {display: none;}
+      .katex-version::after {content:"0.10.2 or earlier";}
       
       #analyzeUI #expressionTable thead tr {
         display: block;
       }
-
+      .varname {
+        margin-right: 5px;
+      }
       .varname-selected {
         background-color: lightgrey;
       }
@@ -1391,6 +1415,10 @@ function mainPage(api) {
         background-color: #ff5555;
         color: white;
         border: 1px solid gray;
+      }
+      .expressionView {
+        max-width:400px;
+        margin-bottom: 20px;
       }
 
       #analyzeUI .errorPlot svg {
@@ -1419,7 +1447,7 @@ function mainPage(api) {
       }
       #analyzeUI .addExpressionRow textarea {
         width: 400px;
-        height: 40px;
+        height: 70px;
       }
     </style>
     ${contents}
@@ -1527,7 +1555,7 @@ const math2Tex = mathjs => {
 function expressionView(expression, api) {
   //<div>...expression plot here...</div>
   const history = getByKey(api, 'Histories', 'id', expression.id)
-  return html`<div>
+  return html`<div class="expressionView">
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     ${() => {

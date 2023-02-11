@@ -4,8 +4,22 @@ import { expression } from "mathjs11";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
 import { createStore, createEffect, createRenderEffect, createMemo, produce, createSignal, createResource } from "../../dependencies/dependencies.js";
 import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
+import { mermaid } from "../../dependencies/dependencies.js"
+
 
 const vscodeApi = await (window as any).acquireVsCodeApi()
+
+const mermaidAPI = mermaid.mermaidAPI
+const mermaidConfig = {
+  startOnLoad:true,
+  flowchart:{
+          useMaxWidth:false,
+          htmlLabels:true
+  }
+}
+
+mermaidAPI.initialize(mermaidConfig)
+
 
 window.addEventListener('message', event => {
   console.log("FOOBAR got message")
@@ -1582,17 +1596,40 @@ const math2Tex = mathjs => {
   return math11.parse(mathjs).toTex()
 }
 
+function localErrorTreeAsMermaidGraph(tree) {
+  let edges = [] as string[]
+  let counter = 0
+
+  function loop(n) {
+    const name = n['e']
+    const children = n['children']
+
+    // let avg_error = n['avg-error']
+    // let errors = n['error']
+
+    const id = counter++
+    const nodeName = 'N' + id + '["' + name + '"]'
+    for (const c in children) {
+      const cName = loop(children[c])
+      edges.push(cName + ' --> ' + nodeName)
+    }
+
+    return nodeName
+  }
+
+  loop(tree)
+  return edges.join('\n')
+}
 
 function expressionView(expression, api) {
   // get history and local error
   const history = getByKey(api, 'Histories', 'id', expression.id)
-  const localError = getByKey(api, 'LocalErrors', 'id', expression.id)
   const [localErrorRendered, setLocalErrorRendered] = createSignal(false)
 
   async function genLocalError() {
     const sample = getByKey(api, 'Samples', 'specId', expression.specId)
     const localError = await herbiejs.analyzeLocalError(expression.fpcore, sample, HOST)
-    const entry = { specId: expression.specId, id: expression.id, tree: localError }
+    const entry = { specId: expression.specId, id: expression.id, tree: localError.tree }
     api.action('create', 'demo', 'LocalErrors', entry)
     setLocalErrorRendered(!localErrorRendered())
   }
@@ -1603,11 +1640,20 @@ function expressionView(expression, api) {
     <div>
       <h3>Local Error Analysis</h3>
       <${Switch}>
-        <${Match} when=${() => localErrorRendered() || localError}>
+        <${Match} when=${() => localErrorRendered() || getByKey(api, 'LocalErrors', 'id', expression.id)}>
           ${() => {
             const localError = getByKey(api, 'LocalErrors', 'id', expression.id)
-            console.log(localError.tree)
-            return html`<p> Rendered </p>`
+            const graphElems = localErrorTreeAsMermaidGraph(localError.tree)
+            
+            const el = html`<div class=graphDiv> </div` as HTMLElement;
+            const insertSvg = function(svgCode, bindFunctions){
+              el.innerHTML = svgCode;
+            };
+            
+            // `BT` means "Bottom to Top"
+            const graph = 'flowchart BT\n\n' + graphElems
+            const render = mermaidAPI.render('graphDiv', graph, insertSvg);
+            return el
           }}
         <//>
         <${Match} when=${() => true}>

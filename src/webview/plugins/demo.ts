@@ -1582,30 +1582,38 @@ const math2Tex = mathjs => {
   return math11.parse(mathjs).toTex()
 }
 
-async function localErrorView(expression, api) {
-  const tree = getByKey(api, 'LocalErrors', 'id', expression.id)
-  if (tree) {
-    return tree
-  } else {
-    const specs = () => api.tables.find(t => t.name === 'Specs').items
-    const spec = specs().find(s => s.id === expression.specId)
-    const sample = getByKey(api, 'Samples', 'specId', expression.specId)
-    const localError = await herbiejs.analyzeLocalError(expression.fpcore, sample, HOST)
-
-    console.log(localError)
-    return localError
-  }
-}
 
 function expressionView(expression, api) {
   // get history and local error
   const history = getByKey(api, 'Histories', 'id', expression.id)
-  const tree = localErrorView(expression, api)
+  const localError = getByKey(api, 'LocalErrors', 'id', expression.id)
+  const [localErrorRendered, setLocalErrorRendered] = createSignal(false)
+
+  async function genLocalError() {
+    const sample = getByKey(api, 'Samples', 'specId', expression.specId)
+    const localError = await herbiejs.analyzeLocalError(expression.fpcore, sample, HOST)
+    const entry = { specId: expression.specId, id: expression.id, tree: localError }
+    api.action('create', 'demo', 'LocalErrors', entry)
+    setLocalErrorRendered(!localErrorRendered())
+  }
+
   return html`<div class="expressionView">
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     <div>
-       <h3>Local Error Analysis</h3>
+      <h3>Local Error Analysis</h3>
+      <${Switch}>
+        <${Match} when=${() => localErrorRendered() || localError}>
+          ${() => {
+            const localError = getByKey(api, 'LocalErrors', 'id', expression.id)
+            console.log(localError.tree)
+            return html`<p> Rendered </p>`
+          }}
+        <//>
+        <${Match} when=${() => true}>
+          <button onClick=${genLocalError}>Analyze Local Error</button>
+        <//>
+      <//>
     </div>
     <div>
       <h3>Herbie's derivation</h3>

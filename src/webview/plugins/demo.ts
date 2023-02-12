@@ -1596,28 +1596,41 @@ const math2Tex = mathjs => {
   return math11.parse(mathjs).toTex()
 }
 
-function localErrorTreeAsMermaidGraph(tree) {
+function localErrorTreeAsMermaidGraph(tree, bits) {
   let edges = [] as string[]
+  let colors = {}
   let counter = 0
 
   function loop(n) {
     const name = n['e']
     const children = n['children']
+    const avg_error = n['avg-error']
 
-    // let avg_error = n['avg-error']
-    // let errors = n['error']
+    // node name
+    const id = 'N' + counter++
+    const nodeName = id + '[<span class=nodeLocalError title=' + avg_error + '>' + name + '</span>]'
 
-    const id = counter++
-    const nodeName = 'N' + id + '["' + name + '"]'
+    // descend through AST
     for (const c in children) {
       const cName = loop(children[c])
       edges.push(cName + ' --> ' + nodeName)
     }
 
+    // color munging
+    const nonRed = 255.0 - Math.trunc((avg_error / bits) * 200.0)
+    const nonRedHex = ('0' + nonRed.toString(16)).slice(-2)
+    colors[id] = 'ff' + nonRedHex + nonRedHex
+
     return nodeName
   }
 
   loop(tree)
+
+  for (const id in colors) {
+    // HACK: title gets put under style to be extracted later
+    edges.push('style ' + id + ' fill:#' + colors[id])
+  }
+
   return edges.join('\n')
 }
 
@@ -1643,11 +1656,13 @@ function expressionView(expression, api) {
         <${Match} when=${() => localErrorRendered() || getByKey(api, 'LocalErrors', 'id', expression.id)}>
           ${() => {
             const localError = getByKey(api, 'LocalErrors', 'id', expression.id)
-            const graphElems = localErrorTreeAsMermaidGraph(localError.tree)
+            const analysis = getByKey(api, "Analyses", 'expressionId', expression.id) // TODO: inconsistent key name
+            const graphElems = localErrorTreeAsMermaidGraph(localError.tree, analysis.pointsJson.bits)
             
             const el = html`<div class=graphDiv> </div` as HTMLElement;
             const insertSvg = function(svgCode, bindFunctions){
               el.innerHTML = svgCode;
+              el.querySelectorAll("span.nodeLocalError").forEach(h => { h.setAttribute("title", 'Local Error: ' + h.getAttribute("title")) })
             };
             
             // `BT` means "Bottom to Top"

@@ -872,7 +872,15 @@ function mainPage(api) {
   console.log('Setting up main demo page...')
   const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
   //const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(y)", ranges: [["x", [1, 1e9]], ["y", [-1e9, 1]]] }
-  const textarea = (value: any = JSON.stringify(defaultSpec), setValue = (v) => { }) => html`<textarea value="${value}" oninput=${e => setValue(e.target.value)}></textarea>` as HTMLInputElement
+  const textarea = (value: any = JSON.stringify(defaultSpec), setValue = (v) => { }) => {
+    const out = html`<textarea value="${value}" oninput=${e => setValue(e.target.value)}></textarea>` as HTMLInputElement
+    out.addEventListener('keydown', function(e) {
+      if (e.key == 'Tab') {
+        e.preventDefault();
+      }
+    });
+    return out
+  }
 
   const addSpec = async ({ mathjs, ranges, fpcore }) => {
     const id = specId++
@@ -1002,7 +1010,7 @@ function mainPage(api) {
       const curr = currentMultiselection(api).map(o => o.id)
       api.multiselect('Expressions', curr.filter(id => !getByKey(api, 'HiddenExpressions', 'expressionId', id)))//, api.tables, api.setTables)
     }
-    return html`<tr class="expressionRow" >
+    return html`<tr class="expressionRow ${() => lastSelectedExpression()?.id === expression.id ? 'selectedExpression' : ''}" >
       <td style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</td>
       <td>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
@@ -1090,7 +1098,7 @@ function mainPage(api) {
     async function addExpression() {
       const ranges = JSON.parse(rangeText.value)
       await ensureSpecWithThoseRangesExists(ranges)
-      makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text()), text().startsWith('[[') ? text().slice(2) : text())()  // HACK to support FPCore submission
+      makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join('')), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
     }
     // <div id="modifyRange">
     //   Ranges:
@@ -1103,7 +1111,7 @@ function mainPage(api) {
         return 0
       }
       try {
-        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text), getByKey(api, 'Samples', 'specId', spec.id), HOST, txt => console.log(txt))).meanBitsError
+        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join('')), getByKey(api, 'Samples', 'specId', spec.id), HOST, txt => console.log(txt))).meanBitsError
       } catch (err:any) {
         return 'loading...'  // HACK
       }
@@ -1115,7 +1123,7 @@ function mainPage(api) {
         return 0
       }
       try {
-        const result = (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text), await herbiejs.getSample(fpcorejs.makeFPCore({ specMathJS: text, ranges: spec.ranges, specFPCore: undefined }), HOST, txt => console.log(txt)), HOST, txt => console.log(txt))).meanBitsError
+        const result = (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join('')), await herbiejs.getSample(fpcorejs.makeFPCore({ specMathJS: text.split('\n').join(''), ranges: spec.ranges, specFPCore: undefined }), HOST, txt => console.log(txt)), HOST, txt => console.log(txt))).meanBitsError
         if (firstTime) {
           refetch() // HACK
           firstTime = false
@@ -1133,11 +1141,11 @@ function mainPage(api) {
     
     <button onClick=${addExpression}>Add approximation</button>
     <button onClick=${openNewTab}>Use as spec (opens new tab)</button>
-    <div style="height: 50px; overflow: auto;">
+    <div id="texPreview" style="height: 50px; overflow: auto;">
     ${() => {
       try {
         if (text() === '') { return '' }
-        return html`<span innerHTML=${(window as any).katex.renderToString(math2Tex(text()), {
+        return html`<span innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
           throwOnError: false
         })}></span>`
       } catch (err :any) {
@@ -1409,6 +1417,10 @@ function mainPage(api) {
       #analyzeUI #expressionTable thead tr {
         display: block;
       }
+      #texPreview {
+        max-width: 400px;
+        height: fit-content;
+      }
       .varname {
         margin-right: 5px;
       }
@@ -1431,6 +1443,9 @@ function mainPage(api) {
 
       #analyzeUI .errorPlot svg {
         padding-top: 30px;
+      }
+      #analyzeUI .expressionRow.selectedExpression {
+        background-color: burlywood !important;
       }
       
       #analyzeUI #expressionTable button {
@@ -1576,7 +1591,7 @@ const renderTex = h => {
   return el
 }
 const math2Tex = mathjs => {
-  return math11.parse(mathjs).toTex()
+  return math11.parse(mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')).toTex()
 }
 
 function expressionView(expression, api) {

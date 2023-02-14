@@ -946,8 +946,8 @@ function mainPage(api) {
       <${For} each=${relevantSamples}>${sample => html`<option>${sample.id}</option>`}<//>
     </select>`
 
-    const request = () => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
-    const makeRequest = () => api.action('create', 'demo', 'Requests', { specId: spec.id })//, api.tables, api.setTables)
+    const request = () => api.tables.find(t => t.name === "ExpressionRequests").items.find(r => r.specId === spec.id)
+    const makeRequest = () => api.action('create', 'demo', 'ExpressionRequests', { specId: spec.id })
     console.log('rerendering')
     const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
 
@@ -1252,9 +1252,9 @@ function mainPage(api) {
   const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
   const exprView = () => lastSelectedExpression() && expressionView(lastSelectedExpression(), api)
   
-  const makeRequest = (spec) => api.action('create', 'demo', 'Requests', { specId: spec.id })
+  const makeRequest = (spec) => api.action('create', 'demo', 'ExpressionRequests', { specId: spec.id })
   const herbieSuggestion = (spec) => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
-  const request = (spec) => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
+  const request = (spec) => api.tables.find(t => t.name === "ExpressionRequests").items.find(r => r.specId === spec.id)
   //<${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
   // ${Inputs.table([{a: 42}, {a: 64}])}  TODO figure out tables
   const specsAndExpressions = (startingSpec) => html`
@@ -1601,6 +1601,8 @@ function localErrorTreeAsMermaidGraph(tree, bits) {
   let colors = {}
   let counter = 0
 
+  console.log(tree)
+
   function loop(n) {
     const name = n['e']
     const children = n['children']
@@ -1637,14 +1639,15 @@ function localErrorTreeAsMermaidGraph(tree, bits) {
 function expressionView(expression, api) {
   // get history and local error
   const history = getByKey(api, 'Histories', 'id', expression.id)
-  const [localErrorRendered, setLocalErrorRendered] = createSignal(false)
+  const sample = () => getByKey(api, 'Samples', 'specId', expression.specId)
+  const request = () => api.tables.find(t => t.name === "LocalErrorRequests").items.find(r => r.id === expression.id)
+  const makeRequest = () => api.action('create', 'demo', 'LocalErrorRequests', { id: expression.id })
+  const localError = () => getByKey(api, 'LocalErrors', 'id', expression.id)
 
   async function genLocalError() {
-    const sample = getByKey(api, 'Samples', 'specId', expression.specId)
-    const localError = await herbiejs.analyzeLocalError(expression.fpcore, sample, HOST)
-    const entry = { specId: expression.specId, id: expression.id, tree: localError.tree }
+    const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), HOST)
+    const entry = { specId: expression.specId, id: expression.id, tree: result.tree }
     api.action('create', 'demo', 'LocalErrors', entry)
-    setLocalErrorRendered(!localErrorRendered())
   }
 
   return html`<div class="expressionView">
@@ -1653,11 +1656,20 @@ function expressionView(expression, api) {
     <div>
       <h3>Local Error Analysis</h3>
       <${Switch}>
-        <${Match} when=${() => localErrorRendered() || getByKey(api, 'LocalErrors', 'id', expression.id)}>
+        <${Match} when=${() => !sample()}>
+          <button disabled>Expresion analysis incomplete</button>
+        <//>
+        <${Match} when=${() => !request() && !localError()}>
+          <button onClick=${() => { makeRequest(); genLocalError() }}>Analyze Local Error</button>
+        <//>
+        <${Match} when=${() => request() && !localError()}>
+          <button disabled>waiting for local error (may take a few seconds)</button>
+        <//>
+        <${Match} when=${() => localError()}>
           ${() => {
-            const localError = getByKey(api, 'LocalErrors', 'id', expression.id)
+            const lerr = localError()
             const analysis = getByKey(api, "Analyses", 'expressionId', expression.id) // TODO: inconsistent key name
-            const graphElems = localErrorTreeAsMermaidGraph(localError.tree, analysis.pointsJson.bits)
+            const graphElems = localErrorTreeAsMermaidGraph(lerr.tree, analysis.pointsJson.bits)
             
             const el = html`<div class=graphDiv> </div` as HTMLElement;
             const insertSvg = function(svgCode, bindFunctions){
@@ -1673,8 +1685,8 @@ function expressionView(expression, api) {
             return el
           }}
         <//>
-        <${Match} when=${() => true}>
-          <button onClick=${genLocalError}>Analyze Local Error</button>
+        <${Match} when=${() => /* TODO check associated request for error */ true}>
+            error during computation :(
         <//>
       <//>
     </div>
@@ -1803,8 +1815,7 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'
-//let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = 'http://127.0.0.1:8080/http://herbie.uwplse.org/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore

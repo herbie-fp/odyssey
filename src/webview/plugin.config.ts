@@ -126,7 +126,17 @@ export default [
   },
   {
     name: 'demo',
-    tables: ['Specs', 'Expressions', 'Histories', 'LocalErrors', 'Analyses', 'Requests', 'Variables', 'Samples', 'HiddenExpressions'],
+    tables: [
+      'Specs',
+      'Expressions',
+      'HiddenExpressions',
+      'Histories',
+      'LocalErrors',
+      'Analyses',
+      'Variables',
+      'Samples',
+      'ExpressionRequests',
+      'LocalErrorRequests'],
     //action: ['runFoo'],
     rules: [
       {

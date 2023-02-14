@@ -4,8 +4,22 @@ import { expression } from "mathjs11";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
 import { createStore, createEffect, createRenderEffect, createMemo, produce, createSignal, createResource } from "../../dependencies/dependencies.js";
 import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
+import { mermaid } from "../../dependencies/dependencies.js"
+
 
 const vscodeApi = await (window as any).acquireVsCodeApi()
+
+const mermaidAPI = mermaid.mermaidAPI
+const mermaidConfig = {
+  startOnLoad:true,
+  flowchart:{
+          useMaxWidth:false,
+          htmlLabels:true
+  }
+}
+
+mermaidAPI.initialize(mermaidConfig)
+
 
 window.addEventListener('message', event => {
   console.log("FOOBAR got message")
@@ -702,6 +716,9 @@ const herbiejs = (() => {
         return body
     })
     },
+    analyzeLocalError: async (fpcore, sample, host) => {
+      return (await (await fetch(`${host}/api/localerror`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json())
+    },
     analyzeExpression: async (fpcore, sample, host, log) => {
       // const floatToOrdinal = float => 42  // TODO
       // const chooseTicks = sample => []  // TODO
@@ -937,8 +954,8 @@ function mainPage(api) {
       <${For} each=${relevantSamples}>${sample => html`<option>${sample.id}</option>`}<//>
     </select>`
 
-    const request = () => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
-    const makeRequest = () => api.action('create', 'demo', 'Requests', { specId: spec.id })//, api.tables, api.setTables)
+    const request = () => api.tables.find(t => t.name === "ExpressionRequests").items.find(r => r.specId === spec.id)
+    const makeRequest = () => api.action('create', 'demo', 'ExpressionRequests', { specId: spec.id })
     console.log('rerendering')
     const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
 
@@ -1243,9 +1260,9 @@ function mainPage(api) {
   const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
   const exprView = () => lastSelectedExpression() && expressionView(lastSelectedExpression(), api)
   
-  const makeRequest = (spec) => api.action('create', 'demo', 'Requests', { specId: spec.id })
+  const makeRequest = (spec) => api.action('create', 'demo', 'ExpressionRequests', { specId: spec.id })
   const herbieSuggestion = (spec) => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
-  const request = (spec) => api.tables.find(t => t.name === "Requests").items.find(r => r.specId === spec.id)
+  const request = (spec) => api.tables.find(t => t.name === "ExpressionRequests").items.find(r => r.specId === spec.id)
   //<${For} each=${specs}> ${spec => getSpecBlock(spec)}<//>
   // ${Inputs.table([{a: 42}, {a: 64}])}  TODO figure out tables
   const specsAndExpressions = (startingSpec) => html`
@@ -1594,62 +1611,114 @@ const math2Tex = mathjs => {
   return math11.parse(mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')).toTex()
 }
 
+function localErrorTreeAsMermaidGraph(tree, bits) {
+  let edges = [] as string[]
+  let colors = {}
+  let counter = 0
+
+  console.log(tree)
+
+  function loop(n) {
+    const name = n['e']
+    const children = n['children']
+    const avg_error = n['avg-error']
+
+    // node name
+    const id = 'N' + counter++
+    const nodeName = id + '[<span class=nodeLocalError title=' + avg_error + '>' + name + '</span>]'
+
+    // descend through AST
+    for (const c in children) {
+      const cName = loop(children[c])
+      edges.push(cName + ' --> ' + nodeName)
+    }
+
+    // color munging
+    const nonRed = 255.0 - Math.trunc((avg_error / bits) * 200.0)
+    const nonRedHex = ('0' + nonRed.toString(16)).slice(-2)
+    colors[id] = 'ff' + nonRedHex + nonRedHex
+
+    return nodeName
+  }
+
+  loop(tree)
+
+  for (const id in colors) {
+    // HACK: title gets put under style to be extracted later
+    edges.push('style ' + id + ' fill:#' + colors[id])
+  }
+
+  return edges.join('\n')
+}
+
 function expressionView(expression, api) {
-  //<div>...expression plot here...</div>
+  // get history and local error
   const history = getByKey(api, 'Histories', 'id', expression.id)
+  const sample = () => getByKey(api, 'Samples', 'specId', expression.specId)
+  const request = () => api.tables.find(t => t.name === "LocalErrorRequests").items.find(r => r.id === expression.id)
+  const makeRequest = () => api.action('create', 'demo', 'LocalErrorRequests', { id: expression.id })
+  const localError = () => getByKey(api, 'LocalErrors', 'id', expression.id)
+
+  async function genLocalError() {
+    const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), HOST)
+    const entry = { specId: expression.specId, id: expression.id, tree: result.tree }
+    api.action('create', 'demo', 'LocalErrors', entry)
+  }
+
   return html`<div class="expressionView">
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
-    ${() => {
-      if (expression.provenance !== 'herbie') {
-        return 'You submitted this expression.'
-      } else {
-        const el = document.createElement('div') as HTMLElement
-        el.innerHTML = history.html;
-        (window as any).renderMathInElement(el.querySelector("#history"))
-        return html`<div>
-        <h3>
-          Herbie's derivation
-        </h3>
-          ${el.querySelector('#history')}
-        </div>`
-      }
-    }
-    }
+    <div>
+      <h3>Local Error Analysis</h3>
+      <${Switch}>
+        <${Match} when=${() => !sample()}>
+          <button disabled>Expresion analysis incomplete</button>
+        <//>
+        <${Match} when=${() => !request() && !localError()}>
+          <button onClick=${() => { makeRequest(); genLocalError() }}>Analyze Local Error</button>
+        <//>
+        <${Match} when=${() => request() && !localError()}>
+          <button disabled>waiting for local error (may take a few seconds)</button>
+        <//>
+        <${Match} when=${() => localError()}>
+          ${() => {
+            const lerr = localError()
+            const analysis = getByKey(api, "Analyses", 'expressionId', expression.id) // TODO: inconsistent key name
+            const graphElems = localErrorTreeAsMermaidGraph(lerr.tree, analysis.pointsJson.bits)
+            
+            const el = html`<div class=graphDiv> </div` as HTMLElement;
+            const insertSvg = function(svgCode, bindFunctions){
+              el.innerHTML = svgCode;
+              el.querySelectorAll("span.nodeLocalError").forEach(h => {
+                h.setAttribute("title", 'Local Error: ' + h.getAttribute("title") + ' bits') 
+              })
+            };
+            
+            // `BT` means "Bottom to Top"
+            const graph = 'flowchart BT\n\n' + graphElems
+            const render = mermaidAPI.render('graphDiv', graph, insertSvg);
+            return el
+          }}
+        <//>
+        <${Match} when=${() => /* TODO check associated request for error */ true}>
+            error during computation :(
+        <//>
+      <//>
+    </div>
+    <div>
+      <h3>Herbie's derivation</h3>
+      ${() => {
+        if (expression.provenance !== 'herbie') {
+          return 'You submitted this expression.'
+        } else {
+          const el = document.createElement('div') as HTMLElement
+          el.innerHTML = history.html;
+          (window as any).renderMathInElement(el.querySelector("#history"))
+          return html`<div>${el.querySelector('#history')}</div>`
+        }
+      }}
+    </div>
   </div>`
-  // const c = analysisComputable(expression, api)
-  // const history = getByKey(api, 'Histories', 'specId', expression.specId)
-  // console.log(history)
-  // return html`<div>
-  //   <h3>Details for Expression ${expression.mathjs || expression.fpcore}</h3>
-  //   <${Switch}>
-  //     <${Match} when=${() => c.status === 'unrequested'}>
-  //       <button onClick=${c.compute}>Run Analysis</button>
-  //     <//>
-  //     <${Match} when=${() => c.status === 'requested'}>
-  //       waiting...
-  //     <//>
-  //     <${Match} when=${() => c.status === 'computed'}>
-  //       ${() => {
-  //   if (expression.provenance !== 'herbie') { return 'User-submitted expression.'}
-  //     const el = document.createElement('div') as HTMLElement
-  //   el.innerHTML = (c as any).value?.graphHtml;
-  //   (window as any).renderMathInElement(el.querySelector('#history'))
-  //     return html`
-  //         <div>
-  //           ${el.querySelector('#history')}
-  //           ${el.querySelector('#reproduce')}
-  //         </div>
-  //   `
-  //   }
-  //   }
-  //     <//>
-  //     <${Match} when=${() => c.status === 'error'}>
-  //       ${() => console.log(c)}
-  //       error during computation :(
-  //     <//>
-  //   <//>
-  // </div>`
 }
 
 //@ts-ignore

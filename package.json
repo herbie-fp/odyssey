@@ -66,6 +66,7 @@
     "mathjs": "^1.6.0",
     "mathjs11": "npm:mathjs@^11.5.1",
     "solid-js": "^1.5.3",
-    "vsce": "^2.11.0"
+    "vsce": "^2.11.0",
+    "mermaid": "9.3.0"
   }
 }

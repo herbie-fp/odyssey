@@ -1662,7 +1662,9 @@ function expressionView(expression, api) {
             const el = html`<div class=graphDiv> </div` as HTMLElement;
             const insertSvg = function(svgCode, bindFunctions){
               el.innerHTML = svgCode;
-              el.querySelectorAll("span.nodeLocalError").forEach(h => { h.setAttribute("title", 'Local Error: ' + h.getAttribute("title")) })
+              el.querySelectorAll("span.nodeLocalError").forEach(h => {
+                h.setAttribute("title", 'Local Error: ' + h.getAttribute("title") + ' bits') 
+              })
             };
             
             // `BT` means "Bottom to Top"

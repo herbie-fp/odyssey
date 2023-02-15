@@ -457,11 +457,14 @@ const fpcorejs = (() => {
     FPCoreBody,
     FPCoreGetBody,  // HACK just the fpcore version of the above, gets just the body
     makeFPCore: ({ specMathJS, ranges, specFPCore, targetFPCoreBody=undefined, name=specMathJS }) => {
-      const vars = specFPCore ? get_varnames_fpcore(specFPCore) : get_varnames_mathjs(specMathJS)
+      const vars = specFPCore === undefined ? get_varnames_mathjs(specMathJS) : get_varnames_fpcore(specFPCore)
       const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
       return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${get_precondition_from_input_ranges(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
     },
-    mathjsToFPCore: (mathjs) => `(FPCore (${get_varnames_mathjs(mathjs).join(' ')}) ${FPCoreBody(mathjs)})`
+    mathjsToFPCore: (mathjs, specFPCore=undefined) => {
+      const vars = specFPCore === undefined ? get_varnames_mathjs(mathjs) : get_varnames_fpcore(specFPCore)
+      return `(FPCore (${vars.join(' ')}) ${FPCoreBody(mathjs)})`
+    }
   }
 })()
 
@@ -1104,7 +1107,8 @@ function mainPage(api) {
           clearTimeout( timeout );
           timeout = setTimeout(() => callback(...args), delay );
       }
-  }
+    }
+
     const textArea = textarea(text, debounce(v => setText(v), 500))
     const rangeText = textarea(JSON.stringify(spec.ranges))
     const specWithRanges = ranges => getTable(api, 'Specs').find(s => JSON.stringify(ranges) === JSON.stringify(s.ranges))
@@ -1112,10 +1116,11 @@ function mainPage(api) {
       if (specWithRanges(ranges)) { return; }
       await addSpec({ ...spec, ranges })
     }
+    
     async function addExpression() {
       const ranges = JSON.parse(rangeText.value)
       await ensureSpecWithThoseRangesExists(ranges)
-      makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join('')), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
+      makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join(''), spec.fpcore), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
     }
     // <div id="modifyRange">
     //   Ranges:
@@ -1128,7 +1133,7 @@ function mainPage(api) {
         return 0
       }
       try {
-        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join('')), getByKey(api, 'Samples', 'specId', spec.id), HOST, txt => console.log(txt))).meanBitsError
+        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), HOST, txt => console.log(txt))).meanBitsError
       } catch (err:any) {
         return 'loading...'  // HACK
       }
@@ -1139,8 +1144,11 @@ function mainPage(api) {
       if (text === '') {
         return 0
       }
+
+      const logger =  (txt) => console.log(txt)
+      const fpcore = fpcorejs.makeFPCore({ specMathJS: text.split('\n').join(''), ranges: spec.ranges, specFPCore: spec.fpcore })
       try {
-        const result = (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join('')), await herbiejs.getSample(fpcorejs.makeFPCore({ specMathJS: text.split('\n').join(''), ranges: spec.ranges, specFPCore: undefined }), HOST, txt => console.log(txt)), HOST, txt => console.log(txt))).meanBitsError
+        const result = (await herbiejs.analyzeExpression(fpcore, await herbiejs.getSample(fpcore, HOST, logger), HOST, logger)).meanBitsError
         if (firstTime) {
           refetch() // HACK
           firstTime = false
@@ -1840,7 +1848,6 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-// let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'
 let HOST = 'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host

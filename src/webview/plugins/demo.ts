@@ -1616,7 +1616,8 @@ function localErrorTreeAsMermaidGraph(tree, bits) {
   let colors = {}
   let counter = 0
 
-  console.log(tree)
+  const isLeaf = (n) => n['children'].length == 0
+  const formatName = (id, name, err) => id + '[<span class=nodeLocalError title=' + err + '>' + name + '</span>]'
 
   function loop(n) {
     const name = n['e']
@@ -1625,7 +1626,7 @@ function localErrorTreeAsMermaidGraph(tree, bits) {
 
     // node name
     const id = 'N' + counter++
-    const nodeName = id + '[<span class=nodeLocalError title=' + avg_error + '>' + name + '</span>]'
+    const nodeName = formatName(id, name, avg_error)
 
     // descend through AST
     for (const c in children) {
@@ -1643,11 +1644,20 @@ function localErrorTreeAsMermaidGraph(tree, bits) {
 
   loop(tree)
 
+  // Edge case: 1 node => no edges
+  if (isLeaf(tree)) {
+    const name = tree['e']
+    const avg_error = tree['avg-error']
+    edges.push(formatName('N0', name, avg_error))
+  }
+
+  // List colors
   for (const id in colors) {
     // HACK: title gets put under style to be extracted later
     edges.push('style ' + id + ' fill:#' + colors[id])
   }
 
+  console.log(edges)
   return edges.join('\n')
 }
 
@@ -1830,6 +1840,7 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
+// let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'
 let HOST = 'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host

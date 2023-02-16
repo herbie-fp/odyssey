@@ -1659,7 +1659,6 @@ function localErrorTreeAsMermaidGraph(tree, bits) {
     edges.push('style ' + id + ' fill:#' + colors[id])
   }
 
-  console.log(edges)
   return edges.join('\n')
 }
 

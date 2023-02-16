@@ -726,7 +726,8 @@ const herbiejs = (() => {
       // const floatToOrdinal = float => 42  // TODO
       // const chooseTicks = sample => []  // TODO
       console.trace('host', host, fpcore)//(await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })))
-      const pointsAndErrors = (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore.split('\n').join(''), sample: sample.points }) })).json()).points
+      const pointsAndBitErrors = (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore.split('\n').join(''), sample: sample.points, mode: 'bits' }) })).json()).points
+      const pointsAndAbsErrors = (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore.split('\n').join(''), sample: sample.points, mode: 'absolute' }) })).json()).points
       const ordinalSample = sample.points.map(p => p[0].map(v => ordinalsjs.floatToApproximateOrdinal(v)))
       
       const vars = fpcorejs.getVarnamesFPCore(fpcore)
@@ -739,9 +740,10 @@ const herbiejs = (() => {
       
       const splitpointsByVarIdx = vars.map(v => [])  // HACK no splitpoints for now
       //console.log('pointsAndErrors', pointsAndErrors)
-      const errors = pointsAndErrors.map(([point, error]) => new Number(error))
-      const meanBitsError = new Number((errors.reduce((sum, v) => sum + v, 0)/errors.length).toFixed(2))
-      return { pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { target: errors } }, meanBitsError }
+      const bitErrors = pointsAndBitErrors.map(([_, error]) => new Number(error))
+      const absErrors = pointsAndAbsErrors.map(([_, error]) => new Number(error))
+      const meanBitsError = new Number((bitErrors.reduce((sum, v) => sum + v, 0) / bitErrors.length).toFixed(2))
+      return { pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { bits: bitErrors, absolute: absErrors } }, meanBitsError }
       // fields: { points, ticks_by_varidx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars, error.target }
         // const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
         // const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
@@ -1778,50 +1780,76 @@ function expressionComparisonView(expressions, api) {
   const minPt = () => displayNumber(fastMin(points()))
   const maxPt = () => displayNumber(fastMax(points()))
 
+  const [errorMode, setErrorMode] = createSignal('bits')
+  const switchErrorMode = () => {
+    if (errorMode() === 'bits') {
+      setErrorMode('absolute')
+    } else {
+      setErrorMode('bits')
+    }
+  }
+
   return html`<div>
-    <h3>Bits of error over the range ${currentVarname} = [${minPt} , ${maxPt}]:</h3>
+    <h3>
+      <${Switch}>
+        <${Match} when=${() => errorMode() === 'bits'}>
+          Bits of error on ${currentVarname} = [${minPt} , ${maxPt}]
+        <//>
+        <${Match} when=${() => errorMode() === 'absolute'}>
+          Absolute error on ${currentVarname} = [${minPt} , ${maxPt}]
+        <//>
+        <${Match} when=${() => true}>
+          Unknown error mode, something bad happened...
+        <//>
+      <//>
+    </h3>
+
+    <p>
+    <button onClick=${switchErrorMode}>Switch Error Mode</button>
+    </p>
+
     ${() => {
-    const validPointsJsons = pointsJsons()
-      .filter(({ expression, pointsJson }) => pointsJson)
-      //console.log('pointsJson', pointsJson())
-    if (validPointsJsons.length === 0) { return 'analysis incomplete' }
-      //console.log(plotError('x', ['target'], ['x'], pointsJson(), Plot))
-    let { points, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars } = validPointsJsons[0].pointsJson
-    /* TODO: open issues:
-    * splitpoints can vary across expressions, how do we distinguish what they apply to?
-    * how do we get the proper ticks for the full range? Probably Herbie has to pass us this information.
-    * HACK: for now, just take the first one.
-     */
-    const idx = Math.max(vars.findIndex(v => v === currentVarname()), 0)
-    console.log(idx)
-    const ticks = ticksByVarIdx[idx]
-    const splitpoints = splitpointsByVarIdx[idx]
-    const pointsSlice = points.map(p => p[idx])
-    const data = validPointsJsons.map(({ expression, pointsJson: { points, error } }) => {
-      //let { error } = pointsJson
-      const keyFn = fn => (a, b) => fn(a) - fn(b)
-      return zip(points.map(p => p[idx]), error['target'], points).map(([x, y, orig]) => ({ x, y, orig })).sort(keyFn(p => p.x))
-    })
-    const styles = validPointsJsons.map(({ expression }) => {
-      // LATER color should be RGB string, will append alpha
-      const color = getColorCode(expression.id)//'#00ff00'
-      //const color = api.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
-      /** alpha value for dots on the graph */
-      const dotAlpha = '25'
-      return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 } }
-    })
-    //console.log(data)
-    return html`<div class="errorPlot">${plotError({ data, styles, ticks, splitpoints, bits, varnames:vars }, Plot)}</div>`
-    }
-    }
+      const validPointsJsons = pointsJsons()
+        .filter(({ expression, pointsJson }) => pointsJson)
+        //console.log('pointsJson', pointsJson())
+      if (validPointsJsons.length === 0) { return 'analysis incomplete' }
+        //console.log(plotError('x', ['target'], ['x'], pointsJson(), Plot))
+      let { points, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars } = validPointsJsons[0].pointsJson
+      /* TODO: open issues:
+      * splitpoints can vary across expressions, how do we distinguish what they apply to?
+      * how do we get the proper ticks for the full range? Probably Herbie has to pass us this information.
+      * HACK: for now, just take the first one.
+      */
+      const idx = Math.max(vars.findIndex(v => v === currentVarname()), 0)
+      const ticks = ticksByVarIdx[idx]
+      const splitpoints = splitpointsByVarIdx[idx]
+      const pointsSlice = points.map(p => p[idx])
+      const data = validPointsJsons.map(({ expression, pointsJson: { points, error } }) => {
+        //let { error } = pointsJson
+        const keyFn = fn => (a, b) => fn(a) - fn(b)
+        const key = errorMode()
+        return zip(points.map(p => p[idx]), error[key], points).map(([x, y, orig]) => ({ x, y, orig })).sort(keyFn(p => p.x))
+      })
+      const styles = validPointsJsons.map(({ expression }) => {
+        // LATER color should be RGB string, will append alpha
+        const color = getColorCode(expression.id)//'#00ff00'
+        //const color = api.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
+        /** alpha value for dots on the graph */
+        const dotAlpha = '25'
+        return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 } }
+      })
+      //console.log(data)
+      return html`<div class="errorPlot">${plotError({ data, styles, ticks, splitpoints, bits, varnames:vars }, Plot)}</div>`
+    }}
+
     <div>
-    <span> Select input axis: </span>
-    ${() => getTable(api, 'Variables').filter(v => v.specId === expressions?.[0]?.specId).map(v => {
-      console.log('VARNAME', v, currentVarname())
-      /* ts-styled-plugin: disable-next-line */
-      // style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', v.id)}
-      return html`<span class="varname ${currentVarname() === v.varname ? 'varname-selected' : ''}" onclick=${() => select(api, 'Variables', v.id)}>${v.varname}</span>`
-    })}
+      <span> Select input axis: </span>
+      ${() => getTable(api, 'Variables').filter(v => v.specId === expressions?.[0]?.specId).map(v => {
+        console.log('VARNAME', v, currentVarname())
+        /* ts-styled-plugin: disable-next-line */
+        // style=${ () => { return currentVarname() === v.varname ? ({ "background-color": 'lightgray' }) : ({}) }} onClick=${() => select(api, 'Variables', v.id)}
+        return html`<span class="varname ${currentVarname() === v.varname ? 'varname-selected' : ''}" onclick=${() => select(api, 'Variables', v.id)}>${v.varname}</span>`
+      })}
     </div>
   </div>`
 }
@@ -1841,7 +1869,8 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = 'http://127.0.0.1:8080/http://127.0.0.1:8000'
+// let HOST = 'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore

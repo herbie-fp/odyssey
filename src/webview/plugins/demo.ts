@@ -1140,24 +1140,25 @@ function mainPage(api) {
     })
     
     //setTimeout(() => refetch(), 7000)  // HACK
-    const [projectedNaiveError] = createResource(text, async (text) => {
-      if (text === '') {
-        return 0
-      }
+    // const [projectedNaiveError] = createResource(text, async (text) => {
+    //   if (text === '') {
+    //     return 0
+    //   }
 
-      const logger =  (txt) => console.log(txt)
-      const fpcore = fpcorejs.makeFPCore({ specMathJS: text.split('\n').join(''), ranges: spec.ranges, specFPCore: spec.fpcore })
-      try {
-        const result = (await herbiejs.analyzeExpression(fpcore, await herbiejs.getSample(fpcore, HOST, logger), HOST, logger)).meanBitsError
-        if (firstTime) {
-          refetch() // HACK
-          firstTime = false
-        }
-        return result
-      } catch (err:any) {
-        return err.toString()
-      }
-    })
+    //   const logger =  (txt) => console.log(txt)
+    //   const fpcore = fpcorejs.makeFPCore({ specMathJS: text.split('\n').join(''), ranges: spec.ranges, specFPCore: spec.fpcore })
+    //   try {
+    //     const result = (await herbiejs.analyzeExpression(fpcore, await herbiejs.getSample(fpcore, HOST, logger), HOST, logger)).meanBitsError
+    //     if (firstTime) {
+    //       refetch() // HACK
+    //       firstTime = false
+    //     }
+    //     return result
+    //   } catch (err:any) {
+    //     return err.toString()
+    //   }
+    // })
+  
     const openNewTab = () => vscodeApi.postMessage(JSON.stringify({command: 'openNewTab', mathjs: text(), ranges: spec.ranges}))
     return html`<div class="addExpressionRow">
     <div>
@@ -1184,13 +1185,6 @@ function mainPage(api) {
         <${Switch}>
            <${Match} when=${() => projectedError.loading}> loading...<//>
            <${Match} when=${() => true}> ${() => projectedError()?.toString()}<//>
-          <//>
-        </div>
-        <div>
-        Projected error (vs. self-as-spec): 
-          <${Switch}>
-           <${Match} when=${() => projectedNaiveError.loading}> loading...<//>
-           <${Match} when=${() => true}> ${() => projectedNaiveError()?.toString()}<//>
           <//>
         </div>
       </div>

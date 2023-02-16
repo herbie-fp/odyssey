@@ -515,6 +515,9 @@ interface PlotArgs {
   /** A list of variable names for the original points. */
   varnames: string[];
 
+  /** Mode */
+  mode: string
+
   /** For each function being plotted, for each `x` in the input, a `y` for the error. */
   data: Point[][]
 
@@ -538,7 +541,7 @@ const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[
    * Generate a plot with the given data and associated styles.
    */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800, height=400 }: PlotArgs, Plot) : SVGElement {
+function plotError({ varnames, mode, ticks, splitpoints, data, bits, styles, width=800, height=400 }: PlotArgs, Plot) : SVGElement {
   const tickStrings = ticks.map(t => t[0])
   const tickOrdinals = ticks.map(t => t[1])
   const tickZeroIndex = tickStrings.indexOf("0")
@@ -602,6 +605,30 @@ function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800
     ]
   }
 
+  /** Computes the ymax of the graph */
+  function computeYAxisData() {
+    if (mode === 'bits') {
+      return {
+        label: "Bits of Error",
+        domain: [0, bits],
+        ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
+        tickFormat: d => d % 8 !== 0 ? '' : d
+      }
+    } else {
+      const ymax = Math.max(...data.map(ps => Math.max(...ps.map(p => p.y))))
+      const numTicks = 8
+      const tickLen = ymax / numTicks
+      const ticks = new Array(numTicks + 1).fill(0).map((_, i) => i * tickLen)
+      console.log(ticks)
+      return {
+        label: "Absolute error",
+        domain: [0, ymax],
+        ticks: new Array(numTicks + 1).fill(0).map((_, i) => i * tickLen),
+        tickFormat: d => math.format(d, {notation: 'exponential', precision: 1})
+      }
+    }
+  }
+  
   const out = Plot.plot({
     width: width.toString(),
     height: height.toString(),                
@@ -612,11 +639,7 @@ function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800
         domain,
         grid: true
     },
-    y: {
-        label: "Bits of Error", domain: [0, bits],
-        ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
-        tickFormat: d => d % 8 !== 0 ? '' : d
-    },
+    y: computeYAxisData(),
     marks: [
       ...[ // Vertical bars ("rules")
         // The splitpoints
@@ -741,7 +764,7 @@ const herbiejs = (() => {
       const splitpointsByVarIdx = vars.map(v => [])  // HACK no splitpoints for now
       //console.log('pointsAndErrors', pointsAndErrors)
       const bitErrors = pointsAndBitErrors.map(([_, error]) => new Number(error))
-      const absErrors = pointsAndAbsErrors.map(([_, error]) => new Number(error))
+      const absErrors = pointsAndAbsErrors.map(([_, error]) => (error === 'Inf') ? Number.MAX_VALUE : new Number(error))
       const meanBitsError = new Number((bitErrors.reduce((sum, v) => sum + v, 0) / bitErrors.length).toFixed(2))
       return { pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { bits: bitErrors, absolute: absErrors } }, meanBitsError }
       // fields: { points, ticks_by_varidx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars, error.target }
@@ -1820,6 +1843,7 @@ function expressionComparisonView(expressions, api) {
       * how do we get the proper ticks for the full range? Probably Herbie has to pass us this information.
       * HACK: for now, just take the first one.
       */
+      const mode = errorMode()
       const idx = Math.max(vars.findIndex(v => v === currentVarname()), 0)
       const ticks = ticksByVarIdx[idx]
       const splitpoints = splitpointsByVarIdx[idx]
@@ -1827,8 +1851,7 @@ function expressionComparisonView(expressions, api) {
       const data = validPointsJsons.map(({ expression, pointsJson: { points, error } }) => {
         //let { error } = pointsJson
         const keyFn = fn => (a, b) => fn(a) - fn(b)
-        const key = errorMode()
-        return zip(points.map(p => p[idx]), error[key], points).map(([x, y, orig]) => ({ x, y, orig })).sort(keyFn(p => p.x))
+        return zip(points.map(p => p[idx]), error[mode], points).map(([x, y, orig]) => ({ x, y, orig })).sort(keyFn(p => p.x))
       })
       const styles = validPointsJsons.map(({ expression }) => {
         // LATER color should be RGB string, will append alpha
@@ -1839,7 +1862,7 @@ function expressionComparisonView(expressions, api) {
         return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 } }
       })
       //console.log(data)
-      return html`<div class="errorPlot">${plotError({ data, styles, ticks, splitpoints, bits, varnames:vars }, Plot)}</div>`
+      return html`<div class="errorPlot">${plotError({ data, mode, styles, ticks, splitpoints, bits, varnames:vars }, Plot)}</div>`
     }}
 
     <div>

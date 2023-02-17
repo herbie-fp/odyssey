@@ -1,6 +1,7 @@
 import { create } from "domain";
 import { applyTransformDependencies } from "mathjs";
 import { expression } from "mathjs11";
+import { SetStoreFunction } from "solid-js/store";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
 import { createStore, createEffect, createRenderEffect, createMemo, produce, createSignal, createResource } from "../../dependencies/dependencies.js";
 import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
@@ -21,19 +22,7 @@ const mermaidConfig = {
 mermaidAPI.initialize(mermaidConfig)
 
 
-window.addEventListener('message', event => {
-  console.log("FOOBAR got message")
-  const message = event.data 
-  switch (message.command) {
-    case 'openNewTab':
-      const { mathjs, ranges } = message
-      //@ts-ignore
-      document.querySelector('#newSpecInput textarea').value = JSON.stringify({ mathjs, ranges })
-      //@ts-ignore
-      document.querySelector('button').click()
-      break;
-  }
-})
+
 
 let specId = 1
 let sampleId = 1
@@ -359,7 +348,7 @@ const fpcorejs = (() => {
   }
 
   function get_input_range_errors([low, high] = [undefined, undefined], empty_if_missing = false) {
-    if ((low === undefined || low === '') || (high === undefined || high === '')) return empty_if_missing ? [] : ['input missing']
+    if ((low === undefined || low === '') || (high === undefined || high === '')) return empty_if_missing ? [] : ['input still missing']
     const A = [] as any[]
     if (!(low === undefined || low === '') && isNaN(Number(low))) {
       A.push(`The start of the range (${low}) is not a number.`)
@@ -892,10 +881,10 @@ function mainPage(api) {
   console.log('Setting up main demo page...')
   const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
   //const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(y)", ranges: [["x", [1, 1e9]], ["y", [-1e9, 1]]] }
-  const textarea = (value: any = JSON.stringify(defaultSpec), setValue = (v) => { }) => {
-    const out = html`<textarea value="${value}" oninput=${e => setValue(e.target.value)}></textarea>` as HTMLInputElement
+  const textarea = (value: any = JSON.stringify(defaultSpec), setValue = (v) => { }, classNames=[] as String[]) => {
+    const out = html`<textarea class="${classNames.join(' ')}" value="${value}" oninput=${e => setValue(e.target.value)}></textarea>` as HTMLInputElement
     out.addEventListener('keydown', function(e) {
-      if (e.key == 'Tab') {
+      if (e.key === 'Tab') {
         e.preventDefault();
       }
     });
@@ -909,23 +898,85 @@ function mainPage(api) {
     api.select('Specs', id)
     api.multiselect('Expressions', expressions().filter(e => e.specId === id).map(e => e.id))
   }
+  window.addEventListener('message', event => {
+    console.log("FOOBAR got message")
+    const message = event.data 
+    switch (message.command) {
+      case 'openNewTab':
+        const { mathjs, ranges } = message
+        addSpec({mathjs, fpcore: undefined, ranges})
+        //@ts-ignore
+        // document.querySelector('textarea.newSpecInput').value = mathjs
+        // ranges.map(([varname, [low, high]]) => document.querySelector('textarea.'))
+        // document.querySelector('textarea.')//JSON.stringify({ mathjs, ranges })
+        // //@ts-ignore
+        // document.querySelector('button').click()
+        // break;
+    }
+  })
 
   const newSpecInput = () => {
-    const text = textarea()
+    const [text, setText] = createSignal('sqrt(x + 1) - sqrt(x)')
+    function debounce( callback, delay ) {
+      let timeout;
+      return function(...args) {
+          clearTimeout( timeout );
+          timeout = setTimeout(() => callback(...args), delay );
+      }
+    }
+
+    const textArea = textarea(text, debounce(v => setText(v), 500), ['newSpecInput'])
+
+    const handleErrors = (tryBody, catchBody=e => e) => () => {
+      try { return tryBody() } catch (e) { return catchBody(e) }
+    }
+    const [varValues, setVarValues] = createStore({ x: {low: 0, high: 1e308} } as any)
+
+    const varnames = handleErrors(() => fpcorejs.getVarnamesMathJS(text()).map(v => (setVarValues(v, (old: Object) => ({ low: '', high: '', ...old })), v)), e => [])
+    
+    const rangeErrors = (all = false) => {
+      const errors = varnames().map(v => fpcorejs.rangeErrors([varValues[v].low, varValues[v].high], !all && varValues[v].low === '' && varValues[v].high === '')).flat()
+      return zip(errors, varnames()).map(([e, v]) => `${v}: ${e}`)
+    }
+
     return html`
-  <div id="newSpecInput">
-    Add Spec:
-    <div>
-    ${text}
-    </div>
-    <button onClick=${() => addSpec(JSON.parse(text.value))}>Submit</button>
-  </div>
-  `}
-  /*
-    <div>Add input range:</div>
-    <div>Other spec config here...</div>
-    <button onClick=${submit}>Add input range</button>
-  */
+      <div>
+        <h3>
+          The expression you would like to approximate:
+        </h3>
+        ${textArea}
+        <div id="texPreview" style="height: 50px; overflow: auto;">
+          ${() => {
+            try {
+              if (text() === '') { return '' }
+              return html`<span innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
+                throwOnError: false
+              })}></span>`
+            } catch (err :any) {
+              return err.toString()
+            }
+          }}
+        </div>
+        <h3>
+          The input ranges you would like to focus on improving:
+        </h3>
+        <table>
+        <${For} each=${varnames} fallback=${html`<span>The expression has no parseable inputs.</span>`}>${v => html`
+          <tr class="spec-var-row">
+            <td class="varname">${v}:</td> 
+            <td><input type="text" className=${`var-low var-${v}`} value="${varValues[v].low}" onInput=${debounce((e) => setVarValues(v, 'low', e.target.value), 400)}></td>
+            <td>to</td>
+            <td><input type="text" className=${`var-high var-${v}`} value="${varValues[v].high}" onInput=${debounce((e) => setVarValues(v, 'high', e.target.value), 400)}></td>
+          </tr>
+        `}<//>
+        </table>
+        <div>
+        <${For} each=${rangeErrors}>${e => html`<div>${e}</div>`}<//>
+        <${Show} when=${() => varnames().length > 0 && rangeErrors(true).length === 0}><button onClick=${() => addSpec({ mathjs: text(), fpcore: undefined, ranges: varnames().map(v => [v, [varValues[v].low, varValues[v].high]]) })}>Submit</button><//>
+        </div>
+      </div>`
+  }
+
   const modifyRange = startingSpec => {
     const text = textarea(JSON.stringify(startingSpec.ranges))
     return html`
@@ -1470,6 +1521,7 @@ function mainPage(api) {
       #analyzeUI #expressionTable button {
         width:-webkit-fill-available;
       }
+      /* HACK remove dark colorscheme for now */
       @media (prefers-color-scheme: dark) {
         #analyzeUI #specBlock table tr:nth-child(even) {
           background-color: #333333;
@@ -1482,13 +1534,16 @@ function mainPage(api) {
         }
       }
       @media (prefers-color-scheme: light) {
+       /* */
         #analyzeUI #specBlock table tr:nth-child(even) {
           background-color: #D6EEEE;
         }
         #expressionTable thead {
           box-shadow: 2px 1px 7px 2px lightblue;
         }
+        /**/
       }
+      /**/
 
       
       #analyzeUI {

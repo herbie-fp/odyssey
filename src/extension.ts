@@ -130,7 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
 							// 		}, 2000)
 							// 		</script>
 							console.log('FOOBAR sending message', message)
-							setTimeout(() => panel2.webview.postMessage(message), 2000)
+							setTimeout(() => panel2.webview.postMessage(message), 1700)
 							addMessageHandler(panel2)
 							//vscode.window.showErrorMessage(message.text);
 							return;

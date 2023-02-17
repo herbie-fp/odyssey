@@ -42,8 +42,8 @@ function select(callerPlugin, tname, item, id, tables, setTables) {
 
 function multiselect(callerPlugin, tname, item, ids, tables, setTables) {
   console.debug(callerPlugin, tname, item, tables, setTables)
-  const idx = tables.findIndex(t => t.name === 'Selections')
-  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname, multiselection: true}])//*/produce((tables: any) => { tables.find(t => t.name === 'Selections').items.push({ table: tname, selectionIds:ids, multiselection: true }) }))
+  const idx = tables.findIndex(t => t.name === 'Multiselections')
+  setTables(/*'tables', idx, 'items', l => [...l, {selection: item, table: tname, multiselection: true}])//*/produce((tables: any) => { tables.find(t => t.name === 'Multiselections').items.push({ table: tname, selectionIds:ids, multiselection: true }) }))
 }
 
 // TODO better logging--stack trace/whyline-ish features
@@ -190,7 +190,7 @@ async function getAPI(plugin_config, import_from_module, api) {
     getLastMultiselected: selector => {
       console.trace('got multiselection')
       const ret = o => selection.selectionIds.includes(o.id)
-      const selection = tables.find(t => t.name === "Selections")?.items.findLast(selection => selection.multiselection && selector(ret, selection.table))
+      const selection = tables.find(t => t.name === "Multiselections")?.items.findLast(selection => selection.multiselection && selector(ret, selection.table))
       console.debug('got multiselection', selector, selection)
       return selection ? ret : undefined
       

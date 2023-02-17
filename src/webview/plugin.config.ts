@@ -8,6 +8,7 @@ export default [
       'Plugins',
       'Tables',
       'Selections',
+      'Multiselections',
       'Rules',
       'Actions',
       'ActionLogs'
@@ -154,6 +155,16 @@ export default [
         table: 'Samples',
         fn: 'addSample'
       },
+      {
+        selector: 'Specs',
+        table: 'Expressions',
+        fn: 'updateExpressionsOnSpecAdd'
+      },
+      // {
+      //   selector: 'Specs',
+      //   table: 'Histories',
+      //   fn: 'updateHistoriesOnSpecAdd'
+      // },
       {
         selector: 'Specs',
         table: 'Expressions',

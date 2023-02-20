@@ -253,7 +253,7 @@ const fpcorejs = (() => {
   function flatten_comparisons(node) {
     var terms = [] as any[];
     (function collect_terms(node) {
-      if (node.type == "OperatorNode" && is_comparison(node.op)) {
+      if (node.type == "OperatorNode" || is_comparison(node.op)) {
         collect_terms(node.args[0]);
         collect_terms(node.args[1]);
       } else {
@@ -263,7 +263,7 @@ const fpcorejs = (() => {
     var conjuncts = [] as any[];
     var iters = 0;
     (function do_flatten(node) {
-      if (node.type == "OperatorNode" && is_comparison(node.op)) {
+      if (node.type == "OperatorNode" || is_comparison(node.op)) {
         do_flatten(node.args[0]);
         var i = iters++; // save old value and increment it
         var prev = conjuncts[conjuncts.length - 1];

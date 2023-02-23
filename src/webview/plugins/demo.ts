@@ -459,6 +459,10 @@ const fpcorejs = (() => {
   }
 })()
 
+//@ts-ignore
+window.fpcorejs = fpcorejs;
+//console.log('FPCORE', fpcorejs.mathjsToFPCore('(x > 1) ? sqrt(x + 1) - sqrt(x) : 1'))
+
 // let REQUEST_ID = 0
 
 // async function fetch(url, data) : Promise<Response> {
@@ -529,7 +533,7 @@ const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[
    * Generate a plot with the given data and associated styles.
    */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800, height=400 }: PlotArgs, Plot) : SVGElement {
+function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800, height=400}: PlotArgs, Plot) : SVGElement {
   const tickStrings = ticks.map(t => t[0])
   const tickOrdinals = ticks.map(t => t[1])
   const tickZeroIndex = tickStrings.indexOf("0")
@@ -570,7 +574,7 @@ function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800
    * Creates a line graph based on a sliding window of width binSize.
    * Further compresses points to width.
    * */
-  function lineAndDotGraphs({data, style: { line, dot }, binSize = 128, width = 800 }) {
+  function lineAndDotGraphs({data, style: { line, dot, selected, id }, binSize = 128, width = 800 }) {
     const average = points => ({
       y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
       x: points.reduce((acc, e) => e.x + acc, 0) / points.length
@@ -584,15 +588,19 @@ function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800
         Plot.line(compressedSlidingWindow, {
             x: "x",
             y: "y",
-            strokeWidth: 2, ...line,
+            strokeWidth: selected ? 4 : 2, ...line,
         }),
-        Plot.dot(compress(data, width), {x: "x", y: "y", r: 3,
-            title: d => d.orig.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
+      Plot.dot(compress(data, width), {
+        x: "x", y: "y", r: 3,
+          // HACK pass stuff out in the title attribute, we will update titles afterward
+        title: d => JSON.stringify({ o: d.orig, id }),//.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
+          // @ts-ignore
+            //"data-id": d => id,//() => window.api.select('Expressions', id),
             ...dot
         })
     ]
   }
-
+  console.log('splitpoints', splitpoints)
   const out = Plot.plot({
     width: width.toString(),
     height: height.toString(),                
@@ -619,6 +627,7 @@ function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800
       ...zip(data, styles).map(([data, style]) => lineAndDotGraphs({ data, style, width })).flat()]
   })
   out.setAttribute('viewBox', `0 0 ${width} ${height + 30}`)
+  
   return out
 }
 
@@ -928,7 +937,13 @@ function mainPage(api) {
         break;
     }
   })
-
+  function debounce( callback, delay ) {
+    let timeout;
+    return function(...args) {
+        clearTimeout( timeout );
+        timeout = setTimeout(() => callback(...args), delay );
+    }
+  }
   const newSpecInput = () => {
     const [text, setText] = createSignal('sqrt(x + 1) - sqrt(x)')
     function debounce( callback, delay ) {
@@ -948,7 +963,7 @@ function mainPage(api) {
     //@ts-ignore
     window.setVarValues = setVarValues // ugly HACK for letting new page force these values to change
 
-    const varnames = handleErrors(() => fpcorejs.getVarnamesMathJS(text()).map(v => (setVarValues(v, (old: Object) => ({ low: '', high: '', ...old })), v)), e => [])
+    const varnames = handleErrors(() => fpcorejs.getVarnamesMathJS(text()).map(v => (setVarValues(v, (old: Object) => ({ low: -1.79e308, high: 1.79e308, ...old })), v)), e => [])
     
     const rangeErrors = (all = false) => {
       const errors = varnames().map(v => fpcorejs.rangeErrors([varValues[v].low, varValues[v].high], !all && varValues[v].low === '' && varValues[v].high === '')).flat()
@@ -961,7 +976,7 @@ function mainPage(api) {
           The expression you would like to approximate:
         </h3>
         ${textArea}
-        <div id="texPreview" style="height: 50px; overflow: auto;">
+        <div id="texPreview">
           ${() => {
             try {
               if (text() === '') { return '' }
@@ -1103,7 +1118,7 @@ function mainPage(api) {
       <td>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </td>
-      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${selectExpression(expression)}>${expression.mathjs}</td>
+      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${() => setTimeout(selectExpression(expression))}>${expression.mathjs}</td>
       
       <td class="meanBitsError">
         <${Switch}>
@@ -1121,6 +1136,7 @@ function mainPage(api) {
           <//>
         <//>
       </td>
+      <td><button onclick=${() => navigator.clipboard.writeText(expression.mathjs)}>📋</button></td>
       <td >
         <button onClick=${() => hideExpression(expression)} class="hideExpression">x</button>
       </td>
@@ -1131,6 +1147,7 @@ function mainPage(api) {
 
   /** expressions where spec.mathjs === expr's spec.mathjs (or ditto fpcore) */
   const expressionsForSpec = spec => {
+    const expressionsF = expressions().filter(e => e.specId === spec.id)
     return expressions().filter(e => e.specId === spec.id)
     // console.debug('Checking expressions for the spec...', spec, unwrap(expressions()), unwrap(specs()), getExprSpec((expressions() || [{}])[0] || {}))
     // return expressions().filter(expr => {
@@ -1143,9 +1160,10 @@ function mainPage(api) {
   
   const makeExpression = (spec, fpcore, mathjs) => () => {
     //console.log('makeExpression called')
+    const specId = specs().find(api.getLastSelected((o, table) => table === "Specs") || (() => false))?.id // HACK just use current spec
     const id = expressionId++
     // ugly HACK duplicate the spec on the expression, see analyzeExpression
-    api.action('create', 'demo', 'Expressions', { specId: spec.id, fpcore, id, spec, mathjs })//, api.tables, api.setTables)
+    api.action('create', 'demo', 'Expressions', { specId, fpcore, id, spec, mathjs })//, api.tables, api.setTables)
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
@@ -1226,16 +1244,6 @@ function mainPage(api) {
     //     return err.toString()
     //   }
     // })
-  
-    const openNewTab = () => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: text(), ranges: unwrap(varValues) }))
-    
-    const [varValues, setVarValues] = createStore(spec.ranges.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any)
-    const varnames = () => fpcorejs.getVarnamesMathJS(spec.mathjs)
-    const rangeErrors = (all = false) => {
-      const errors = varnames().map(v => fpcorejs.rangeErrors([varValues[v].low, varValues[v].high], !all && varValues[v].low === '' && varValues[v].high === '')).flat()
-      return zip(errors, varnames()).map(([e, v]) => `${v}: ${e}`)
-    }
-
     return html`<div class="addExpressionRow">
     <div>
       Projected average error: 
@@ -1248,9 +1256,9 @@ function mainPage(api) {
     ${textArea}
     </div>
     
-    <button onClick=${addExpression}>Add approximation</button>
+    <button onClick=${addExpression}>Add expression</button>
 
-    <div id="texPreview" style="height: 50px; overflow: auto;">
+    <div id="texPreview" >
     ${() => {
       try {
         if (text() === '') { return '' }
@@ -1261,21 +1269,6 @@ function mainPage(api) {
         return err.toString()
       }
     }}
-      </div>
-      
-      <table>
-        <${For} each=${varnames} fallback=${html`<span>The expression has no parseable inputs.</span>`}>${v => html`
-          <tr class="spec-var-row">
-            <td class="varname">${v}:</td> 
-            <td><input type="text" className=${`var-low var-${v}`} value="${varValues[v].low}" onInput=${debounce((e) => setVarValues(v, 'low', e.target.value), 400)}></td>
-            <td>to</td>
-            <td><input type="text" className=${`var-high var-${v}`} value="${varValues[v].high}" onInput=${debounce((e) => setVarValues(v, 'high', e.target.value), 400)}></td>
-          </tr>
-        `}<//>
-      </table>
-      <button class="newSpec" onClick=${() => addSpec({ mathjs: spec.mathjs, fpcore: undefined, ranges: (Object.entries(varValues) as any).map(([k, { low, high }]) => [k, [low, high]]) })}>Update ranges</button>
-      <div>
-      <button class="newSpec" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Open new tab</button>
       </div>
     </div>`
     //<button class="newSpec" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: true }))}>Update ranges (opens new tab)</button>
@@ -1315,12 +1308,13 @@ function mainPage(api) {
     // })
     
     return html`<div id="specBlock">
+    <h4>Rewritings</h4>
     <div id="expressionTable">
       <table>
         <thead>
           <tr>
             <th>&nbsp;</th>
-            <th>&nbsp;</th>
+            <th><button onClick=${() => api.multiselect('Expressions', [])}>Clear</button></th>
             <th class="expression">Expression</th>
             <th class="meanBitsError">Average Error</th>
             <th>&nbsp;</th>
@@ -1328,7 +1322,7 @@ function mainPage(api) {
         </thead>
         <tbody>
     
-      <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) && !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)) /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
+      <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) /*&& !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)*/) /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
         </tbody>
       </table>
@@ -1342,16 +1336,19 @@ function mainPage(api) {
 
   const lastMultiselectedExpressions = () => {
     const specId = specs().find(api.getLastSelected((o, table) => table === "Specs") || (() => false))?.id
+    const hidden = getTable(api, 'HiddenExpressions').map(e => e.expressionId)
+    console.log("HEREEEE running", expressions()
+    .filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false)).filter(e => !(hidden.includes(e.id))))
     //console.log('test', specId)
     return expressions()
-      .filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false))
+      .filter(api.getLastMultiselected((objs, table) => table === 'Expressions') || (() => false)).filter(e => !(hidden.includes(e.id)))
       /*.filter(e => e.specId === specId)*/
   }
   const specView = () => html`<div>
     <h3>Details for ranges ${JSON.stringify(specs().find(api.getLastSelected((_, t) => t === "Specs"))?.ranges)}</h3>
     <div>[todo]</div>
     </div>`
-  const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
+  //const comparisonView = () => expressionComparisonView(lastMultiselectedExpressions(), api)
   const exprView = () => lastSelectedExpression() && expressionView(lastSelectedExpression(), api)
   
   const makeRequest = (spec) => api.action('create', 'demo', 'ExpressionRequests', { specId: spec.id })
@@ -1360,13 +1357,13 @@ function mainPage(api) {
   const getAlternativesButton = (spec) => html`
     <${Switch}>
       <${Match} when=${() => !request(spec) && !herbieSuggestion(spec)}>
-        <button onClick=${() => (genHerbieAlts(spec, api), makeRequest(spec))}>Get alternative expressions with Herbie</button>
+        <button onClick=${() => setTimeout(() => (genHerbieAlts(spec, api), makeRequest(spec)))}>Get expressions with Herbie</button>
       <//>
       <${Match} when=${() => request(spec) && !herbieSuggestion(spec)}>
         <button disabled>waiting for alternatives... (may take up to 20 seconds)</button>
       <//>
       <${Match} when=${() => herbieSuggestion(spec)}>
-        <button disabled>alternatives shown</button>
+        <button disabled>alternatives for this range shown</button>
       <//>
       <${Match} when=${() => /* TODO check associated request for error */ false}>
         error during computation :(
@@ -1378,13 +1375,43 @@ function mainPage(api) {
         }
       <//>
     <//>`
-  const specsAndExpressions = (startingSpec) => html`
+  const rangeConfig = (spec) => {
+    //const openNewTab = () => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: text(), ranges: unwrap(varValues) }))
+    const [varValues, setVarValues] = createStore(spec.ranges.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any)
+    const varnames = () => fpcorejs.getVarnamesMathJS(spec.mathjs)
+    const rangeErrors = (all = false) => {
+      const errors = varnames().map(v => fpcorejs.rangeErrors([varValues[v].low, varValues[v].high], !all && varValues[v].low === '' && varValues[v].high === '')).flat()
+      return zip(errors, varnames()).map(([e, v]) => `${v}: ${e}`)
+    }
+    return html`
+      <div class="range-config">
+        <table>
+          <${For} each=${varnames} fallback=${html`<span>The expression has no parseable inputs.</span>`}>${v => html`
+            <tr class="spec-var-row">
+              <td class="varname">${v}:</td> 
+              <td><input type="text" className=${`var-low var-${v}`} value="${varValues[v].low}" onInput=${debounce((e) => setVarValues(v, 'low', e.target.value), 400)}></td>
+              <td>to</td>
+              <td><input type="text" className=${`var-high var-${v}`} value="${varValues[v].high}" onInput=${debounce((e) => setVarValues(v, 'high', e.target.value), 400)}></td>
+            </tr>
+          `}<//>
+        </table>
+        <${For} each=${rangeErrors}>${e => html`<div class="range-error">${e}</div>`}<//>
+        <${Show} when=${() => rangeErrors(true).length === 0}>
+          <button class="update-ranges" onClick=${() => addSpec({ mathjs: spec.mathjs, fpcore: undefined, ranges: (Object.entries(varValues) as any).map(([k, { low, high }]) => [k, [low, high]]) })}>Update ranges</button>
+          <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button>
+        <//>
+        
+      </div>
+    `
+  }
+  const specsAndExpressions = (spec) => html`
     <div id="specsAndExpressions">
       <div id="specInfo">
         <h4 id="specLabel">Expression to approximate (the Spec)</h4>
-        <div id="specTitle">${renderTex(math11.parse(startingSpec.mathjs).toTex())}</div>
+        <div id="specTitle">${renderTex(math11.parse(spec.mathjs).toTex({handler: branchConditionalHandler}))}</div>
       </div>
-      ${() => getSpecBlock(startingSpec)}
+      ${() => rangeConfig(spec)}
+      ${() => getSpecBlock(spec)}
               
     </div>`
 
@@ -1499,6 +1526,7 @@ function mainPage(api) {
       #analyzeUI svg circle:hover {
         fill-opacity: 1;
         r: 4;
+        cursor: pointer;
       }
       
       #expressionTable th.expression {
@@ -1506,10 +1534,14 @@ function mainPage(api) {
         padding-left: 20px;
       }
       #expressionTable .expression {
-        width:235px;
+        width:154px;
       }
       #expressionTable td.expression {
         cursor: pointer;
+        max-width: 200px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
       }
       #expressionTable .meanBitsError {
         width:100px;
@@ -1530,7 +1562,7 @@ function mainPage(api) {
       }
       #texPreview {
         max-width: 400px;
-        height: fit-content;
+        /*height: fit-content;*/
       }
       .varname {
         margin-right: 5px;
@@ -1562,7 +1594,7 @@ function mainPage(api) {
       #analyzeUI #expressionTable button {
         width:-webkit-fill-available;
       }
-      /* HACK remove dark colorscheme for now */
+      /* HACK remove dark colorscheme for now
       @media (prefers-color-scheme: dark) {
         #analyzeUI #expressionTable tr:nth-child(even) {
           background-color: #333333;
@@ -1575,16 +1607,16 @@ function mainPage(api) {
         }
       }
       @media (prefers-color-scheme: light) {
-       /* */
+       */
         #analyzeUI #expressionTable tr:nth-child(even) {
           background-color: #D6EEEE;
         }
         #expressionTable thead {
           box-shadow: 2px 1px 7px 2px lightblue;
         }
-        /**/
+        /*
       }
-      /**/
+      */
 
       
       #analyzeUI {
@@ -1637,8 +1669,8 @@ async function genHerbieAlts(spec, api) {
   //const sample2 = sample.points.map((p, i) => [p, sample.exacts[i]])
   //console.log(sample2)
   const fetch = await herbiejs.suggestExpressions(spec.fpcore, sample, HOST, logval => console.log(logval), html)
-  const alts = fetch.alternatives
-  const histories = fetch.histories
+  const alts = fetch.alternatives.slice(0, 5)  // Just return top 5 options
+  const histories = fetch.histories.slice(0, 5)
 
   var derivExpressionId = expressionId
   const expressions = await Promise.all(zip(histories, alts).map(async ([html, alt]) => {
@@ -1705,8 +1737,27 @@ const renderTex = h => {
   //(window as any).renderMathInElement(el)
   return el
 }
+function branchConditionalHandler(node, options) {
+  if (node.type !== 'ConditionalNode') {
+    return node.toTex()
+  }
+  const deparen = node => node.type === 'ParenthesisNode' ? node.content : node
+  const conditions = [node]
+  let curr = node
+  while (deparen(curr.falseExpr).type === 'ConditionalNode') {
+    conditions.push(deparen(curr.falseExpr))
+    curr = deparen(curr.falseExpr)
+  }
+  conditions.push(conditions[conditions.length - 1])  // duplicate the final condition
+  
+  const deparenCondition = c => ({...c, condition: deparen(c.condition), trueExpr: deparen(c.trueExpr), falseExpr: deparen(c.falseExpr)})
+  return conditions.map(deparenCondition).map((c, i) => 
+    i === 0 ? `\\mathbf{if} \\> ${c.condition.toTex()}: \\\\ \\quad ${c.trueExpr.toTex()}`
+    : i !== conditions.length - 1 ? `\\mathbf{elif} \\> ${c.condition.toTex()}: \\\\ \\quad ${c.trueExpr.toTex()}`
+    : `\\mathbf{else :} \\\\ \\quad ${c.falseExpr.toTex()}`).join('\\\\')
+}
 const math2Tex = mathjs => {
-  return math11.parse(mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')).toTex()
+  return math11.parse(mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')).toTex({handler: branchConditionalHandler})
 }
 
 function localErrorTreeAsMermaidGraph(tree, bits) {
@@ -1762,13 +1813,13 @@ function expressionView(expression, api) {
   // get history and local error
   const history = getByKey(api, 'Histories', 'id', expression.id)
   const sample = () => getByKey(api, 'Samples', 'specId', expression.specId)
-  const request = () => api.tables.find(t => t.name === "LocalErrorRequests").items.find(r => r.id === expression.id)
+  const request = () => true //api.tables.find(t => t.name === "LocalErrorRequests").items.find(r => r.id === expression.id)
   const makeRequest = () => api.action('create', 'demo', 'LocalErrorRequests', { id: expression.id })
   const localError = () => getByKey(api, 'LocalErrors', 'id', expression.id)
 
   async function genLocalError() {
     const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), HOST)
-    const entry = { specId: expression.specId, id: expression.id, tree: result.tree }
+    const entry = { specId: expression.specId, id: expression.id, tree: result.tree, sample: [] }
     api.action('create', 'demo', 'LocalErrors', entry)
   }
 
@@ -1776,7 +1827,7 @@ function expressionView(expression, api) {
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     <div>
-      <h3>Local Error Analysis</h3>
+      <h4>Local Error Analysis</h4>
       <${Switch}>
         <${Match} when=${() => !sample()}>
           <button disabled>Expresion analysis incomplete</button>
@@ -1788,6 +1839,9 @@ function expressionView(expression, api) {
           <button disabled>waiting for local error (may take a few seconds)</button>
         <//>
         <${Match} when=${() => localError()}>
+          <${For} each=${getTable(api, 'Variables').filter(v => v.specId === expression.specId).map((v,i) => [v.varname, i])}>${([v, i]) => 
+            html`<div>${v}: ${() => displayNumber(localError().sample?.[0]?.[0]?.[i] || 0)} (${() => localError().sample?.[0]?.[0]?.[i]})</div>`
+            }<//>
           ${() => {
             const lerr = localError()
             const analysis = getByKey(api, "Analyses", 'expressionId', expression.id) // TODO: inconsistent key name
@@ -1813,7 +1867,7 @@ function expressionView(expression, api) {
       <//>
     </div>
     <div>
-      <h3>Herbie's derivation</h3>
+      <h4>Herbie's derivation</h4>
       ${() => {
         if (expression.provenance !== 'herbie') {
           return 'You submitted this expression.'
@@ -1875,10 +1929,11 @@ function expressionComparisonView(expressions, api) {
   const maxPt = () => displayNumber(fastMax(points()))
 
   return html`<div>
-    <h3>Bits of error over the range ${currentVarname} = [${minPt} , ${maxPt}]:</h3>
+    <h3>Sampled bits of error over the range ${currentVarname} = [${minPt} , ${maxPt}]:</h3>
     ${() => {
+      const selectedExpressionId = getLastSelected(api, "Expressions")?.id
     const validPointsJsons = pointsJsons()
-      .filter(({ expression, pointsJson }) => pointsJson)
+      .filter(({ expression, pointsJson }) => pointsJson).sort((a, b) => a.expression.id === selectedExpressionId ? 1 : b.expression.id === selectedExpressionId ? -1 : 0)
       //console.log('pointsJson', pointsJson())
     if (validPointsJsons.length === 0) { return 'analysis incomplete' }
       //console.log(plotError('x', ['target'], ['x'], pointsJson(), Plot))
@@ -1900,14 +1955,27 @@ function expressionComparisonView(expressions, api) {
     })
     const styles = validPointsJsons.map(({ expression }) => {
       // LATER color should be RGB string, will append alpha
+      const selected = selectedExpressionId === expression.id
       const color = getColorCode(expression.id)//'#00ff00'
       //const color = api.tables.find(t => t.name === 'herbie.ExpressionColors').items.find(c => c.expressionId === expression.id).color
       /** alpha value for dots on the graph */
-      const dotAlpha = '25'
-      return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 } }
+      const dotAlpha = selected ? 'b5' : '25'
+      return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 }, selected, id: expression.id}
+    })
+    const errorGraph = plotError({ data, styles, ticks, splitpoints, bits, varnames:vars }, Plot)
+    errorGraph.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+      const { o, id } = JSON.parse(t.textContent)
+      t.textContent = o.map((v, i) => `${vars[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n')
+      t.parentNode.onclick = async () => {
+        api.select('Expressions', id)
+        const expression = getByKey(api, 'Expressions', 'id', id)
+        const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }, HOST)
+        const entry = { specId, id, tree: result.tree, sample: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }
+        api.action('create', 'demo', 'LocalErrors', entry)
+      }
     })
     //console.log(data)
-    return html`<div class="errorPlot">${plotError({ data, styles, ticks, splitpoints, bits, varnames:vars }, Plot)}</div>`
+    return html`<div class="errorPlot">${errorGraph}</div>`
     }
     }
     <div>
@@ -1929,7 +1997,7 @@ function select(api, tname, id) {
   return api.select(tname, id)//, api.tables, api.setTables)
 }
 function getByKey(api, tname, key, value) {
-  return getTable(api, tname).find(v => v[key]=== value)
+  return getTable(api, tname).findLast(v => v[key]=== value)
 }
 
 function getLastSelected(api, tname) {
@@ -2009,13 +2077,18 @@ function selectNaiveExpression(spec, api) {
 }
 
 function updateExpressionsOnSpecAdd(spec, api) {
-  const expressions = getTable(api, 'Expressions')
-  const exprs = [...new Set(expressions.map(e => e.mathjs))]
-  const selectedMathjs = currentMultiselection(api).map(o => expressions.find(e => e.id === o.id).mathjs)
-  const newExprs = exprs.map(e => ({ ...expressions.find(e1 => e1.mathjs === e), specId: spec.id, id: expressionId++ }))
+  const hidden = getTable(api, 'HiddenExpressions').map(e => e.expressionId)
+  const expressions = getTable(api, 'Expressions').filter(e => e.specId === spec.id - 1 && !(hidden.includes(e.id)))
+  //const exprs = [...new Set(expressions.map(e => e.mathjs))]
+  const transferMap = Object.fromEntries(expressions.map(e => [e.id, expressionId++]))
+  const newExprs = expressions.map(e => ({ ...e, specId: spec.id, id: transferMap[e.id] }))
+  const oldSelectedIds = currentMultiselection(api).filter(e => !(hidden.includes(e.id))).map(o => o.id)
+  const newSelectedIds = oldSelectedIds.map(id => transferMap[id])
+  //const selectedMathjs = currentMultiselection(api).filter(e => !(hidden.includes(e.id))).map(o => expressions.find(e => e.id === o.id).mathjs)
+  //const newExprs = exprs.map(e => ({ ...expressions.find(e1 => e1.mathjs === e), specId: spec.id, id: expressionId++ }))
       // HACK uses window...
   //@ts-ignore
-  window.api.multiselect('Expressions', newExprs.filter(e => selectedMathjs.includes(e.mathjs)).map(e => e.id))
+  window.api.multiselect('Expressions', newSelectedIds)//newExprs.filter(e => selectedMathjs.includes(e.mathjs)).map(e => e.id))
   //@ts-ignore
   //window.api.create()
   return newExprs
@@ -2030,4 +2103,12 @@ function updateExpressionsOnSpecAdd(spec, api) {
 //   return newExprs
 // }
 
-export default { mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression, addVariables, addSample, updateExpressionsOnSpecAdd }//, updateHistoriesOnSpecAdd}
+async function analyzeLocalErrors(expression, api) {
+  const sample = () => getByKey(api, 'Samples', 'specId', expression.specId)
+  await waitUntil(sample)
+  const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), HOST)
+  const entry = { specId: expression.specId, id: expression.id, tree: result.tree, sample: [] }
+  api.action('create', 'demo', 'LocalErrors', entry)
+}
+
+export default { mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression, addVariables, addSample, updateExpressionsOnSpecAdd, analyzeLocalErrors}//, updateHistoriesOnSpecAdd, }

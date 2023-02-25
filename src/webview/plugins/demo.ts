@@ -980,7 +980,7 @@ function mainPage(api) {
           ${() => {
             try {
               if (text() === '') { return '' }
-              return html`<span innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
+              return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
                 throwOnError: false
               })}></span>`
             } catch (err :any) {
@@ -1262,7 +1262,7 @@ function mainPage(api) {
     ${() => {
       try {
         if (text() === '') { return '' }
-        return html`<span innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
+        return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
           throwOnError: false
         })}></span>`
       } catch (err :any) {
@@ -1637,6 +1637,9 @@ function mainPage(api) {
       #analyzeUI .addExpressionRow textarea {
         width: 400px;
         height: 70px;
+      }
+      .preview-stuff:not(:first-child) { /* HACK to solve double-LaTeX render */
+        display: none;
       }
     </style>
     ${contents}

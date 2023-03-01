@@ -1377,7 +1377,6 @@ function mainPage(api) {
     <//>`
   const rangeConfig = (spec) => {
     //const openNewTab = () => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: text(), ranges: unwrap(varValues) }))
-    const [varValues, setVarValues] = createStore(spec.ranges.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any)
     const varnames = () => fpcorejs.getVarnamesMathJS(spec.mathjs)
     const rangeErrors = (all = false) => {
       const errors = varnames().map(v => fpcorejs.rangeErrors([varValues[v].low, varValues[v].high], !all && varValues[v].low === '' && varValues[v].high === '')).flat()
@@ -1398,16 +1397,15 @@ function mainPage(api) {
         <${For} each=${rangeErrors}>${e => html`<div class="range-error">${e}</div>`}<//>
         <${Show} when=${() => rangeErrors(true).length === 0}>
           <button class="update-ranges" onClick=${() => addSpec({ mathjs: spec.mathjs, fpcore: undefined, ranges: (Object.entries(varValues) as any).map(([k, { low, high }]) => [k, [low, high]]) })}>Update ranges</button>
-          <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button>
         <//>
         
       </div>
     `
   }
-  const specsAndExpressions = (spec) => html`
+  const specsAndExpressions = (spec, varValues, setVarValues) => html`
     <div id="specsAndExpressions">
       <div id="specInfo">
-        <h4 id="specLabel">Expression to approximate (the Spec)</h4>
+        <h4 id="specLabel">Expression to approximate (the Spec)</h4> <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button>
         <div id="specTitle">${renderTex(math11.parse(spec.mathjs).toTex({handler: branchConditionalHandler}))}</div>
       </div>
       ${() => rangeConfig(spec)}
@@ -1465,11 +1463,20 @@ function mainPage(api) {
   //   console.log('TEST 5')
   //   lastMultiselectedExpressions()
   // })
+  
   const lastSpec = () => api.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false));
+  
+  let varValues, setVarValues;
+  //let [varValues, setVarValues] = createStore(lastSpec()?.ranges?.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any || {})
   const analyzeUI = html`<div id="analyzeUI">
-    <${Show} when=${() => { if (specs()[0]) { select(api, 'Specs', specs()[specs().length-1].id); return specs()[0] } else { return false } }}
+    <${Show} when=${() => { if (specs()[0]) { 
+      if (!varValues) {
+        console.log('HERE', specs()[0].ranges);
+        [varValues, setVarValues] = createStore(specs()[0].ranges.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any)
+      }
+      select(api, 'Specs', specs()[specs().length-1].id); return specs()[0] } else { return false } }}
       fallback=${newSpecInput()}>
-      ${() => specsAndExpressions(lastSpec())}
+      ${() => specsAndExpressions(lastSpec(), varValues, setVarValues)}
       <div id="focus">
       <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)} <//>
         

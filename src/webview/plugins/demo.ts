@@ -250,43 +250,48 @@ const fpcorejs = (() => {
     return ["==", "!=", "<", ">", "<=", ">="].indexOf(name) !== -1;
   }
 
-  function flatten_comparisons(node) {
-    var terms = [] as any[];
-    (function collect_terms(node) {
-      if (node.type == "OperatorNode" || is_comparison(node.op)) {
-        collect_terms(node.args[0]);
-        collect_terms(node.args[1]);
-      } else {
-        terms.push(node.res);
-      }
-    })(node);
-    var conjuncts = [] as any[];
-    var iters = 0;
-    (function do_flatten(node) {
-      if (node.type == "OperatorNode" || is_comparison(node.op)) {
-        do_flatten(node.args[0]);
-        var i = iters++; // save old value and increment it
-        var prev = conjuncts[conjuncts.length - 1];
-        if (prev && prev[0] == node.op && prev[2] == terms[i]) {
-          prev.push(terms[i + 1]);
-        } else {
-          conjuncts.push([node.op, terms[i], terms[i + 1]]);
-        }
-        do_flatten(node.args[1]);
-      }
-    })(node);
-    var comparisons = [] as any[];
-    for (var i = 0; i < conjuncts.length; i++) {
-      comparisons.push("(" + conjuncts[i].join(" ") + ")");
-    }
-    if (comparisons.length == 0) {
-      return "TRUE";
-    } else if (comparisons.length == 1) {
-      return comparisons[0];
-    } else {
-      return "(and " + comparisons.join(" ") + ")";
-    }
-  }
+  // function flatten_comparisons(node) {
+  //   var terms = [] as any[];
+  //   function collect_terms(node) {
+  //     if (node.type == "OperatorNode" || is_comparison(node.op)) {
+  //       collect_terms(node.args[0]);
+  //       collect_terms(node.args[1]);
+  //     } else {
+  //       terms.push(node.res);
+  //     }
+  //   };
+    
+  //   var conjuncts = [] as any[];
+  //   var iters = 0;
+  //   function do_flatten(node) {
+  //     if (node.type == "OperatorNode" || is_comparison(node.op)) {
+  //       do_flatten(node.args[0]);
+  //       var i = iters++; // save old value and increment it
+  //       var prev = conjuncts[conjuncts.length - 1];
+  //       if (prev && prev[0] == node.op && prev[2] == terms[i]) {
+  //         prev.push(terms[i + 1]);
+  //       } else {
+  //         conjuncts.push([node.op, terms[i], terms[i + 1]]);
+  //       }
+  //       do_flatten(node.args[1]);
+  //     }
+  //   };
+
+  //   collect_terms(node)
+  //   do_flatten(node)
+
+  //   var comparisons = [] as any[];
+  //   for (var i = 0; i < conjuncts.length; i++) {
+  //     comparisons.push("(" + conjuncts[i].join(" ") + ")");
+  //   }
+  //   if (comparisons.length == 0) {
+  //     return "TRUE";
+  //   } else if (comparisons.length == 1) {
+  //     return comparisons[0];
+  //   } else {
+  //     return "(and " + comparisons.join(" ") + ")";
+  //   }
+  // }
 
   function extract(args) { return args.map(function (n) { return n.res }); }
 
@@ -305,7 +310,9 @@ const fpcorejs = (() => {
           // NOTE changed from node.op reassignment to be compatible with mathjs 4.4.2
           const op = SECRETFUNCTIONS[node.op] || node.op;
           if (is_comparison(op)) {
-            return flatten_comparisons({ ...node, op });
+            // TODO: removed because of bugs; is this even necessary?
+            // return flatten_comparisons({ ...node, op });
+            return "(" + op + " " + extract(node.args).join(" ") + ")";
           } else {
             return "(" + op + " " + extract(node.args).join(" ") + ")";
           }

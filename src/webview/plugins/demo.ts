@@ -1759,9 +1759,20 @@ const renderTex = h => {
   //(window as any).renderMathInElement(el)
   return el
 }
+
+function cleanupTex(node, options) {
+  // TODO handle other special functions
+  if (node.fn?.name === 'hypot' && !(node.args.length === 2)) { throw Error('hypot takes two arguments') }
+  if (node.fn?.name === 'log1p' && !(node.args.length === 1)) { throw Error('log1p takes one argument') }
+  return node.fn?.name === 'hypot' ? `\\mathbf{hypot}(${node.args[0].toTex(options)}, ${node.args[1].toTex(options)})` 
+    : node.fn?.name === 'log1p' ? `\\mathbf{log1p}(${node.args[0].toTex(options)})`
+    : node._toTex(options)
+}
+
 function branchConditionalHandler(node, options) {
+  options = {handler: cleanupTex}
   if (node.type !== 'ConditionalNode') {
-    return node.toTex()
+    return node.toTex(options)
   }
   const deparen = node => node.type === 'ParenthesisNode' ? node.content : node
   const conditions = [node]
@@ -1774,9 +1785,9 @@ function branchConditionalHandler(node, options) {
   
   const deparenCondition = c => ({...c, condition: deparen(c.condition), trueExpr: deparen(c.trueExpr), falseExpr: deparen(c.falseExpr)})
   return conditions.map(deparenCondition).map((c, i) => 
-    i === 0 ? `\\mathbf{if} \\> ${c.condition.toTex()}: \\\\ \\quad ${c.trueExpr.toTex()}`
-    : i !== conditions.length - 1 ? `\\mathbf{elif} \\> ${c.condition.toTex()}: \\\\ \\quad ${c.trueExpr.toTex()}`
-    : `\\mathbf{else :} \\\\ \\quad ${c.falseExpr.toTex()}`).join('\\\\')
+    i === 0 ? `\\mathbf{if} \\> ${c.condition.toTex(options)}: \\\\ \\quad ${c.trueExpr.toTex(options)}`
+    : i !== conditions.length - 1 ? `\\mathbf{elif} \\> ${c.condition.toTex(options)}: \\\\ \\quad ${c.trueExpr.toTex(options)}`
+    : `\\mathbf{else :} \\\\ \\quad ${c.falseExpr.toTex(options)}`).join('\\\\')
 }
 const math2Tex = mathjs => {
   return math11.parse(mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')).toTex({handler: branchConditionalHandler})

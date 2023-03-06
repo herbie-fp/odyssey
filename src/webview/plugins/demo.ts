@@ -1081,10 +1081,15 @@ function mainPage(api) {
   //     </span>
   //   </div>`
   // }
-  const selectExpression = expression => () => {
-    console.log
+  const selectExpression = expression => async () => {
+    setTimeout(() => api.select('Expressions', expression.id))
+    //const sample = getLastSelected(api, 'Samples')
+    const sample = getByKey(api, 'Samples', 'specId', expression.specId)
+    const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: sample.points }, HOST)
+        const entry = { specId, id: expression.id, tree: result.tree, sample: sample }
+        api.action('create', 'demo', 'LocalErrors', entry)
     if (lastSelectedExpression()?.id === expression.id) { return }
-    setTimeout(() => api.select('Expressions', expression.id))//, api.tables, api.setTables)
+    //, api.tables, api.setTables)
   }
 
   const analyses = () => api.tables.find(t => t.name === 'Analyses').items
@@ -1858,9 +1863,11 @@ function expressionView(expression, api) {
           <button disabled>waiting for local error (may take a few seconds)</button>
         <//>
         <${Match} when=${() => localError()}>
-          <${For} each=${getTable(api, 'Variables').filter(v => v.specId === expression.specId).map((v,i) => [v.varname, i])}>${([v, i]) => 
-            html`<div>${v}: ${() => displayNumber(localError().sample?.[0]?.[0]?.[i] || 0)} (${() => localError().sample?.[0]?.[0]?.[i]})</div>`
-            }<//>
+          <${Show} when=${() => localError().sample?.[0]?.[0]} fallback=${() => html`<span>Averaged across the sample:</span>`}>
+            <${For} each=${getTable(api, 'Variables').filter(v => v.specId === expression.specId).map((v,i) => [v.varname, i])}>${([v, i]) => 
+              html`<div>${v}: ${() => displayNumber(localError().sample?.[0]?.[0]?.[i] || 0)} (${() => localError().sample?.[0]?.[0]?.[i]})</div>`
+              }<//>
+          <//>
           ${() => {
             const lerr = localError()
             const analysis = getByKey(api, "Analyses", 'expressionId', expression.id) // TODO: inconsistent key name

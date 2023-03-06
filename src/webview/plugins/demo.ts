@@ -970,7 +970,7 @@ function mainPage(api) {
     //@ts-ignore
     window.setVarValues = setVarValues // ugly HACK for letting new page force these values to change
 
-    const varnames = handleErrors(() => fpcorejs.getVarnamesMathJS(text()).map(v => (setVarValues(v, (old: Object) => ({ low: -1.79e308, high: 1.79e308, ...old })), v)), e => [])
+    const varnames = handleErrors(() => fpcorejs.getVarnamesMathJS(text().split('\n').join('')).map(v => (setVarValues(v, (old: Object) => ({ low: -1.79e308, high: 1.79e308, ...old })), v)), e => (console.error(e), []))
     
     const rangeErrors = (all = false) => {
       const errors = varnames().map(v => fpcorejs.rangeErrors([varValues[v].low, varValues[v].high], !all && varValues[v].low === '' && varValues[v].high === '')).flat()

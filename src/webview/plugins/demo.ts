@@ -919,7 +919,6 @@ function mainPage(api) {
   //@ts-ignore
   window.api = api
   window.addEventListener('message', event => {
-    console.log("FOOBAR got message")
     const message = event.data 
     switch (message.command) {
       case 'openNewTab':

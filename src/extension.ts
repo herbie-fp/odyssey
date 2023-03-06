@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 					switch (message.command) {
 						case 'openNewTab':
 							const { mathjs, ranges } = message
-							const title = mathjs.length > 12 ? mathjs.slice(0, 9) + '...' : mathjs
+							const title = 'Odyssey: Herbie'//mathjs.length > 12 ? mathjs.slice(0, 9) + '...' : mathjs
 							const panel2 = vscode.window.createWebviewPanel(
 								'herbieIndex', // Identifies the type of the webview. Used internally
 								title, // Title of the panel displayed to the user

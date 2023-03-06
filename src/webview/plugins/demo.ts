@@ -1415,7 +1415,6 @@ function mainPage(api) {
         <h4 id="specLabel">Expression to approximate (the Spec)</h4> <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button>
         <div id="specTitle">${renderTex(math11.parse(spec.mathjs).toTex({handler: branchConditionalHandler}))}</div>
       </div>
-      ${() => rangeConfig(spec)}
       ${() => getSpecBlock(spec)}
               
     </div>`
@@ -1485,7 +1484,9 @@ function mainPage(api) {
       fallback=${newSpecInput()}>
       ${() => specsAndExpressions(lastSpec(), varValues, setVarValues)}
       <div id="focus">
-      <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)} <//>
+      <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)}
+      <br>
+      ${() => rangeConfig(lastSpec())} <//>
         
       </div>
       <${Show} when=${() => lastSelectedExpression()}>

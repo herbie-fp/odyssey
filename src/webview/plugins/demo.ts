@@ -1579,8 +1579,13 @@ function mainPage(api) {
       #analyzeUI #expressionTable thead tr {
         display: block;
       }
+      #specTitle {
+        max-width: 400px;
+        overflow: scroll;
+      }
       #texPreview {
         max-width: 400px;
+        overflow: scroll;
         /*height: fit-content;*/
       }
       .varname {
@@ -1764,8 +1769,10 @@ function cleanupTex(node, options) {
   // TODO handle other special functions
   if (node.fn?.name === 'hypot' && !(node.args.length === 2)) { throw Error('hypot takes two arguments') }
   if (node.fn?.name === 'log1p' && !(node.args.length === 1)) { throw Error('log1p takes one argument') }
+  if (node.fn?.name === 'log' && !(node.args.length === 1)) { throw Error('log takes one argument') }
   return node.fn?.name === 'hypot' ? `\\mathbf{hypot}(${node.args[0].toTex(options)}, ${node.args[1].toTex(options)})` 
     : node.fn?.name === 'log1p' ? `\\mathbf{log1p}(${node.args[0].toTex(options)})`
+    : node.fn?.name === 'log' ? `\\mathbf{log}(${node.args[0].toTex(options)})`
     : node._toTex(options)
 }
 

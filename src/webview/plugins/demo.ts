@@ -1009,7 +1009,7 @@ function mainPage(api) {
         </table>
         <div>
         <${For} each=${rangeErrors}>${e => html`<div>${e}</div>`}<//>
-        <${Show} when=${() => varnames().length > 0 && rangeErrors(true).length === 0}><button onClick=${() => addSpec({ mathjs: text(), fpcore: undefined, ranges: varnames().map(v => [v, [varValues[v].low, varValues[v].high]]) })}>Submit</button><//>
+        <${Show} when=${() => varnames().length > 0 && rangeErrors(true).length === 0}><button onClick=${() => addSpec({ mathjs: text().split('\n').join(''), fpcore: undefined, ranges: varnames().map(v => [v, [varValues[v].low, varValues[v].high]]) })}>Submit</button><//>
         </div>
       </div>`
   }

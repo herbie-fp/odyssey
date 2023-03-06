@@ -540,7 +540,7 @@ const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[
    * Generate a plot with the given data and associated styles.
    */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800, height=400}: PlotArgs, Plot) : SVGElement {
+function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400}: PlotArgs, Plot) : SVGElement {
   const tickStrings = ticks.map(t => t[0])
   const tickOrdinals = ticks.map(t => t[1])
   const tickZeroIndex = tickStrings.indexOf("0")
@@ -613,8 +613,8 @@ function plotError({ varnames, ticks, splitpoints, data, bits, styles, width=800
     height: height.toString(),                
     x: {
         tickFormat: d => tickStrings[tickOrdinals.indexOf(d)],
-        ticks: tickOrdinals, /*label: `value of ${varName}`,*/  // LATER axis label
-        labelAnchor: 'center', /*labelOffset: [200, 20], tickRotate: 70, */
+        ticks: tickOrdinals, label: `value of ${varnames[varidx]}`,  // LATER axis label
+        labelAnchor: 'left', labelOffset: 40, /* tickRotate: 70, */
         domain,
         grid: true
     },
@@ -1979,7 +1979,7 @@ function expressionComparisonView(expressions, api) {
       const dotAlpha = selected ? 'b5' : '25'
       return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 }, selected, id: expression.id}
     })
-    const errorGraph = plotError({ data, styles, ticks, splitpoints, bits, varnames:vars }, Plot)
+    const errorGraph = plotError({ data, styles, ticks, splitpoints, bits, varnames:vars, varidx: currentVarIdx()}, Plot)
     errorGraph.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
       const { o, id } = JSON.parse(t.textContent)
       t.textContent = o.map((v, i) => `${vars[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n')

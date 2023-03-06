@@ -1844,6 +1844,8 @@ function expressionView(expression, api) {
   return html`<div class="expressionView">
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
+    <h4>Text</h4>
+    <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
     <div>
       <h4>Local Error Analysis</h4>
       <${Switch}>

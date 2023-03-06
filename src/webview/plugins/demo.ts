@@ -1143,7 +1143,7 @@ function mainPage(api) {
           <//>
         <//>
       </td>
-      <td><button onclick=${() => navigator.clipboard.writeText(expression.mathjs)}>📋</button></td>
+      <td><button onclick=${() => navigator.clipboard.writeText(expression.mathjs.replace(/\s+/g, ' ').replaceAll('?', '?\n  ').replaceAll(':', '\n:'))}>📋</button></td>
       <td >
         <button onClick=${() => hideExpression(expression)} class="hideExpression">x</button>
       </td>

@@ -1412,7 +1412,7 @@ function mainPage(api) {
   const specsAndExpressions = (spec, varValues, setVarValues) => html`
     <div id="specsAndExpressions">
       <div id="specInfo">
-        <h4 id="specLabel">Expression to approximate (the Spec)</h4> <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button>
+        <h4 id="specLabel">Expression to approximate (the Spec) <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button></h4>
         <div id="specTitle">${renderTex(math11.parse(spec.mathjs).toTex({handler: branchConditionalHandler}))}</div>
       </div>
       ${() => getSpecBlock(spec)}

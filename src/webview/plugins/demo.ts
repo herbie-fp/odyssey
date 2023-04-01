@@ -1494,11 +1494,11 @@ function mainPage(api) {
         padding-left: 20px;
       }
       #expressionTable .expression {
-        width:154px;
+        /*width:154px;*/
       }
       #expressionTable td.expression {
         cursor: pointer;
-        max-width: 200px;
+        /*max-width: 200px;*/
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
@@ -1555,9 +1555,15 @@ function mainPage(api) {
       #analyzeUI .expressionRow.selectedExpression {
         background-color: burlywood !important;
       }
+      .expressionRow {
+        height: 5em;
+      }
       
       #analyzeUI #expressionTable button {
         width:-webkit-fill-available;
+      }
+      #expressionTable {
+        display: grid;
       }
       /* HACK remove dark colorscheme for now
       @media (prefers-color-scheme: dark) {

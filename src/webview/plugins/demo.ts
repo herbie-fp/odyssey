@@ -1128,9 +1128,9 @@ function mainPage(api) {
         <${Show} when=${addingExpression} >${() => addExpressionRow(spec, api)}<//>
         </tbody>
       </table>
-      <${Show} when=${() => !addingExpression()} ><div class="addExpressionRowButton"><button onClick=${() => setAddingExpression(true)}>Add Expression</button></div><//>
+      <div class="addExpressionRowButton">
+      <${Show} when=${() => !addingExpression()} ><button onClick=${() => setAddingExpression(true)}>Add Expression</button><//>${getAlternativesButton(spec)}</div>
       </div>
-      ${getAlternativesButton(spec)}
     </div>`
     // ${() => addExpressionRow(spec)}
   }
@@ -1226,21 +1226,20 @@ function mainPage(api) {
   const [focusRightComponent, setFocusRightComponent] = createSignal('local_error')
   const [focusSelectComponent, setFocusSelectComponent] = createSignal('expression_details')
 
+  // ${() => html`<div id="specInfo">
+  //       <h4 id="specLabel">Expression to approximate (the Spec) </h4>
+  //       <div id="specTitle">${renderTex(math11.parse(specs()[0]?.mathjs).toTex({handler: branchConditionalHandler}))}</div>
+  //     </div>`}
   const analyzeUI = html`<div id="analyzeUI">
     <div id="analyzeUIHeader">
-      Host (Herbie): <input type="text" id="host" value="${getHost}" onInput=${(e) => setHost(e.target.value)} />
+      Host (Herbie): <input type="text" id="host" value="${getHost}" onInput=${(e) => setHost(e.target.value)} /> &nbsp; <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: specs()[0]?.mathjs, ranges: unwrap(varValues), run: false }))}>New tab</button>
     </div>
     <${Show} when=${() => { if (specs()[0]) { 
       if (!varValues) {
-        console.log('HERE', specs()[0].ranges);
         [varValues, setVarValues] = createStore(specs()[0].ranges.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any)
       }
       select(api, 'Specs', specs()[specs().length-1].id); return specs()[0] } else { return false } }}
       fallback=${newSpecInput()}>
-      ${() => html`<div id="specInfo">
-        <h4 id="specLabel">Expression to approximate (the Spec) <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: specs()[0]?.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button></h4>
-        <div id="specTitle">${renderTex(math11.parse(specs()[0]?.mathjs).toTex({handler: branchConditionalHandler}))}</div>
-      </div>`}
       ${() => specsAndExpressions(lastSpec(), varValues, setVarValues)}
       <div id="focusLeft">
       <select onInput=${event => setFocusLeftComponent(event.target.value)} value=${focusLeftComponent}>

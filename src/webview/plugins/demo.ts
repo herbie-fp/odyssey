@@ -10,6 +10,7 @@ import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
 import { mermaid } from "../../dependencies/dependencies.js"
 
 
+const LOCAL_HOST = 'http://127.0.0.1:8080/';
 const vscodeApi = await (window as any).acquireVsCodeApi()
 
 const mermaidAPI = mermaid.mermaidAPI
@@ -23,8 +24,13 @@ const mermaidConfig = {
 
 mermaidAPI.initialize(mermaidConfig)
 
+type EvalFunc = {
+  name : string;
+  path : string;
+}
 
-
+let evalfuncs : EvalFunc[] = [];
+let evalarr : any[] = [];
 let notes : any[] = [];
 let specId = 1
 let sampleId = 1
@@ -32,6 +38,42 @@ let expressionId = 1
 let variableId = 1
 
 let RETRY = true
+
+async function computeEvalFuncsById(specId : number, id : number, api) : Promise<any[]> {
+  const spec = getByKey(api, 'Specs', 'specId', specId)
+  const sample = getByKey(api, 'Samples', 'specId', specId)
+  const expression = getByKey(api, 'Expressions', 'id', id)
+  return computeEvalFuncs(spec, expression, sample);
+}
+
+async function computeEvalFuncs(spec, expression, sample) : Promise<any[]> {
+  const retArr : any[] = [];
+  for (const evalfunc of evalfuncs) {
+    const results = (await (await fetch(`${LOCAL_HOST}/${evalfunc.path}`, { method: 'POST', body: JSON.stringify({ spec: spec, formula: expression.fpcore, points: sample.points }) })).json())
+    retArr.push({ value: results.value, points: results.points });
+  }
+  return retArr;
+}
+
+function addEvalFuncPopUp() {
+  const modal = document.querySelector(".modal")
+  const closeBtn = document.querySelector(".close")
+  modal.style.display = "block";
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    const evalf : EvalFunc = 
+    {
+      name: document.getElementById("inputname").value ?? "Cost",
+      path: document.getElementById("inputpath").value ?? "http://127.0.0.1:8000/api/cost/"
+    };
+    let table = document.getElementById("exTable");
+    let row = table.rows[0];
+    let newCell = row.insertCell(row.cells.length - 2);
+    newCell.innerHTML = "<b>" + evalf.name + "</b>";
+    evalfuncs.push(evalf);
+    console.log(evalfuncs);
+  })
+}
 
 function getColorCode(seed) {
   var makeColorCode = '0123456789ABCDEF';
@@ -46,7 +88,7 @@ function getColorCode(seed) {
   const rand = LCG(seed + 15)
   rand()  //burn first result
   for (var count = 0; count < 6; count++) {
-     code =code+ makeColorCode[Math.floor(rand() * 16)];
+     code = code+ makeColorCode[Math.floor(rand() * 16)];
   }
   return code;
 }
@@ -640,7 +682,7 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
 
 const herbiejs = (() => {
   async function graphHtmlAndPointsJson(fpcore, host, log) {
-    const improveStartLoc = host === 'http://127.0.0.1:8080/http://herbie.uwplse.org' ? host + '/demo/improve-start' : host + '/improve-start'
+    const improveStartLoc = host === LOCAL_HOST + 'http://herbie.uwplse.org' ? host + '/demo/improve-start' : host + '/improve-start'
     const sendJobResponse = await fetch( improveStartLoc, {
       "headers": {
           // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1124,6 +1166,7 @@ function mainPage(api) {
       const curr = currentMultiselection(api).map(o => o.id)
       api.multiselect('Expressions', curr.filter(id => !getByKey(api, 'HiddenExpressions', 'expressionId', id)))//, api.tables, api.setTables)
     }
+
     return html`<tr class="expressionRow ${() => lastSelectedExpression()?.id === expression.id ? 'selectedExpression' : ''}" >
       <td style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</td>
       <td>
@@ -1156,7 +1199,7 @@ function mainPage(api) {
 
   const getExprSpec = expr => specs().find(spec => spec.id === expr.specId)
 
-  /** expressions where spec.mathjs === expr's spec.mathjs (or ditto fpcore) */
+  /**` expressions where spec.mathjs === expr's spec.mathjs (or ditto fpcore) */
   const expressionsForSpec = spec => {
     const expressionsF = expressions().filter(e => e.specId === spec.id)
     return expressions().filter(e => e.specId === spec.id)
@@ -1179,6 +1222,7 @@ function mainPage(api) {
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
+    return evalarr.push( {specId: spec.id, id: expressionId, evals: computeEvalFuncsById(spec.id, expressionId, api)} )
   }
   
   const makeExpressionFromSpec = spec => console.log('Not implemented yet.')//makeExpression(spec, spec.fpcore /*fpcorejs.FPCoreGetBody(spec.fpcore) || fpcorejs.FPCoreBody(spec.mathjs)*/, spec.mathjs)
@@ -1236,6 +1280,7 @@ function mainPage(api) {
         return 'loading...'  // HACK
       }
     })
+
     
     //setTimeout(() => refetch(), 7000)  // HACK
     // const [projectedNaiveError] = createResource(text, async (text) => {
@@ -1322,13 +1367,14 @@ function mainPage(api) {
     return html`<div id="specBlock">
     <h4>Rewritings</h4>
     <div id="expressionTable">
-      <table>
+      <table id="exTable">
         <thead>
           <tr>
             <th>&nbsp;</th>
             <th><button onClick=${() => api.multiselect('Expressions', [])}>Clear</button></th>
             <th class="expression">Expression</th>
             <th class="meanBitsError">Average Error</th>
+            <th><button onClick=${() => addEvalFuncPopUp()}>+</button></th>
             <th>&nbsp;</th>
           </tr>
         </thead>
@@ -1338,6 +1384,16 @@ function mainPage(api) {
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
         </tbody>
       </table>
+      <div class="modal" style="display: none; position: fixed; z-index: 1; background-color: rgba(128, 128, 128, 1);">
+        <div class="modal_content">
+          <p>Name:</p>
+          <input id="inputname" type="text" value="Cost">
+          <p>Path:</p>
+          <input id="inputpath" type="text" value="http://127.0.0.1:8000/api/cost/">
+          </br>
+          <input type="submit" class="close">
+        </div>
+      </div>
       </div>
       ${getAlternativesButton(spec)}
       ${() => addExpressionRow(spec)}
@@ -1715,6 +1771,7 @@ async function genHerbieAlts(spec, api) {
   // })
   expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
   derivations.map(e => api.action('create', 'demo', 'Histories', e))
+  expressions.map(e => { return evalarr.push( {specId: spec.id, id: e.id, evals: computeEvalFuncsById(spec.id, e.id, api) } ) })
   //ids = expressions.map(e => e.id)
   const curr = currentMultiselection(api).map(o => o.id)
 
@@ -2054,7 +2111,7 @@ function expressionComparisonView(expressions, api) {
     </div>
   </div>`
 }
-/** Get table items.*/
+/** Get table items.`*/
 function getTable(api, tname) {
   return api.tables.find(t => t.name === tname).items
 }
@@ -2070,7 +2127,7 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = LOCAL_HOST + 'http://127.0.0.1:8000' //'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore
@@ -2105,6 +2162,7 @@ function addNaiveExpression(spec, api) {
   // HACK expression.spec is duplicated, see analyzeExpression
   if (getTable(api, 'Expressions').find(s => s.mathjs === spec.mathjs)) { return [] }
   notes.push({ specId: spec.id, id: expressionId, notes: "Original spec"})
+  evalarr.push( {specId: spec.id, id: expressionId, evals: []} ) 
   return { specId: spec.id, fpcore: spec.fpcore /*fpcorejs.FPCoreGetBody(spec.fpcore)*/ || fpcorejs.mathjsToFPCore(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
 }
 

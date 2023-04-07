@@ -30,7 +30,7 @@ type EvalFunc = {
 }
 
 let evalfuncs : EvalFunc[] = [];
-let evalarr : any[] = [];
+let evalArr : any[] = [];
 let notes : any[] = [];
 let specId = 1
 let sampleId = 1
@@ -39,41 +39,26 @@ let variableId = 1
 
 let RETRY = true
 
-async function computeEvalFuncsById(specId : number, id : number, api) : Promise<any[]> {
-  const spec = getByKey(api, 'Specs', 'specId', specId)
-  const sample = getByKey(api, 'Samples', 'specId', specId)
-  const expression = getByKey(api, 'Expressions', 'id', id)
-  return computeEvalFuncs(spec, expression, sample);
-}
-
-async function computeEvalFuncs(spec, expression, sample) : Promise<any[]> {
-  const retArr : any[] = [];
-  for (const evalfunc of evalfuncs) {
-    const results = (await (await fetch(`${LOCAL_HOST}/${evalfunc.path}`, { method: 'POST', body: JSON.stringify({ spec: spec, formula: expression.fpcore, points: sample.points }) })).json())
-    retArr.push({ value: results.value, points: results.points });
+  async function computeEvalFuncsById(specId : number, id : number, api) : Promise<any[]> {
+    const spec = getByKey(api, 'Specs', 'specId', specId)
+    const sample = getByKey(api, 'Samples', 'specId', specId)
+    const expression = getByKey(api, 'Expressions', 'id', id)
+    return computeEvalFuncs(spec, expression, sample);
   }
-  return retArr;
-}
 
-function addEvalFuncPopUp() {
-  const modal = document.querySelector(".modal")
-  const closeBtn = document.querySelector(".close")
-  modal.style.display = "block";
-  closeBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    const evalf : EvalFunc = 
-    {
-      name: document.getElementById("inputname").value ?? "Cost",
-      path: document.getElementById("inputpath").value ?? "http://127.0.0.1:8000/api/cost/"
-    };
-    let table = document.getElementById("exTable");
-    let row = table.rows[0];
-    let newCell = row.insertCell(row.cells.length - 2);
-    newCell.innerHTML = "<b>" + evalf.name + "</b>";
-    evalfuncs.push(evalf);
-    console.log(evalfuncs);
-  })
-}
+  async function computeEvalFuncs(spec, expression, sample) : Promise<any[]> {
+    const retArr : any[] = [];
+    for (const evalfunc of evalfuncs) {
+      const raw = (await (await fetch(`${LOCAL_HOST}/${evalfunc.path}`, { method: 'POST', body: JSON.stringify({ spec: spec, formula: expression.fpcore, points: sample.points }) })))
+      const results = raw.json();
+      console.log("raw");
+      console.log(raw);
+      console.log("results");
+      console.log(results);
+      retArr.push({ value: results.value, points: results.points });
+    }
+    return retArr;
+  }
 
 function getColorCode(seed) {
   var makeColorCode = '0123456789ABCDEF';
@@ -985,6 +970,7 @@ function mainPage(api) {
         break;
     }
   })
+
   function debounce( callback, delay ) {
     let timeout;
     return function(...args) {
@@ -1123,6 +1109,26 @@ function mainPage(api) {
   //     </span>
   //   </div>`
   // }
+
+  function addEvalFuncPopUp() {
+    const modal = document.querySelector(".modal")
+    const closeBtn = document.querySelector(".close")
+    modal.style.display = "block";
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+      const evalf : EvalFunc = 
+      {
+        name: document.getElementById("inputname").value ?? "Cost",
+        path: document.getElementById("inputpath").value ?? "http://127.0.0.1:8000/api/cost/"
+      };
+      let table = document.getElementById("exTable");
+      let row = table.rows[0];
+      let newCell = row.insertCell(row.cells.length - 2);
+      newCell.innerHTML = "<b>" + evalf.name + "</b>";
+      evalfuncs.push(evalf);
+    })
+  }
+
   const selectExpression = expression => async () => {
     setTimeout(() => api.select('Expressions', expression.id))
     //const sample = getLastSelected(api, 'Samples')
@@ -1136,7 +1142,7 @@ function mainPage(api) {
 
   const analyses = () => api.tables.find(t => t.name === 'Analyses').items
 
-  const getExpressionRow = (expression, spec) => {
+  const getExpressionRow = (expression, spec, i) => {
     const analysis = () => analyses().find(a => a.expressionId === expression.id)
     
 
@@ -1167,6 +1173,8 @@ function mainPage(api) {
       api.multiselect('Expressions', curr.filter(id => !getByKey(api, 'HiddenExpressions', 'expressionId', id)))//, api.tables, api.setTables)
     }
 
+    const [calcs, setCalcs] = createSignal(evalArr[i]);
+
     return html`<tr class="expressionRow ${() => lastSelectedExpression()?.id === expression.id ? 'selectedExpression' : ''}" >
       <td style=${() => ({ "background-color": getColorCode(expression.id) })}>&nbsp;</td>
       <td>
@@ -1190,8 +1198,10 @@ function mainPage(api) {
           <//>
         <//>
       </td>
+      <${For} each=${calcs()}>{(calc, i) =>
+      ${html`<td>calc.i</td>`}}<//>
       <td><button onclick=${() => navigator.clipboard.writeText(expression.mathjs.replace(/\s+/g, ' ').replaceAll('?', '?\n  ').replaceAll(':', '\n:'))}>📋</button></td>
-      <td >
+      <td>
         <button onClick=${() => hideExpression(expression)} class="hideExpression">x</button>
       </td>
     </tr>`
@@ -1222,7 +1232,7 @@ function mainPage(api) {
     //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
     const curr = currentMultiselection(api).map(o => o.id)
     api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
-    return evalarr.push( {specId: spec.id, id: expressionId, evals: computeEvalFuncsById(spec.id, expressionId, api)} )
+    return evalArr.push( {specId: spec.id, id: expressionId, evals: computeEvalFuncsById(spec.id, expressionId, api)} )
   }
   
   const makeExpressionFromSpec = spec => console.log('Not implemented yet.')//makeExpression(spec, spec.fpcore /*fpcorejs.FPCoreGetBody(spec.fpcore) || fpcorejs.FPCoreBody(spec.mathjs)*/, spec.mathjs)
@@ -1380,7 +1390,7 @@ function mainPage(api) {
         </thead>
         <tbody>
     
-      <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) /*&& !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)*/) /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
+      <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) /*&& !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)*/) /* expressionsForSpec(spec) */}>${(e, i) => getExpressionRow(e, spec, i)}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
         </tbody>
       </table>
@@ -1771,7 +1781,9 @@ async function genHerbieAlts(spec, api) {
   // })
   expressions.map(e => api.action('create', 'demo', 'Expressions', e))//, api.tables, api.setTables))
   derivations.map(e => api.action('create', 'demo', 'Histories', e))
-  expressions.map(e => { return evalarr.push( {specId: spec.id, id: e.id, evals: computeEvalFuncsById(spec.id, e.id, api) } ) })
+  expressions.map(e => { return evalArr.push( {specId: spec.id, id: e.id, evals: computeEvalFuncsById(spec.id, e.id, api) } ) })
+  console.log("WAHSKDLGHASKDHGALKHDSAKG")
+  console.log(evalArr)
   //ids = expressions.map(e => e.id)
   const curr = currentMultiselection(api).map(o => o.id)
 
@@ -2162,7 +2174,7 @@ function addNaiveExpression(spec, api) {
   // HACK expression.spec is duplicated, see analyzeExpression
   if (getTable(api, 'Expressions').find(s => s.mathjs === spec.mathjs)) { return [] }
   notes.push({ specId: spec.id, id: expressionId, notes: "Original spec"})
-  evalarr.push( {specId: spec.id, id: expressionId, evals: []} ) 
+  evalArr.push( {specId: spec.id, id: expressionId, evals: []} ) 
   return { specId: spec.id, fpcore: spec.fpcore /*fpcorejs.FPCoreGetBody(spec.fpcore)*/ || fpcorejs.mathjsToFPCore(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
 }
 

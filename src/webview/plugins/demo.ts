@@ -30,7 +30,6 @@ type EvalFunc = {
 }
 
 let evalfuncs : EvalFunc[] = [];
-let evalArr : any[] = [];
 let notes : any[] = [];
 let specId = 1
 let sampleId = 1
@@ -49,7 +48,7 @@ let RETRY = true
   async function computeEvalFuncs(spec, expression, sample) : Promise<any[]> {
     const retArr : any[] = [];
     for (const evalfunc of evalfuncs) {
-      const raw = (await (await fetch(`${LOCAL_HOST}/${evalfunc.path}`, { method: 'POST', body: JSON.stringify({ spec: spec, formula: expression.fpcore, points: sample.points }) })))
+      const raw = (await (await fetch(`${LOCAL_HOST}/${evalfunc.path}`, { method: 'POST', body: JSON.stringify({ spec: spec, formula: expression.fpcore, points: sample.points }) })));
       const results = raw.json();
       console.log("raw");
       console.log(raw);
@@ -1118,8 +1117,8 @@ function mainPage(api) {
       modal.style.display = "none";
       const evalf : EvalFunc = 
       {
-        name: document.getElementById("inputname").value ?? "Cost",
-        path: document.getElementById("inputpath").value ?? "http://127.0.0.1:8000/api/cost/"
+        name: document.getElementById("inputname")?.value ?? "Cost",
+        path: document.getElementById("inputpath")?.value ?? "http://127.0.0.1:8000/api/cost/"
       };
       let table = document.getElementById("exTable");
       let row = table.rows[0];
@@ -1341,7 +1340,7 @@ function mainPage(api) {
     //<button class="newSpec" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: true }))}>Update ranges (opens new tab)</button>
   }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
-  // ${getSpecRow(spec)}
+  // ${getSpecRow(spec)}`
   const sortBy = fn => (a, b) => fn(a) - fn(b)
   
   // super super ugly HACK: use a timer to keep the list sorted. Works.
@@ -1390,7 +1389,8 @@ function mainPage(api) {
         </thead>
         <tbody>
     
-      <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) /*&& !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)*/) /* expressionsForSpec(spec) */}>${(e, i) => getExpressionRow(e, spec, i)}<//>
+      <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) 
+      /*&& !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)*/) /* expressionsForSpec(spec) */}>${(e, i) => getExpressionRow(e, spec, i)}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
         </tbody>
       </table>

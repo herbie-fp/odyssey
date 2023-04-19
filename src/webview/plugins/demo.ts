@@ -1486,6 +1486,7 @@ function mainPage(api) {
       }
       select(api, 'Specs', specs()[specs().length-1].id); return specs()[0] } else { return false } }}
       fallback=${newSpecInput()}>
+      
       ${() => specsAndExpressions(lastSpec(), varValues, setVarValues)}
       <div id="focus">
       <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)}
@@ -1646,12 +1647,19 @@ function mainPage(api) {
       #analyzeUI {
         display: grid;
         grid-template-areas: 
-          'table focus';
+          'focus localerror'
+          'table table';
         justify-content: start;
       }
       #analyzeUI #focus {
         grid-area: focus;
-        width: 800px;
+        width: 600px;
+      }
+      .localError {
+        grid-area: localerror
+      }
+      #specsAndExpressions {
+        grid-area: table;
       }
       #analyzeUI textarea {
         width: 400px;
@@ -1868,7 +1876,7 @@ function expressionView(expression, api) {
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     <h4>Text</h4>
     <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
-    <div>
+    <div class="localError">
       <h4>Local Error Analysis</h4>
       <${Switch}>
         <${Match} when=${() => !sample()}>

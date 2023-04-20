@@ -1673,6 +1673,10 @@ function mainPage(api) {
       .preview-stuff:not(:first-child) { /* HACK to solve double-LaTeX render */
         display: none;
       }
+
+      #history .error {
+        margin-left: 4px;
+      }
     </style>
     ${contents}
   </div>

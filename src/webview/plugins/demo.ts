@@ -1085,7 +1085,7 @@ function mainPage(api) {
     setTimeout(() => api.select('Expressions', expression.id))
     //const sample = getLastSelected(api, 'Samples')
     const sample = getByKey(api, 'Samples', 'specId', expression.specId)
-    const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: sample.points }, HOST)
+    const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: sample.points }, getHost())
         const entry = { specId, id: expression.id, tree: result.tree, sample: sample }
         api.action('create', 'demo', 'LocalErrors', entry)
     if (lastSelectedExpression()?.id === expression.id) { return }
@@ -1231,7 +1231,7 @@ function mainPage(api) {
         return 0
       }
       try {
-        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), HOST, txt => console.log(txt))).meanBitsError
+        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), getHost(), txt => console.log(txt))).meanBitsError
       } catch (err:any) {
         return 'loading...'  // HACK
       }
@@ -1480,6 +1480,9 @@ function mainPage(api) {
   let varValues, setVarValues;
   //let [varValues, setVarValues] = createStore(lastSpec()?.ranges?.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any || {})
   const analyzeUI = html`<div id="analyzeUI">
+    <div id="analyzeUIHeader">
+      Host: <input type="text" id="host" value=${getHost} onInput=${(e) => setHost(e.target.value)}></input>
+    </div>
     <${Show} when=${() => { if (specs()[0]) { 
       if (!varValues) {
         console.log('HERE', specs()[0].ranges);
@@ -1693,16 +1696,16 @@ async function genHerbieAlts(spec, api) {
   //let ids = [expressionId++] as any
   // HACK assuming only one suggestion for now
   console.log('spec fpcore is', spec.fpcore)
-  const sample = await herbiejs.getSample(spec.fpcore, HOST, logval => console.log(logval))
+  const sample = await herbiejs.getSample(spec.fpcore, getHost(), logval => console.log(logval))
   //const sample2 = sample.points.map((p, i) => [p, sample.exacts[i]])
   //console.log(sample2)
-  const fetch = await herbiejs.suggestExpressions(spec.fpcore, sample, HOST, logval => console.log(logval), html)
+  const fetch = await herbiejs.suggestExpressions(spec.fpcore, sample, getHost(), logval => console.log(logval), html)
   const alts = fetch.alternatives.slice(0, 5)  // Just return top 5 options
   const histories = fetch.histories.slice(0, 5)
 
   var derivExpressionId = expressionId
   const expressions = await Promise.all(zip(histories, alts).map(async ([html, alt]) => {
-    return { fpcore: alt/*fpcorejs.FPCoreGetBody(alt)*/, specId: spec.id, id: expressionId++, provenance: 'herbie', parent: spec.id, spec, mathjs: await herbiejs.fPCoreToMathJS(alt, HOST), history: html}
+    return { fpcore: alt/*fpcorejs.FPCoreGetBody(alt)*/, specId: spec.id, id: expressionId++, provenance: 'herbie', parent: spec.id, spec, mathjs: await herbiejs.fPCoreToMathJS(alt, getHost()), history: html}
   }))
   const derivations = await Promise.all(histories.map(async html => {
     return { html: html, specId: spec.id, id: derivExpressionId++, provenance: 'herbie', parent: spec.id, spec, }
@@ -1873,7 +1876,7 @@ function expressionView(expression, api) {
   const notesArea = textarea(note.notes, (v) => { note.notes = v }, undefined, 2)
 
   async function genLocalError() {
-    const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), HOST)
+    const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), getHost())
     const entry = { specId: expression.specId, id: expression.id, tree: result.tree, sample: [] }
     api.action('create', 'demo', 'LocalErrors', entry)
   }
@@ -2034,7 +2037,7 @@ function expressionComparisonView(expressions, api) {
       t.parentNode.onclick = async () => {
         api.select('Expressions', id)
         const expression = getByKey(api, 'Expressions', 'id', id)
-        const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }, HOST)
+        const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }, getHost())
         const entry = { specId, id, tree: result.tree, sample: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }
         api.action('create', 'demo', 'LocalErrors', entry)
       }
@@ -2074,7 +2077,9 @@ let HOST = 'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'ht
 
 // HACK to let us dynamically set the host
 //@ts-ignore
-window.setHOST = host => HOST = host
+const setHost = window.setHOST = host => HOST = host
+//@ts-ignore
+const getHost = window.getHOST = () => HOST
 
 async function waitUntil(testFn, interval=1000) {
   if (testFn()) {return;}
@@ -2096,7 +2101,7 @@ async function analyzeExpression(expression, api) {
   const getSample = () => getByKey(api, 'Samples', 'specId', expression.specId)
   await waitUntil(getSample, 1000)  // HACK kind of, we need to wait for a sample to be added (this is a general problem with things generated from multiple items)
   const sample = getSample()
-  return { ...await herbiejs.analyzeExpression(expression.fpcore, sample, HOST, logval => console.log(logval)), expressionId: expression.id }
+  return { ...await herbiejs.analyzeExpression(expression.fpcore, sample, getHost(), logval => console.log(logval)), expressionId: expression.id }
   //return await (new Promise(resolve => setTimeout(() => resolve({bitsError: Math.round(64 * Math.random()), performance: Math.round(100 * Math.random()), expressionId: expression.id}), 2000)))
 }
 
@@ -2134,7 +2139,7 @@ function addVariables(spec) {
 }
 
 async function addSample(spec) {
-  return { ...(await herbiejs.getSample(spec.fpcore, HOST, txt => console.log(txt))), id: sampleId++, specId: spec.id }
+  return { ...(await herbiejs.getSample(spec.fpcore, getHost(), txt => console.log(txt))), id: sampleId++, specId: spec.id }
 }
 
 function selectNaiveExpression(spec, api) {
@@ -2172,7 +2177,7 @@ function updateExpressionsOnSpecAdd(spec, api) {
 async function analyzeLocalErrors(expression, api) {
   const sample = () => getByKey(api, 'Samples', 'specId', expression.specId)
   await waitUntil(sample)
-  const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), HOST)
+  const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), getHost())
   const entry = { specId: expression.specId, id: expression.id, tree: result.tree, sample: [] }
   api.action('create', 'demo', 'LocalErrors', entry)
 }

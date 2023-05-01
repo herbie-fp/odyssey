@@ -1415,10 +1415,7 @@ function mainPage(api) {
   }
   const specsAndExpressions = (spec, varValues, setVarValues) => html`
     <div id="specsAndExpressions">
-      <div id="specInfo">
-        <h4 id="specLabel">Expression to approximate (the Spec) <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button></h4>
-        <div id="specTitle">${renderTex(math11.parse(spec.mathjs).toTex({handler: branchConditionalHandler}))}</div>
-      </div>
+      
       ${() => getSpecBlock(spec)}
               
     </div>`
@@ -1486,7 +1483,10 @@ function mainPage(api) {
       }
       select(api, 'Specs', specs()[specs().length-1].id); return specs()[0] } else { return false } }}
       fallback=${newSpecInput()}>
-      
+      ${() => html`<div id="specInfo">
+        <h4 id="specLabel">Expression to approximate (the Spec) <button class="new-tab-ranges" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: specs()[0]?.mathjs, ranges: unwrap(varValues), run: false }))}>Edit in new tab</button></h4>
+        <div id="specTitle">${renderTex(math11.parse(specs()[0]?.mathjs).toTex({handler: branchConditionalHandler}))}</div>
+      </div>`}
       ${() => specsAndExpressions(lastSpec(), varValues, setVarValues)}
       <div id="focus">
       <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)}
@@ -1646,16 +1646,20 @@ function mainPage(api) {
       
       #analyzeUI {
         display: grid;
-        grid-template-areas: 
+        grid-template-areas:
+          'specinfo specinfo'
           'focus localerror'
-          'table table';
+          'table localerror';
         justify-content: start;
+      }
+      #specInfo {
+        grid-area: specinfo;
       }
       #analyzeUI #focus {
         grid-area: focus;
         width: 600px;
       }
-      .localError {
+      .expressionView {
         grid-area: localerror
       }
       #specsAndExpressions {
@@ -1876,10 +1880,6 @@ function expressionView(expression, api) {
   }
 
   return html`<div class="expressionView">
-    <h3>Expression Details: </h3>
-    <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
-    <h4>Text</h4>
-    <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
     <div class="localError">
       <h4>Local Error Analysis</h4>
       <${Switch}>
@@ -1922,6 +1922,10 @@ function expressionView(expression, api) {
         <//>
       <//>
     </div>
+    <h3>Expression Details: </h3>
+    <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
+    <h4>Text</h4>
+    <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
     <div>
       <h4>Herbie's derivation</h4>
       ${() => {
@@ -2061,7 +2065,7 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = 'http://127.0.0.1:8009'//'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore

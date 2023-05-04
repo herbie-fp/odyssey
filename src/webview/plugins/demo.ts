@@ -187,49 +187,6 @@ const fpcorejs = (() => {
     return ["==", "!=", "<", ">", "<=", ">="].indexOf(name) !== -1;
   }
 
-  // function flatten_comparisons(node) {
-  //   var terms = [] as any[];
-  //   function collect_terms(node) {
-  //     if (node.type == "OperatorNode" || is_comparison(node.op)) {
-  //       collect_terms(node.args[0]);
-  //       collect_terms(node.args[1]);
-  //     } else {
-  //       terms.push(node.res);
-  //     }
-  //   };
-    
-  //   var conjuncts = [] as any[];
-  //   var iters = 0;
-  //   function do_flatten(node) {
-  //     if (node.type == "OperatorNode" || is_comparison(node.op)) {
-  //       do_flatten(node.args[0]);
-  //       var i = iters++; // save old value and increment it
-  //       var prev = conjuncts[conjuncts.length - 1];
-  //       if (prev && prev[0] == node.op && prev[2] == terms[i]) {
-  //         prev.push(terms[i + 1]);
-  //       } else {
-  //         conjuncts.push([node.op, terms[i], terms[i + 1]]);
-  //       }
-  //       do_flatten(node.args[1]);
-  //     }
-  //   };
-
-  //   collect_terms(node)
-  //   do_flatten(node)
-
-  //   var comparisons = [] as any[];
-  //   for (var i = 0; i < conjuncts.length; i++) {
-  //     comparisons.push("(" + conjuncts[i].join(" ") + ")");
-  //   }
-  //   if (comparisons.length == 0) {
-  //     return "TRUE";
-  //   } else if (comparisons.length == 1) {
-  //     return comparisons[0];
-  //   } else {
-  //     return "(and " + comparisons.join(" ") + ")";
-  //   }
-  // }
-
   function extract(args) { return args.map(function (n) { return n.res }); }
 
   function dump_tree(tree, names) {
@@ -405,43 +362,7 @@ const fpcorejs = (() => {
 
 //@ts-ignore
 window.fpcorejs = fpcorejs;
-//console.log('FPCORE', fpcorejs.mathjsToFPCore('(x > 1) ? sqrt(x + 1) - sqrt(x) : 1'))
 
-// let REQUEST_ID = 0
-
-// async function fetch(url, data) : Promise<Response> {
-  
-//   // HACK We want to avoid CORS restrictions, so we pass the request to the
-//   // server via [message passing](https://code.visualstudio.com/api/extension-guides/webview#scripts-and-message-passing)
-//   // and wait for a result.
-//   //@ts-ignore
-//   const vscode = acquireVsCodeApi();
-//   const requestId = REQUEST_ID++
-
-//   // Removes the listener via controller.abort()
-//   const controller = new AbortController();
-//   const signal = controller.signal;
-
-//   let resolve;  // get a promise resolve function
-//   const promise = new Promise(r => resolve = r)
-
-//   window.addEventListener('message', event => {
-//     const message = event.data; // The JSON data our extension sent
-//     if (message.command === 'fetchResponse' && message.requestId === requestId) {
-//       resolve(message.response)
-//       controller.abort() // + { signal } below removes listener.
-//     }
-//   }, { signal });
-
-//   vscode.postMessage({
-//     command: 'fetch',  // switch for the command to invoke
-//     url,
-//     data,
-//     requestId
-//   })
-  
-//   return promise as Promise<Response>
-// }
 //@ts-ignore
 window.Plot = Plot
 
@@ -965,59 +886,8 @@ function mainPage(api) {
   }
   const specs = () => api.tables.find(t => t.name === 'Specs').items
 
-  // HACK just use stores, put into tables later
-  //const [samples, setSamples] = createStore([] as any[])
-  //const [expressions, setExpressions] = createStore([] as any[])
   const expressions = () => api.tables.find(t => t.name === 'Expressions')?.items
   
-  // TODO rename as specRow for consistency, no get...
-  // const getSpecRow = spec => {
-  //   // HACK all samples are relevant for now
-  //   //const samples = relevantSamples(spec)
-  //   const relevantSamples = () => samples.filter(sample => sample.specId === spec.id)
-  //   // HACK mock sample retrieval
-  //   const getSampleHandler = () => setSamples(produce(samples => samples.push({ specId: spec.id, id: sampleId++ })))
-  //   const addSampleButton = html`<button onClick=${getSampleHandler}>Add Sample</button>`
-  //   const sampleSelect = html`<select>
-  //     <${For} each=${relevantSamples}>${sample => html`<option>${sample.id}</option>`}<//>
-  //   </select>`
-
-  //   const request = () => api.tables.find(t => t.name === "ExpressionRequests").items.find(r => r.specId === spec.id)
-  //   const makeRequest = () => api.action('create', 'demo', 'ExpressionRequests', { specId: spec.id })
-  //   console.log('rerendering')
-  //   const herbieSuggestion = () => expressions().find(o => o.specId === spec.id && o.provenance === 'herbie')
-
-  //   const selectSpec = spec => api.select('Specs', spec.id)//, api.tables, api.setTables)
-  //   return html`<div class="specRow">
-  //     <span onClick=${() => selectSpec(spec)}>Range with id ${spec.id}</span>
-  //     <${Show} when=${() => relevantSamples().length !== 0}>
-  //       <span>${sampleSelect}</span>
-  //       <span>...Spec/sample summary goes here...</span>
-  //     <//>
-  //     <span>
-  //       <${Switch}>
-  //         <${Match} when=${() => /*c.status === 'unrequested' &&*/!request() && !herbieSuggestion()}>
-  //           <button onClick=${() => (genHerbieAlts(spec, api), makeRequest())}>Ask Herbie for alternative expressions</button>
-  //         <//>
-  //         <${Match} when=${() => /*c.status === 'requested' */ request() && !herbieSuggestion()}>
-  //           waiting for alternatives...
-  //         <//>
-  //         <${Match} when=${() => herbieSuggestion()}>
-  //           [alternatives shown]
-  //         <//>
-  //         <${Match} when=${() => /* TODO check associated request for error */ false}>
-  //           error during computation :(
-  //         <//>
-  //         <${Match} when=${() => true}>
-  //           ${() => {
-  //       return 'other case'
-  //     }
-  //     }
-  //         <//>
-  //       <//>
-  //     </span>
-  //   </div>`
-  // }
   const selectExpression = expression => async () => {
     setTimeout(() => api.select('Expressions', expression.id))
     //const sample = getLastSelected(api, 'Samples')
@@ -1238,23 +1108,8 @@ function mainPage(api) {
     }))
     //console.log('effect finished!!2')
   }, 1000)
-  // createEffect(() => {
-  //   console.log('HERE', analyses())
-  //   api.setTables(produce((tables: any) => {
-  //     tables.find(t => t.name === 'Expressions').items = tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses().find(a => a.expressionId === e.id)?.meanBitsError)) 
-  //   }))
-  // })
   
   const getSpecBlock = spec => {
-    // createEffect(() => {  // HACK keep the expressions sorted by error (also this doesn't work...)
-    //   console.log('effect ran!!')
-    //   const analyses1 = analyses()
-    //   //@ts-ignore
-    //   api.setTables(produce((tables: any) => {
-    //     tables.find(t => t.name === 'Expressions').items = []//tables.find(t => t.name === 'Expressions').items?.sort(sortBy(e => analyses1.find(a => a.expressionId === e.id)?.meanBitsError))
-    //   }))
-    //   console.log('effect finished!!')
-    // })
     
     return html`<div id="specBlock">
     <h4>Rewritings</h4>
@@ -1363,51 +1218,6 @@ function mainPage(api) {
   //@ts-ignore
   window.lastSelection = lastSelection
   const shownExpressions = () => expressions().filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id))
-//   <${Match} when=${() => {
-//     console.log('when', lastSelection())
-// return lastSelection() && !(lastSelection().multiselection)
-// }
-// }>
-//     ${() => {
-//       console.log('lastSelection', lastSelection(), lastSelection().multiselection)
-//        return exprView()
-//       }
-//       }
-//   <//>
-// <${Switch}>
-// <${Match} when=${() => lastSelection()?.table === 'Specs'}>
-//   ${specView}
-// <//>
-// <${Match} when=${() => {
-//   console.log('here', lastSelection(), lastSelection()?.multiselection)
-//   return lastSelection()?.multiselection !== undefined
-// }}>
-//   ${() =>
-// { console.log('compare', lastSelection());  return comparisonView() }
-//   }
-// <//>
-// <${Match} when=${() => true}> other case <//>
-// <//>
-  // createEffect(() => {
-  //   console.log('TEST 1')
-  //   exprView()
-  // })
-  // createEffect(() => {
-  //   console.log('TEST 2')
-  //   specs()
-  // })
-  // createEffect(() => {
-  //   console.log('TEST 3')
-  //   specs()[0] && specsAndExpressions(specs()[0])
-  // })
-  // createEffect(() => {
-  //   console.log('TEST 4')
-  //   lastMultiselectedExpressions().length > 0 && expressionComparisonView(lastMultiselectedExpressions(), api)
-  // })
-  // createEffect(() => {
-  //   console.log('TEST 5')
-  //   lastMultiselectedExpressions()
-  // })
   
   const lastSpec = () => api.tables.find(t => t.name === "Specs").items.find(api.getLastSelected((o, table) => table === "Specs") || (() => false));
   
@@ -1444,16 +1254,6 @@ function mainPage(api) {
   `
   
   const contents = () => analyzeUI
-      // 
-      // #analyzeUI div:not(.math *) {
-      //   /*border: 1px solid black;*/
-      //   margin: 2px;
-      //   padding: 2px;
-      // }
-      // #analyzeUI span:not(.math *) {
-      //   /*border: 1px solid black;*/
-      //   margin: 2px;
-      // }
 
   const div = html`<div id="demo">
   <style>
@@ -2042,27 +1842,6 @@ function addNaiveExpression(spec, api) {
   return { specId: spec.id, fpcore: spec.fpcore /*fpcorejs.FPCoreGetBody(spec.fpcore)*/ || fpcorejs.mathjsToFPCore(spec.mathjs), id: expressionId++, spec, mathjs: spec.mathjs, provenance: 'naive'}
 }
 
-// TESTING 
-// {
-//   "fpcore": "(FPCore modulus_sqr (re im) :name \"math.abs on complex (squared)\" (+ (* re re) (* im im)))",
-//   "ranges": [
-//     [
-//       "re",
-//       [
-//         1,
-//         1000000000
-//       ]
-//     ],
-// [
-//       "im",
-//       [
-//         1,
-//         1000000000
-//       ]
-//     ]
-//   ]
-// }
-
 function addVariables(spec) {
   return spec.fpcore ? fpcorejs.getVarnamesFPCore(spec.fpcore).map(v => ({specId: spec.id, varname: v, id: variableId++})) : fpcorejs.getVarnamesMathJS(spec.mathjs).map(v => ({specId: spec.id, varname: v, id: variableId++}))
 }
@@ -2094,14 +1873,6 @@ function updateExpressionsOnSpecAdd(spec, api) {
   return newExprs
 }
 
-// function updateHistoriesOnSpecAdd(spec, api) {
-//   const expressions = getTable(api, 'Histories')
-//   const exprs = [...new Set(expressions.map(e => e.mathjs))]
-//   const selectedMathjs = currentMultiselection(api).map(o => expressions.find(e => e.id === o.id).mathjs)
-//   const newExprs = exprs.map(e => ({ ...expressions.find(e1 => e1.mathjs === e), specId: spec.id, id: expressionId++ }))
-//   //window.api.multiselect('Expressions', newExprs.filter(e => selectedMathjs.includes(e.mathjs)).map(e => e.id))
-//   return newExprs
-// }
 
 async function analyzeLocalErrors(expression, api) {
   const sample = () => getByKey(api, 'Samples', 'specId', expression.specId)
@@ -2111,4 +1882,4 @@ async function analyzeLocalErrors(expression, api) {
   api.action('create', 'demo', 'LocalErrors', entry)
 }
 
-export default { mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression, addVariables, addSample, updateExpressionsOnSpecAdd, analyzeLocalErrors}//, updateHistoriesOnSpecAdd, }
+export default { mainPage, expressionView, expressionComparisonView, analyzeExpression, addNaiveExpression, selectNaiveExpression, addVariables, addSample, updateExpressionsOnSpecAdd, analyzeLocalErrors}

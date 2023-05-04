@@ -1802,7 +1802,7 @@ function getLastSelected(api, tname) {
 }
 
 // NOTE we have to pipe requests to Herbie through a CORS-anywhere proxy
-let HOST = 'http://127.0.0.1:8009'//'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
+let HOST = 'http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://nightly.cs.washington.edu/odyssey'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://127.0.0.1:8000'//'http://127.0.0.1:8080/http://herbie.uwplse.org'//'http://127.0.0.1:8080/https://fa2c-76-135-106-225.ngrok.io'
 
 // HACK to let us dynamically set the host
 //@ts-ignore

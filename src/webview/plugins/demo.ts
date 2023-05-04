@@ -1225,7 +1225,7 @@ function mainPage(api) {
   //let [varValues, setVarValues] = createStore(lastSpec()?.ranges?.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any || {})
   const analyzeUI = html`<div id="analyzeUI">
     <div id="analyzeUIHeader">
-      Host: <input type="text" id="host" value=${getHost} onInput=${(e) => setHost(e.target.value)}></input>
+      Host: <input type="text" id="host" value="${getHost}" onInput=${(e) => setHost(e.target.value)} />
     </div>
     <${Show} when=${() => { if (specs()[0]) { 
       if (!varValues) {
@@ -1270,12 +1270,13 @@ function mainPage(api) {
         table-layout:auto;
       }
       #analyzeUI #expressionTable {
+        width:100%;
+        table-layout:auto;
         max-height: 350px;
         overflow: auto;
         border: 1px solid #6161615c;
         border-radius: 5px;
         padding: 0px;
-        width: fit-content;
         /*margin: auto;*/
       }
       #analyzeUI #expressionTable tbody {
@@ -1394,10 +1395,15 @@ function mainPage(api) {
       #analyzeUI {
         display: grid;
         grid-template-areas:
+          'header header'
           'specinfo specinfo'
-          'focus localerror'
-          'table localerror';
-        justify-content: start;
+          'table table'
+          'focus localerror';
+        grid-auto-columns: 50%;
+        justify-items: center;
+      }
+      #analyzeUIHeader {
+        grid-area: header;
       }
       #specInfo {
         grid-area: specinfo;
@@ -1410,6 +1416,7 @@ function mainPage(api) {
         grid-area: localerror
       }
       #specsAndExpressions {
+        width: 100%;
         grid-area: table;
       }
       #analyzeUI textarea {
@@ -1607,16 +1614,6 @@ function expressionView(expression, api) {
   }
 
   return html`<div class="expressionView">
-    <h3>Expression Details: </h3>
-    <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
-    <h4>Text</h4>
-    <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
-    <div>
-      Notes:
-    </div>
-    <div>
-    ${notesArea}
-    </div>
     <div class="localError">
       <h4>Local Error Analysis</h4>
       <${Switch}>
@@ -1663,6 +1660,12 @@ function expressionView(expression, api) {
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     <h4>Text</h4>
     <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
+    <div>
+      Notes:
+    </div>
+    <div>
+    ${notesArea}
+    </div>
     <div>
       <h4>Herbie's derivation</h4>
       ${() => {

@@ -51,69 +51,6 @@ function getColorCode(seed) {
   return code;
 }
 
-/**
- * 
- * @param cacheValue a signal for the value being computed
- * @param fn the function to run, can be async; must set cacheValue to mark the value as computed
- * @param args other arguments to pass to the function
- * @returns an object representing the computation state with a status field whose value may be 'unrequested', 'requested', 'computed', or 'error'.
- */
-function computable(cacheValue=()=>undefined, fn, ...args) {
-  // promise-ish, but not exactly the same
-  const computeN = COMPUTE_N++
-  console.log('make compute:', computeN)
-
-  const compute = async () => {
-      setStore(produce(store => {
-        //store.promise = p
-        store.status = 'requested'
-      }))
-    //const p = new Promise((resolve, reject) => {
-      try {
-        // TODO something with log capture here
-        await fn(...args)
-        // NOTE we rely on fn to set the cacheValue for termination
-        //resolve(out)
-        // setStore(produce(store => {
-        //   store.status = 'computed'
-        //   store.value = out
-        // }))
-      } catch (e) {
-        //reject(e)
-        setStore(produce(store => {
-          store.error = e
-          store.status = 'error'
-        }))
-      }
-    //})
-  }
-
-  const [store, setStore] = createStore({
-    status: 'unrequested',
-    compute,
-    //promise: undefined as Promise<any> | undefined,
-    error: undefined as any,
-    log: undefined,  // technically should be able to log operations...
-    value: undefined
-  })
-
-  createEffect(() => {  // if the cache gets updated before compute, just resolve
-    // TODO might need to bail here if already computed? Don't want to constantly reset value...
-    console.log('effect running for', computeN)
-    const value = cacheValue()
-    console.log(value)
-    if (value !== undefined) {
-      console.log('setting computed', value, 'for', computeN)
-      setStore(produce(store => {
-        store.status = 'computed'
-        store.value = value
-      }))
-      //console.log(store.status)
-    }
-  })
-  return store
-}
-
 const fpcorejs = (() => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const CONSTANTS = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool" }
@@ -1726,40 +1663,6 @@ async function genHerbieAlts(spec, api) {
   //return 'done'  // uh, remove this
 }
 
-let COMPUTE_N = 0
-
-function analysisComputable(expression, api) {
-  /*TODO replace computable with Request table entry */
-  const analyses = () => api.tables.find(t => t.name === 'Analyses').items
-  const analysis = () => analyses().find(a => a.expressionId === expression.id)
-  const specs = () => api.tables.find(t => t.name === 'Specs').items
-  const samples = () => api.tables.find(t => t.name === 'Samples').items
-  
-  async function getHerbieAnalysis(expression, api) {
-    const spec = specs().find(s => s.id === expression.specId)
-    const data = {
-      expression,
-      spec,
-      // NOTE sending the sample means a lot of data will be passed here...
-      sample: samples().find(s => s.id === expression.sampleId)  // HACK for now, we are assuming expressions are per-sample
-    }
-    return (await fetch('localhost:8000/analyze', {
-        method: 'POST',
-        headers: {
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      }))?.json()
-  }
-
-
-  function mockData(expression, api) {
-    return new Promise(resolve => setTimeout(() => resolve({bitsError: 10, performance: 100 * Math.random(), expressionId: expression.id}), 2000))
-  }
-
-  return computable(analysis, async () => api.action('create', 'demo', 'Analyses', await analyzeExpression(expression, api)))//, api.tables, api.setTables, api))
-}
 const renderTex = h => {
   
   const el = document.createElement('span') as HTMLElement

@@ -936,8 +936,10 @@ function mainPage(api) {
       <td>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </td>
-      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${() => setTimeout(selectExpression(expression))}>${expression.mathjs}</td>
-      
+      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${() => setTimeout(selectExpression(expression))}><pre>${expression.mathjs.replace(/\s+/g, ' ').replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre></td>
+      <td class="expressionTex" onClick=${() => setTimeout(selectExpression(expression))}><span innerHTML=${(window as any).katex.renderToString(math2Tex(expression.mathjs.split('\n').join('')), {
+        throwOnError: false
+      })}></span> </td>
       <td class="meanBitsError">
         <${Switch}>
           <${Match} when=${() => false && /* c.status === 'unrequested' && */ !analysis() /* && !request() */}>

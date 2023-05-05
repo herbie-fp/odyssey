@@ -1122,6 +1122,7 @@ function mainPage(api) {
             <th>&nbsp;</th>
             <th><button onClick=${() => api.multiselect('Expressions', [])}>Clear</button></th>
             <th class="expression">Expression</th>
+            <th class="expressionTex">LaTeX</th>
             <th class="meanBitsError">Average Error</th>
             <th>&nbsp;</th>
           </tr>
@@ -1225,9 +1226,13 @@ function mainPage(api) {
   
   let varValues, setVarValues;
   //let [varValues, setVarValues] = createStore(lastSpec()?.ranges?.reduce((acc, [v, [low, high]]) => (acc[v] = { low, high }, acc), {}) as any || {})
+
+  const [focusLeftComponent, setFocusLeftComponent] = createSignal('error_plot')
+  const [focusRightComponent, setFocusRightComponent] = createSignal('local_error')
+
   const analyzeUI = html`<div id="analyzeUI">
     <div id="analyzeUIHeader">
-      Host: <input type="text" id="host" value="${getHost}" onInput=${(e) => setHost(e.target.value)} />
+      Host (Herbie): <input type="text" id="host" value="${getHost}" onInput=${(e) => setHost(e.target.value)} />
     </div>
     <${Show} when=${() => { if (specs()[0]) { 
       if (!varValues) {
@@ -1241,15 +1246,48 @@ function mainPage(api) {
         <div id="specTitle">${renderTex(math11.parse(specs()[0]?.mathjs).toTex({handler: branchConditionalHandler}))}</div>
       </div>`}
       ${() => specsAndExpressions(lastSpec(), varValues, setVarValues)}
-      <div id="focus">
-      <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => expressionComparisonView(lastMultiselectedExpressions(), api)}
-      <br>
-      ${() => rangeConfig(lastSpec())} <//>
-        
-      </div>
-      <${Show} when=${() => lastSelectedExpression()}>
-        ${() => exprView()}
+      <div id="focusLeft">
+      <select onInput=${event => setFocusLeftComponent(event.target.value)} value=${focusLeftComponent}>
+        <option value="error_plot">Error Plot</option>
+        <option value="local_error">Local Error Analysis</option>
+        <option value="other">Other Component</option>
+      </select>
+      <${Switch}>
+        <${Match} when=${() => focusLeftComponent() === 'error_plot'}>
+          <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => errorPlot(lastMultiselectedExpressions(), api)}
+          <br>
+          ${() => rangeConfig(lastSpec())} 
+          <//>
+        <//>
+        <${Match} when=${() => focusLeftComponent() === 'local_error'}>
+          <${Show} when=${() => lastSelectedExpression()}>
+            ${() => exprView()}
+          <//>
+        <//>
+        <${Match} when=${() => focusLeftComponent() === 'other'}>other<//>
       <//>
+      </div>
+      <div id="focusRight">
+      <select onInput=${event => setFocusRightComponent(event.target.value)} value=${focusRightComponent}>
+        <option value="error_plot">Error Plot</option>
+        <option value="local_error">Local Error Analysis</option>
+        <option value="other">Other Component</option>
+      </select>
+      <${Switch}>
+        <${Match} when=${() => focusRightComponent() === 'error_plot'}>
+          <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => errorPlot(lastMultiselectedExpressions(), api)}
+          <br>
+          ${() => rangeConfig(lastSpec())} 
+          <//>
+        <//>
+        <${Match} when=${() => focusRightComponent() === 'local_error'}>
+          <${Show} when=${() => lastSelectedExpression()}>
+            ${() => exprView()}
+          <//>
+        <//>
+        <${Match} when=${() => focusRightComponent() === 'other'}>other<//>
+      <//>
+      </div>
     <//>
     
   </div>
@@ -1274,7 +1312,7 @@ function mainPage(api) {
       #analyzeUI #expressionTable {
         width:100%;
         table-layout:auto;
-        max-height: 350px;
+        max-height: 500px;
         overflow: auto;
         border: 1px solid #6161615c;
         border-radius: 5px;
@@ -1284,7 +1322,6 @@ function mainPage(api) {
       #analyzeUI #expressionTable tbody {
         display:block;
         overflow:auto;
-        max-height:200px;
         width:100%;
       }
       #analyzeUI svg circle:hover {
@@ -1294,11 +1331,13 @@ function mainPage(api) {
       }
       
       #expressionTable th.expression {
-        text-align: left;
-        padding-left: 20px;
       }
       #expressionTable .expression {
         /*width:154px;*/
+        width: 55%;
+      }
+      #expressionTable .expression pre {
+        margin: 0px;
       }
       #expressionTable td.expression {
         cursor: pointer;
@@ -1307,8 +1346,11 @@ function mainPage(api) {
         overflow: hidden;
         white-space: nowrap;
       }
+      #expressionTable .expressionTex {
+        width: 25%;
+      }
       #expressionTable .meanBitsError {
-        width:100px;
+        width: 15%;
         text-align: center;
       }
       #expressionTable th, #expressionTable td {
@@ -1360,7 +1402,9 @@ function mainPage(api) {
         background-color: burlywood !important;
       }
       .expressionRow {
-        height: 5em;
+        max-height: 7em;
+        display: inline-table;
+        width: 100%;
       }
       
       #analyzeUI #expressionTable button {
@@ -1377,7 +1421,7 @@ function mainPage(api) {
         #expressionTable thead {
           box-shadow: 2px 1px 7px 2px black;
         }
-        #analyzeUI #focus svg {
+        #analyzeUI #focusLeft svg {
           background-color: black;
         }
       }
@@ -1400,9 +1444,11 @@ function mainPage(api) {
           'header header'
           'specinfo specinfo'
           'table table'
-          'focus localerror';
+          'editor details'
+          'focusLeft focusRight';
         grid-auto-columns: 50%;
         justify-items: center;
+        min-width: 800px;
       }
       #analyzeUIHeader {
         grid-area: header;
@@ -1410,12 +1456,20 @@ function mainPage(api) {
       #specInfo {
         grid-area: specinfo;
       }
-      #analyzeUI #focus {
-        grid-area: focus;
-        width: 600px;
+      #analyzeUI #focusLeft {
+        grid-area: focusLeft;
+        /*width: 600px; */
+        width: calc(100% - 21px);
+        border: 1px solid lightgray;
+        padding: 7px;
+        border-radius: 5px;
       }
-      .expressionView {
-        grid-area: localerror
+      #analyzeUI #focusRight {
+        grid-area: focusRight;
+        border: 1px solid lightgray;
+        width: calc(100% - 21px);
+        padding: 7px;
+        border-radius: 5px;
       }
       #specsAndExpressions {
         width: 100%;
@@ -1791,6 +1845,9 @@ function expressionComparisonView(expressions, api) {
     </div>
   </div>`
 }
+
+const errorPlot = expressionComparisonView
+
 /** Get table items.*/
 function getTable(api, tname) {
   return api.tables.find(t => t.name === tname).items

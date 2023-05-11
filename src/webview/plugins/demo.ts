@@ -1135,9 +1135,10 @@ function mainPage(api) {
       </table>
       </div>
       ${getAlternativesButton(spec)}
-      ${() => addExpressionRow(spec)}
+      
 
     </div>`
+    // ${() => addExpressionRow(spec)}
   }
   const lastSelectedExpression = () => api.tables.find(t => t.name === "Expressions")?.items?.find(api.getLastSelected((o, table) => table === "Expressions") || (() => undefined))
 
@@ -1229,6 +1230,7 @@ function mainPage(api) {
 
   const [focusLeftComponent, setFocusLeftComponent] = createSignal('error_plot')
   const [focusRightComponent, setFocusRightComponent] = createSignal('local_error')
+  const [focusSelectComponent, setFocusSelectComponent] = createSignal('expression_details')
 
   const analyzeUI = html`<div id="analyzeUI">
     <div id="analyzeUIHeader">
@@ -1271,6 +1273,7 @@ function mainPage(api) {
       <select onInput=${event => setFocusRightComponent(event.target.value)} value=${focusRightComponent}>
         <option value="error_plot">Error Plot</option>
         <option value="local_error">Local Error Analysis</option>
+        <option value="derivation">Derivation</option>
         <option value="other">Other Component</option>
       </select>
       <${Switch}>
@@ -1285,8 +1288,43 @@ function mainPage(api) {
             ${() => exprView()}
           <//>
         <//>
+        <${Match} when=${() => focusRightComponent() === 'derivation'}>
+          <${Show} when=${() => lastSelectedExpression()}>
+            ${() => expressionDerivationView(lastSelectedExpression())}
+          <//>
+        <//>
         <${Match} when=${() => focusRightComponent() === 'other'}>other<//>
       <//>
+      </div>
+      <div id="focusSelect">
+      <select onInput=${event => setFocusSelectComponent(event.target.value)} value=${focusSelectComponent}>
+        <option value="error_plot">Error Plot</option>
+        <option value="local_error">Local Error Analysis</option>
+        <option value="expression_details">Expression Details</option>
+        <option value="other">Other Component</option>
+      </select>
+      <${Switch}>
+        <${Match} when=${() => focusSelectComponent() === 'error_plot'}>
+          <${Show} when=${() => lastMultiselectedExpressions().length > 0 && lastSpec() && getByKey(api, 'Samples', 'specId', lastSpec().id)}> ${() => errorPlot(lastMultiselectedExpressions(), api)}
+          <br>
+          ${() => rangeConfig(lastSpec())} 
+          <//>
+        <//>
+        <${Match} when=${() => focusSelectComponent() === 'local_error'}>
+          <${Show} when=${() => lastSelectedExpression()}>
+            ${() => exprView()}
+          <//>
+        <//>
+        <${Match} when=${() => focusSelectComponent() === 'expression_details'}>
+          <${Show} when=${() => lastSelectedExpression()}>
+            ${() => expressionDetailsView(lastSelectedExpression())}
+          <//>
+        <//>
+        <${Match} when=${() => focusSelectComponent() === 'other'}>other<//>
+      <//>
+      </div>
+      <div id="editor">
+        ${() => addExpressionComponent(specs()[0], api)}
       </div>
     <//>
     
@@ -1436,7 +1474,6 @@ function mainPage(api) {
         /*
       }
       */
-
       
       #analyzeUI {
         display: grid;
@@ -1464,9 +1501,15 @@ function mainPage(api) {
         padding: 7px;
         border-radius: 5px;
       }
+      #analyzeUI #focusSelect {
+        grid-area: details;
+      }
+      #analyzeUI #editor {
+        grid-area: editor;
+      }
       #analyzeUI #focusRight {
         grid-area: focusRight;
-        border: 1px solid lightgray;
+        border:f 1px solid lightgray;
         width: calc(100% - 21px);
         padding: 7px;
         border-radius: 5px;
@@ -1661,7 +1704,7 @@ function expressionView(expression, api) {
     });
     return out
   }
-  const notesArea = textarea(note.notes, (v) => { note.notes = v }, undefined, 2)
+  const notesArea = ''//textarea(note.notes, (v) => { note.notes = v }, undefined, 2)
 
   async function genLocalError() {
     const result = await herbiejs.analyzeLocalError(expression.fpcore, sample(), getHost())
@@ -1712,30 +1755,166 @@ function expressionView(expression, api) {
         <//>
       <//>
     </div>
+  </div>`
+}
+
+function addExpressionComponent(spec, api) {
+  const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
+  const specs = () => api.tables.find(t => t.name === 'Specs').items
+  const expressions = () => api.tables.find(t => t.name === 'Expressions')?.items
+  const makeExpression = (spec, fpcore, mathjs) => () => {
+    //console.log('makeExpression called')
+    const specId = specs().find(api.getLastSelected((o, table) => table === "Specs") || (() => false))?.id // HACK just use current spec
+    const id = expressionId++
+    // ugly HACK duplicate the spec on the expression, see analyzeExpression
+    api.action('create', 'demo', 'Expressions', { specId, fpcore, id, spec, mathjs })//, api.tables, api.setTables)
+    notes.push({ specId: spec.id, id: expressionId, notes: ""})
+    //api.action('select', 'demo', 'Expressions', (o, table) => o.id === id, api.tables, api.setTables, api)
+    const curr = currentMultiselection(api).map(o => o.id)
+    api.multiselect('Expressions', [...curr, id])//, api.tables, api.setTables)
+  }
+  const addSpec = async ({ mathjs, ranges, fpcore }) => {
+    const id = specId++
+    const spec = { mathjs, fpcore: fpcorejs.makeFPCore({ specMathJS: mathjs, specFPCore: fpcore, ranges }), ranges, id }
+    await api.action('create', 'demo', 'Specs', spec)
+    api.select('Specs', id)
+    api.multiselect('Expressions', expressions().filter(e => e.specId === id).map(e => e.id))
+  }
+  const textarea = (value: any = JSON.stringify(defaultSpec), setValue = (v) => { }, classNames=[] as String[], rows: number = 4) => {
+    const out = html`<textarea class="${classNames.join(' ')}" value="${value}" oninput=${e => setValue(e.target.value)} style="height:auto;" rows="${rows}"></textarea>` as HTMLInputElement
+    out.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+      }
+    });
+    return out
+  }
+  const [addExpressionText, setAddExpressionText] = createSignal('')
+  //setTimeout(() => setAddExpressionText(specs()?.[0]?.mathjs), 1000)
+  createEffect(() => specs()?.[0]?.mathjs && setAddExpressionText(specs()[0].mathjs))
+  const text = addExpressionText
+  const setText = setAddExpressionText
+  function debounce( callback, delay ) {
+    let timeout;
+    return function(...args) {
+        clearTimeout( timeout );
+        timeout = setTimeout(() => callback(...args), delay );
+    }
+  }
+
+  const textArea = textarea(text, debounce(v => setText(v), 500))
+  const rangeText = textarea(JSON.stringify(spec.ranges))
+  const specWithRanges = ranges => getTable(api, 'Specs').find(s => JSON.stringify(ranges) === JSON.stringify(s.ranges))
+  async function ensureSpecWithThoseRangesExists(ranges) {
+    if (specWithRanges(ranges)) { return; }
+    await addSpec({ ...spec, ranges })
+  }
+  
+  async function addExpression() {
+    const ranges = JSON.parse(rangeText.value)
+    await ensureSpecWithThoseRangesExists(ranges)
+    makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join(''), spec.fpcore), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
+  }
+
+  const [projectedError, { refetch }] = createResource(text, async (text) => {
+    if (text === '') {
+      return 0
+    }
+    try {
+      return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), getHost(), txt => console.log(txt))).meanBitsError
+    } catch (err:any) {
+      return 'loading...'  // HACK
+    }
+  })
+  
+  return html`<div class="addExpressionRow">
+  <div>
+    Projected average error: 
+    <${Switch}>
+      <${Match} when=${() => projectedError.loading}> loading...<//>
+      <${Match} when=${() => true}> ${() => projectedError()?.toString()}<//>
+    <//>
+  </div>
+  <div>
+  ${textArea}
+  </div>
+  
+  <button onClick=${addExpression}>Add expression</button>
+
+  <div id="texPreview" >
+  ${() => {
+    try {
+      if (text() === '') { return '' }
+      return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
+        throwOnError: false
+      })}></span>`
+    } catch (err :any) {
+      return err.toString()
+    }
+  }}
+    </div>
+  </div>`
+  //<button class="newSpec" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: true }))}>Update ranges (opens new tab)</button>
+}
+
+function expressionDerivationView(expression) {
+  return html`<div>
+    <h4>Herbie's derivation</h4>
+    ${() => {
+      if (expression.provenance !== 'herbie') {
+        return 'You submitted this expression.'
+      } else {
+        const el = document.createElement('div') as HTMLElement
+        el.innerHTML = expression.history;//history.html;
+        (window as any).renderMathInElement(el.querySelector("#history"));
+        return html`<div>${el.querySelector('#history')}</div>`
+      }
+    }}
+  </div>
+  `
+}
+
+function expressionDetailsView(expression) {
+  const note = (function () {for (const subnote of notes) {
+    if (subnote.id === expression.id && subnote.specId === expression.specId) return subnote;
+  }
+  })()
+  const textarea = (value: any = "", setValue = (v) => { }, classNames=[] as String[], rows: number = 4) => {
+    const out = html`<textarea class="${classNames.join(' ')}" value="${value}" oninput=${e => setValue(e.target.value)} style="height:auto;" rows="${rows}"></textarea>` as HTMLInputElement
+    out.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+      }
+    });
+    return out
+  }
+  const notesArea = ''//textarea(note.notes, (v) => { note.notes = v }, undefined, 2)
+  //   <div>
+  //   Notes:
+  // </div>
+  // <div>
+  // ${notesArea}
+  //   `<div>
+  //   <h4>Herbie's derivation</h4>
+  //   ${() => {
+  //     if (expression.provenance !== 'herbie') {
+  //       return 'You submitted this expression.'
+  //     } else {
+  //       const el = document.createElement('div') as HTMLElement
+  //       el.innerHTML = expression.history;//history.html;
+  //       (window as any).renderMathInElement(el.querySelector("#history"));
+  //       return html`<div>${el.querySelector('#history')}</div>`
+  //     }
+  //   }}
+  // </div>`
+  return html`
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     <h4>Text</h4>
     <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
-    <div>
-      Notes:
+
     </div>
-    <div>
-    ${notesArea}
-    </div>
-    <div>
-      <h4>Herbie's derivation</h4>
-      ${() => {
-        if (expression.provenance !== 'herbie') {
-          return 'You submitted this expression.'
-        } else {
-          const el = document.createElement('div') as HTMLElement
-          el.innerHTML = expression.history;//history.html;
-          (window as any).renderMathInElement(el.querySelector("#history"));
-          return html`<div>${el.querySelector('#history')}</div>`
-        }
-      }}
-    </div>
-  </div>`
+  `
 }
 
 //@ts-ignore

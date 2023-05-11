@@ -1812,6 +1812,18 @@ function addExpressionComponent(spec, api) {
   
   async function addExpression() {
     const ranges = JSON.parse(rangeText.value)
+    let variableNames: string[] = []
+    // grab variable from ranges
+    let newVars = fpcorejs.getVarnamesMathJS(text())
+
+    for (var val of spec.ranges) {
+      variableNames.push(val[0])
+    }
+    for (var newVar of newVars) {
+      if (!variableNames.includes(newVar)) { 
+        console.log(`Extra Variable ${newVar}`) 
+      }
+    }
     await ensureSpecWithThoseRangesExists(ranges)
     makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join(''), spec.fpcore), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
   }

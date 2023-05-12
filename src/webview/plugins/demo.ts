@@ -1848,23 +1848,32 @@ function addExpressionComponent(spec, api) {
       let output = (window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
         throwOnError: false
       })
-      let variableNames: string[] = []
-      // grab variable from ranges
-      let newVars = fpcorejs.getVarnamesMathJS(text())
-      // console.log(`Number of vars ${newVars.length}`)
-      for (var val of spec.ranges) {
-        variableNames.push(val[0])
-      }
-      for (var newVar of newVars) {
-        if (!variableNames.includes(newVar)) { 
-          // Should trigger after there are no Math Syntax errors
-          output = "Error: Extra Variable"
-          console.log(`Extra Variable ${newVar}`) 
-          break
+      // get error messages concerning math syntax 
+      let errorArray = fpcorejs.parseErrors(text())
+      // If there are errors in the syntax, we want to display those, instead
+      // of displaying errors about extra variables.
+      if (errorArray.length > 0) {
+        output = errorArray
+      } else {
+        // We are at the case where there are no syntax errors, so if there are
+        // more variables than the original expression had, we display that as
+        // an error to the user.
+        let variableNames: string[] = []
+        for (var val of spec.ranges) {
+          variableNames.push(val[0])
+        }
+        // grab variables from input
+        let newVars = fpcorejs.getVarnamesMathJS(text())
+        for (var newVar of newVars) {
+          if (!variableNames.includes(newVar)) {
+            // Should trigger after there are no Math Syntax errors
+            output = "Error: The current expression contains more variables than the initial expression."
+            break
+          }
         }
       }
       return html`<span class="preview-stuff" innerHTML=${output}></span>`
-    } catch (err :any) {
+    } catch (err: any) {
       return err.toString()
     }
   }}

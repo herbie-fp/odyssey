@@ -752,6 +752,14 @@ const ordinalsjs = (() => {
   }
 })()
 
+function debounce( callback, delay ) {
+  let timeout;
+  return function(...args) {
+      clearTimeout( timeout );
+      timeout = setTimeout(() => callback(...args), delay );
+  }
+}
+
 function mainPage(api) {
   //console.clear()
   console.log('Setting up main demo page...')
@@ -801,22 +809,9 @@ function mainPage(api) {
         break;
     }
   })
-  function debounce( callback, delay ) {
-    let timeout;
-    return function(...args) {
-        clearTimeout( timeout );
-        timeout = setTimeout(() => callback(...args), delay );
-    }
-  }
+
   const newSpecInput = () => {
     const [text, setText] = createSignal('sqrt(x + 1) - sqrt(x)')
-    function debounce( callback, delay ) {
-      let timeout;
-      return function(...args) {
-          clearTimeout( timeout );
-          timeout = setTimeout(() => callback(...args), delay );
-      }
-    }
 
     const textArea = textarea(text, debounce(v => setText(v), 500), ['newSpecInput'])
 
@@ -1008,13 +1003,6 @@ function mainPage(api) {
   const addExpressionRow = spec => {
     const text = addExpressionText
     const setText = setAddExpressionText
-    function debounce( callback, delay ) {
-      let timeout;
-      return function(...args) {
-          clearTimeout( timeout );
-          timeout = setTimeout(() => callback(...args), delay );
-      }
-    }
 
     const textArea = textarea(text, debounce(v => setText(v), 500))
     const rangeText = textarea(JSON.stringify(spec.ranges))
@@ -1794,13 +1782,6 @@ function addExpressionComponent(spec, api) {
   createEffect(() => specs()?.[0]?.mathjs && setAddExpressionText(specs()[0].mathjs))
   const text = addExpressionText
   const setText = setAddExpressionText
-  function debounce( callback, delay ) {
-    let timeout;
-    return function(...args) {
-        clearTimeout( timeout );
-        timeout = setTimeout(() => callback(...args), delay );
-    }
-  }
 
   const textArea = textarea(text, debounce(v => setText(v), 500))
   const rangeText = textarea(JSON.stringify(spec.ranges))
@@ -1843,36 +1824,42 @@ function addExpressionComponent(spec, api) {
 
   <div id="texPreview" >
   ${() => {
+    // TODO ask about comparing against constants defined in `fpcorejs`
     try {
       if (text() === '') { return '' }
+
+      var errorOutput: String[] = []
+      // get error messages concerning math syntax 
+      // only return only one error
+      let errorArray = fpcorejs.parseErrors(text())
+
+      for (var errorVal of errorArray) {
+        errorOutput.push(errorVal)
+      }
+      // We are at the case where there are no syntax errors, so if there are
+      // more variables than the original expression had, we display that as
+      // an error to the user.
+      let variableNames: string[] = []
+      for (var val of spec.ranges) {
+        variableNames.push(val[0])
+      }
+      // grab variables from input
+      let newVars = fpcorejs.getVarnamesMathJS(text())
+      for (var newVar of newVars) {
+        if (!variableNames.includes(newVar)) {
+          // Should trigger after there are no Math Syntax errors
+          errorOutput.push("Error: The current expression contains more variables than the initial expression.")
+        }
+      }
       let output = (window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
         throwOnError: false
       })
-      // get error messages concerning math syntax 
-      let errorArray = fpcorejs.parseErrors(text())
-      // If there are errors in the syntax, we want to display those, instead
-      // of displaying errors about extra variables.
-      if (errorArray.length > 0) {
-        output = errorArray
+      if (errorOutput.length < 1) {
+        return html`<span class="preview-stuff" innerHTML=${output}></span>`
       } else {
-        // We are at the case where there are no syntax errors, so if there are
-        // more variables than the original expression had, we display that as
-        // an error to the user.
-        let variableNames: string[] = []
-        for (var val of spec.ranges) {
-          variableNames.push(val[0])
-        }
-        // grab variables from input
-        let newVars = fpcorejs.getVarnamesMathJS(text())
-        for (var newVar of newVars) {
-          if (!variableNames.includes(newVar)) {
-            // Should trigger after there are no Math Syntax errors
-            output = "Error: The current expression contains more variables than the initial expression."
-            break
-          }
-        }
+        // TODO split errorOutput per element
+        return html`<span class="preview-stuff" innerHTML=${errorOutput}></span>`
       }
-      return html`<span class="preview-stuff" innerHTML=${output}></span>`
     } catch (err: any) {
       return err.toString()
     }

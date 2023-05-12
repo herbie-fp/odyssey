@@ -1832,7 +1832,6 @@ function addExpressionComponent(spec, api) {
       // get error messages concerning math syntax 
       // only return only one error
       let errorArray = fpcorejs.parseErrors(text())
-
       for (var errorVal of errorArray) {
         errorOutput.push(errorVal)
       }
@@ -1845,11 +1844,15 @@ function addExpressionComponent(spec, api) {
       }
       // grab variables from input
       let newVars = fpcorejs.getVarnamesMathJS(text())
+      let errorVars: String[] = []
       for (var newVar of newVars) {
         if (!variableNames.includes(newVar)) {
           // Should trigger after there are no Math Syntax errors
-          errorOutput.push("Error: The current expression contains more variables than the initial expression.")
+            errorVars.push(newVar)
         }
+      }
+      if (errorVars.length > 0) {
+        errorOutput.push(`Error: The current expression contains more variables than the initial expression. Additional variables: ${errorVars}.`)
       }
       let output = (window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
         throwOnError: false

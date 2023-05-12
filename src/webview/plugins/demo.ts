@@ -1810,6 +1810,10 @@ function addExpressionComponent(spec, api) {
     await addSpec({ ...spec, ranges })
   }
   
+  // Set to true if there are extra not previously defined variables added
+  // after the initial expression
+  const [userExtraVarsError, setUserExtraVarsError] = createSignal(false)
+  
   async function addExpression() {
     const ranges = JSON.parse(rangeText.value)
     let variableNames: string[] = []
@@ -1821,9 +1825,11 @@ function addExpressionComponent(spec, api) {
     }
     for (var newVar of newVars) {
       if (!variableNames.includes(newVar)) { 
+        setUserExtraVarsError(true)
         console.log(`Extra Variable ${newVar}`) 
       }
     }
+    console.log(`error state: ${userExtraVarsError()}`) 
     await ensureSpecWithThoseRangesExists(ranges)
     makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join(''), spec.fpcore), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
   }
@@ -1857,6 +1863,10 @@ function addExpressionComponent(spec, api) {
   ${() => {
     try {
       if (text() === '') { return '' }
+      if (userExtraVarsError()) {
+        console.log("error triggered")
+        return html`<span class="preview-stuff" innerHTML=${"Error, Zane was here"}></span>`
+      }
       return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
         throwOnError: false
       })}></span>`

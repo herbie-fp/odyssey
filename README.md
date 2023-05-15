@@ -1,8 +1,40 @@
-# interactive-herbie README
+# Odyssey: An Interactive Numerics Workbench
 
-### Setting up a development environment
+Odyssey is a VSCode extension developed to enhance the interactivity of floating-point error investigation and improvement systems like the [Herbie](https://herbie.uwplse.org/demo/) tool.
+
+Odyssey is designed to help users identify sources of error in floating-point expressions and then rewrite the expressions to improve their accuracy. It includes analyses of local error for particular inputs as well as a plot of error across a uniform sample of possible inputs for a floating-point expresssion, and uses Herbie to generate rewrite suggestions.
+
+## Running Odyssey
+
+### Herbie server
+<!-- TODO update to point to binary DL? -->
+A running instance of Herbie must be present before analyzing an expression with Odyssey. After following the [Herbie installation instructions](https://herbie.uwplse.org/doc/latest/installing.html), you can run a Herbie server with
+```
+herbie web --port 8000 --quiet
+```
+You can adjust the server address where Odyssey looks for Herbie in the Odyssey interface.
+<!-- TODO picture? maybe not needed -->
+
+### Starting Odyssey
+
+After starting the Herbie server, run Odyssey from the VSCode command palette using Ctrl/Command-Shift-P > "Odyssey: Herbie".
+
+## Tutorial
+<!-- TODO update with current interface, more detailed tutorial -->
+Here is a 5-minute demo (from an earlier interface) describing Odyssey's purpose, current capabilities, and goals (usage demo starts at 1:02):
+<iframe width="672" height="378" src="https://www.youtube.com/embed/VQnHE7Kzoto?t=62" title="Odyssey" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+## Features
+
+![The Odyssey interface](images/odyssey-interface.png)
+
+<!-- > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow. -->
+
+
+# Setting up a development environment
 ```bash
 $ npm install  # make sure this runs to completion!
+# TODO update these notes
 # Then use command/control+shift+B to start the auto-compile tasks (might have to rerun the first time...)
 # Each time compilation finishes, you should see a message like "created out/webview/bundle.js in 2.5s"
 ```
@@ -14,32 +46,14 @@ You can see changes to the frontend (`webview/index.ts`) by simply refreshing th
 
 ### How to publish:
 
+Get publication key from @elmisback, then:
+
 ```bash
 # update "version" in package.json, then
 $ npm run publish
 ```
 
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-![hello_world](images/hello_world.png)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-(Mandatory README edit for publication.)
-
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-(Mandatory README edit for publication.)
-
+<!-- ## Extension Settings
 
 Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
@@ -48,36 +62,22 @@ For example:
 This extension contributes the following settings:
 
 * `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+* `myExtension.thing`: set to `blah` to do something -->
 
 ## Known Issues
 
-(Mandatory README edit for publication.)
-
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+See the issues tab on Github.
 
 ## Release Notes
 
-(Mandatory README edit for publication.)
-
-
 Users appreciate release notes as you update your extension.
 
-### 1.0.0
+### 0.1.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+First major post-study 1 version
 
 -----------------------------------------------------------------------------------------------------------
-## Following extension guidelines
+<!-- ## Following extension guidelines
 
 Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
 
@@ -94,4 +94,4 @@ Ensure that you've read through the extensions guidelines and follow the best pr
 ### For more information
 
 * [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/) -->

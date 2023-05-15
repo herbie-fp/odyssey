@@ -52,6 +52,20 @@ function getColorCode(seed) {
 }
 
 const fpcorejs = (() => {
+  function symbols() {
+    var symbols: String[] = []
+    for (const [key,_] of Object.entries(CONSTANTS)) {
+      symbols.push(`${key}`)
+    }
+    for (const [key,_] of Object.entries(FUNCTIONS)) {
+      symbols.push(`${key}`)
+    }
+    for (const [key,_] of Object.entries(SECRETFUNCTIONS)) {
+      symbols.push(`${key}`)
+    }
+    // {CONSTANTS, FUNCTIONS, SECRETFUNCTIONS}
+    return symbols
+  }
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const CONSTANTS = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool" }
 
@@ -334,6 +348,7 @@ const fpcorejs = (() => {
 
   return {
     //dumpFPCore: dump_fpcore,  // Currently has no error handling!
+    symbols: symbols,
     rangeErrors: get_input_range_errors,
     FPCorePrecondition: get_precondition_from_input_ranges,
     getVarnamesMathJS: get_varnames_mathjs,
@@ -1827,7 +1842,9 @@ function addExpressionComponent(spec, api) {
     // TODO ask about comparing against constants defined in `fpcorejs`
     try {
       if (text() === '') { return '' }
-
+      console.log("Watch")
+      console.log(fpcorejs.symbols())
+      console.log("Watch")
       var errorOutput: String[] = []
       // get error messages concerning math syntax 
       // only return only one error

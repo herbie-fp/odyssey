@@ -1839,12 +1839,9 @@ function addExpressionComponent(spec, api) {
 
   <div id="texPreview" >
   ${() => {
-    // TODO ask about comparing against constants defined in `fpcorejs`
     try {
       if (text() === '') { return '' }
-      console.log("Watch")
-      console.log(fpcorejs.symbols())
-      console.log("Watch")
+      const symbols = fpcorejs.symbols()
       var errorOutput: String[] = []
       // get error messages concerning math syntax 
       // only return only one error
@@ -1863,9 +1860,12 @@ function addExpressionComponent(spec, api) {
       let newVars = fpcorejs.getVarnamesMathJS(text())
       let errorVars: String[] = []
       for (var newVar of newVars) {
+        if (symbols.includes(newVar)) {
+          continue
+        }
         if (!variableNames.includes(newVar)) {
           // Should trigger after there are no Math Syntax errors
-            errorVars.push(newVar)
+          errorVars.push(newVar)
         }
       }
       if (errorVars.length > 0) {

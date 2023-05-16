@@ -1005,95 +1005,95 @@ function mainPage(api) {
   //setTimeout(() => setAddExpressionText(specs()?.[0]?.mathjs), 1000)
   createEffect(() => specs()?.[0]?.mathjs && setAddExpressionText(specs()[0].mathjs))
   let firstTime = true
-  const addExpressionRow = spec => {
-    const text = addExpressionText
-    const setText = setAddExpressionText
-    function debounce( callback, delay ) {
-      let timeout;
-      return function(...args) {
-          clearTimeout( timeout );
-          timeout = setTimeout(() => callback(...args), delay );
-      }
-    }
+  // const addExpressionRow = spec => {
+  //   const text = addExpressionText
+  //   const setText = setAddExpressionText
+  //   function debounce( callback, delay ) {
+  //     let timeout;
+  //     return function(...args) {
+  //         clearTimeout( timeout );
+  //         timeout = setTimeout(() => callback(...args), delay );
+  //     }
+  //   }
 
-    const textArea = textarea(text, debounce(v => setText(v), 500))
-    const rangeText = textarea(JSON.stringify(spec.ranges))
-    const specWithRanges = ranges => getTable(api, 'Specs').find(s => JSON.stringify(ranges) === JSON.stringify(s.ranges))
-    async function ensureSpecWithThoseRangesExists(ranges) {
-      if (specWithRanges(ranges)) { return; }
-      await addSpec({ ...spec, ranges })
-    }
+  //   const textArea = textarea(text, debounce(v => setText(v), 500))
+  //   const rangeText = textarea(JSON.stringify(spec.ranges))
+  //   const specWithRanges = ranges => getTable(api, 'Specs').find(s => JSON.stringify(ranges) === JSON.stringify(s.ranges))
+  //   async function ensureSpecWithThoseRangesExists(ranges) {
+  //     if (specWithRanges(ranges)) { return; }
+  //     await addSpec({ ...spec, ranges })
+  //   }
     
-    async function addExpression() {
-      const ranges = JSON.parse(rangeText.value)
-      await ensureSpecWithThoseRangesExists(ranges)
-      makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join(''), spec.fpcore), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
-    }
-    // <div id="modifyRange">
-    //   Ranges:
-    //     <div>
-    //     ${rangeText}
-    //     </div>
-    // </div>
-    const [projectedError, { refetch }] = createResource(text, async (text) => {
-      if (text === '') {
-        return 0
-      }
-      try {
-        return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), getHost(), txt => console.log(txt))).meanBitsError
-      } catch (err:any) {
-        return 'loading...'  // HACK
-      }
-    })
+  //   async function addExpression() {
+  //     const ranges = JSON.parse(rangeText.value)
+  //     await ensureSpecWithThoseRangesExists(ranges)
+  //     makeExpression(specWithRanges(ranges), text().startsWith('[[') ? text().slice(2) : fpcorejs.mathjsToFPCore(text().split('\n').join(''), spec.fpcore), text().startsWith('[[') ? text().slice(2) : text().split('\n').join(''))()  // HACK to support FPCore submission
+  //   }
+  //   // <div id="modifyRange">
+  //   //   Ranges:
+  //   //     <div>
+  //   //     ${rangeText}
+  //   //     </div>
+  //   // </div>
+  //   const [projectedError, { refetch }] = createResource(text, async (text) => {
+  //     if (text === '') {
+  //       return 0
+  //     }
+  //     try {
+  //       return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), getHost(), txt => console.log(txt))).meanBitsError
+  //     } catch (err:any) {
+  //       return 'loading...'  // HACK
+  //     }
+  //   })
     
-    //setTimeout(() => refetch(), 7000)  // HACK
-    // const [projectedNaiveError] = createResource(text, async (text) => {
-    //   if (text === '') {
-    //     return 0
-    //   }
+  //   //setTimeout(() => refetch(), 7000)  // HACK
+  //   // const [projectedNaiveError] = createResource(text, async (text) => {
+  //   //   if (text === '') {
+  //   //     return 0
+  //   //   }
 
-    //   const logger =  (txt) => console.log(txt)
-    //   const fpcore = fpcorejs.makeFPCore({ specMathJS: text.split('\n').join(''), ranges: spec.ranges, specFPCore: spec.fpcore })
-    //   try {
-    //     const result = (await herbiejs.analyzeExpression(fpcore, await herbiejs.getSample(fpcore, HOST, logger), HOST, logger)).meanBitsError
-    //     if (firstTime) {
-    //       refetch() // HACK
-    //       firstTime = false
-    //     }
-    //     return result
-    //   } catch (err:any) {
-    //     return err.toString()
-    //   }
-    // })
-    return html`<div class="addExpressionRow">
-    <div>
-      Projected average error: 
-      <${Switch}>
-        <${Match} when=${() => projectedError.loading}> loading...<//>
-        <${Match} when=${() => true}> ${() => projectedError()?.toString()}<//>
-      <//>
-    </div>
-    <div>
-    ${textArea}
-    </div>
+  //   //   const logger =  (txt) => console.log(txt)
+  //   //   const fpcore = fpcorejs.makeFPCore({ specMathJS: text.split('\n').join(''), ranges: spec.ranges, specFPCore: spec.fpcore })
+  //   //   try {
+  //   //     const result = (await herbiejs.analyzeExpression(fpcore, await herbiejs.getSample(fpcore, HOST, logger), HOST, logger)).meanBitsError
+  //   //     if (firstTime) {
+  //   //       refetch() // HACK
+  //   //       firstTime = false
+  //   //     }
+  //   //     return result
+  //   //   } catch (err:any) {
+  //   //     return err.toString()
+  //   //   }
+  //   // })
+  //   return html`<div class="addExpressionRow">
+  //   <div>
+  //     Projected average error: 
+  //     <${Switch}>
+  //       <${Match} when=${() => projectedError.loading}> loading...<//>
+  //       <${Match} when=${() => true}> ${() => projectedError()?.toString()}<//>
+  //     <//>
+  //   </div>
+  //   <div>
+  //   ${textArea}
+  //   </div>
     
-    <button onClick=${addExpression}>Add expression</button>
+  //   <button onClick=${addExpression}>Add expression</button>
 
-    <div id="texPreview" >
-    ${() => {
-      try {
-        if (text() === '') { return '' }
-        return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
-          throwOnError: false
-        })}></span>`
-      } catch (err :any) {
-        return err.toString()
-      }
-    }}
-      </div>
-    </div>`
-    //<button class="newSpec" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: true }))}>Update ranges (opens new tab)</button>
-  }
+  //   <div id="texPreview" >
+  //   ${() => {
+  //     try {
+  //       if (text() === '') { return '' }
+  //       return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
+  //         throwOnError: false
+  //       })}></span>`
+  //     } catch (err :any) {
+  //       return err.toString()
+  //     }
+  //   }}
+  //     </div>
+  //   </div>`
+  //   //<button class="newSpec" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: true }))}>Update ranges (opens new tab)</button>
+  // }
   // <div>[todo] sort by <select><${For} each=${() => new Set(expressions().map(o => Object.keys(o)).flat())}><option>${k => k}</option><//></select></div>
   // ${getSpecRow(spec)}
   const sortBy = fn => (a, b) => fn(a) - fn(b)
@@ -1110,6 +1110,8 @@ function mainPage(api) {
     }))
     //console.log('effect finished!!2')
   }, 1000)
+
+  const [addingExpression, setAddingExpression] = createSignal(false)
   
   const getSpecBlock = spec => {
     
@@ -1135,7 +1137,7 @@ function mainPage(api) {
       </table>
       </div>
       ${getAlternativesButton(spec)}
-      
+      <${Show} when=${addingExpression} fallback=${html`<button onClick=${() => setAddingExpression(true)}>Add Expression</button>`}>${() => addExpressionRow(spec, api)}<//>
 
     </div>`
     // ${() => addExpressionRow(spec)}
@@ -1323,9 +1325,6 @@ function mainPage(api) {
         <${Match} when=${() => focusSelectComponent() === 'other'}>other<//>
       <//>
       </div>
-      <div id="editor">
-        ${() => addExpressionComponent(specs()[0], api)}
-      </div>
     <//>
     
   </div>
@@ -1481,7 +1480,6 @@ function mainPage(api) {
           'header header'
           'specinfo specinfo'
           'table table'
-          'editor details'
           'focusLeft focusRight';
         grid-auto-columns: 50%;
         justify-items: center;
@@ -1503,9 +1501,6 @@ function mainPage(api) {
       }
       #analyzeUI #focusSelect {
         grid-area: details;
-      }
-      #analyzeUI #editor {
-        grid-area: editor;
       }
       #analyzeUI #focusRight {
         grid-area: focusRight;
@@ -1758,7 +1753,7 @@ function expressionView(expression, api) {
   </div>`
 }
 
-function addExpressionComponent(spec, api) {
+function addExpressionRow(spec, api) {
   const defaultSpec = { mathjs: "sqrt(x+1) - sqrt(x)", ranges: [["x", [1, 1e9]]] }
   const specs = () => api.tables.find(t => t.name === 'Specs').items
   const expressions = () => api.tables.find(t => t.name === 'Expressions')?.items

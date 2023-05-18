@@ -6,7 +6,7 @@ import { start } from "repl";
 import { SetStoreFunction } from "solid-js/store";
 import { html, For, Show, Switch, Match, unwrap, untrack } from "../../dependencies/dependencies.js";
 import { createStore, createEffect, createRenderEffect, createMemo, produce, createSignal, createResource } from "../../dependencies/dependencies.js";
-import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
+import { d3, math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
 import { mermaid } from "../../dependencies/dependencies.js"
 
 
@@ -394,17 +394,8 @@ interface PlotArgs {
 }
 
 const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [])
-/**
-   * Generate a plot with the given data and associated styles.
-   */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400}: PlotArgs, Plot) : SVGElement {
-  const tickStrings = ticks.map(t => t[0])
-  const tickOrdinals = ticks.map(t => t[1])
-  const tickZeroIndex = tickStrings.indexOf("0")
-  const domain = [Math.min(...tickOrdinals), Math.max(...tickOrdinals)]
 
-  /** Compress `arr` to length `outLen` by dividing into chunks and applying `chunkCompressor` to each chunk. */
+/** Compress `arr` to length `outLen` by dividing into chunks and applying `chunkCompressor` to each chunk. */
   function compress(arr, outLen, chunkCompressor = points => points[0]) {
     return arr.reduce((acc, pt, i) =>
       i % Math.floor(arr.length / outLen) !== 0 ? acc
@@ -413,7 +404,7 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
   }
 
   /** Compute a new array of the same length as `points` by averaging on a window of size `size` at each point. */
-  const slidingWindow = (points: Point[], size : number) => {
+  function slidingWindow(points: Point[], size : number) {
     const half = Math.floor(size / 2)
     const runningSum = points.reduce((acc, v) => (
         acc.length > 0 ? acc.push(v.y + acc[acc.length - 1])
@@ -465,6 +456,145 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
         })
     ]
   }
+
+function example() {
+  var data = [{
+      date: 2009,
+      wage: 7.25
+  }, {
+      date: 2008,
+      wage: 6.55
+  }, {
+      date: 2007,
+      wage: 5.85
+  }, {
+      date: 1997,
+      wage: 5.15
+  }, {
+      date: 1996,
+      wage: 4.75
+  }, {
+      date: 1991,
+      wage: 4.25
+  }, {
+      date: 1981,
+      wage: 3.35
+  }, {
+      date: 1980,
+      wage: 3.10
+  }, {
+      date: 1979,
+      wage: 2.90
+  }, {
+      date: 1978,
+      wage: 2.65
+  }]
+
+  var margin = {
+      top: 20,
+      right: 20,
+      bottom: 30,
+      left: 40
+  }
+
+  let width = 800;
+  let height = 400;
+
+
+  // format the data
+  data.forEach(function (d) {
+      var parseDate = d3.timeParse("%Y");
+      d.date = parseDate(d.date);
+      d.wage = +d.wage;
+  });
+  //sort the data by date so the trend line makes sense
+  data.sort(function (a, b) {
+      return a.date - b.date;
+  });
+
+  // set the ranges
+  var x = d3.scaleTime().range([0, width]);
+  var y = d3.scaleLinear().range([height, 0]);
+
+  // Scale the range of the data
+  x.domain(d3.extent(data, function (d) {
+      return d.date;
+  }));
+  y.domain([0, d3.max(data, function (d) {
+      return d.wage;
+  })]);
+
+  // define the line
+  var valueline = d3.line()
+      .x(function (d) {
+          return x(d.date);
+      })
+      .y(function (d) {
+          return y(d.wage);
+      });
+
+  // append the svg object to the body of the page
+  var svg = d3.select("#d3-container").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+  // Add the trendline
+  svg.append("path")
+      .data([data])
+      .attr("class", "line")
+      .attr("d", valueline)
+      .attr("stroke", "#32CD32")
+      .attr("stroke-width", 2)
+      .attr("fill", "#FFFFFF");
+
+  // Add the data points
+  var path = svg.selectAll("dot")
+      .data(data)
+      .enter().append("circle")
+      .attr("r", 5)
+      .attr("cx", function (d) {
+          return x(d.date);
+      })
+      .attr("cy", function (d) {
+          return y(d.wage);
+      })
+      .attr("stroke", "#32CD32")
+      .attr("stroke-width", 1.5)
+      .attr("fill", "#FFFFFF");
+
+  // Add the axis
+  if (width < 500) {
+      svg.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x).ticks(5));
+  } else {
+      svg.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x));
+  }
+
+  svg.append("g")
+      .call(d3.axisLeft(y).tickFormat(function (d) {
+          return "$" + d3.format(".2f")(d)
+      }));
+
+  return svg;
+
+}
+
+/**
+   * Generate a plot with the given data and associated styles.
+   */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400}: PlotArgs, Plot) : SVGElement {
+  const tickStrings = ticks.map(t => t[0])
+  const tickOrdinals = ticks.map(t => t[1])
+  const tickZeroIndex = tickStrings.indexOf("0")
+  const domain = [Math.min(...tickOrdinals), Math.max(...tickOrdinals)]
+
   console.log('splitpoints', splitpoints)
   const out = Plot.plot({
     width: width.toString(),
@@ -1960,6 +2090,7 @@ function expressionComparisonView(expressions, api) {
 
   return html`<div>
     <h3>Sampled bits of error over the range ${currentVarname} = [${minPt} , ${maxPt}]:</h3>
+    <div id="d3-container"></div>
     ${() => {
       const selectedExpressionId = getLastSelected(api, "Expressions")?.id
     const validPointsJsons = pointsJsons()
@@ -1992,6 +2123,8 @@ function expressionComparisonView(expressions, api) {
       const dotAlpha = selected ? 'b5' : '25'
       return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 }, selected, id: expression.id}
     })
+    const g = example();
+    // return html`<div class="errorPlot">${g}</div>`;
     const errorGraph = plotError({ data, styles, ticks, splitpoints, bits, varnames:vars, varidx: currentVarIdx()}, Plot)
     errorGraph.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
       const { o, id } = JSON.parse(t.textContent)
@@ -2005,7 +2138,7 @@ function expressionComparisonView(expressions, api) {
       }
     })
     //console.log(data)
-    return html`<div class="errorPlot">${errorGraph}</div>`
+    return html`<div class="errorPlot">${g}${errorGraph}</div>`
     }
     }
     <div>

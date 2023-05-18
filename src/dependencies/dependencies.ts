@@ -7,6 +7,7 @@ import * as math11 from 'mathjs11'
 //@ts-ignore
 import * as Plot from '@observablehq/plot'
 import * as Inputs from '@observablehq/inputs'
+import * as d3 from 'd3';
 
 import mermaid from 'mermaid';
 
@@ -14,5 +15,5 @@ export {
   createEffect, createRenderEffect, createSignal, createMemo, createResource,
   For, Switch, Match, createStore, produce, unwrap, render, html,
   Show, math, untrack, Plot, Inputs,
-  math11, mermaid
+  math11, mermaid, d3
 }

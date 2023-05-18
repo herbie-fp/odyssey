@@ -457,39 +457,7 @@ const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[
     ]
   }
 
-function example() {
-  var data = [{
-      date: 2009,
-      wage: 7.25
-  }, {
-      date: 2008,
-      wage: 6.55
-  }, {
-      date: 2007,
-      wage: 5.85
-  }, {
-      date: 1997,
-      wage: 5.15
-  }, {
-      date: 1996,
-      wage: 4.75
-  }, {
-      date: 1991,
-      wage: 4.25
-  }, {
-      date: 1981,
-      wage: 3.35
-  }, {
-      date: 1980,
-      wage: 3.10
-  }, {
-      date: 1979,
-      wage: 2.90
-  }, {
-      date: 1978,
-      wage: 2.65
-  }]
-
+function plotD3(rawData) {
   var margin = {
       top: 20,
       right: 20,
@@ -500,16 +468,11 @@ function example() {
   let width = 800;
   let height = 400;
 
+  let data = compress(rawData[0], width);
 
-  // format the data
-  data.forEach(function (d) {
-      var parseDate = d3.timeParse("%Y");
-      d.date = parseDate(d.date);
-      d.wage = +d.wage;
-  });
-  //sort the data by date so the trend line makes sense
+  //sort the data by x so the trend line makes sense
   data.sort(function (a, b) {
-      return a.date - b.date;
+      return a.x - b.x;
   });
 
   // set the ranges
@@ -518,19 +481,20 @@ function example() {
 
   // Scale the range of the data
   x.domain(d3.extent(data, function (d) {
-      return d.date;
+    console.log(d.x);
+      return d.x;
   }));
   y.domain([0, d3.max(data, function (d) {
-      return d.wage;
+      return d.y;
   })]);
 
   // define the line
   var valueline = d3.line()
       .x(function (d) {
-          return x(d.date);
+          return x(d.x);
       })
       .y(function (d) {
-          return y(d.wage);
+          return y(d.y);
       });
 
   // append the svg object to the body of the page
@@ -556,10 +520,10 @@ function example() {
       .enter().append("circle")
       .attr("r", 5)
       .attr("cx", function (d) {
-          return x(d.date);
+          return x(d.x);
       })
       .attr("cy", function (d) {
-          return y(d.wage);
+          return y(d.y);
       })
       .attr("stroke", "#32CD32")
       .attr("stroke-width", 1.5)
@@ -578,7 +542,7 @@ function example() {
 
   svg.append("g")
       .call(d3.axisLeft(y).tickFormat(function (d) {
-          return "$" + d3.format(".2f")(d)
+          return d3.format(".2f")(d)
       }));
 
   return svg;
@@ -594,6 +558,7 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
   const tickOrdinals = ticks.map(t => t[1])
   const tickZeroIndex = tickStrings.indexOf("0")
   const domain = [Math.min(...tickOrdinals), Math.max(...tickOrdinals)]
+  console.log(domain);
 
   console.log('splitpoints', splitpoints)
   const out = Plot.plot({
@@ -2123,7 +2088,7 @@ function expressionComparisonView(expressions, api) {
       const dotAlpha = selected ? 'b5' : '25'
       return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 }, selected, id: expression.id}
     })
-    const g = example();
+    const g = plotD3(data);
     // return html`<div class="errorPlot">${g}</div>`;
     const errorGraph = plotError({ data, styles, ticks, splitpoints, bits, varnames:vars, varidx: currentVarIdx()}, Plot)
     errorGraph.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {

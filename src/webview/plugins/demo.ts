@@ -936,7 +936,7 @@ function mainPage(api) {
       <td>
         <input type="checkbox" onClick=${toggleMultiselected} checked=${boxChecked}>
       </td>
-      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${() => setTimeout(selectExpression(expression))}><pre>${expression.mathjs.replace(/\s+/g, ' ').replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre></td>
+      <td class="expression ${(expression.mathjs === spec.mathjs || expression.fpcore === spec.fpcore) ? 'naive-expression' : ''}" onClick=${() => setTimeout(selectExpression(expression))}><pre>${expression.mathjs.replace(/\s+/g, ' ').replaceAll('?', '\n?').replaceAll(':', '\n:')}</pre></td>
       <td class="expressionTex" onClick=${() => setTimeout(selectExpression(expression))}><span innerHTML=${(window as any).katex.renderToString(math2Tex(expression.mathjs.split('\n').join('')), {
         throwOnError: false
       })}></span> </td>
@@ -956,9 +956,11 @@ function mainPage(api) {
           <//>
         <//>
       </td>
-      <td><button onclick=${() => navigator.clipboard.writeText(expression.mathjs.replace(/\s+/g, ' ').replaceAll('?', '?\n  ').replaceAll(':', '\n:'))}>📋</button></td>
-      <td >
+      <td>
+        <div class="expressionButtons">
+        <button onclick=${() => navigator.clipboard.writeText(expression.mathjs.replace(/\s+/g, ' ').replaceAll('?', '\n?').replaceAll(':', '\n:'))}>📋</button>
         <button onClick=${() => hideExpression(expression)} class="hideExpression">x</button>
+        </div>
       </td>
     </tr>`
   }
@@ -1133,12 +1135,11 @@ function mainPage(api) {
     
       <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) /*&& !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)*/) /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
+        <${Show} when=${addingExpression} fallback=${html`<button onClick=${() => setAddingExpression(true)}>Add Expression</button>`}>${() => addExpressionRow(spec, api)}<//>
         </tbody>
       </table>
       </div>
       ${getAlternativesButton(spec)}
-      <${Show} when=${addingExpression} fallback=${html`<button onClick=${() => setAddingExpression(true)}>Add Expression</button>`}>${() => addExpressionRow(spec, api)}<//>
-
     </div>`
     // ${() => addExpressionRow(spec)}
   }
@@ -1390,6 +1391,9 @@ function mainPage(api) {
         width: 15%;
         text-align: center;
       }
+      #expressionTable .expressionButtons {
+        display: flex;
+      }
       #expressionTable th, #expressionTable td {
         width:auto;
       }
@@ -1408,9 +1412,11 @@ function mainPage(api) {
         overflow: scroll;
       }
       #texPreview {
-        max-width: 400px;
-        overflow: scroll;
-        /*height: fit-content;*/
+        max-width: 30em;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        display: table-cell;
+        padding: 5px;
       }
       .varname {
         margin-right: 5px;
@@ -1440,7 +1446,7 @@ function mainPage(api) {
       }
       .expressionRow {
         max-height: 7em;
-        display: inline-table;
+        /*display: inline-table;*/
         width: 100%;
       }
       
@@ -1822,33 +1828,43 @@ function addExpressionRow(spec, api) {
     }
   })
   
-  return html`<div class="addExpressionRow">
-  <div>
-    Projected average error: 
-    <${Switch}>
-      <${Match} when=${() => projectedError.loading}> loading...<//>
-      <${Match} when=${() => true}> ${() => projectedError()?.toString()}<//>
-    <//>
-  </div>
-  <div>
-  ${textArea}
-  </div>
+  return html`<tr class="addExpressionRow">
+  <td></td>
+  <td></td>
   
-  <button onClick=${addExpression}>Add expression</button>
-
-  <div id="texPreview" >
-  ${() => {
-    try {
-      if (text() === '') { return '' }
-      return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
-        throwOnError: false
-      })}></span>`
-    } catch (err :any) {
-      return err.toString()
-    }
-  }}
+  <td>
+    <div class="editBox">
+    ${textArea}
     </div>
-  </div>`
+  </td>
+
+  <td>
+    <div id="texPreview" >
+    ${() => {
+      try {
+        if (text() === '') { return '' }
+        return html`<span class="preview-stuff" innerHTML=${(window as any).katex.renderToString(math2Tex(text().split('\n').join('')), {
+          throwOnError: false
+        })}></span>`
+      } catch (err :any) {
+        return err.toString()
+      }
+    }}
+    </div>
+  </td>
+  <td class="meanBitsError">
+    [
+      <${Switch}>
+        <${Match} when=${() => projectedError.loading}> loading...<//>
+        <${Match} when=${() => true}> ${() => projectedError()?.toString()}<//>
+      <//>
+    ]
+  </td>
+      
+  <td>
+    <button id="addExpressionButton" onClick=${addExpression}>Add</button>
+  </td>
+  </tr>`
   //<button class="newSpec" onClick=${() => vscodeApi.postMessage(JSON.stringify({ command: 'openNewTab', mathjs: spec.mathjs, ranges: unwrap(varValues), run: true }))}>Update ranges (opens new tab)</button>
 }
 
@@ -1906,7 +1922,7 @@ function expressionDetailsView(expression) {
     <h3>Expression Details: </h3>
     <div>${renderTex(math2Tex(expression.mathjs)) || expression.fpcore}</div>
     <h4>Text</h4>
-    <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '?\n  ').replaceAll(':', '\n:')}</pre>
+    <pre style="max-width: 400px; overflow: scroll; border: 1px solid gray;">${expression.mathjs.replaceAll('?', '\n?').replaceAll(':', '\n:')}</pre>
 
     </div>
   `

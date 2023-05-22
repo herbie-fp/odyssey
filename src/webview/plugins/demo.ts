@@ -458,94 +458,858 @@ const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[
   }
 
 function plotD3(rawData) {
-  var margin = {
-      top: 20,
-      right: 20,
-      bottom: 30,
-      left: 40
-  }
-
-  let width = 800;
-  let height = 400;
-
-  let data = compress(rawData[0], width);
-
-  //sort the data by x so the trend line makes sense
-  data.sort(function (a, b) {
-      return a.x - b.x;
-  });
-
-  // set the ranges
-  var x = d3.scaleTime().range([0, width]);
-  var y = d3.scaleLinear().range([height, 0]);
-
-  // Scale the range of the data
-  x.domain(d3.extent(data, function (d) {
-    console.log(d.x);
-      return d.x;
-  }));
-  y.domain([0, d3.max(data, function (d) {
-      return d.y;
-  })]);
-
-  // define the line
-  var valueline = d3.line()
-      .x(function (d) {
-          return x(d.x);
-      })
-      .y(function (d) {
-          return y(d.y);
-      });
+  // set the dimensions and margins of the graph
+  var margin = { top: 10, right: 30, bottom: 30, left: 60 },
+    width = 460 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
 
   // append the svg object to the body of the page
-  var svg = d3.select("#d3-container").append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
+  var Svg = d3.select("#d3-container")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform",
+      "translate(" + margin.left + "," + margin.top + ")");
 
-  // Add the trendline
-  svg.append("path")
-      .data([data])
-      .attr("class", "line")
-      .attr("d", valueline)
-      .attr("stroke", "#32CD32")
-      .attr("stroke-width", 2)
-      .attr("fill", "#FFFFFF");
+  //Read the data
+  var data = [
+    {
+        "x": "5.1",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "4.9",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "4.7",
+        "y": "1.3",
+        "category": "A"
+    },
+    {
+        "x": "4.6",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "5.4",
+        "y": "1.7",
+        "category": "A"
+    },
+    {
+        "x": "4.6",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "4.4",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "4.9",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5.4",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "4.8",
+        "y": "1.6",
+        "category": "A"
+    },
+    {
+        "x": "4.8",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "4.3",
+        "y": "1.1",
+        "category": "A"
+    },
+    {
+        "x": "5.8",
+        "y": "1.2",
+        "category": "A"
+    },
+    {
+        "x": "5.7",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5.4",
+        "y": "1.3",
+        "category": "A"
+    },
+    {
+        "x": "5.1",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "5.7",
+        "y": "1.7",
+        "category": "A"
+    },
+    {
+        "x": "5.1",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5.4",
+        "y": "1.7",
+        "category": "A"
+    },
+    {
+        "x": "5.1",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "4.6",
+        "y": "1",
+        "category": "A"
+    },
+    {
+        "x": "5.1",
+        "y": "1.7",
+        "category": "A"
+    },
+    {
+        "x": "4.8",
+        "y": "1.9",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.6",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.6",
+        "category": "A"
+    },
+    {
+        "x": "5.2",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5.2",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "4.7",
+        "y": "1.6",
+        "category": "A"
+    },
+    {
+        "x": "4.8",
+        "y": "1.6",
+        "category": "A"
+    },
+    {
+        "x": "5.4",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5.2",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5.5",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "4.9",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.2",
+        "category": "A"
+    },
+    {
+        "x": "5.5",
+        "y": "1.3",
+        "category": "A"
+    },
+    {
+        "x": "4.9",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "4.4",
+        "y": "1.3",
+        "category": "A"
+    },
+    {
+        "x": "5.1",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.3",
+        "category": "A"
+    },
+    {
+        "x": "4.5",
+        "y": "1.3",
+        "category": "A"
+    },
+    {
+        "x": "4.4",
+        "y": "1.3",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.6",
+        "category": "A"
+    },
+    {
+        "x": "5.1",
+        "y": "1.9",
+        "category": "A"
+    },
+    {
+        "x": "4.8",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "5.1",
+        "y": "1.6",
+        "category": "A"
+    },
+    {
+        "x": "4.6",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "5.3",
+        "y": "1.5",
+        "category": "A"
+    },
+    {
+        "x": "5",
+        "y": "1.4",
+        "category": "A"
+    },
+    {
+        "x": "7",
+        "y": "4.7",
+        "category": "B"
+    },
+    {
+        "x": "6.4",
+        "y": "4.5",
+        "category": "B"
+    },
+    {
+        "x": "6.9",
+        "y": "4.9",
+        "category": "B"
+    },
+    {
+        "x": "5.5",
+        "y": "4",
+        "category": "B"
+    },
+    {
+        "x": "6.5",
+        "y": "4.6",
+        "category": "B"
+    },
+    {
+        "x": "5.7",
+        "y": "4.5",
+        "category": "B"
+    },
+    {
+        "x": "6.3",
+        "y": "4.7",
+        "category": "B"
+    },
+    {
+        "x": "4.9",
+        "y": "3.3",
+        "category": "B"
+    },
+    {
+        "x": "6.6",
+        "y": "4.6",
+        "category": "B"
+    },
+    {
+        "x": "5.2",
+        "y": "3.9",
+        "category": "B"
+    },
+    {
+        "x": "5",
+        "y": "3.5",
+        "category": "B"
+    },
+    {
+        "x": "5.9",
+        "y": "4.2",
+        "category": "B"
+    },
+    {
+        "x": "6",
+        "y": "4",
+        "category": "B"
+    },
+    {
+        "x": "6.1",
+        "y": "4.7",
+        "category": "B"
+    },
+    {
+        "x": "5.6",
+        "y": "3.6",
+        "category": "B"
+    },
+    {
+        "x": "6.7",
+        "y": "4.4",
+        "category": "B"
+    },
+    {
+        "x": "5.6",
+        "y": "4.5",
+        "category": "B"
+    },
+    {
+        "x": "5.8",
+        "y": "4.1",
+        "category": "B"
+    },
+    {
+        "x": "6.2",
+        "y": "4.5",
+        "category": "B"
+    },
+    {
+        "x": "5.6",
+        "y": "3.9",
+        "category": "B"
+    },
+    {
+        "x": "5.9",
+        "y": "4.8",
+        "category": "B"
+    },
+    {
+        "x": "6.1",
+        "y": "4",
+        "category": "B"
+    },
+    {
+        "x": "6.3",
+        "y": "4.9",
+        "category": "B"
+    },
+    {
+        "x": "6.1",
+        "y": "4.7",
+        "category": "B"
+    },
+    {
+        "x": "6.4",
+        "y": "4.3",
+        "category": "B"
+    },
+    {
+        "x": "6.6",
+        "y": "4.4",
+        "category": "B"
+    },
+    {
+        "x": "6.8",
+        "y": "4.8",
+        "category": "B"
+    },
+    {
+        "x": "6.7",
+        "y": "5",
+        "category": "B"
+    },
+    {
+        "x": "6",
+        "y": "4.5",
+        "category": "B"
+    },
+    {
+        "x": "5.7",
+        "y": "3.5",
+        "category": "B"
+    },
+    {
+        "x": "5.5",
+        "y": "3.8",
+        "category": "B"
+    },
+    {
+        "x": "5.5",
+        "y": "3.7",
+        "category": "B"
+    },
+    {
+        "x": "5.8",
+        "y": "3.9",
+        "category": "B"
+    },
+    {
+        "x": "6",
+        "y": "5.1",
+        "category": "B"
+    },
+    {
+        "x": "5.4",
+        "y": "4.5",
+        "category": "B"
+    },
+    {
+        "x": "6",
+        "y": "4.5",
+        "category": "B"
+    },
+    {
+        "x": "6.7",
+        "y": "4.7",
+        "category": "B"
+    },
+    {
+        "x": "6.3",
+        "y": "4.4",
+        "category": "B"
+    },
+    {
+        "x": "5.6",
+        "y": "4.1",
+        "category": "B"
+    },
+    {
+        "x": "5.5",
+        "y": "4",
+        "category": "B"
+    },
+    {
+        "x": "5.5",
+        "y": "4.4",
+        "category": "B"
+    },
+    {
+        "x": "6.1",
+        "y": "4.6",
+        "category": "B"
+    },
+    {
+        "x": "5.8",
+        "y": "4",
+        "category": "B"
+    },
+    {
+        "x": "5",
+        "y": "3.3",
+        "category": "B"
+    },
+    {
+        "x": "5.6",
+        "y": "4.2",
+        "category": "B"
+    },
+    {
+        "x": "5.7",
+        "y": "4.2",
+        "category": "B"
+    },
+    {
+        "x": "5.7",
+        "y": "4.2",
+        "category": "B"
+    },
+    {
+        "x": "6.2",
+        "y": "4.3",
+        "category": "B"
+    },
+    {
+        "x": "5.1",
+        "y": "3",
+        "category": "B"
+    },
+    {
+        "x": "5.7",
+        "y": "4.1",
+        "category": "B"
+    },
+    {
+        "x": "6.3",
+        "y": "6",
+        "category": "C"
+    },
+    {
+        "x": "5.8",
+        "y": "5.1",
+        "category": "C"
+    },
+    {
+        "x": "7.1",
+        "y": "5.9",
+        "category": "C"
+    },
+    {
+        "x": "6.3",
+        "y": "5.6",
+        "category": "C"
+    },
+    {
+        "x": "6.5",
+        "y": "5.8",
+        "category": "C"
+    },
+    {
+        "x": "7.6",
+        "y": "6.6",
+        "category": "C"
+    },
+    {
+        "x": "4.9",
+        "y": "4.5",
+        "category": "C"
+    },
+    {
+        "x": "7.3",
+        "y": "6.3",
+        "category": "C"
+    },
+    {
+        "x": "6.7",
+        "y": "5.8",
+        "category": "C"
+    },
+    {
+        "x": "7.2",
+        "y": "6.1",
+        "category": "C"
+    },
+    {
+        "x": "6.5",
+        "y": "5.1",
+        "category": "C"
+    },
+    {
+        "x": "6.4",
+        "y": "5.3",
+        "category": "C"
+    },
+    {
+        "x": "6.8",
+        "y": "5.5",
+        "category": "C"
+    },
+    {
+        "x": "5.7",
+        "y": "5",
+        "category": "C"
+    },
+    {
+        "x": "5.8",
+        "y": "5.1",
+        "category": "C"
+    },
+    {
+        "x": "6.4",
+        "y": "5.3",
+        "category": "C"
+    },
+    {
+        "x": "6.5",
+        "y": "5.5",
+        "category": "C"
+    },
+    {
+        "x": "7.7",
+        "y": "6.7",
+        "category": "C"
+    },
+    {
+        "x": "7.7",
+        "y": "6.9",
+        "category": "C"
+    },
+    {
+        "x": "6",
+        "y": "5",
+        "category": "C"
+    },
+    {
+        "x": "6.9",
+        "y": "5.7",
+        "category": "C"
+    },
+    {
+        "x": "5.6",
+        "y": "4.9",
+        "category": "C"
+    },
+    {
+        "x": "7.7",
+        "y": "6.7",
+        "category": "C"
+    },
+    {
+        "x": "6.3",
+        "y": "4.9",
+        "category": "C"
+    },
+    {
+        "x": "6.7",
+        "y": "5.7",
+        "category": "C"
+    },
+    {
+        "x": "7.2",
+        "y": "6",
+        "category": "C"
+    },
+    {
+        "x": "6.2",
+        "y": "4.8",
+        "category": "C"
+    },
+    {
+        "x": "6.1",
+        "y": "4.9",
+        "category": "C"
+    },
+    {
+        "x": "6.4",
+        "y": "5.6",
+        "category": "C"
+    },
+    {
+        "x": "7.2",
+        "y": "5.8",
+        "category": "C"
+    },
+    {
+        "x": "7.4",
+        "y": "6.1",
+        "category": "C"
+    },
+    {
+        "x": "7.9",
+        "y": "6.4",
+        "category": "C"
+    },
+    {
+        "x": "6.4",
+        "y": "5.6",
+        "category": "C"
+    },
+    {
+        "x": "6.3",
+        "y": "5.1",
+        "category": "C"
+    },
+    {
+        "x": "6.1",
+        "y": "5.6",
+        "category": "C"
+    },
+    {
+        "x": "7.7",
+        "y": "6.1",
+        "category": "C"
+    },
+    {
+        "x": "6.3",
+        "y": "5.6",
+        "category": "C"
+    },
+    {
+        "x": "6.4",
+        "y": "5.5",
+        "category": "C"
+    },
+    {
+        "x": "6",
+        "y": "4.8",
+        "category": "C"
+    },
+    {
+        "x": "6.9",
+        "y": "5.4",
+        "category": "C"
+    },
+    {
+        "x": "6.7",
+        "y": "5.6",
+        "category": "C"
+    },
+    {
+        "x": "6.9",
+        "y": "5.1",
+        "category": "C"
+    },
+    {
+        "x": "5.8",
+        "y": "5.1",
+        "category": "C"
+    },
+    {
+        "x": "6.8",
+        "y": "5.9",
+        "category": "C"
+    },
+    {
+        "x": "6.7",
+        "y": "5.7",
+        "category": "C"
+    },
+    {
+        "x": "6.7",
+        "y": "5.2",
+        "category": "C"
+    },
+    {
+        "x": "6.3",
+        "y": "5",
+        "category": "C"
+    },
+    {
+        "x": "6.5",
+        "y": "5.2",
+        "category": "C"
+    },
+    {
+        "x": "6.2",
+        "y": "5.4",
+        "category": "C"
+    },
+    {
+        "x": "5.9",
+        "y": "5.1",
+        "category": "C"
+    }
+];
+    // Add X axis
+    var x = d3.scaleLinear()
+      .domain([4, 8])
+      .range([0, width]);
+    var xAxis = Svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
 
-  // Add the data points
-  var path = svg.selectAll("dot")
+    // Add Y axis
+    var y = d3.scaleLinear()
+      .domain([0, 9])
+      .range([height, 0]);
+    Svg.append("g")
+      .call(d3.axisLeft(y));
+
+    // Add a clipPath: everything out of this area won't be drawn.
+    var clip = Svg.append("defs").append("svg:clipPath")
+      .attr("id", "clip")
+      .append("svg:rect")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("x", 0)
+      .attr("y", 0);
+
+    // Color scale: given a category name, return a color
+    var color = d3.scaleOrdinal()
+      .domain(["A", "B", "C"])
+      .range(["#440154ff", "#21908dff", "#fde725ff"])
+
+    // Add brushing
+    var brush = d3.brushX()                 // Add the brush feature using the d3.brush function
+      .extent([[0, 0], [width, height]]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+      .on("end", updateChart) // Each time the brush selection changes, trigger the 'updateChart' function
+
+    // Create the scatter variable: where both the circles and the brush take place
+    var scatter = Svg.append('g')
+      .attr("clip-path", "url(#clip)")
+
+    // Add circles
+    scatter
+      .selectAll("circle")
       .data(data)
-      .enter().append("circle")
-      .attr("r", 5)
-      .attr("cx", function (d) {
-          return x(d.x);
-      })
-      .attr("cy", function (d) {
-          return y(d.y);
-      })
-      .attr("stroke", "#32CD32")
-      .attr("stroke-width", 1.5)
-      .attr("fill", "#FFFFFF");
+      .enter()
+      .append("circle")
+      .attr("cx", function (d) { return x(d.x); })
+      .attr("cy", function (d) { return y(d.y); })
+      .attr("r", 8)
+      .style("fill", function (d) { return color(d.category) })
+      .style("opacity", 0.5)
 
-  // Add the axis
-  if (width < 500) {
-      svg.append("g")
-          .attr("transform", "translate(0," + height + ")")
-          .call(d3.axisBottom(x).ticks(5));
-  } else {
-      svg.append("g")
-          .attr("transform", "translate(0," + height + ")")
-          .call(d3.axisBottom(x));
-  }
+    // Add the brushing
+    scatter
+      .append("g")
+      .attr("class", "brush")
+      .call(brush);
 
-  svg.append("g")
-      .call(d3.axisLeft(y).tickFormat(function (d) {
-          return d3.format(".2f")(d)
-      }));
+    // A function that set idleTimeOut to null
+    var idleTimeout
+    function idled() { idleTimeout = null; }
 
-  return svg;
+    // A function that update the chart for given boundaries
+    function updateChart(event) {
+
+      var extent = event.selection
+
+      // If no selection, back to initial coordinate. Otherwise, update X axis domain
+      if (!extent) {
+        if (!idleTimeout) return idleTimeout = setTimeout(idled, 350); // This allows to wait a little bit
+        x.domain([4, 8])
+      } else {
+        x.domain([x.invert(extent[0]), x.invert(extent[1])])
+        scatter.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
+      }
+
+      // Update axis and circle position
+      xAxis.transition().duration(1000).call(d3.axisBottom(x))
+      scatter
+        .selectAll("circle")
+        .transition().duration(1000)
+        .attr("cx", function (d) { return x(d.x); })
+        .attr("cy", function (d) { return y(d.y); })
+
+    }
+
+    return scatter;
 
 }
 

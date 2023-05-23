@@ -440,7 +440,7 @@ const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[
     const compressedSlidingWindow = compress(
       slidingWindow(data, binSize), width, average)
     //console.log(compressedSlidingWindow)
-    return [
+    const r =  [
         Plot.line(compressedSlidingWindow, {
             x: "x",
             y: "y",
@@ -454,14 +454,25 @@ const zip = (arr1, arr2, arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[
             //"data-id": d => id,//() => window.api.select('Expressions', id),
             ...dot
         })
-    ]
+    ];
+    console.log(r);
+    return r;
   }
 
-function plotD3(rawData) {
+function plotD3(rawData, ticks) {
   // set the dimensions and margins of the graph
   var margin = { top: 10, right: 30, bottom: 30, left: 60 },
     width = 460 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
+
+  const tickStrings = ticks.map(t => t[0])
+  const tickOrdinals = ticks.map(t => t[1])
+  const tickZeroIndex = tickStrings.indexOf("0")
+  const domain = [Math.min(...tickOrdinals), Math.max(...tickOrdinals)]
+  
+  console.log(rawData);
+  const compressed = compress(rawData[0], width);
+  console.log(compressed);
 
   // append the svg object to the body of the page
   var Svg = d3.select("#d3-container")
@@ -1227,7 +1238,7 @@ function plotD3(rawData) {
 ];
     // Add X axis
     var x = d3.scaleLinear()
-      .domain([4, 8])
+      .domain(domain)
       .range([0, width]);
     var xAxis = Svg.append("g")
       .attr("transform", "translate(0," + height + ")")
@@ -1266,13 +1277,13 @@ function plotD3(rawData) {
     // Add circles
     scatter
       .selectAll("circle")
-      .data(data)
+      .data(compressed)
       .enter()
       .append("circle")
       .attr("cx", function (d) { return x(d.x); })
       .attr("cy", function (d) { return y(d.y); })
-      .attr("r", 8)
-      .style("fill", function (d) { return color(d.category) })
+      .attr("r", 3)
+      // .style("fill", function (d) { return color(d.category) })
       .style("opacity", 0.5)
 
     // Add the brushing
@@ -1293,7 +1304,7 @@ function plotD3(rawData) {
       // If no selection, back to initial coordinate. Otherwise, update X axis domain
       if (!extent) {
         if (!idleTimeout) return idleTimeout = setTimeout(idled, 350); // This allows to wait a little bit
-        x.domain([4, 8])
+        x.domain(domain)
       } else {
         x.domain([x.invert(extent[0]), x.invert(extent[1])])
         scatter.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
@@ -1326,7 +1337,7 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
   console.log(tickOrdinals);
 
   console.log('splitpoints', splitpoints)
-  const out = Plot.plot({
+  let shape = {
     width: width.toString(),
     height: height.toString(),                
     x: {
@@ -1337,7 +1348,7 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
         grid: true
     },
     y: {
-        label: "Bits of Error", domain: [0, bits],
+        label: "Bits of Error", domain: [0, 9],
         ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
         tickFormat: d => d % 8 !== 0 ? '' : d
     },
@@ -1350,7 +1361,9 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
       ],
       // The graphs
       ...zip(data, styles).map(([data, style]) => lineAndDotGraphs({ data, style, width })).flat()]
-  })
+  };
+  console.log(shape);
+  const out = Plot.plot(shape);
   out.setAttribute('viewBox', `0 0 ${width} ${height + 30}`)
   
   return out
@@ -1686,7 +1699,7 @@ function mainPage(api) {
     const handleErrors = (tryBody, catchBody=e => e) => () => {
       try { return tryBody() } catch (e) { return catchBody(e) }
     }
-    const [varValues, setVarValues] = createStore({ x: { low: 0, high: 1e308 } } as any)
+    const [varValues, setVarValues] = createStore({ x: { low: 0.01, high: 100 } } as any)
     //@ts-ignore
     window.setVarValues = setVarValues // ugly HACK for letting new page force these values to change
 
@@ -2856,7 +2869,7 @@ function expressionComparisonView(expressions, api) {
       const dotAlpha = selected ? 'b5' : '25'
       return { line: { stroke: color }, dot: { stroke: color + dotAlpha, fill: color, fillOpacity: 0 }, selected, id: expression.id}
     })
-    const g = plotD3(data);
+    const g = plotD3(data, ticks);
     // return html`<div class="errorPlot">${g}</div>`;
     const errorGraph = plotError({ data, styles, ticks, splitpoints, bits, varnames:vars, varidx: currentVarIdx()}, Plot)
     errorGraph.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {

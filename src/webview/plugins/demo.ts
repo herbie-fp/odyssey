@@ -1323,6 +1323,7 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
   const tickZeroIndex = tickStrings.indexOf("0")
   const domain = [Math.min(...tickOrdinals), Math.max(...tickOrdinals)]
   console.log(domain);
+  console.log(tickOrdinals);
 
   console.log('splitpoints', splitpoints)
   const out = Plot.plot({
@@ -1450,7 +1451,10 @@ const herbiejs = (() => {
       // const floatToOrdinal = float => 42  // TODO
       // const chooseTicks = sample => []  // TODO
       console.trace('host', host, fpcore)//(await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })))
-      const pointsAndErrors = (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore.split('\n').join(''), sample: sample.points }) })).json()).points
+      let [x, y] = fpcore.split(":name");
+      console.log(x);
+      let newfpcore = `${x}:precision (float 3 8) :name ${y}`;
+      const pointsAndErrors = (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: newfpcore.split('\n').join(''), sample: sample.points  }) })).json()).points
       const ordinalSample = sample.points.map(p => p[0].map(v => ordinalsjs.floatToApproximateOrdinal(v)))
       
       const vars = fpcorejs.getVarnamesFPCore(fpcore)

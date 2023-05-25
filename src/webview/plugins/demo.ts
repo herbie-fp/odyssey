@@ -551,47 +551,37 @@ const herbiejs = (() => {
   //   const pointsJson = await pointsJsonResponse.json()
   //   return { graphHtml, pointsJson }
   // }
-  return ({
-    getSample: async (fpcore, host, log=txt=>console.log(txt)) => {
-      try {
-        return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json())  // TODO change seed to resample
-      } catch (e) {
-        console.error('Bad /sample call, error was', e)
-        if (RETRY) {  // HACK to just retry once
-          RETRY = false
-          console.log('retrying /sample')
-          return (await (await fetch(`${host}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcore, seed: 5}) })).json())  // TODO change seed to resample
+
+  // All Herbie API calls are POSTs to /api/{endpoint}
+  const getHerbieApi = async (host: string, endpoint: string, data: object, retry: boolean) => {
+    const url = `${host}/api/${endpoint}`
+    // TODO add timeout?
+    console.log('calling', url, 'with data', data)
+    return await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+      .then(async r => {
+        const data = await r.json()
+        console.log('got data', data)
+        return data
+      })
+      .catch(e => { 
+        console.error('Bad call to', url, 'with data', data, 'error was', e)
+        if (retry) {
+          console.error('retrying once')
+          return getHerbieApi(host, endpoint, data, false)
         } else {
           throw e
         }
-      }
-      
-      // const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
-      // return pointsJson
-    },
-    suggestExpressions: async (fpcore, sample, host, log, html) => {
-      return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json())
-    //   const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
-    //   //console.log(graphHtml)
-    //   //@ts-ignore
-    //   window.html = html
-    //   const page = document.createElement('div') as any
-    //   page.innerHTML = graphHtml
-    //   //const page = html`${graphHtml}`
-    //   //console.log('good parse')
-    //   return [ Object.fromEntries([...page.querySelectorAll('.implementation')].map(d => [d.getAttribute('data-language'), {spec: d.textContent.split('↓')[0], suggestion: d.textContent.split('↓')[1]}])).FPCore.suggestion ].map( v => {
-    //     const body = v.slice(v.slice(9).indexOf('(') + 9, -1)
-    //     return body
-    // })
-    },
-    analyzeLocalError: async (fpcore, sample, host) => {
-      return (await (await fetch(`${host}/api/localerror`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json())
-    },
-    analyzeExpression: async (fpcore, sample, host, log) => {
-      // const floatToOrdinal = float => 42  // TODO
-      // const chooseTicks = sample => []  // TODO
-      console.trace('host', host, fpcore)//(await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample }) })))
-      const pointsAndErrors = (await (await fetch(`${host}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcore.split('\n').join(''), sample: sample.points }) })).json()).points
+      })
+  }
+  return ({
+    getSample: (fpcore, host) => getHerbieApi(host, 'sample', { formula: fpcore, seed: 5 }, true),
+    suggestExpressions: (fpcore, sample, host) => getHerbieApi(host, 'alternatives', { formula: fpcore, sample: sample.points, seed: 5 }, true),
+    analyzeLocalError: (fpcore, sample, host) => getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true),
+    analyzeExpression: async (fpcore, sample, host) => {
+      const pointsAndErrors = (await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)).points
       const ordinalSample = sample.points.map(p => p[0].map(v => ordinalsjs.floatToApproximateOrdinal(v)))
       
       const vars = fpcorejs.getVarnamesFPCore(fpcore)
@@ -607,14 +597,10 @@ const herbiejs = (() => {
       const errors = pointsAndErrors.map(([point, error]) => new Number(error))
       const meanBitsError = new Number((errors.reduce((sum, v) => sum + v, 0)/errors.length).toFixed(2))
       return { pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { target: errors } }, meanBitsError }
-      // fields: { points, ticks_by_varidx, splitpoints_by_varidx: splitpointsByVarIdx, bits, vars, error.target }
-        // const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcorejs.makeFPCore({specMathJS: spec.mathjs, specFPCore: spec.fpcore, ranges: spec.ranges, targetFPCoreBody }).split('\n').join(''), host, log)
-        // const meanBitsError = new Number((pointsJson.error.target.reduce((sum, v) => sum + v, 0)/pointsJson.error.target.length).toFixed(2))
-        // return {graphHtml, pointsJson, meanBitsError}
     },
-    fPCoreToMathJS: async (fpcore, host) => {
-      return (await (await fetch(`${host}/api/mathjs`, { method: 'POST', body: JSON.stringify({ formula: fpcore}) })).json()).mathjs
-    }
+
+    // TODO this should use a client-side library if possible instead
+    fPCoreToMathJS: async (fpcore, host) => (await getHerbieApi(host, 'mathjs', { formula: fpcore, seed: 5 }, true)).mathjs 
   })
 })()
 
@@ -1562,10 +1548,10 @@ async function genHerbieAlts(spec, api) {
   //let ids = [expressionId++] as any
   // HACK assuming only one suggestion for now
   console.log('spec fpcore is', spec.fpcore)
-  const sample = await herbiejs.getSample(spec.fpcore, getHost(), logval => console.log(logval))
+  const sample = await herbiejs.getSample(spec.fpcore, getHost())
   //const sample2 = sample.points.map((p, i) => [p, sample.exacts[i]])
   //console.log(sample2)
-  const fetch = await herbiejs.suggestExpressions(spec.fpcore, sample, getHost(), logval => console.log(logval), html)
+  const fetch = await herbiejs.suggestExpressions(spec.fpcore, sample, getHost())
   const alts = fetch.alternatives.slice(0, 5)  // Just return top 5 options
   const histories = fetch.histories.slice(0, 5)
 
@@ -2099,7 +2085,7 @@ function addVariables(spec) {
 }
 
 async function addSample(spec) {
-  return { ...(await herbiejs.getSample(spec.fpcore, getHost(), txt => console.log(txt))), id: sampleId++, specId: spec.id }
+  return { ...(await herbiejs.getSample(spec.fpcore, getHost())), id: sampleId++, specId: spec.id }
 }
 
 function selectNaiveExpression(spec, api) {

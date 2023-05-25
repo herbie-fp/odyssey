@@ -497,60 +497,60 @@ function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, w
 }
 
 const herbiejs = (() => {
-  async function graphHtmlAndPointsJson(fpcore, host, log) {
-    const improveStartLoc = host === 'http://127.0.0.1:8080/http://herbie.uwplse.org' ? host + '/demo/improve-start' : host + '/improve-start'
-    const sendJobResponse = await fetch( improveStartLoc, {
-      "headers": {
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Sec-Fetch-Site": "same-origin"
-      },
-      "body": `formula=${encodeURIComponent(fpcore)}`,
-      "referrer": "https://herbie.uwplse.org/demo/",
-      "method": "POST",
-      "mode": "cors"
-    });
-    // await fetch("https://herbie.uwplse.org/demo/improve-start", {
-    // "credentials": "omit",
-    // "headers": {
-    //     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
-    //     "Accept": "*/*",
-    //     "Accept-Language": "en-US,en;q=0.5",
-    //     "Content-Type": "application/x-www-form-urlencoded",
-    //     "Sec-Fetch-Dest": "empty",
-    //     "Sec-Fetch-Mode": "cors",
-    //     "Sec-Fetch-Site": "same-origin"
-    // },
-    // ,
+  // async function graphHtmlAndPointsJson(fpcore, host, log) {
+  //   const improveStartLoc = host === 'http://127.0.0.1:8080/http://herbie.uwplse.org' ? host + '/demo/improve-start' : host + '/improve-start'
+  //   const sendJobResponse = await fetch( improveStartLoc, {
+  //     "headers": {
+  //         // eslint-disable-next-line @typescript-eslint/naming-convention
+  //       "Content-Type": "application/x-www-form-urlencoded",
+  //       "Sec-Fetch-Site": "same-origin"
+  //     },
+  //     "body": `formula=${encodeURIComponent(fpcore)}`,
+  //     "referrer": "https://herbie.uwplse.org/demo/",
+  //     "method": "POST",
+  //     "mode": "cors"
+  //   });
+  //   // await fetch("https://herbie.uwplse.org/demo/improve-start", {
+  //   // "credentials": "omit",
+  //   // "headers": {
+  //   //     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
+  //   //     "Accept": "*/*",
+  //   //     "Accept-Language": "en-US,en;q=0.5",
+  //   //     "Content-Type": "application/x-www-form-urlencoded",
+  //   //     "Sec-Fetch-Dest": "empty",
+  //   //     "Sec-Fetch-Mode": "cors",
+  //   //     "Sec-Fetch-Site": "same-origin"
+  //   // },
+  //   // ,
 
-    const checkStatusLocation = sendJobResponse.headers.get('location')
-    const checkStatusResponse = await (async () => {
-      let out = null as any
-      while (!out) {
-        const check = await fetch(`${host}${checkStatusLocation}`, {
-          "method": "GET",
-          "mode": "cors"
-        });
-        const text = await check.text()
-        if (text) {log(text); await new Promise(resolve => setTimeout(() => resolve(null), 500))}
-        else {out = check}
-      }
-      return out
-    })()
-    const graphHtmlLocation = checkStatusResponse.headers.get('location')
-    const graphHtmlResponse = await fetch(`${host}${graphHtmlLocation}`, {
-      "method": "GET",
-      "mode": "cors"
-    });
-    const graphHtml = await graphHtmlResponse.text()
-    const pointsJsonLocation = [...graphHtmlLocation.split('/').slice(0, -1), 'points.json'].join('/')
-    const pointsJsonResponse = await fetch(`${host}${pointsJsonLocation}`, {
-      "method": "GET",
-      "mode": "cors"
-    });
-    const pointsJson = await pointsJsonResponse.json()
-    return { graphHtml, pointsJson }
-  }
+  //   const checkStatusLocation = sendJobResponse.headers.get('location')
+  //   const checkStatusResponse = await (async () => {
+  //     let out = null as any
+  //     while (!out) {
+  //       const check = await fetch(`${host}${checkStatusLocation}`, {
+  //         "method": "GET",
+  //         "mode": "cors"
+  //       });
+  //       const text = await check.text()
+  //       if (text) {log(text); await new Promise(resolve => setTimeout(() => resolve(null), 500))}
+  //       else {out = check}
+  //     }
+  //     return out
+  //   })()
+  //   const graphHtmlLocation = checkStatusResponse.headers.get('location')
+  //   const graphHtmlResponse = await fetch(`${host}${graphHtmlLocation}`, {
+  //     "method": "GET",
+  //     "mode": "cors"
+  //   });
+  //   const graphHtml = await graphHtmlResponse.text()
+  //   const pointsJsonLocation = [...graphHtmlLocation.split('/').slice(0, -1), 'points.json'].join('/')
+  //   const pointsJsonResponse = await fetch(`${host}${pointsJsonLocation}`, {
+  //     "method": "GET",
+  //     "mode": "cors"
+  //   });
+  //   const pointsJson = await pointsJsonResponse.json()
+  //   return { graphHtml, pointsJson }
+  // }
   return ({
     getSample: async (fpcore, host, log=txt=>console.log(txt)) => {
       try {
@@ -566,23 +566,23 @@ const herbiejs = (() => {
         }
       }
       
-      const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
-      return pointsJson
+      // const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
+      // return pointsJson
     },
     suggestExpressions: async (fpcore, sample, host, log, html) => {
       return (await (await fetch(`${host}/api/alternatives`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json())
-      const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
-      //console.log(graphHtml)
-      //@ts-ignore
-      window.html = html
-      const page = document.createElement('div') as any
-      page.innerHTML = graphHtml
-      //const page = html`${graphHtml}`
-      //console.log('good parse')
-      return [ Object.fromEntries([...page.querySelectorAll('.implementation')].map(d => [d.getAttribute('data-language'), {spec: d.textContent.split('↓')[0], suggestion: d.textContent.split('↓')[1]}])).FPCore.suggestion ].map( v => {
-        const body = v.slice(v.slice(9).indexOf('(') + 9, -1)
-        return body
-    })
+    //   const { graphHtml, pointsJson } = await graphHtmlAndPointsJson(fpcore, host, log)
+    //   //console.log(graphHtml)
+    //   //@ts-ignore
+    //   window.html = html
+    //   const page = document.createElement('div') as any
+    //   page.innerHTML = graphHtml
+    //   //const page = html`${graphHtml}`
+    //   //console.log('good parse')
+    //   return [ Object.fromEntries([...page.querySelectorAll('.implementation')].map(d => [d.getAttribute('data-language'), {spec: d.textContent.split('↓')[0], suggestion: d.textContent.split('↓')[1]}])).FPCore.suggestion ].map( v => {
+    //     const body = v.slice(v.slice(9).indexOf('(') + 9, -1)
+    //     return body
+    // })
     },
     analyzeLocalError: async (fpcore, sample, host) => {
       return (await (await fetch(`${host}/api/localerror`, { method: 'POST', body: JSON.stringify({ formula: fpcore, sample: sample.points }) })).json())

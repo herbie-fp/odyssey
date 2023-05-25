@@ -1808,7 +1808,7 @@ function addExpressionRow(spec, api) {
       return 0
     }
     try {
-      return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), getHost(), txt => console.log(txt))).meanBitsError
+      return (await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(text.split('\n').join(''), spec.fpcore), getByKey(api, 'Samples', 'specId', spec.id), getHost())).meanBitsError
     } catch (err:any) {
       return 'loading...'  // HACK
     }
@@ -2068,7 +2068,7 @@ async function analyzeExpression(expression, api) {
   const getSample = () => getByKey(api, 'Samples', 'specId', expression.specId)
   await waitUntil(getSample, 1000)  // HACK kind of, we need to wait for a sample to be added (this is a general problem with things generated from multiple items)
   const sample = getSample()
-  return { ...await herbiejs.analyzeExpression(expression.fpcore, sample, getHost(), logval => console.log(logval)), expressionId: expression.id }
+  return { ...await herbiejs.analyzeExpression(expression.fpcore, sample, getHost()), expressionId: expression.id }
   //return await (new Promise(resolve => setTimeout(() => resolve({bitsError: Math.round(64 * Math.random()), performance: Math.round(100 * Math.random()), expressionId: expression.id}), 2000)))
 }
 

@@ -69,6 +69,14 @@ export function activate(context: vscode.ExtensionContext) {
 				async message => {
 					message = JSON.parse(message)
 					switch (message.command) {
+						case 'error':
+							// Show a button for copying the error message to the clipboard
+							const copy = 'Copy to clipboard'
+							const action = await vscode.window.showErrorMessage(message.error, copy)
+							if (action === copy) {
+								await vscode.env.clipboard.writeText(message.error)
+							}
+							break
 						case 'openNewTab':
 							const { mathjs, ranges } = message
 							const title = 'Odyssey: Herbie'//mathjs.length > 12 ? mathjs.slice(0, 9) + '...' : mathjs

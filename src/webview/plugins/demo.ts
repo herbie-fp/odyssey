@@ -9,8 +9,10 @@ import { createStore, createEffect, createRenderEffect, createMemo, produce, cre
 import { math, Plot, Inputs, math11 } from "../../dependencies/dependencies.js"
 import { mermaid } from "../../dependencies/dependencies.js"
 
-
 const vscodeApi = await (window as any).acquireVsCodeApi()
+
+window.addEventListener("error", (event) => { vscodeApi.postMessage(JSON.stringify({ command: 'error', error: JSON.stringify(event.error) })) })
+window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => { vscodeApi.postMessage(JSON.stringify({ command: 'error', error: event.reason.stack })) })
 
 const mermaidAPI = mermaid.mermaidAPI
 const mermaidConfig = {
@@ -563,6 +565,9 @@ const herbiejs = (() => {
     })
       .then(async r => {
         const data = await r.json()
+        if (data.error) {
+          throw new Error('Herbie server: ' + data.error)
+        }
         console.log('got data', data)
         return data
       })
@@ -572,7 +577,7 @@ const herbiejs = (() => {
           console.error('retrying once')
           return getHerbieApi(host, endpoint, data, false)
         } else {
-          throw e
+          throw new Error(`Error sending data to Herbie server at ${url}:\n${e.message}`)
         }
       })
   }
@@ -1102,7 +1107,6 @@ function mainPage(api) {
   const [addingExpression, setAddingExpression] = createSignal(false)
   
   const getSpecBlock = spec => {
-    
     return html`<div id="specBlock">
     <h4>Rewritings</h4>
     <div id="expressionTable">
@@ -1313,7 +1317,6 @@ function mainPage(api) {
       <//>
       </div>
     <//>
-    
   </div>
   `
   

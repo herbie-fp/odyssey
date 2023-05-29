@@ -1125,9 +1125,10 @@ function mainPage(api) {
     
       <${For} each=${() => /*expressions()*/expressionsForSpec(spec).filter(e => !getByKey(api, 'HiddenExpressions', 'expressionId', e.id) /*&& !getByKey(api, 'HiddenExpressions', 'mathjs', e.mathjs)*/) /* expressionsForSpec(spec) */}>${(e) => getExpressionRow(e, spec)}<//>
       ${() => noExpressionsForSpec(spec) ? noExpressionsRow(spec) : ''}
-        <${Show} when=${addingExpression} fallback=${html`<button onClick=${() => setAddingExpression(true)}>Add Expression</button>`}>${() => addExpressionRow(spec, api)}<//>
+        <${Show} when=${addingExpression} >${() => addExpressionRow(spec, api)}<//>
         </tbody>
       </table>
+      <${Show} when=${() => !addingExpression()} ><div class="addExpressionRowButton"><button onClick=${() => setAddingExpression(true)}>Add Expression</button></div><//>
       </div>
       ${getAlternativesButton(spec)}
     </div>`
@@ -1332,10 +1333,12 @@ function mainPage(api) {
       #analyzeUI .expressionRow .naive-expression {
         font-weight: bold;
       }
+      /*
       #analyzeUI #specBlock table {
         width:100%;
         table-layout:auto;
-      }
+      }*/
+      /*
       #analyzeUI #expressionTable {
         width:100%;
         table-layout:auto;
@@ -1345,12 +1348,13 @@ function mainPage(api) {
         border-radius: 5px;
         padding: 0px;
         /*margin: auto;*/
-      }
+      }*/
+      /*
       #analyzeUI #expressionTable tbody {
         display:block;
         overflow:auto;
         width:100%;
-      }
+      }*/
       #analyzeUI svg circle:hover {
         fill-opacity: 1;
         r: 4;
@@ -1359,6 +1363,15 @@ function mainPage(api) {
       
       #expressionTable th.expression {
       }
+
+      #expressionTable {
+        text-align: center;
+      }
+
+      .addExpressionRowButton {
+        width:100%;
+      }
+      
       #expressionTable .expression {
         /*width:154px;*/
         width: 55%;
@@ -1383,9 +1396,10 @@ function mainPage(api) {
       #expressionTable .expressionButtons {
         display: flex;
       }
+      /*
       #expressionTable th, #expressionTable td {
         width:auto;
-      }
+      }*/
       /* Allow line breaks in display equations (see https://katex.org/docs/issues.html) */
       .katex-display > .katex { white-space: normal }
       .katex-display .base { margin: 0.25em 0 }
@@ -1393,9 +1407,10 @@ function mainPage(api) {
       .katex-version {display: none;}
       .katex-version::after {content:"0.10.2 or earlier";}
       
+      /*
       #analyzeUI #expressionTable thead tr {
         display: block;
-      }
+      }*/
       #specTitle {
         max-width: 400px;
         overflow: scroll;
@@ -1404,7 +1419,6 @@ function mainPage(api) {
         max-width: 30em;
         overflow-x: scroll;
         overflow-y: hidden;
-        display: table-cell;
         padding: 5px;
       }
       .varname {
@@ -1433,18 +1447,20 @@ function mainPage(api) {
       #analyzeUI .expressionRow.selectedExpression {
         background-color: burlywood !important;
       }
+      /*
       .expressionRow {
         max-height: 7em;
-        /*display: inline-table;*/
+        display: inline-table;
         width: 100%;
-      }
+      }*/
       
       #analyzeUI #expressionTable button {
         width:-webkit-fill-available;
       }
+      /*
       #expressionTable {
         display: grid;
-      }
+      }*/
       /* HACK remove dark colorscheme for now
       @media (prefers-color-scheme: dark) {
         #analyzeUI #expressionTable tr:nth-child(even) {

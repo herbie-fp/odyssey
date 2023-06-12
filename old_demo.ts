@@ -1,3 +1,6 @@
+// Typescript: Ignore this file, it's just for reference
+//@ts-nocheck
+
 import { create } from "domain";
 import { applyTransformDependencies } from "mathjs";
 import { e, expression } from "mathjs11";

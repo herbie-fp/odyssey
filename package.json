@@ -1,72 +1,56 @@
 {
   "name": "interactive-herbie",
-  "displayName": "Herbie",
-  "description": "A VSCode interface for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
-  "version": "0.1.1",
+  "displayName": "Odyssey",
+  "description": "An interactive workbench for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
+  "version": "0.2.0",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
   "publisher": "herbie-fp",
   "engines": {
-    "vscode": "^1.69.0"
+    "vscode": "^1.78.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:interactive-herbie.helloWorld",
-    "onCommand:interactive-herbie.openWindow"
-  ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.bundle.js",
   "contributes": {
     "commands": [
       {
-        "command": "interactive-herbie.helloWorld",
-        "title": "Herbie: Hello World"
-      },
-      {
-        "command": "interactive-herbie.openWindow",
+        "command": "interactive-herbie.openTab",
         "title": "Odyssey: Herbie"
       }
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "(tsc -watch -p ./ &) && (tsc -watch -p ./src/webview &) && rollup -w --config rollup.config.js",
-    "pretest": "npm run compile && npm run lint",
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "publish": "vsce publish"
+    "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^23.0.2",
-    "@rollup/plugin-dynamic-import-vars": "^1.4.4",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-typescript": "^8.5.0",
-    "@types/glob": "^7.2.0",
-    "@types/mocha": "^9.1.1",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
-    "@types/vscode": "^1.69.0",
-    "@typescript-eslint/eslint-plugin": "^5.30.0",
-    "@typescript-eslint/parser": "^5.30.0",
-    "@vscode/test-electron": "^2.1.5",
-    "eslint": "^8.18.0",
-    "glob": "^8.0.3",
-    "mocha": "^10.0.0",
-    "rollup": "^2.79.0",
-    "tslib": "^2.4.0",
-    "typescript": "^4.7.4"
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "@types/vscode": "^1.78.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
+    "@typescript-eslint/parser": "^5.59.1",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.39.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.0.4",
+    "webpack": "^5.81.0",
+    "webpack-cli": "^5.0.2"
   },
   "dependencies": {
-    "@observablehq/inputs": "^0.10.4",
-    "@observablehq/plot": "^0.6.0",
-    "cors-anywhere": "^0.4.4",
-    "decimal.js": "^10.4.3",
-    "lit-dom-expressions": "^0.34.4",
-    "mathjs": "^1.6.0",
-    "mathjs11": "npm:mathjs@^11.5.1",
-    "solid-js": "^1.5.3",
-    "vsce": "^2.11.0",
-    "mermaid": "9.3.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

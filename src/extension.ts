@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionContext) => {
 	const jsFile = "webview.bundle.js";
-	const cssFile = "vscode.css";
+	// const cssFile = "webview.css";
 	// this is the webpack dev server; in theory, this could be used for hot module reloading, but it doesn't work right now.
 	const localServerUrl = "http://localhost:3000";  
 	const isProduction = context.extensionMode === vscode.ExtensionMode.Production;
@@ -68,9 +68,9 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString()
 		: `${localServerUrl}/${jsFile}`
 	
-	let cssUrl = isProduction
-		? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', cssFile))).toString()
-		: `${localServerUrl}/${cssFile}`
+	// let cssUrl = isProduction
+	// 	? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', cssFile))).toString()
+	// 	: `${localServerUrl}/${cssFile}`
 	
 	// TODO we are forcing production here right now, need to set properly elsewhere
 	scriptUrl = webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString();

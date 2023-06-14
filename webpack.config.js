@@ -11,7 +11,7 @@ const path = require('path');
 const webviewConfig = {  
   target: 'web', // vscode extensions run in a webworker context 📖 -> https://webpack.js.org/configuration/target/
   entry: {
-    webview: ['./src/herbie-ui.tsx']
+    webview: ['./src/webview.tsx']
   }, // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
@@ -25,7 +25,7 @@ const webviewConfig = {
   },
   resolve: {
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
-    extensions: ['.ts', '.js', '.tsx']
+    extensions: ['.ts', '.js', '.tsx', '.css']
   },
   module: {
     rules: [
@@ -37,7 +37,11 @@ const webviewConfig = {
             loader: 'ts-loader'
           }
         ]
-      }
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
     ]
   },
   devtool: 'nosources-source-map',

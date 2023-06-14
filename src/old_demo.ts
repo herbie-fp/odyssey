@@ -1,5 +1,6 @@
 // Typescript: Ignore this file, it's just for reference
 //@ts-nocheck
+/* eslint-disable */
 
 import { create } from "domain";
 import { applyTransformDependencies } from "mathjs";

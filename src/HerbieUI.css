@@ -30,6 +30,10 @@
   margin-bottom: 10px; /* Add some space between expressions */
 }
 
+.expression.selected {
+  background-color: #f0f0f0; /* Highlight the selected expression */
+}
+
 .analysis {
   margin-bottom: 5px; /* Add some space between analyses */
 }

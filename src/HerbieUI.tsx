@@ -16,9 +16,82 @@ class Analysis {
   }
 }
 
+class SpecRange {
+  constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number, public readonly id: number) {
+    this.variable = variable;
+    this.lowerBound = lowerBound;
+    this.upperBound = upperBound;
+    this.id = id;
+  }
+}
+
+class Spec {
+  constructor(public readonly expression: string, public readonly ranges: SpecRange[], public readonly id: number) {
+    this.expression = expression;
+    this.ranges = ranges;
+    this.id = id;
+  }
+}
+
 // Stub component for the Spec
 function SpecComponent() {
-  return <div className="spec">Spec Component</div>;
+  const { spec, setSpec } = useContext(SpecContext);
+  // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
+  const [showOverlay, setShowOverlay] = useState(false);
+  
+  const handleSpecClick = () => {
+    setShowOverlay(true);
+  }
+  const handleOverlayClick = () => {
+    setShowOverlay(false);
+  }
+  
+  function getVariables(spec: Spec) : string[] {
+    // TODO
+    return ['x']
+  }
+  
+  // Create a new SpecRange when the range is submitted by clicking the done button
+  
+
+  // Create a new Spec when the spec is submitted by clicking the done button
+  const handleSpecChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
+    setSpec(new Spec(event.target.value, spec.ranges, spec.id));
+  }
+  return (
+    <div className="spec-container">
+      <div className="spec-text" onClick={handleSpecClick}>{spec.expression}</div>
+      {showOverlay && <div className="spec-overlay" onClick={handleOverlayClick}>
+        {/* Show a dialogue for editing the spec with a "done" button. */}
+        <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>
+          <div className="spec-overlay-header">
+            <div>Spec</div>
+            <button onClick={handleOverlayClick}>Done</button>
+          </div>
+          {/* Show inputs for lower and higher bounds for each variable. Dynamically adjust as the variables in the expression change. */}
+          <div className="spec-ranges">
+            {getVariables(spec).map((variable) => {
+              return (
+                <div className="spec-range" key={variable}>
+                  <div className="spec-range-variable">{variable}</div>
+                  <div className="spec-range-inputs">
+                    <input type="number" value={spec.ranges.find((range:SpecRange) => range.variable === variable)?.lowerBound} onChange={}/>
+                    <input type="number" value={spec.ranges.find((range: SpecRange) => range.variable === variable)?.upperBound} />
+                  </div>
+                </div>
+              );
+            })}   
+          </div>
+          <div className="spec-add-range">
+            <button>Add range</button>
+          </div>
+
+          
+          <textarea className="spec-textarea" value={spec} onChange={handleSpecChange} />
+        </div>
+      </div>}
+    </div>
+  );
 }
 
 // Stub component for the server status
@@ -121,12 +194,14 @@ function ExpressionTable() {
 const SelectedExprIdContext = createContext({} as { selectedExprId: number, setSelectedExprId: React.Dispatch<number> });
 const ExpressionsContext = createContext({} as { expressions: Expression[], setExpressions: React.Dispatch<Expression[]> });
 const AnalysesContext = createContext({} as { analyses: Analysis[], setAnalyses: React.Dispatch<Analysis[]> });
+const SpecContext = createContext({} as { spec: Spec, setSpec: React.Dispatch<Spec> });
 
 function HerbieUI() {
   // State setters/getters (provided to children via React context)
   const [expressions, setExpressions] = useState([] as Expression[]);
   const [analyses, setAnalyses] = useState([] as Analysis[]);
   const [selectedExprId, setSelectedExprId] = useState(-1);
+  const [spec, setSpec] = useState(new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
   
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -160,13 +235,15 @@ function HerbieUI() {
     // a little better than passing props down the tree. Reducers would be better,
     // but they introduce unnecessary re-renders if we group the state together.
     // I would definitely like to know if there's a better way of doing this.
-    <SelectedExprIdContext.Provider value={{ selectedExprId, setSelectedExprId }}>
-      <ExpressionsContext.Provider value={{ expressions, setExpressions }}>
-        <AnalysesContext.Provider value={{ analyses, setAnalyses }}>
-          <HerbieUIInner />
-        </AnalysesContext.Provider>
-      </ExpressionsContext.Provider>
-    </SelectedExprIdContext.Provider>
+    <SpecContext.Provider value={{ spec, setSpec }}>
+      <SelectedExprIdContext.Provider value={{ selectedExprId, setSelectedExprId }}>
+        <ExpressionsContext.Provider value={{ expressions, setExpressions }}>
+          <AnalysesContext.Provider value={{ analyses, setAnalyses }}>
+            <HerbieUIInner />
+          </AnalysesContext.Provider>
+        </ExpressionsContext.Provider>
+      </SelectedExprIdContext.Provider>
+    </SpecContext.Provider>
   );
 }
 

@@ -2,97 +2,10 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 
 import './HerbieUI.css';
 
-class Expression {
-  constructor(public readonly text: string, public readonly id: number) { 
-    this.text = text;
-    this.id = id;
-  }
-}
+import { SpecComponent } from './SpecComponent';
 
-class Analysis {
-  constructor(public readonly result: string, public readonly id: number) { 
-    this.result = result;
-    this.id = id;
-  }
-}
-
-class SpecRange {
-  constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number, public readonly id: number) {
-    this.variable = variable;
-    this.lowerBound = lowerBound;
-    this.upperBound = upperBound;
-    this.id = id;
-  }
-}
-
-class Spec {
-  constructor(public readonly expression: string, public readonly ranges: SpecRange[], public readonly id: number) {
-    this.expression = expression;
-    this.ranges = ranges;
-    this.id = id;
-  }
-}
-
-// Stub component for the Spec
-function SpecComponent() {
-  const { spec, setSpec } = useContext(SpecContext);
-  // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
-  const [showOverlay, setShowOverlay] = useState(false);
-  
-  const handleSpecClick = () => {
-    setShowOverlay(true);
-  }
-  const handleOverlayClick = () => {
-    setShowOverlay(false);
-  }
-  
-  function getVariables(spec: Spec) : string[] {
-    // TODO
-    return ['x']
-  }
-  
-  // Create a new SpecRange when the range is submitted by clicking the done button
-  
-
-  // Create a new Spec when the spec is submitted by clicking the done button
-  const handleSpecChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
-    setSpec(new Spec(event.target.value, spec.ranges, spec.id));
-  }
-  return (
-    <div className="spec-container">
-      <div className="spec-text" onClick={handleSpecClick}>{spec.expression}</div>
-      {showOverlay && <div className="spec-overlay" onClick={handleOverlayClick}>
-        {/* Show a dialogue for editing the spec with a "done" button. */}
-        <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>
-          <div className="spec-overlay-header">
-            <div>Spec</div>
-            <button onClick={handleOverlayClick}>Done</button>
-          </div>
-          {/* Show inputs for lower and higher bounds for each variable. Dynamically adjust as the variables in the expression change. */}
-          <div className="spec-ranges">
-            {getVariables(spec).map((variable) => {
-              return (
-                <div className="spec-range" key={variable}>
-                  <div className="spec-range-variable">{variable}</div>
-                  <div className="spec-range-inputs">
-                    <input type="number" value={spec.ranges.find((range:SpecRange) => range.variable === variable)?.lowerBound} onChange={}/>
-                    <input type="number" value={spec.ranges.find((range: SpecRange) => range.variable === variable)?.upperBound} />
-                  </div>
-                </div>
-              );
-            })}   
-          </div>
-          <div className="spec-add-range">
-            <button>Add range</button>
-          </div>
-
-          
-          <textarea className="spec-textarea" value={spec} onChange={handleSpecChange} />
-        </div>
-      </div>}
-    </div>
-  );
-}
+import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext } from './HerbieContext';
+import { Expression, Analysis, SpecRange, Spec } from './HerbieTypes';
 
 // Stub component for the server status
 function ServerStatusComponent() {
@@ -141,7 +54,6 @@ function SelectableVisualization() {
   );
 }
 
-
 function ExpressionTable() {
   const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext);
   const { expressions, setExpressions } = useContext(ExpressionsContext);
@@ -189,12 +101,6 @@ function ExpressionTable() {
     </div>
   )
 }
-
-// create a context for the selected expression id
-const SelectedExprIdContext = createContext({} as { selectedExprId: number, setSelectedExprId: React.Dispatch<number> });
-const ExpressionsContext = createContext({} as { expressions: Expression[], setExpressions: React.Dispatch<Expression[]> });
-const AnalysesContext = createContext({} as { analyses: Analysis[], setAnalyses: React.Dispatch<Analysis[]> });
-const SpecContext = createContext({} as { spec: Spec, setSpec: React.Dispatch<Spec> });
 
 function HerbieUI() {
   // State setters/getters (provided to children via React context)
@@ -248,6 +154,3 @@ function HerbieUI() {
 }
 
 export { HerbieUI };
-
-// // Render the component into the 'root' div
-// ReactDOM.render(<HerbieUI />, document.getElementById('root'));

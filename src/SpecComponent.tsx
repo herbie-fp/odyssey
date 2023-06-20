@@ -2,6 +2,10 @@ import React, { useContext, useState } from 'react';
 import { InputRange, InputRangesEditor } from './InputRangesEditor';
 import { SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
+import KaTeX from 'katex';
+
+import './SpecComponent.css';
+const math11 = require('mathjs11');
 
 function SpecComponent() {
   const { spec: value, setSpec: setValue } = useContext(SpecContext);
@@ -39,8 +43,10 @@ function SpecComponent() {
             <div>Spec</div>
             <button onClick={handleOverlayClick}>Done</button>
           </div>
-          <InputRangesEditor value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} setValue={handleRangesUpdate} />
+          {/* Render the expression into HTML with KaTeX */}
+          <div className="spec-tex" dangerouslySetInnerHTML={{ __html: (() => { try { return KaTeX.renderToString(math11.parse(spec.expression).toTex(), { throwOnError: false }) } catch (e) { return (e as Error).toString() } })() }} />
           <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecChange} />
+          <InputRangesEditor value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} setValue={handleRangesUpdate} />
         </div>
       </div>}
     </div>

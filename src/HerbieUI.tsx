@@ -5,7 +5,9 @@ import './HerbieUI.css';
 import { SpecComponent } from './SpecComponent';
 
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext } from './HerbieContext';
-import { Expression, Analysis, SpecRange, Spec } from './HerbieTypes';
+import { Expression, Analysis, SpecRange, Spec, Sample } from './HerbieTypes';
+
+import fpcorejs from './fpcore';
 
 // Stub component for the server status
 function ServerStatusComponent() {
@@ -54,6 +56,16 @@ function SelectableVisualization() {
   );
 }
 
+function nextId(table: { id: number }[]) {
+  return table.sort((a, b) => a.id - b.id).reduce((acc, curr) => {
+    if (acc === curr.id) {
+      return acc + 1;
+    } else {
+      return acc;
+    }
+  }, 0);
+}
+
 function ExpressionTable() {
   const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext);
   const { expressions, setExpressions } = useContext(ExpressionsContext);
@@ -72,7 +84,7 @@ function ExpressionTable() {
     }
   }, 0);
   
-  const [exprId, setExprId] = useState(getNextExprId(expressions));
+  const [exprId, setExprId] = useState(nextId(expressions));
 
   return (
     <div className="expressions">
@@ -82,7 +94,7 @@ function ExpressionTable() {
             ...expressions,
             new Expression(`expression ${exprId}`, exprId),
           ]);
-          setExprId(getNextExprId(expressions));
+          setExprId(nextId(expressions));
         }}
       >
         Add expression
@@ -105,9 +117,11 @@ function ExpressionTable() {
 function HerbieUI() {
   // State setters/getters (provided to children via React context)
   const [expressions, setExpressions] = useState([] as Expression[]);
+  const [samples, setSamples] = useState([] as Sample[]);
+  const [serverUrl, setServerUrl] = useState('http://127.0.0.1:8000')
   const [analyses, setAnalyses] = useState([] as Analysis[]);
   const [selectedExprId, setSelectedExprId] = useState(-1);
-  const [spec, setSpec] = useState(new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
+  const [spec, setSpec] = useState(undefined as Spec | undefined)//new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
   
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -123,6 +137,27 @@ function HerbieUI() {
       setSelectedExprId(expressions[0].id);
     }
   }, [expressions])
+
+  // Example of calling the server:
+  // whenever the spec is defined, 
+  // * reset expressions to just the naive expression(the spec)
+  // * sample the spec
+  useEffect(() => {
+    if (spec !== undefined) {
+      setExpressions([new Expression(spec.expression, spec.id)]);
+      async function sample() {
+        const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
+        console.log(sample_points)
+        setSamples([...samples, new Sample(sample_points, nextId(samples))]);
+      }
+      sample()
+    }
+  }, [spec])
+
+  // Show the sample whenever it changes
+  useEffect(() => {
+    console.log(samples)
+  }, [samples])
 
   function HerbieUIInner() {
     return (

@@ -1,4 +1,6 @@
 class Expression {
+  /**
+   *  @param {string} text - mathjs expression */
   constructor(public readonly text: string, public readonly id: number) { 
     this.text = text;
     this.id = id;
@@ -21,6 +23,14 @@ class SpecRange {
   }
 }
 
+// A sample is a set of input tuples for a spec
+class Sample {
+  constructor(public readonly points: number[][], public readonly id: number) {
+    this.points = points;
+    this.id = id;
+  }
+}
+
 class Spec {
   constructor(public readonly expression: string, public readonly ranges: SpecRange[], public readonly id: number) {
     this.expression = expression;
@@ -29,4 +39,4 @@ class Spec {
   }
 }
 
-export { Expression, Analysis, SpecRange, Spec };
+export { Expression, Analysis, SpecRange, Spec, Sample };

@@ -4,8 +4,8 @@ import './HerbieUI.css';
 
 import { SpecComponent } from './SpecComponent';
 
-import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext } from './HerbieContext';
-import { Expression, Analysis, SpecRange, Spec, Sample } from './HerbieTypes';
+import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
+import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
 
 import fpcorejs from './fpcore';
 
@@ -70,9 +70,18 @@ function ExpressionTable() {
   const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext);
   const { expressions, setExpressions } = useContext(ExpressionsContext);
   const { analyses, setAnalyses } = useContext(AnalysesContext);
+  const { compareExprIds, setCompareExprIds } = useContext(CompareExprIdsContext);
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
   }
+
+  const handleCheckboxChange = (event: any, id: number) => {
+    if (event.target.checked) {
+      setCompareExprIds([...compareExprIds, id]);
+    } else {
+      setCompareExprIds(compareExprIds.filter((exprId) => exprId !== id));
+    }
+  };
 
   // exprId is the first available id for a new expression given the current values in expressions
   // we compute this by sorting expressions on id and then finding the first id that is not used
@@ -100,12 +109,16 @@ function ExpressionTable() {
         Add expression
       </button>
       {expressions.map((expression) => {
+        const isChecked = compareExprIds.includes(expression.id);
+        const analysisResult = analyses.find((analysis) => analysis.expressionId === expression.id)?.result || 'no analysis yet';
         return (
-          <div className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} key={expression.id}>
-            {expression.text}
+          <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} >
+            <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} />
+            <div onClick={() => handleExpressionClick(expression.id)}>
+              {expression.text}
+            </div>
             <div className="analysis">
-              {analyses.find((analysis) => analysis.id === expression.id)
-                ?.result || 'no analysis yet'}
+              {analysisResult}
             </div>
           </div>
         );
@@ -119,21 +132,22 @@ function HerbieUI() {
   const [expressions, setExpressions] = useState([] as Expression[]);
   const [samples, setSamples] = useState([] as Sample[]);
   const [serverUrl, setServerUrl] = useState('http://127.0.0.1:8000')
-  const [analyses, setAnalyses] = useState([] as Analysis[]);
+  const [analyses, setAnalyses] = useState([] as ErrorAnalysis[]);
   const [selectedExprId, setSelectedExprId] = useState(-1);
   const [spec, setSpec] = useState(undefined as Spec | undefined)//new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
+  const [compareExprIds, setCompareExprIds] = useState([] as number[]);
   
   // Data relationships
   // Reactively update analyses whenever expressions change
   useEffect(() => {
     setTimeout(() => {
-      setAnalyses(expressions.map(expression => new Analysis(`analysis ${expression.id}`, expression.id)));
+      setAnalyses(expressions.map(expression => analyses.find(a => a.expressionId === expression.id) || new ErrorAnalysis(`analysis ${expression.id}`, expression.id)));
     }, 1000);
   }, [expressions]);
 
   // immediately select the first available expression if none is selected
   useEffect(() => {
-    if (selectedExprId === -1 && expressions.length > 0) {
+    if (expressions.length === 1) {
       setSelectedExprId(expressions[0].id);
     }
   }, [expressions])
@@ -180,7 +194,9 @@ function HerbieUI() {
       <SelectedExprIdContext.Provider value={{ selectedExprId, setSelectedExprId }}>
         <ExpressionsContext.Provider value={{ expressions, setExpressions }}>
           <AnalysesContext.Provider value={{ analyses, setAnalyses }}>
-            <HerbieUIInner />
+            <CompareExprIdsContext.Provider value={{ compareExprIds, setCompareExprIds }}>
+              <HerbieUIInner />
+            </CompareExprIdsContext.Provider>
           </AnalysesContext.Provider>
         </ExpressionsContext.Provider>
       </SelectedExprIdContext.Provider>

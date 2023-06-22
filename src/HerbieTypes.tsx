@@ -7,10 +7,10 @@ class Expression {
   }
 }
 
-class Analysis {
-  constructor(public readonly result: string, public readonly id: number) { 
+class ErrorAnalysis {
+  constructor(public readonly result: string, public readonly expressionId: number) { 
     this.result = result;
-    this.id = id;
+    this.expressionId = expressionId;
   }
 }
 
@@ -39,4 +39,4 @@ class Spec {
   }
 }
 
-export { Expression, Analysis, SpecRange, Spec, Sample };
+export { Expression, ErrorAnalysis, SpecRange, Spec, Sample };

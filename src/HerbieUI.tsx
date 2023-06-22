@@ -71,6 +71,8 @@ function ExpressionTable() {
   const { expressions, setExpressions } = useContext(ExpressionsContext);
   const { analyses, setAnalyses } = useContext(AnalysesContext);
   const { compareExprIds, setCompareExprIds } = useContext(CompareExprIdsContext);
+  const [ addExpression, setAddExpression ] = useState('');
+
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
   }
@@ -92,22 +94,25 @@ function ExpressionTable() {
       return acc;
     }
   }, 0);
-  
-  const [exprId, setExprId] = useState(nextId(expressions));
 
   return (
     <div className="expressions">
-      <button
-        onClick={() => {
-          setExpressions([
-            ...expressions,
-            new Expression(`expression ${exprId}`, exprId),
-          ]);
-          setExprId(nextId(expressions));
-        }}
-      >
-        Add expression
-      </button>
+      <div className="expression">
+        <div>
+          <input type="text" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} />
+          <button
+            onClick={() => {
+              setExpressions([
+                new Expression(addExpression, nextId(expressions)),
+                ...expressions,
+              ]);
+            }}
+            >
+            Add expression
+          </button>
+        </div>
+      </div>
+      
       {expressions.map((expression) => {
         const isChecked = compareExprIds.includes(expression.id);
         const analysisResult = analyses.find((analysis) => analysis.expressionId === expression.id)?.result || 'no analysis yet';
@@ -140,10 +145,29 @@ function HerbieUI() {
   // Data relationships
   // Reactively update analyses whenever expressions change
   useEffect(() => {
-    setTimeout(() => {
-      setAnalyses(expressions.map(expression => analyses.find(a => a.expressionId === expression.id) || new ErrorAnalysis(`analysis ${expression.id}`, expression.id)));
+    setTimeout(async () => {
+      // When a new expression is added, add a new analysis
+      // An analysis is obtained by taking the most recent sample and checking the error of the expression on that sample
+      // The analyze server call looks like
+      // (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), sample: samples[samples.length - 1], seed: 5 }) })).json())
+      if (samples.length === 0) {
+        return
+      }
+      setAnalyses(await Promise.all(expressions.map(async expression => {
+        let result = analyses.find(a => a.expressionId === expression.id)
+        if (result) {
+          return result as ErrorAnalysis
+        }
+        const analysis = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
+        console.log('Analysis was:', analysis)
+        // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
+        const average = analysis.reduce((acc: number, v: any) => {
+          return acc + parseFloat(v[1])
+        }, 0) / 8000
+        return new ErrorAnalysis(average.toString(), expression.id)
+      })));
     }, 1000);
-  }, [expressions]);
+  }, [expressions, samples]);
 
   // immediately select the first available expression if none is selected
   useEffect(() => {

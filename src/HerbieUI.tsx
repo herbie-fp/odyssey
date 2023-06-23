@@ -3,133 +3,17 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 import './HerbieUI.css';
 
 import { SpecComponent } from './SpecComponent';
-
+import { ExpressionTable } from './ExpressionTable';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
+import { nextId } from './utils';
+import { SelectableVisualization } from './SelectableVisualization';
 
 import fpcorejs from './fpcore';
 
 // Stub component for the server status
 function ServerStatusComponent() {
   return <div className="server-status">Server Status Component</div>;
-}
-
-// Stub component for ErrorPlot visualization
-function ErrorPlot() {
-  console.log('ErrorPlot rendered');
-  return <div>Error Plot Component</div>;
-}
-
-// Stub component for LocalError visualization
-function LocalError() {
-  return <div>Local Error Component</div>;
-}
-
-// Define SelectableVisualization component
-function SelectableVisualization() {
-  const [selectedOption, setSelectedOption] = useState('errorPlot');
-
-  const handleOptionChange : React.ChangeEventHandler<HTMLSelectElement> = (event) => {
-    setSelectedOption(event.target.value);
-  };
-
-  // Render the selected visualization component based on the chosen option
-  let selectedComponent;
-  if (selectedOption === 'errorPlot') {
-    selectedComponent = <ErrorPlot />;
-  } else if (selectedOption === 'localError') {
-    selectedComponent = <LocalError />;
-  }
-
-  const { selectedExprId } = useContext(SelectedExprIdContext);
-
-  return (
-    <div>
-      <select value={selectedOption} onChange={handleOptionChange}>
-        <option value="errorPlot">Error Plot</option>
-        <option value="localError">Local Error</option>
-      </select> for expression {selectedExprId}
-      <div className="visualization">
-        {selectedComponent}
-      </div>
-    </div>
-  );
-}
-
-function nextId(table: { id: number }[]) {
-  return table.sort((a, b) => a.id - b.id).reduce((acc, curr) => {
-    if (acc === curr.id) {
-      return acc + 1;
-    } else {
-      return acc;
-    }
-  }, 0);
-}
-
-function ExpressionTable() {
-  const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext);
-  const { expressions, setExpressions } = useContext(ExpressionsContext);
-  const { analyses, setAnalyses } = useContext(AnalysesContext);
-  const { compareExprIds, setCompareExprIds } = useContext(CompareExprIdsContext);
-  const [ addExpression, setAddExpression ] = useState('');
-
-  const handleExpressionClick = (id: number) => {
-    setSelectedExprId(id);
-  }
-
-  const handleCheckboxChange = (event: any, id: number) => {
-    if (event.target.checked) {
-      setCompareExprIds([...compareExprIds, id]);
-    } else {
-      setCompareExprIds(compareExprIds.filter((exprId) => exprId !== id));
-    }
-  };
-
-  // exprId is the first available id for a new expression given the current values in expressions
-  // we compute this by sorting expressions on id and then finding the first id that is not used
-  const getNextExprId = (expressions: Expression[]) => () => expressions.sort((a, b) => a.id - b.id).reduce((acc, curr) => {
-    if (acc === curr.id) {
-      return acc + 1;
-    } else {
-      return acc;
-    }
-  }, 0);
-
-  return (
-    <div className="expressions">
-      <div className="expression">
-        <div>
-          <input type="text" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} />
-          <button
-            onClick={() => {
-              setExpressions([
-                new Expression(addExpression, nextId(expressions)),
-                ...expressions,
-              ]);
-            }}
-            >
-            Add expression
-          </button>
-        </div>
-      </div>
-      
-      {expressions.map((expression) => {
-        const isChecked = compareExprIds.includes(expression.id);
-        const analysisResult = analyses.find((analysis) => analysis.expressionId === expression.id)?.result || 'no analysis yet';
-        return (
-          <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} >
-            <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} />
-            <div onClick={() => handleExpressionClick(expression.id)}>
-              {expression.text}
-            </div>
-            <div className="analysis">
-              {analysisResult}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  )
 }
 
 function HerbieUI() {

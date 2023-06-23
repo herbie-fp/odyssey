@@ -1,5 +1,5 @@
 import React, { createContext } from 'react';
-import { Expression, ErrorAnalysis, Spec }  from './HerbieTypes'
+import { Expression, ErrorAnalysis, Spec }  from './HerbieTypes.ts'
 
 const SelectedExprIdContext = createContext({} as { selectedExprId: number, setSelectedExprId: React.Dispatch<number> });
 const CompareExprIdsContext = createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });

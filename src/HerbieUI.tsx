@@ -8,19 +8,13 @@ import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext
 import { Expression, Analysis, SpecRange, Spec } from './HerbieTypes';
 
 function ServerStatusComponent(){
-  const [serverStatus, setServerStatus] = useState(null);
+  const [status, setStatus] = useState<number | null>(null);
 
   useEffect(() => {
     // Fetch the status
     const fetchStatus = async () => {
-      // const response = await fetch('http://127.0.0.1:8000/api/sample', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ formula: '(FPCore (x) (- (sqrt (+ x 1))))', seed: 5 }),
-      // });
-
       const response = await fetch('http://127.0.0.1:8000/up');
-      const status = await response.json();
-      setServerStatus(status);
+      setStatus(response.status);
     };
 
     fetchStatus();
@@ -28,10 +22,10 @@ function ServerStatusComponent(){
 
   return (
     <div>
-      {serverStatus ? (
+      {status ? (
         <div>
           <h2>Server Response:</h2>
-          <p>{JSON.stringify(serverStatus)}</p>
+          <p>{JSON.stringify(status)}</p>
         </div>
       ) : (
         <p>Loading server status...</p>

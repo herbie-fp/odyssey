@@ -7,10 +7,38 @@ import { SpecComponent } from './SpecComponent';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext } from './HerbieContext';
 import { Expression, Analysis, SpecRange, Spec } from './HerbieTypes';
 
-// Stub component for the server status
-function ServerStatusComponent() {
-  return <div className="server-status">Server Status Component</div>;
-}
+function ServerStatusComponent(){
+  const [serverStatus, setServerStatus] = useState(null);
+
+  useEffect(() => {
+    // Fetch the status
+    const fetchStatus = async () => {
+      // const response = await fetch('http://127.0.0.1:8000/api/sample', {
+      //   method: 'POST',
+      //   body: JSON.stringify({ formula: '(FPCore (x) (- (sqrt (+ x 1))))', seed: 5 }),
+      // });
+
+      const response = await fetch('http://127.0.0.1:8000/up');
+      const status = await response.json();
+      setServerStatus(status);
+    };
+
+    fetchStatus();
+  }, []);
+
+  return (
+    <div>
+      {serverStatus ? (
+        <div>
+          <h2>Server Response:</h2>
+          <p>{JSON.stringify(serverStatus)}</p>
+        </div>
+      ) : (
+        <p>Loading server status...</p>
+      )}
+    </div>
+  );
+};
 
 // Stub component for ErrorPlot visualization
 function ErrorPlot() {
@@ -27,7 +55,7 @@ function LocalError() {
 function SelectableVisualization() {
   const [selectedOption, setSelectedOption] = useState('errorPlot');
 
-  const handleOptionChange : React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+  const handleOptionChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
     setSelectedOption(event.target.value);
   };
 
@@ -71,7 +99,7 @@ function ExpressionTable() {
       return acc;
     }
   }, 0);
-  
+
   const [exprId, setExprId] = useState(getNextExprId(expressions));
 
   return (
@@ -108,7 +136,7 @@ function HerbieUI() {
   const [analyses, setAnalyses] = useState([] as Analysis[]);
   const [selectedExprId, setSelectedExprId] = useState(-1);
   const [spec, setSpec] = useState(new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
-  
+
   // Data relationships
   // Reactively update analyses whenever expressions change
   useEffect(() => {

@@ -5,6 +5,7 @@
   "version": "0.2.0",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
   "publisher": "herbie-fp",
+  "type": "module",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -33,6 +34,8 @@
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
+    "@types/katex": "^0.16.0",
+    "@types/mathjs": "^9.4.2",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
     "@types/react": "^18.2.6",
@@ -52,6 +55,10 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
+    "@observablehq/plot": "^0.6.8",
+    "katex": "^0.16.7",
+    "mathjs11": "npm:mathjs@^11.8.1",
+    "mathjs4": "npm:mathjs@^4.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }

@@ -54,7 +54,13 @@
 }
 
 .expression {
+  display: flex;
+  align-items: left;
   margin-bottom: 10px; /* Add some space between expressions */
+}
+
+.expression > div {
+  margin-right: 10px; /* Adjust the spacing between expression and analysis as needed */
 }
 
 .expression.selected {

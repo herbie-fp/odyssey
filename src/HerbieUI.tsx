@@ -11,9 +11,121 @@ import { SelectableVisualization } from './SelectableVisualization';
 
 import fpcorejs from './fpcore';
 
-// Stub component for the server status
-function ServerStatusComponent() {
-  return <div className="server-status">Server Status Component</div>;
+function ServerStatusComponent(){
+  const [status, setStatus] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Fetch the status
+    const fetchStatus = async () => {
+      const response = await fetch('http://127.0.0.1:8000/up');
+      setStatus(response.status);
+    };
+
+    fetchStatus();
+  }, []);
+
+  return (
+    <div>
+      {status ? (
+        <div>
+          <h2>Server Response:</h2>
+          <p>{JSON.stringify(status)}</p>
+        </div>
+      ) : (
+        <p>Loading server status...</p>
+      )}
+    </div>
+  );
+};
+
+// Stub component for ErrorPlot visualization
+function ErrorPlot() {
+  console.log('ErrorPlot rendered');
+  return <div>Error Plot Component</div>;
+}
+
+// Stub component for LocalError visualization
+function LocalError() {
+  return <div>Local Error Component</div>;
+}
+
+// Define SelectableVisualization component
+function SelectableVisualization() {
+  const [selectedOption, setSelectedOption] = useState('errorPlot');
+
+  const handleOptionChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
+  // Render the selected visualization component based on the chosen option
+  let selectedComponent;
+  if (selectedOption === 'errorPlot') {
+    selectedComponent = <ErrorPlot />;
+  } else if (selectedOption === 'localError') {
+    selectedComponent = <LocalError />;
+  }
+
+  const { selectedExprId } = useContext(SelectedExprIdContext);
+
+  return (
+    <div>
+      <select value={selectedOption} onChange={handleOptionChange}>
+        <option value="errorPlot">Error Plot</option>
+        <option value="localError">Local Error</option>
+      </select> for expression {selectedExprId}
+      <div className="visualization">
+        {selectedComponent}
+      </div>
+    </div>
+  );
+}
+
+function ExpressionTable() {
+  const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext);
+  const { expressions, setExpressions } = useContext(ExpressionsContext);
+  const { analyses, setAnalyses } = useContext(AnalysesContext);
+  const handleExpressionClick = (id: number) => {
+    setSelectedExprId(id);
+  }
+
+  // exprId is the first available id for a new expression given the current values in expressions
+  // we compute this by sorting expressions on id and then finding the first id that is not used
+  const getNextExprId = (expressions: Expression[]) => () => expressions.sort((a, b) => a.id - b.id).reduce((acc, curr) => {
+    if (acc === curr.id) {
+      return acc + 1;
+    } else {
+      return acc;
+    }
+  }, 0);
+
+  const [exprId, setExprId] = useState(getNextExprId(expressions));
+
+  return (
+    <div className="expressions">
+      <button
+        onClick={() => {
+          setExpressions([
+            ...expressions,
+            new Expression(`expression ${exprId}`, exprId),
+          ]);
+          setExprId(getNextExprId(expressions));
+        }}
+      >
+        Add expression
+      </button>
+      {expressions.map((expression) => {
+        return (
+          <div className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} key={expression.id}>
+            {expression.text}
+            <div className="analysis">
+              {analyses.find((analysis) => analysis.id === expression.id)
+                ?.result || 'no analysis yet'}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )
 }
 
 function HerbieUI() {

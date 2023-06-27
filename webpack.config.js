@@ -9,6 +9,7 @@ const path = require('path');
 
 /** @type WebpackConfig */
 const webviewConfig = {  
+  mode: 'development', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
   target: 'web', // vscode extensions run in a webworker context 📖 -> https://webpack.js.org/configuration/target/
   entry: {
     webview: ['./src/webview.tsx']

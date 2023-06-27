@@ -5,7 +5,6 @@
   "version": "0.2.0",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
   "publisher": "herbie-fp",
-  "type": "module",
   "engines": {
     "vscode": "^1.78.0"
   },

@@ -1,9 +1,7 @@
 // Want to port over old visualization code to React
 // Also want to fix build -- maybe switch to vite, but most important is to move webview to subfolder
 import {useState, useContext} from "react";
-import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext.ts'
-
-import * as Plot from "@observablehq/plot";
+import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
 
 interface Point {
   x: number,
@@ -32,7 +30,8 @@ interface PlotArgs {
   [propName: string]: any  // could have other properties
 }
 
-function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400}: PlotArgs) : SVGElement {
+async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, width = 800, height = 400 }: PlotArgs): Promise<SVGElement> {
+  const Plot = await import( "@observablehq/plot");  // HACK to let us use an ES module in a non-ES module
   const tickStrings = ticks.map(t => t[0])
   const tickOrdinals = ticks.map(t => t[1])
   const tickZeroIndex = tickStrings.indexOf("0")

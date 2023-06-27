@@ -3,6 +3,10 @@
 import {useState, useContext} from "react";
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
 
+import * as fpcorejs from './fpcore'
+
+import { Expression } from './HerbieTypes'
+
 interface Point {
   x: number,
   y: number,
@@ -133,14 +137,28 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
 // need to get varnames from expression, varidx
 // varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400
 function ErrorPlot() {
-  // Keeps track of the variable index and uses plotError to generate an SVG
-  const [varidx, setVaridx] = useState(0)
   const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext)
   console.log('selectedExprId', selectedExprId)
 
+  // get the expression
+  const { expressions } = useContext(ExpressionsContext)
+  const expression = expressions.find(e => e.id === selectedExprId)
+  if (!expression) {
+    return <div>Could not find expression with id {selectedExprId}</div>
+    // throw new Error(`Could not find expression with id ${selectedExprId}`)
+  }
+  // get the variables from the expression
+  const varnames = fpcorejs.getVarnamesMathJS(expression.text)
+  // we will iterate over indices
+  // TODO ticks are stored with expressions/sample
+  // splitpoints are stored with expressions
+  // data is stored with expressions
+  // bits is stored with analyses
+  // styles are stored as ExpressionStyles
   console.log('ErrorPlot rendered');
   return <div>
     <h1>ErrorPlot</h1>
+    {/* Plot all vars */}
   </div>
   
 }

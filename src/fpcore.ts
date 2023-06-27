@@ -118,7 +118,7 @@ function dump_fpcore(formula: any, ranges:any ) {  // NOTE modified get_precondi
 
   var names : any= [];
   var body = dump_tree(tree, names);
-  var precondition = ranges ? get_precondition_from_input_ranges(ranges) : null;
+  var precondition = ranges ? FPCorePrecondition(ranges) : null;
 
   var dnames = [];
   for (var i = 0; i < names.length; i++) {
@@ -179,7 +179,7 @@ window.dump_tree = dump_tree
 //@ts-ignore
 window.math = math
 
-function get_varnames_mathjs(mathjs_text: string) {
+function getVarnamesMathJS(mathjs_text: string) {
   const names : string[]= []
   dump_tree(math.parse(mathjs_text), names)
   var dnames = [];
@@ -189,18 +189,18 @@ function get_varnames_mathjs(mathjs_text: string) {
   return dnames
 }
 
-function get_varnames_fpcore(fpcore: string) {
+function getVarnamesFPCore(fpcore: string) {
   return fpcore.split(/[()]/)[2].split(' ')
 }
 
-function get_precondition_from_input_ranges(ranges : [string, [number, number]][]) {  // NOTE modified get_precondition...
+function FPCorePrecondition(ranges : [string, [number, number]][]) {  // NOTE modified get_precondition...
   // ranges should be like [["x", [-1, 1]], ["y", [0, 1000]]
   // assumes ranges was already checked for validity using eg. get_input_range_errors
   const exprs = ranges.map(([name, [start, end]]) => `(<= ${start} ${name} ${end})`).join(' ')
   return `(and ${exprs})`
 }
 
-function get_input_range_errors([low, high] = [undefined, undefined], empty_if_missing = false) {
+function rangeErrors([low, high] = [undefined, undefined], empty_if_missing = false) {
   if ((low === undefined || low === '') || (high === undefined || high === '')) { return empty_if_missing ? [] : ['input still missing'] }
   const A = []
   if (!(low === undefined || low === '') && isNaN(Number(low))) {
@@ -282,29 +282,35 @@ function FPCoreGetBody(fpcore: string) {
   return astToString(parse(fpcore).slice(-1)[0])
 }
 
-export default {
+function parseErrors(mathJSExpr: string) {
+  function mathJSErrors(mathJSExpr: string) {
+    try { math.parse(mathJSExpr) } catch (e: any) { return [e.message] }
+    return []
+  }
+  const mjserrors = mathJSErrors(mathJSExpr)
+  return mjserrors.length > 0 ? mjserrors : tree_errors(math.parse(mathJSExpr), 'real')
+}
+
+function makeFPCore ({ specMathJS, ranges, specFPCore, targetFPCoreBody = undefined, name = specMathJS }: {specMathJS: string, ranges : [string, [number, number]][], specFPCore: string, targetFPCoreBody?: string, name?: string}) {
+  const vars = specFPCore === undefined ? getVarnamesMathJS(specMathJS) : getVarnamesFPCore(specFPCore)
+  const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
+  return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${FPCorePrecondition(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
+}
+
+function mathjsToFPCore (mathjs: string, specFPCore=undefined) {
+  const vars = specFPCore === undefined ? getVarnamesMathJS(mathjs) : getVarnamesFPCore(specFPCore)
+  return `(FPCore (${vars.join(' ')}) ${FPCoreBody(mathjs)})`
+}
+
+export {
   //dumpFPCore: dump_fpcore,  // Currently has no error handling!
-  rangeErrors: get_input_range_errors,
-  FPCorePrecondition: get_precondition_from_input_ranges,
-  getVarnamesMathJS: get_varnames_mathjs,
-  getVarnamesFPCore: get_varnames_fpcore,
-  parseErrors: (mathJSExpr: string) => {
-    function mathJSErrors(mathJSExpr: string) {
-      try { math.parse(mathJSExpr) } catch (e: any) { return [e.message] }
-      return []
-    }
-    const mjserrors = mathJSErrors(mathJSExpr)
-    return mjserrors.length > 0 ? mjserrors : tree_errors(math.parse(mathJSExpr), 'real')
-  },
+  rangeErrors,
+  FPCorePrecondition,
+  getVarnamesMathJS,
+  getVarnamesFPCore,
+  parseErrors,
   FPCoreBody,
   FPCoreGetBody,  // HACK just the fpcore version of the above, gets just the body
-  makeFPCore: ({ specMathJS, ranges, specFPCore, targetFPCoreBody = undefined, name = specMathJS }: {specMathJS: string, ranges : [string, [number, number]][], specFPCore: string, targetFPCoreBody?: string, name?: string}) => {
-    const vars = specFPCore === undefined ? get_varnames_mathjs(specMathJS) : get_varnames_fpcore(specFPCore)
-    const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
-    return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${get_precondition_from_input_ranges(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
-  },
-  mathjsToFPCore: (mathjs: string, specFPCore=undefined) => {
-    const vars = specFPCore === undefined ? get_varnames_mathjs(mathjs) : get_varnames_fpcore(specFPCore)
-    return `(FPCore (${vars.join(' ')}) ${FPCoreBody(mathjs)})`
-  }
+  makeFPCore,
+  mathjsToFPCore
 }

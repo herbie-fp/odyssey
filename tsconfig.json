@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
+		"esModuleInterop": true,
 		//"module": "esnext",
 		"moduleResolution": "nodenext",
 		"jsx": "react-jsx",

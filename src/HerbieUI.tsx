@@ -3,6 +3,7 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 import './HerbieUI.css';
 
 import { SpecComponent } from './SpecComponent';
+import { ServerStatusComponent } from './StatusComponent';
 import { ExpressionTable } from './ExpressionTable';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
@@ -10,33 +11,6 @@ import { nextId } from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
 
 import fpcorejs from './fpcore';
-
-function ServerStatusComponent(){
-  const [status, setStatus] = useState<number | null>(null);
-
-  useEffect(() => {
-    // Fetch the status
-    const fetchStatus = async () => {
-      const response = await fetch('http://127.0.0.1:8000/up');
-      setStatus(response.status);
-    };
-
-    fetchStatus();
-  }, []);
-
-  return (
-    <div>
-      {status ? (
-        <div>
-          <h2>Server Response:</h2>
-          <p>{JSON.stringify(status)}</p>
-        </div>
-      ) : (
-        <p>Loading server status...</p>
-      )}
-    </div>
-  );
-};
 
 function HerbieUI() {
   // State setters/getters (provided to children via React context)

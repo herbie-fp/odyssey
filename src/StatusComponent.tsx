@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
+const defaultIP = '127.0.0.1:8000'; // Default IP when no other IP is selected for the server
 
 function ServerStatusComponent() {
     const [status, setStatus] = useState<number | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-    const [inputIP, setInputIP] = useState<string>('127.0.0.1:8000');
+    const [inputIP, setInputIP] = useState<string>();
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -38,7 +39,7 @@ function ServerStatusComponent() {
             </button>
             {isDropdownOpen && (
                 <div>
-                    <input type="text" value={inputIP} onChange={handleIPChange} />
+                    <input type='text' value={inputIP} onChange={handleIPChange} />
                 </div>
             )}
         </div>

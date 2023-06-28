@@ -4,6 +4,7 @@ const timeBetweenChecks = 3000; // Time between checking for the status, in mill
 
 function ServerStatusComponent() {
     const [status, setStatus] = useState<number | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [inputIP, setInputIP] = useState<string>('127.0.0.1:8000');
 
     useEffect(() => {
@@ -25,22 +26,20 @@ function ServerStatusComponent() {
         setInputIP(event.target.value);
     };
 
+    const handleDropdownClick = () => {
+        setIsDropdownOpen(!isDropdownOpen);
+    };
+
     return (
         <div>
-            <label htmlFor="ipInput">Host (Herbie):</label>
-            <input
-                type="text"
-                id="ipInput"
-                value={inputIP}
-                onChange={handleIPChange}
-            />
-
-            {status ? (
+            {status ? <p>Connected</p> : <p>No Server</p>}
+            <button onClick={handleDropdownClick}>
+                {isDropdownOpen ? '▲' : '▼'}
+            </button>
+            {isDropdownOpen && (
                 <div>
-                    <p>Connected</p>
+                    <input type="text" value={inputIP} onChange={handleIPChange} />
                 </div>
-            ) : (
-                <p>No Server</p>
             )}
         </div>
     );

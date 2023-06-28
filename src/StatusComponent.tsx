@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
+import './StatusComponent.css';
+
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
 const defaultIP = '127.0.0.1:8000'; // Default IP when no other IP is selected for the server
 
 function ServerStatusComponent() {
     const [status, setStatus] = useState<number | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-    const [inputIP, setInputIP] = useState<string>();
+    const [inputIP, setInputIP] = useState<string>(defaultIP);
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -33,7 +35,9 @@ function ServerStatusComponent() {
 
     return (
         <div>
-            {status ? <p>Connected</p> : <p>No Server</p>}
+            <p className={status ? 'connected' : 'no-server'}>
+                {status ? 'Connected' : 'No Server'}
+            </p>
             <button onClick={handleDropdownClick}>
                 {isDropdownOpen ? '▲' : '▼'}
             </button>

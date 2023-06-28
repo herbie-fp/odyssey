@@ -52,7 +52,13 @@ function ExpressionTable() {
       
       {expressions.map((expression) => {
         const isChecked = compareExprIds.includes(expression.id);
-        const analysisResult = analyses.find((analysis) => analysis.expressionId === expression.id)?.result || 'no analysis yet';
+        const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data
+        const analysisResult =
+          !analysisData
+            ? 'no analysis yet'
+            : analysisData.reduce((acc: number, v: any) => {
+                return acc + parseFloat(v[1])
+              }, 0) / 8000
         return (
           <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} >
             <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} />

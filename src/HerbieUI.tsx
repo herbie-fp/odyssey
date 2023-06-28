@@ -6,11 +6,13 @@ import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './StatusComponent';
 import { ExpressionTable } from './ExpressionTable';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
+import * as Contexts from './HerbieContext';
 import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
+import * as Types from './HerbieTypes'
 import { nextId } from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
 
-import fpcorejs from './fpcore';
+import * as fpcorejs from './fpcore';
 
 function HerbieUI() {
   // State setters/getters (provided to children via React context)
@@ -21,6 +23,7 @@ function HerbieUI() {
   const [selectedExprId, setSelectedExprId] = useState(-1);
   const [spec, setSpec] = useState(undefined as Spec | undefined)//new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
   const [compareExprIds, setCompareExprIds] = useState([] as number[]);
+  const [expressionStyles, setExpressionStyles] = useState([] as Types.ExpressionStyle[]);
   
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -38,13 +41,10 @@ function HerbieUI() {
         if (result) {
           return result as ErrorAnalysis
         }
-        const analysis = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
+        const analysis : [[number, number], number][] = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
         console.log('Analysis was:', analysis)
         // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
-        const average = analysis.reduce((acc: number, v: any) => {
-          return acc + parseFloat(v[1])
-        }, 0) / 8000
-        return new ErrorAnalysis(average.toString(), expression.id)
+        return new ErrorAnalysis(analysis, expression.id)
       })));
     }, 1000);
   }, [expressions, samples]);
@@ -99,7 +99,9 @@ function HerbieUI() {
         <ExpressionsContext.Provider value={{ expressions, setExpressions }}>
           <AnalysesContext.Provider value={{ analyses, setAnalyses }}>
             <CompareExprIdsContext.Provider value={{ compareExprIds, setCompareExprIds }}>
-              <HerbieUIInner />
+              <Contexts.ExpressionStylesContext.Provider value={{ expressionStyles, setExpressionStyles }}>
+                <HerbieUIInner />
+              </Contexts.ExpressionStylesContext.Provider>
             </CompareExprIdsContext.Provider>
           </AnalysesContext.Provider>
         </ExpressionsContext.Provider>

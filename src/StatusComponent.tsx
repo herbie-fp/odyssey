@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import { InputRange, InputRangesEditor } from './InputRangesEditor';
+import { ExpressionsContext, ServerContext, SpecContext } from './HerbieContext';
 
 import './StatusComponent.css';
 
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
-const defaultIP = '127.0.0.1:8000'; // Default IP when no other IP is selected for the server
 
 function ServerStatusComponent() {
+    const { serverUrl: value, setServerUrl: setValue } = useContext(ServerContext);
+    const [serverUrl, setServerUrl] = useState<string>('http://127.0.0.1:8000');
+
     const [status, setStatus] = useState<number | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-    const [inputIP, setInputIP] = useState<string>(defaultIP);
 
     useEffect(() => {
         const fetchStatus = async () => {
             try {
-                const response = await fetch(`http://${inputIP}/up`);
+                const response = await fetch(`${serverUrl}/up`);
                 setStatus(response.status);
             } catch (error) {
                 setStatus(null);
@@ -23,10 +26,10 @@ function ServerStatusComponent() {
         fetchStatus();
         const intervalId = setInterval(fetchStatus, timeBetweenChecks);
         return () => clearInterval(intervalId);
-    }, [inputIP]);
+    }, [serverUrl]);
 
     const handleIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInputIP(event.target.value);
+        setServerUrl(event.target.value);
     };
 
     const handleDropdownClick = () => {
@@ -43,7 +46,7 @@ function ServerStatusComponent() {
             </button>
             {isDropdownOpen && (
                 <div>
-                    <input type='text' value={inputIP} onChange={handleIPChange} />
+                    <input type='text' value={serverUrl} onChange={handleIPChange} />
                 </div>
             )}
         </div>

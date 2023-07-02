@@ -1,6 +1,10 @@
 
 const math = require('mathjs4');
 
+// TODO use these for type validation (not raw strings)
+interface mathjs extends String { }
+interface fpcore extends String { }
+
   // eslint-disable-next-line @typescript-eslint/naming-convention
 const CONSTANTS : {[key: string]: string} = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool" }
 
@@ -297,9 +301,10 @@ function makeFPCore ({ specMathJS, ranges, specFPCore, targetFPCoreBody = undefi
   return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${FPCorePrecondition(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
 }
 
-function mathjsToFPCore (mathjs: string, specFPCore=undefined) {
-  const vars = specFPCore === undefined ? getVarnamesMathJS(mathjs) : getVarnamesFPCore(specFPCore)
-  return `(FPCore (${vars.join(' ')}) ${FPCoreBody(mathjs)})`
+function mathjsToFPCore(mathjs: mathjs, specFPCore = undefined) {
+  // TODO use mathjs/fpcore types to make this less hacky
+  const vars = specFPCore === undefined ? getVarnamesMathJS(mathjs as string) : getVarnamesFPCore(specFPCore)
+  return `(FPCore (${vars.join(' ')}) ${FPCoreBody(mathjs as string)})`
 }
 
 export {

@@ -13,6 +13,8 @@ import { nextId } from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
 
 import * as fpcorejs from './fpcore';
+import * as herbiejs from './herbiejs';
+
 
 function HerbieUI() {
   // State setters/getters (provided to children via React context)
@@ -41,6 +43,8 @@ function HerbieUI() {
         if (result) {
           return result as ErrorAnalysis
         }
+        // TODO switch to correct analysis object with full pointsJson info
+        //herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1].points, 5)
         const analysis: [[number, number], number][] = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
         console.log('Analysis was:', analysis)
         // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's

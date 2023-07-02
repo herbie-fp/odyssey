@@ -150,11 +150,19 @@ function ErrorPlot() {
   // get the variables from the expression
   const varnames = fpcorejs.getVarnamesMathJS(expression.text)
   // we will iterate over indices
+
   // TODO ticks are stored with expressions/sample
+
   // splitpoints are stored with expressions
+
   // data is stored with expressions
+
   // bits is stored with analyses
+
   // styles are stored as ExpressionStyles
+
+  // width and height are constants
+
   console.log('ErrorPlot rendered');
   return <div>
     <h1>ErrorPlot</h1>

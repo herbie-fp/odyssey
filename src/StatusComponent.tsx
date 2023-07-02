@@ -16,7 +16,11 @@ function ServerStatusComponent() {
     useEffect(() => {
         const fetchStatus = async () => {
             try {
-                const response = await fetch(`${serverUrl}/up`);
+                // const response = await fetch(`${serverUrl}/api/analyze`);
+                // HACK since /up isn't supported on main yet (CORS)
+                const response = (await fetch('http://127.0.0.1:8000/api/analyze', { method: 'POST', body: JSON.stringify({ formula: '(FPCore (x) (- (sqrt (+ x 1)) (sqrt x)))', sample: [[[
+                    14.97651307489794
+                  ], 0.12711304680349078]] }) }))
                 setStatus(response.status);
             } catch (error) {
                 setStatus(null);

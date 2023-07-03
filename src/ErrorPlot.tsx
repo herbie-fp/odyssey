@@ -160,6 +160,7 @@ function ErrorPlot() {
   const { expressions } = useContext(ExpressionsContext)
   const { compareExprIds } = useContext(CompareExprIdsContext)
   const { expressionStyles } = useContext(HerbieContext.ExpressionStylesContext)
+  const { selectedSampleId } = useContext(HerbieContext.SelectedSampleIdContext)
 
   console.log('selectedExprId', selectedExprId)
 
@@ -174,7 +175,7 @@ function ErrorPlot() {
   // we will iterate over indices
 
   // TODO ticks are stored with expressions/sample
-  const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id)?.data
+  const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
 
   if (compareExpressions.length === 0) {
@@ -250,7 +251,7 @@ function ErrorPlot() {
     {/* Plot all vars */}
     {vars.map((v, i) => {
       return <div key={i}>
-        <h2>{v}</h2>
+        <div>{v}</div>
         <svg viewBox="0 0 800 200" ref={async (svg) => {
           if (!svg) {
             return

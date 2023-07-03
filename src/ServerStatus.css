@@ -1,0 +1,16 @@
+.connected {
+    color: green;
+}
+
+.no-server {
+    color: red;
+}
+
+.serverStatus {
+    display: flex;
+    justify-content: space-between;
+}
+
+.serverStatus > div {
+    margin-right: 10px;
+}

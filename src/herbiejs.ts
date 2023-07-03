@@ -30,7 +30,8 @@ const getHerbieApi = async (
     }
     console.log('got data', responseData);
     return responseData;
-  } catch (error : any) {
+  } catch (error: any) {
+    throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`)
     console.error('Bad call to', url, 'with data', data, 'error was', error);
     if (retry) {
       console.error('retrying once');

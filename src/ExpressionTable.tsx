@@ -1,14 +1,20 @@
 import { useContext, useState } from 'react';
 import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
-import {nextId} from './utils'
+import * as HerbieContext from './HerbieContext';
+import { nextId } from './utils'
 
 function ExpressionTable() {
   const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext);
   const { expressions, setExpressions } = useContext(ExpressionsContext);
   const { analyses, setAnalyses } = useContext(AnalysesContext);
   const { compareExprIds, setCompareExprIds } = useContext(CompareExprIdsContext);
-  const [ addExpression, setAddExpression ] = useState('');
+  const [addExpression, setAddExpression] = useState('');
+  const { expressionStyles } = useContext(HerbieContext.ExpressionStylesContext)
+  // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
+  
+  const { spec } = useContext(SpecContext);
+
 
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
@@ -56,12 +62,15 @@ function ExpressionTable() {
         const analysisResult =
           !analysisData
             ? 'no analysis yet'
-            : analysisData.errors.reduce((acc: number, v: any) => {
+            : (analysisData.errors.reduce((acc: number, v: any) => {
                 return acc + v
-              }, 0) / 8000
+              }, 0) / 8000).toFixed(2)
         return (
           <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
-            <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()} />
+            
+            <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
+              style={({ accentColor: expressionStyles.find((style) => style.expressionId === expression.id)?.color })}
+            />
             <div >
               {expression.text}
             </div>

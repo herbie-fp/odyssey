@@ -22,38 +22,42 @@ export function activate(context: vscode.ExtensionContext) {
 				retainContextWhenHidden: true
 			})
 		panel.webview.html = getWebviewContent(panel.webview, context);
-		// const addMessageHandler = (panel: vscode.WebviewPanel) => {
-		// 	// TODO: old code, only use if we need to receive messages from the webview
-		// 	panel.webview.onDidReceiveMessage(
-		// 		async message => {
-		// 			message = JSON.parse(message)
-		// 			switch (message.command) {
-		// 				case 'error':
-		// 					// Show a button for copying the error message to the clipboard
-		// 					const copy = 'Copy to clipboard'
-		// 					const action = await vscode.window.showErrorMessage(message.error, copy)
-		// 					if (action === copy) {
-		// 						await vscode.env.clipboard.writeText(message.error)
-		// 					}
-		// 					break
-		// 				case 'openNewTab':
-		// 					const { mathjs, ranges } = message
-		// 					const title = 'Odyssey: Herbie'//mathjs.length > 12 ? mathjs.slice(0, 9) + '...' : mathjs
-		// 					const panel2 = vscode.window.createWebviewPanel(
-		// 						'herbieIndex', // Identifies the type of the webview. Used internally
-		// 						title, // Title of the panel displayed to the user
-		// 						vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-		// 						{
-		// 							// Enable scripts in the webview
-		// 							enableScripts: true,
-		// 							// Only allow the webview to access resources in these directories
-		// 							localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
-		// 							retainContextWhenHidden: true
-		// 						})
-		// 				}
-		// 		})
-		// }
+		const addMessageHandler = (panel: vscode.WebviewPanel) => {
+			// TODO: old code, only use if we need to receive messages from the webview
+			panel.webview.onDidReceiveMessage(
+				async message => {
+					console.log('got message', message)
+					message = JSON.parse(message)
+					switch (message.command) {
+						case 'error':
+							// Show a button for copying the error message to the clipboard
+							const copy = 'Copy to clipboard'
+							console.log('error', message.error)
+							const action = await vscode.window.showErrorMessage(message.error, copy)
+							if (action === copy) {
+								await vscode.env.clipboard.writeText(message.error)
+							}
+							break
+						// case 'openNewTab':
+						// 	const { mathjs, ranges } = message
+						// 	const title = 'Odyssey: Herbie'//mathjs.length > 12 ? mathjs.slice(0, 9) + '...' : mathjs
+						// 	const panel2 = vscode.window.createWebviewPanel(
+						// 		'herbieIndex', // Identifies the type of the webview. Used internally
+						// 		title, // Title of the panel displayed to the user
+						// 		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+						// 		{
+						// 			// Enable scripts in the webview
+						// 			enableScripts: true,
+						// 			// Only allow the webview to access resources in these directories
+						// 			localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
+						// 			retainContextWhenHidden: true
+						// 		})
+						}
+				})
+		}
+		addMessageHandler(panel)
 	})
+	
 	context.subscriptions.push(disposable)
 }
 
@@ -87,6 +91,20 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css" integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous">
 	</head>
 	<body>
+	  <script type="module">
+		console.log('getting vscodeapi')
+		const vscode = await window.acquireVsCodeApi();
+		window.addEventListener("error", (event) => {
+			console.log('caught error', event)
+			console.log(vscode)
+			vscode.postMessage(JSON.stringify({ command: 'error', error: JSON.stringify(event.error) }))
+		})
+		window.addEventListener("unhandledrejection", (event) => {
+			console.log('caught error', event)
+			console.log(vscode)
+			vscode.postMessage(JSON.stringify({ command: 'error', error: event.reason.stack }))
+		})
+		</script>
 		<div id="root"></div>
 
 		<script src="${scriptUrl}" />

@@ -1,3 +1,5 @@
+import { Expression } from './HerbieTypes';
+
 function nextId(table: { id: number }[]) {
   return table.sort((a, b) => a.id - b.id).reduce((acc, curr) => {
     if (acc === curr.id) {
@@ -7,5 +9,6 @@ function nextId(table: { id: number }[]) {
     }
   }, 0);
 }
+
 
 export { nextId }

@@ -3,7 +3,7 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 import './HerbieUI.css';
 
 import { SpecComponent } from './SpecComponent';
-import { ServerStatusComponent } from './StatusComponent';
+import { ServerStatusComponent } from './ServerStatus';
 import { ExpressionTable } from './ExpressionTable';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, ServerContext, SpecContext, CompareExprIdsContext, ExpressionStylesContext } from './HerbieContext';
 import * as Contexts from './HerbieContext';
@@ -23,9 +23,11 @@ function HerbieUI() {
   const [serverUrl, setServerUrl] = useState('http://127.0.0.1:8000')
   const [analyses, setAnalyses] = useState([] as ErrorAnalysis[]);
   const [selectedExprId, setSelectedExprId] = useState(-1);
-  const [spec, setSpec] = useState(undefined as Spec | undefined)//new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
+  const [spec, setSpec] = useState(new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
   const [compareExprIds, setCompareExprIds] = useState([] as number[]);
   const [expressionStyles, setExpressionStyles] = useState([] as Types.ExpressionStyle[]);
+  const [selectedSampleId, setSelectedSampleId] = useState(-1);
+  // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
 
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -39,19 +41,26 @@ function HerbieUI() {
         return
       }
       setAnalyses((await Promise.all(expressions.map(async expression => {
-        let result = analyses.find(a => a.expressionId === expression.id)
+        const sample = samples[samples.length - 1]
+
+        let result = analyses.find(a => a.expressionId === expression.id && a.sampleId === sample.id)
         if (result) {
           return result as ErrorAnalysis
         }
         // TODO switch to correct analysis object with full pointsJson info
         //herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1].points, 5)
         try {
-          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1], serverUrl)
+          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl)
           // const analysis: [[number, number], number][] = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
-          return new ErrorAnalysis(analysis, expression.id)
+
+          // setCompareExprIds to include the new expression without duplicates
+          setCompareExprIds([...compareExprIds, expression.id].filter((v, i, a) => a.indexOf(v) === i))
+          
+          return new ErrorAnalysis(analysis, expression.id, sample.id)
         } catch (e) {
+          throw e;
           // TODO handle + display errors
           return;
         }
@@ -66,15 +75,20 @@ function HerbieUI() {
       // but they do need to be unique
       // and they need to be consistent across renders
       // so we use the expression id to index into a list of colors
-      const color = `hsl(${expression.id * 100 % 360}, 100%, 50%)`
+      const color = `hsl(${(expression.id + 7) * 100 % 360}, 100%, 40%)`
       return new Types.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
     }))
   }, [expressions])
       
+  // useEffect(() => {
+  //   // if a new expression appears, it is marked as relevant to the current spec
+  //   // if an expression is removed, it is marked as irrelevant to the current spec
+  //   const newExpressionIds = expressions.map(e => e.id)
+  //   setSpec(new Spec(spec.expression, [...spec.expressionIds.filter(id => expressions.map(e => e.id).includes(id)), ...newExpressionIds], spec.ranges, spec.id))
+  // }, [expressions])
 
   // immediately select the first available expression if none is selected
   useEffect(() => {
-    console.log('setting selected. expressions:', expressions)
     if (expressions.length === 1) {
       setSelectedExprId(expressions[0].id);
       setCompareExprIds([expressions[0].id]);
@@ -87,19 +101,21 @@ function HerbieUI() {
   // * sample the spec
   useEffect(() => {
     if (spec !== undefined) {
-      setExpressions([new Expression(spec.expression, spec.id)]);
       async function sample() {
         const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
-        console.log(sample_points)
-        setSamples([...samples, new Sample(sample_points, nextId(samples))]);
+        setExpressions([])  // prevent samples from updating analyses
+        setSamples([...samples, new Sample(sample_points, spec.id, nextId(samples))]);
+        setExpressions([new Expression(spec.expression, nextId(expressions))])
       }
-      sample()
+      if (!samples.find(s => s.specId === spec.id)) { sample() }
     }
   }, [spec])
 
-  // Show the sample whenever it changes
+  // Select and show the sample whenever one is added
   useEffect(() => {
-    console.log(samples)
+    if (samples.length > 0) {
+      setSelectedSampleId(samples[samples.length - 1].id)
+    }
   }, [samples])
 
   function HerbieUIInner() {
@@ -126,7 +142,9 @@ function HerbieUI() {
             <AnalysesContext.Provider value={{ analyses, setAnalyses }}>
               <CompareExprIdsContext.Provider value={{ compareExprIds, setCompareExprIds }}>
                 <Contexts.ExpressionStylesContext.Provider value={{ expressionStyles, setExpressionStyles }}>
-                  <HerbieUIInner />
+                  <Contexts.SelectedSampleIdContext.Provider value={{ selectedSampleId, setSelectedSampleId }}>
+                    <HerbieUIInner />
+                  </Contexts.SelectedSampleIdContext.Provider>
                 </Contexts.ExpressionStylesContext.Provider>
               </CompareExprIdsContext.Provider>
             </AnalysesContext.Provider>

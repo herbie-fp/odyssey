@@ -7,6 +7,13 @@ class Expression {
   }
 }
 
+// export class ExpressionIdsForSpec {
+//   constructor(public readonly expressionIds: number[], public readonly specId: number) {
+//     this.expressionIds = expressionIds;
+//     this.specId = specId;
+//   }
+// }
+
 class ExpressionStyle {
   // expressions have a color
   // and style object like { line: { stroke: string }, dot: { stroke: string }
@@ -30,9 +37,10 @@ type ErrorAnalysisData = {
 }
 
 class ErrorAnalysis {
-  constructor(public readonly data: ErrorAnalysisData, public readonly expressionId: number) { 
+  constructor(public readonly data: ErrorAnalysisData, public readonly expressionId: number, public readonly sampleId: number) { 
     this.data = data;
     this.expressionId = expressionId;
+    this.sampleId = sampleId;
   }
 }
 
@@ -50,8 +58,9 @@ type OrdinalExpressionInput = number
 type ExpressionError = number
 // A sample is a set of input tuples for a spec
 class Sample {
-  constructor(public readonly points: [ExpressionInputs, ExpressionError][], public readonly id: number) {
+  constructor(public readonly points: [ExpressionInputs, ExpressionError][], public readonly specId: number, public readonly id: number) {
     this.points = points;
+    this.specId = specId;
     this.id = id;
   }
 }
@@ -59,6 +68,7 @@ class Sample {
 class Spec {
   constructor(public readonly expression: string, public readonly ranges: SpecRange[], public readonly id: number) {
     this.expression = expression;
+    // this.expressionIds = expressionIds;
     this.ranges = ranges;
     this.id = id;
   }

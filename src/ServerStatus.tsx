@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { InputRange, InputRangesEditor } from './InputRangesEditor';
 import { ExpressionsContext, ServerContext, SpecContext } from './HerbieContext';
 
-import './StatusComponent.css';
+import './ServerStatus.css';
 
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
 
@@ -41,13 +41,16 @@ function ServerStatusComponent() {
     };
 
     return (
-        <div>
-            <p className={status ? 'connected' : 'no-server'}>
+        <div className="serverStatus">
+            <div className={status ? 'connected' : 'no-server'}>
                 {status ? 'Connected' : 'No Server'}
-            </p>
-            <button onClick={handleDropdownClick}>
-                {isDropdownOpen ? '▲' : '▼'}
-            </button>
+            </div>
+            <div>
+                <button onClick={handleDropdownClick}>
+                    {isDropdownOpen ? '▲' : '▼'}
+                </button>
+            </div>
+            
             {isDropdownOpen && (
                 <div>
                     <input type='text' value={serverUrl} onChange={handleIPChange} />

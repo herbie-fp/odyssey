@@ -8,6 +8,8 @@ console.log("KaTeX:", KaTeX);
 import './SpecComponent.css';
 const math11 = require('mathjs11');
 
+import * as fpcorejs from './fpcore';
+
 function SpecComponent() {
   const { spec: value, setSpec: setValue } = useContext(SpecContext);
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0));
@@ -23,12 +25,20 @@ function SpecComponent() {
   }
   // Wait until submit click to set the spec
   const handleSubmitClick = () => {
-    setValue(spec);
+    setValue(new Spec(spec.expression, spec.ranges, spec.id+1));
+  }
+  const specValid = () => {
+    try {
+      fpcorejs.mathjsToFPCore(spec.expression);
+    } catch (e) {
+      return false
+    }
+    return true
   }
   
   function getVariables(spec: Spec) : string[] {
     // TODO
-    return ['x']
+    return specValid() ? fpcorejs.getVarnamesMathJS(spec.expression): []
   }
 
   // Create a new Spec when the spec is submitted by clicking the done button
@@ -40,19 +50,19 @@ function SpecComponent() {
   }
   return (
     <div className="spec-container">
-      <div className="spec-text" onClick={handleSpecClick}>{spec.expression}</div>
+      <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
       {showOverlay && <div className="spec-overlay" onClick={handleOverlayClick}>
         {/* Show a dialogue for editing the spec with a "done" button. */}
         <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>
           <div className="spec-overlay-header">
             <div>Spec</div>
-            <button onClick={handleSubmitClick}>Done</button>
+            <button onClick={handleSubmitClick} disabled={ !specValid() }>Done</button>
           </div>
           {/* Render the expression into HTML with KaTeX */}
           <div className="spec-tex" dangerouslySetInnerHTML={{
             __html: (() => {
               try { return KaTeX.renderToString(math11.parse(spec.expression).toTex(), { throwOnError: false }) } catch (e) {
-                throw e;
+                //throw e;
                 return (e as Error).toString()
               }
             })()

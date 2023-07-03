@@ -26,7 +26,7 @@ function SelectableVisualization() {
       <select value={selectedOption} onChange={handleOptionChange}>
         <option value="errorPlot">Error Plot</option>
         <option value="localError">Local Error</option>
-      </select> for expression {selectedExprId}
+      </select>
       <div>
         {selectedComponent}
       </div>

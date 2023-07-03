@@ -1,17 +1,15 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { InputRange, InputRangesEditor } from './InputRangesEditor';
-import { ExpressionsContext, ServerContext, SpecContext } from './HerbieContext';
+import { ServerContext } from './HerbieContext';
 
 import './ServerStatus.css';
 
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
 
 function ServerStatusComponent() {
-    const { serverUrl: value, setServerUrl: setValue } = useContext(ServerContext);
-    const [serverUrl, setServerUrl] = useState<string>('http://127.0.0.1:8000');
-
+    const { serverUrl, setServerUrl } = useContext(ServerContext);
     const [status, setStatus] = useState<number | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+    const [updatedServerUrl, setUpdatedServerUrl] = useState<string>('');
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -33,11 +31,16 @@ function ServerStatusComponent() {
     }, [serverUrl]);
 
     const handleIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setServerUrl(event.target.value);
+        setUpdatedServerUrl(event.target.value);
     };
 
     const handleDropdownClick = () => {
         setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        setServerUrl(updatedServerUrl);
     };
 
     return (
@@ -53,7 +56,10 @@ function ServerStatusComponent() {
             
             {isDropdownOpen && (
                 <div>
-                    <input type='text' value={serverUrl} onChange={handleIPChange} />
+                    <form onSubmit={handleSubmit}>
+                        <input type='text' value={updatedServerUrl} onChange={handleIPChange} />
+                        <button type="submit">Submit</button>
+                    </form>
                 </div>
             )}
         </div>

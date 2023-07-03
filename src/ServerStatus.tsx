@@ -9,11 +9,14 @@ function ServerStatusComponent() {
     const { serverUrl, setServerUrl } = useContext(ServerContext);
     const [status, setStatus] = useState<number | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-    const [updatedServerUrl, setUpdatedServerUrl] = useState<string>('');
+    const [updatedServerUrl, setUpdatedServerUrl] = useState<string>(serverUrl || '');
+
+    console.log(serverUrl);
 
     useEffect(() => {
         const fetchStatus = async () => {
             try {
+                //const response = await fetch(`${serverUrl}/up`);
                 // const response = await fetch(`${serverUrl}/api/analyze`);
                 // HACK since /up isn't supported on main yet (CORS)
                 const response = (await fetch('http://127.0.0.1:8000/api/analyze', { method: 'POST', body: JSON.stringify({ formula: '(FPCore (x) (- (sqrt (+ x 1)) (sqrt x)))', sample: [[[

@@ -2,29 +2,34 @@
 // Also want to fix build -- maybe switch to vite, but most important is to move webview to subfolder
 import {useState, useContext} from "react";
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
+import * as HerbieContext from './HerbieContext'
 
 import * as fpcorejs from './fpcore'
 
-import { Expression } from './HerbieTypes'
+import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTypes'
+import * as HerbieTypes from './HerbieTypes'
 
-interface Point {
-  x: number,
-  y: number,
-  orig: number[]  // the original point associated with this input
+type ordinal = number
+type varname = string
+
+interface OrdinalErrorPoint {
+  x: OrdinalExpressionInput,
+  y: ExpressionError,
+  orig: OrdinalExpressionInput[]  // the original point associated with this input
 }
 interface PlotArgs {
   /** A list of variable names for the original points. */
-  varnames: string[];
+  varnames: varname[];
 
   /** For each function being plotted, for each `x` in the input, a `y` for the error. */
-  data: Point[][]
+  data: OrdinalErrorPoint[][]
 
   /** styles for each function */
   styles: { line: { stroke: string }, dot: { stroke: string } }[]
 
   /** A string<->ordinal mapping to let us label ticks, eg [['1e10', 12345678], ...] */
-  ticks: [string, number][]
-  splitpoints: [number]
+  ticks: [string, ordinal][]
+  splitpoints: number[]
 
   /** SVG width */
   width?: number
@@ -33,7 +38,18 @@ interface PlotArgs {
 
   [propName: string]: any  // could have other properties
 }
-
+/**
+ * Plot the error of a function.
+ * @param varnames A list of variable names for the original points.
+ * @param data For each function being plotted, for each `x` in the input, a `y` for the error.
+ * @param ticks A string<->ordinal mapping to let us label ticks, eg [['1e10', 12345678], ...]
+ * @param splitpoints A list of splitpoints to draw vertical bars at.
+ * @param bits The number of bits of error to plot.
+ * @param styles styles for each function
+ * @param width SVG width
+ * @param height SVG height
+ * @returns An SVG element.
+  */
 async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, width = 800, height = 400 }: PlotArgs): Promise<SVGElement> {
   const Plot = await import( "@observablehq/plot");  // HACK to let us use an ES module in a non-ES module
   const tickStrings = ticks.map(t => t[0])
@@ -51,7 +67,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
   }
 
   /** Compute a new array of the same length as `points` by averaging on a window of size `size` at each point. */
-  const slidingWindow = (points: Point[], size : number) => {
+  const slidingWindow = (points: OrdinalErrorPoint[], size : number) => {
     const half = Math.floor(size / 2)
     const runningSum = points.reduce((acc, v) => (
         acc.length > 0 ? acc.push(v.y + acc[acc.length - 1])
@@ -70,15 +86,15 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
           : runningSum[i - half]
       acc.push({y: (top - bottom) / length, x: points[i].x, orig: points[i].orig})
       return acc
-    }, [] as Point[])
+    }, [] as OrdinalErrorPoint[])
   }
 
   /** Takes an array of {x, y} data points.
    * Creates a line graph based on a sliding window of width binSize.
    * Further compresses points to width.
    * */
-  function lineAndDotGraphs({data, style: { line, dot, selected, id }, binSize = 128, width = 800 }: {data: any, style: any, binSize?: number, width?: number}) {
-    const average = (points: Point[]) => ({
+  function lineAndDotGraphs({data, style: { line, dot, selected, id }, binSize = 128, width = 800 }: {data: OrdinalErrorPoint[], style: any, binSize?: number, width?: number}) {
+    const average = (points: OrdinalErrorPoint[]) => ({
       y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
       x: points.reduce((acc, e) => e.x + acc, 0) / points.length
     })
@@ -134,39 +150,128 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
   return out as SVGElement
 }
 
+// const zip =  <T1,T2,T3>(arr1: T1[], arr2: T2[], arr3=[] as T3[])  : [T1, T2, T3][] => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [] as [T1, T2, T3][])
+
 // need to get varnames from expression, varidx
 // varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400
 function ErrorPlot() {
   const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext)
+  const { analyses } = useContext(AnalysesContext);
+  const { expressions } = useContext(ExpressionsContext)
+  const { compareExprIds } = useContext(CompareExprIdsContext)
+  const { expressionStyles } = useContext(HerbieContext.ExpressionStylesContext)
+
   console.log('selectedExprId', selectedExprId)
 
   // get the expression
-  const { expressions } = useContext(ExpressionsContext)
-  const expression = expressions.find(e => e.id === selectedExprId)
-  if (!expression) {
+  const selectedExpr = expressions.find(e => e.id === selectedExprId)
+  if (!selectedExpr) {
     return <div>Could not find expression with id {selectedExprId}</div>
     // throw new Error(`Could not find expression with id ${selectedExprId}`)
   }
   // get the variables from the expression
-  const varnames = fpcorejs.getVarnamesMathJS(expression.text)
+  const varnames = fpcorejs.getVarnamesMathJS(selectedExpr.text)
   // we will iterate over indices
 
   // TODO ticks are stored with expressions/sample
+  const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id)?.data
+  const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
 
-  // splitpoints are stored with expressions
+  if (compareExpressions.length === 0) {
+    return <div>No selected expressions with analyses to compare yet.</div>
+  }
+  
+  /* We want to get the data for each expression and put it into an array. */
+  const keyFn = <T,>(fn: (u: T) => number) => (a: T, b: T) => fn(a) - fn(b)
+  const exprData = compareExpressions
+    // draw the data for the selected expression last
+    .sort(keyFn(e => e.id === selectedExprId ? 1 : 0))
+    .map(e => {
+      const {
+        ordinalSample,
+        ticksByVarIdx,
+        splitpointsByVarIdx,
+        bits,
+        vars,
+        errors,
+        meanBitsError
+      } = analysisData(e) as HerbieTypes.ErrorAnalysisData // we already checked that analysisData(e) exists for all compareExpressions
+      return vars.map((v, i) => {
+        return ordinalSample.reduce((acc, p, j) => {
+          acc.push({
+            x: p[i],
+            y: errors[j],
+            orig: p
+          })
+          return acc
+        }, [] as OrdinalErrorPoint[]).sort(keyFn(p => p.x))
+      })
+    })
+  
+  const defaultData = analysisData(selectedExpr) as HerbieTypes.ErrorAnalysisData
 
-  // data is stored with expressions
+  if (!defaultData) {
+    return <div>No analysis data for selected expression yet.</div>
+  }
 
-  // bits is stored with analyses
+  const {
+    ordinalSample,
+    ticksByVarIdx,
+    splitpointsByVarIdx,
+    bits,
+    vars,
+    errors,
+    meanBitsError
+  } = defaultData
 
-  // styles are stored as ExpressionStyles
+  const styles = compareExpressions.map(e => {
+    const style = (expressionStyles.find(e1 => e1.expressionId === e.id) as HerbieTypes.ExpressionStyle).style
+    const selected = selectedExpr.id === e.id
+    const dotAlpha = selected ? 'b5' : '25'
+    const color = style.dot.stroke
+    return {
+      ...style,
+      dot: {
+        stroke: color + dotAlpha,
+        fill: color,
+        fillOpacity: 0
+      },
+      // TODO check why these are necessary
+      selected,
+      id: e.id
+    }
+  })
 
-  // width and height are constants
-
-  console.log('ErrorPlot rendered');
+  if (styles.length !== compareExpressions.length) {
+    throw new Error(`Missing a style for one of the expressions`)
+  }
+  
   return <div>
-    <h1>ErrorPlot</h1>
     {/* Plot all vars */}
+    {vars.map((v, i) => {
+      return <div key={i}>
+        <h2>{v}</h2>
+        <svg viewBox="0 0 800 200" ref={async (svg) => {
+          if (!svg) {
+            return
+          }
+          const plot = await plotError({
+            varnames,
+            varidx: i,
+            ticks: ticksByVarIdx[i],
+            splitpoints: splitpointsByVarIdx[i],
+            // get the data for the current variable
+            // data is stored as exprData -> varData -> Point[], so:
+            data: exprData.map(varData => varData[i]),
+            bits,
+            styles,
+            width: 800,
+            height: 200
+          });
+          [...plot.children].map(c => svg.appendChild(c))
+        }} />
+      </div>
+    })}
   </div>
   
 }

@@ -1,10 +1,11 @@
 .grid-container {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Divide the layout into two columns */
+  grid-template-columns: 50% 50%; /*1fr 1fr; doesn't seem to work in vscode /* Divide the layout into two columns */
   grid-template-areas:
     "header header"
     "expressions visualization"; /* Define the grid areas */
   gap: 20px; /* Add some gap between the grid items */
+  /* expressions and visualization should take up half each */
 }
 
 .header {

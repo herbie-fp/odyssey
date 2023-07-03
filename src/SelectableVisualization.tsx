@@ -22,12 +22,12 @@ function SelectableVisualization() {
   const { selectedExprId } = useContext(SelectedExprIdContext);
 
   return (
-    <div>
+    <div className="visualization">
       <select value={selectedOption} onChange={handleOptionChange}>
         <option value="errorPlot">Error Plot</option>
         <option value="localError">Local Error</option>
       </select> for expression {selectedExprId}
-      <div className="visualization">
+      <div>
         {selectedComponent}
       </div>
     </div>

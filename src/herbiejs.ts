@@ -1,9 +1,7 @@
 import * as fpcorejs from './fpcore';
 import * as ordinalsjs from './ordinals';
+import { Sample } from './HerbieTypes';
 
-interface Sample {
-  points: any[];
-}
 
 interface HerbieResponse {
   error?: string;
@@ -70,7 +68,7 @@ export const analyzeExpression = async (
   fpcore: string,
   sample: Sample,
   host: string
-): Promise<{ pointsJson: any; meanBitsError: number }> => {
+) => {
   function fastMin(arr: number[]) {
     var len = arr.length, min = Infinity;
     while (len--) {
@@ -109,7 +107,7 @@ export const analyzeExpression = async (
   const ordinalSample = sample.points.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
 
   const vars = fpcorejs.getVarnamesFPCore(fpcore);
-  const ticksByVarIdx = vars.map((v, i) => {
+  const ticksByVarIdx : [string, number][][]= vars.map((v, i) => {
     const values = sample.points.map(p => p[0][i]);
     return ordinalsjs.chooseTicks(fastMin(values), fastMax(values)).map(v => [displayNumber(v), ordinalsjs.floatToApproximateOrdinal(v)]);
   });
@@ -119,7 +117,16 @@ export const analyzeExpression = async (
   const splitpointsByVarIdx = vars.map(v => []);  // HACK no splitpoints for now
   const errors = pointsAndErrors.map(([point, error]) => parseFloat(error));
   const meanBitsError = parseFloat((errors.reduce((sum, v) => sum + v, 0) / errors.length).toFixed(2));
-  return { pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { target: errors } }, meanBitsError };
+  return {
+    ordinalSample,
+    ticksByVarIdx,
+    splitpointsByVarIdx,
+    bits: 64,
+    vars,
+    errors,
+    meanBitsError
+    // pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { target: errors } }, meanBitsError
+  };
 };
 
 export const fPCoreToMathJS = async (

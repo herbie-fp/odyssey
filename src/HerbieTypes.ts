@@ -19,8 +19,18 @@ class ExpressionStyle {
   }
 }
 
+type ErrorAnalysisData = {
+  ordinalSample: OrdinalExpressionInput[][];
+  ticksByVarIdx: [string, number][][];
+  splitpointsByVarIdx: never[][];
+  bits: number;
+  vars: string[];
+  errors: ExpressionError[];
+  meanBitsError: ExpressionError;
+}
+
 class ErrorAnalysis {
-  constructor(public readonly data: [[number, number], number][], public readonly expressionId: number) { 
+  constructor(public readonly data: ErrorAnalysisData, public readonly expressionId: number) { 
     this.data = data;
     this.expressionId = expressionId;
   }
@@ -35,9 +45,12 @@ class SpecRange {
   }
 }
 
+type ExpressionInputs = number[]
+type OrdinalExpressionInput = number
+type ExpressionError = number
 // A sample is a set of input tuples for a spec
 class Sample {
-  constructor(public readonly points: number[][], public readonly id: number) {
+  constructor(public readonly points: [ExpressionInputs, ExpressionError][], public readonly id: number) {
     this.points = points;
     this.id = id;
   }
@@ -51,4 +64,4 @@ class Spec {
   }
 }
 
-export { Expression, ErrorAnalysis, SpecRange, Spec, Sample, ExpressionStyle };
+export { Expression, ErrorAnalysis, SpecRange, Spec, Sample, ExpressionStyle, OrdinalExpressionInput, ExpressionError, ErrorAnalysisData };

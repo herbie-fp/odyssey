@@ -56,17 +56,22 @@ function ExpressionTable() {
         const analysisResult =
           !analysisData
             ? 'no analysis yet'
-            : analysisData.reduce((acc: number, v: any) => {
-                return acc + parseFloat(v[1])
+            : analysisData.errors.reduce((acc: number, v: any) => {
+                return acc + v
               }, 0) / 8000
         return (
-          <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} >
-            <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} />
-            <div onClick={() => handleExpressionClick(expression.id)}>
+          <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
+            <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()} />
+            <div >
               {expression.text}
             </div>
             <div className="analysis">
               {analysisResult}
+            </div>
+            <div className="delete">
+              <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
+                Delete
+              </button>
             </div>
           </div>
         );

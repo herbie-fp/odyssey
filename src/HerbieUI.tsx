@@ -38,25 +38,46 @@ function HerbieUI() {
       if (samples.length === 0) {
         return
       }
-      setAnalyses(await Promise.all(expressions.map(async expression => {
+      setAnalyses((await Promise.all(expressions.map(async expression => {
         let result = analyses.find(a => a.expressionId === expression.id)
         if (result) {
           return result as ErrorAnalysis
         }
         // TODO switch to correct analysis object with full pointsJson info
         //herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1].points, 5)
-        const analysis: [[number, number], number][] = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
-        console.log('Analysis was:', analysis)
-        // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
-        return new ErrorAnalysis(analysis, expression.id)
-      })));
-    }, 1000);
+        try {
+          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1], serverUrl)
+          // const analysis: [[number, number], number][] = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
+          console.log('Analysis was:', analysis)
+          // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
+          return new ErrorAnalysis(analysis, expression.id)
+        } catch (e) {
+          // TODO handle + display errors
+          return;
+        }
+      }))).filter(e => e) as ErrorAnalysis[]);
+    });
   }, [expressions, samples]);
+
+  // Reactively update expression styles whenever expressions change
+  useEffect(() => {
+    setExpressionStyles(expressions.map((expression) => {
+      // expression styles are just a list of colors for each expression
+      // but they do need to be unique
+      // and they need to be consistent across renders
+      // so we use the expression id to index into a list of colors
+      const color = `hsl(${expression.id * 100 % 360}, 100%, 50%)`
+      return new Types.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
+    }))
+  }, [expressions])
+      
 
   // immediately select the first available expression if none is selected
   useEffect(() => {
+    console.log('setting selected. expressions:', expressions)
     if (expressions.length === 1) {
       setSelectedExprId(expressions[0].id);
+      setCompareExprIds([expressions[0].id]);
     }
   }, [expressions])
 

@@ -1,9 +1,9 @@
 {
-  "name": "interactive-herbie",
-  "displayName": "Herbie",
+  "name": "odyssey",
+  "displayName": "Odyssey",
   "description": "A VSCode interface for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
-  "version": "0.1.1",
-  "repository": "https://github.com/herbie-fp/herbie-vscode",
+  "version": "0.4.0",
+  "repository": "https://github.com/herbie-fp/odyssey",
   "publisher": "herbie-fp",
   "engines": {
     "vscode": "^1.69.0"
@@ -12,18 +12,18 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:interactive-herbie.helloWorld",
-    "onCommand:interactive-herbie.openWindow"
+    "onCommand:odyssey.helloWorld",
+    "onCommand:odyssey.openWindow"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "interactive-herbie.helloWorld",
+        "command": "odyssey.helloWorld",
         "title": "Herbie: Hello World"
       },
       {
-        "command": "interactive-herbie.openWindow",
+        "command": "odyssey.openWindow",
         "title": "Odyssey: Herbie"
       }
     ]

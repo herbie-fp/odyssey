@@ -70,7 +70,10 @@ See the issues tab on Github.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.4.0
+
+* Rename repo + extension
+* Still unofficial; expecting to release 1.0 at the beginning of August
 
 ### 0.1.0
 

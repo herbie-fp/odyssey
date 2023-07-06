@@ -1,3 +1,5 @@
+# ⚠️ In development! v1.0 will release in August. ⚠️
+
 # Odyssey: An Interactive Numerics Workbench
 
 Odyssey is a VSCode extension developed to enhance the interactivity of floating-point error investigation and improvement systems like the [Herbie](https://herbie.uwplse.org/demo/) tool.

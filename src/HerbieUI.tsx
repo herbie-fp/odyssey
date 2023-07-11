@@ -28,6 +28,7 @@ function HerbieUI() {
   const [expressionStyles, setExpressionStyles] = useState([] as Types.ExpressionStyle[]);
   const [selectedSampleId, setSelectedSampleId] = useState(-1);
   // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
+  const [inputRangesTable, setInputRangesTable] = useState([] as Types.InputRanges[]);
 
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -100,16 +101,21 @@ function HerbieUI() {
   // * reset expressions to just the naive expression(the spec)
   // * sample the spec
   useEffect(() => {
-    if (spec !== undefined) {
-      async function sample() {
+    // if (spec !== undefined) {
+    async function sample() {
+      const inputRanges = inputRangesTable.find(r => r.specId === spec.id)
+      if (inputRanges === undefined) {
+        throw new Error(`No input ranges found for spec ${spec.id}`)
+      }
+        // TODO use input range from inputRangesTable in the sample call
         const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
         setExpressions([])  // prevent samples from updating analyses
-        setSamples([...samples, new Sample(sample_points, spec.id, nextId(samples))]);
+        setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
         setExpressions([new Expression(spec.expression, nextId(expressions))])
       }
       if (!samples.find(s => s.specId === spec.id)) { sample() }
-    }
-  }, [spec])
+    // }
+  }, [inputRangesTable])
 
   // Select and show the sample whenever one is added
   useEffect(() => {
@@ -130,11 +136,44 @@ function HerbieUI() {
       </div>
     );
   }
+
+  // TODO later: GPT4 thinks the below should help with context management
+  // interface ContextProviderProps {
+  //   children: React.ReactNode;
+  // }
+  // interface ContextElement {
+  //   context: React.Context<any>;
+  //   value: any;
+  // }
+
+  // const contexts: ContextElement[] = [
+  //   { context: ContextA, value: "valueA" },
+  //   { context: ContextB, value: 123 },
+  //   { context: ContextC, value: true },
+  //   // ... other contexts
+  // ];
+  
+  // function ContextProvider({ children }: ContextProviderProps): JSX.Element {
+  //   return (
+  //     <>
+  //       {contexts.reduceRight((children, { context, value }) => 
+  //         React.createElement(context.Provider, { value }, children)
+  //       , children)}
+  //     </>
+  //   );
+  // }
+
   return (
     // provide contexts to all components-- kind of awkward, but it works
     // a little better than passing props down the tree. Reducers would be better,
     // but they introduce unnecessary re-renders if we group the state together.
     // I would definitely like to know if there's a better way of doing this.
+
+    // Certainly this can be done programmatically, but it would be best to also
+    // have the context be generated programmatically using a DSL object.
+    // Ideally would look like:
+    // const globals = makeNewGlobals()
+    // globals.add('selectedExprId', createContext({} as { selectedExprId: number, setSelectedExprId: React.Dispatch<number> }))
     <SpecContext.Provider value={{ spec, setSpec }}>
       <ServerContext.Provider value={{ serverUrl, setServerUrl }}>
         <SelectedExprIdContext.Provider value={{ selectedExprId, setSelectedExprId }}>
@@ -143,7 +182,9 @@ function HerbieUI() {
               <CompareExprIdsContext.Provider value={{ compareExprIds, setCompareExprIds }}>
                 <Contexts.ExpressionStylesContext.Provider value={{ expressionStyles, setExpressionStyles }}>
                   <Contexts.SelectedSampleIdContext.Provider value={{ selectedSampleId, setSelectedSampleId }}>
-                    <HerbieUIInner />
+                    <Contexts.InputRangesTableContext.Provider value={{ inputRangesTable, setInputRangesTable }}>
+                      <HerbieUIInner />
+                    </Contexts.InputRangesTableContext.Provider>
                   </Contexts.SelectedSampleIdContext.Provider>
                 </Contexts.ExpressionStylesContext.Provider>
               </CompareExprIdsContext.Provider>

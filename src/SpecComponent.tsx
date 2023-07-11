@@ -1,7 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { InputRange, InputRangesEditor } from './InputRangesEditor';
-import { SpecContext } from './HerbieContext';
+import { InputRangesTableContext, SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
+import * as HerbieTypes from './HerbieTypes';
+import * as utils from './utils';
 import KaTeX from 'katex';
 console.log("KaTeX:", KaTeX);
 
@@ -12,6 +14,7 @@ import * as fpcorejs from './fpcore';
 
 function SpecComponent() {
   const { spec: value, setSpec: setValue } = useContext(SpecContext);
+  const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0));
 
   // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
@@ -27,7 +30,11 @@ function SpecComponent() {
 
   // Wait until submit click to set the spec
   const handleSubmitClick = () => {
-    setValue(new Spec(spec.expression, spec.ranges, spec.id + 1));
+    const specId = spec.id + 1;
+    const inputRangeId = utils.nextId(inputRangesTable)
+    setValue(new Spec(spec.expression, spec.ranges, specId));
+    // TODO handle duplicates etc
+    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(spec.ranges, specId, inputRangeId)])
   }
 
   const specValid = () => {

@@ -40,6 +40,11 @@ function SpecComponent() {
   const specValid = () => {
     try {
       fpcorejs.mathjsToFPCore(spec.expression);
+
+      // Check to make sure there is at least one variable
+      if(fpcorejs.getVarnamesMathJS(spec.expression).length == 0) {
+        return false
+      }
     } catch (e) {
       return false
     }
@@ -75,7 +80,7 @@ function SpecComponent() {
               try {
                 // Check if there are no variables
                 if (fpcorejs.getVarnamesMathJS(spec.expression).length == 0) {
-                  return "No variables detected."
+                  throw new Error("No variables detected.")
                 }
                 
                 return KaTeX.renderToString(math11.parse(spec.expression).toTex(), { throwOnError: false })

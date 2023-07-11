@@ -1,4 +1,4 @@
-class Expression {
+export class Expression {
   /**
    *  @param {string} text - mathjs expression */
   constructor(public readonly text: string, public readonly id: number) { 
@@ -14,7 +14,7 @@ class Expression {
 //   }
 // }
 
-class ExpressionStyle {
+export class ExpressionStyle {
   // expressions have a color
   // and style object like { line: { stroke: string }, dot: { stroke: string }
   constructor(public readonly color: string,
@@ -26,7 +26,7 @@ class ExpressionStyle {
   }
 }
 
-type ErrorAnalysisData = {
+export type ErrorAnalysisData = {
   ordinalSample: OrdinalExpressionInput[][];
   ticksByVarIdx: [string, number][][];
   splitpointsByVarIdx: never[][];
@@ -36,7 +36,7 @@ type ErrorAnalysisData = {
   meanBitsError: ExpressionError;
 }
 
-class ErrorAnalysis {
+export class ErrorAnalysis {
   constructor(public readonly data: ErrorAnalysisData, public readonly expressionId: number, public readonly sampleId: number) { 
     this.data = data;
     this.expressionId = expressionId;
@@ -44,7 +44,7 @@ class ErrorAnalysis {
   }
 }
 
-class SpecRange {
+export class SpecRange {
   constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number, public readonly id: number) {
     this.variable = variable;
     this.lowerBound = lowerBound;
@@ -54,18 +54,32 @@ class SpecRange {
 }
 
 type ExpressionInputs = number[]
-type OrdinalExpressionInput = number
-type ExpressionError = number
+export type OrdinalExpressionInput = number
+export type ExpressionError = number
 // A sample is a set of input tuples for a spec
-class Sample {
-  constructor(public readonly points: [ExpressionInputs, ExpressionError][], public readonly specId: number, public readonly id: number) {
+// TODO probably don't need ExpressionError in this
+export class Sample {
+  constructor(
+      public readonly points: [ExpressionInputs, ExpressionError][],
+      public readonly specId: number,
+      public readonly inputRangesId: number,
+      public readonly id: number) {
     this.points = points;
+    this.specId = specId;
+    this.inputRangesId = inputRangesId;
+    this.id = id;
+  }
+}
+
+export class InputRanges {
+  constructor(public readonly ranges: SpecRange[], public readonly specId: number, public readonly id: number) {
+    this.ranges = ranges;
     this.specId = specId;
     this.id = id;
   }
 }
 
-class Spec {
+export class Spec {
   constructor(public readonly expression: string, public readonly ranges: SpecRange[], public readonly id: number) {
     this.expression = expression;
     // this.expressionIds = expressionIds;
@@ -73,5 +87,3 @@ class Spec {
     this.id = id;
   }
 }
-
-export { Expression, ErrorAnalysis, SpecRange, Spec, Sample, ExpressionStyle, OrdinalExpressionInput, ExpressionError, ErrorAnalysisData };

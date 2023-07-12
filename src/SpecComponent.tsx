@@ -38,6 +38,7 @@ function SpecComponent() {
     setValue(new Spec(spec.expression, spec.ranges, specId));
     // TODO handle duplicates etc
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(spec.ranges, specId, inputRangeId)])
+    setShowOverlay(false);
   }
 
   const specValid = () => {

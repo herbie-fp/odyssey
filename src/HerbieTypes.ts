@@ -53,7 +53,7 @@ export class SpecRange {
   }
 }
 
-type ExpressionInputs = number[]
+export type ExpressionInputs = number[]
 export type OrdinalExpressionInput = number
 export type ExpressionError = number
 // A sample is a set of input tuples for a spec

@@ -16,7 +16,6 @@ function nextId(table: { id: number }[]) {
 export function getGlobals(): contexts.Global<any>[]{
   return Object.keys(contexts).map((key) => {
     if ((contexts as any)[key].isGlobal === true) {
-      console.log((contexts as any)[key])
       return (contexts as any)[key];
     }
     return undefined

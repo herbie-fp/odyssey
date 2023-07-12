@@ -1,12 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { ServerContext } from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 
 import './ServerStatus.css';
 
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
 
 function ServerStatusComponent() {
-    const { serverUrl, setServerUrl } = useContext(ServerContext);
+    // const { serverUrl, setServerUrl } = useContext(ServerContext);
+    const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
     const [status, setStatus] = useState<number | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [updatedServerUrl, setUpdatedServerUrl] = useState<string>(serverUrl || '');

@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { LocalError } from './LocalError';
 import { ErrorPlot } from './ErrorPlot';
 import { SelectedExprIdContext } from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 
 // Define SelectableVisualization component
 function SelectableVisualization() {
@@ -19,7 +20,8 @@ function SelectableVisualization() {
     selectedComponent = <LocalError />;
   }
 
-  const { selectedExprId } = useContext(SelectedExprIdContext);
+  // const { selectedExprId } = useContext(SelectedExprIdContext);
+  const [selectedExprId, ] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
 
   return (
     <div className="visualization">

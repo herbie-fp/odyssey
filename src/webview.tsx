@@ -8,9 +8,4 @@ interface vscode {
 // declare function acquireVsCodeApi(): vscode;
 declare const vscode: vscode;
 
-
-
-
-
-
 ReactDOM.render(<HerbieUI />, document.getElementById('root'));

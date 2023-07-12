@@ -5,30 +5,48 @@ import './HerbieUI.css';
 import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { ExpressionTable } from './ExpressionTable';
-import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, ServerContext, SpecContext, CompareExprIdsContext, ExpressionStylesContext } from './HerbieContext';
 import * as Contexts from './HerbieContext';
 import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
 import * as Types from './HerbieTypes'
 import { nextId } from './utils';
+import * as utils from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejs from './herbiejs';
 
+interface ContextProviderProps {
+  children: React.ReactNode;
+}
 
-function HerbieUI() {
-  // State setters/getters (provided to children via React context)
-  const [expressions, setExpressions] = useState([] as Expression[]);
-  const [samples, setSamples] = useState([] as Sample[]);
-  const [serverUrl, setServerUrl] = useState('http://127.0.0.1:8000')
-  const [analyses, setAnalyses] = useState([] as ErrorAnalysis[]);
-  const [selectedExprId, setSelectedExprId] = useState(-1);
-  const [spec, setSpec] = useState(new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0))
-  const [compareExprIds, setCompareExprIds] = useState([] as number[]);
-  const [expressionStyles, setExpressionStyles] = useState([] as Types.ExpressionStyle[]);
-  const [selectedSampleId, setSelectedSampleId] = useState(-1);
+function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element {
+  const globals = utils.getGlobals().map((g) => {
+    return ({ context: g.context, value: useState(g.init) })
+  })
+
+  return (
+    <>
+      {globals.reduceRight((children, { context, value }) => 
+        React.createElement(context.Provider, { value }, children)
+      , children)}
+    </>
+  );
+}
+
+function HerbieUIInner() {
+  const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext)
+  const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
+  const [serverUrl, ] = Contexts.useGlobal(Contexts.ServerContext)
+  const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext)
+  const [spec, ] = Contexts.useGlobal(Contexts.SpecContext)
+  const [compareExprIds, setCompareExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext)
+  const [styles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext)
+  const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext)
+  const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
+
   // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
-  const [inputRangesTable, setInputRangesTable] = useState([] as Types.InputRanges[]);
+  //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
+  const [inputRangesTable, setInputRangesTable] = Contexts.useGlobal(Contexts.InputRangesTableContext)
 
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -124,76 +142,22 @@ function HerbieUI() {
     }
   }, [samples])
 
-  function HerbieUIInner() {
-    return (
-      <div className="grid-container">
-        <div className="header">
-          <SpecComponent />
-          <ServerStatusComponent />
-        </div>
-        <ExpressionTable />
-        <SelectableVisualization />
-      </div>
-    );
-  }
-
-  // TODO later: GPT4 thinks the below should help with context management
-  // interface ContextProviderProps {
-  //   children: React.ReactNode;
-  // }
-  // interface ContextElement {
-  //   context: React.Context<any>;
-  //   value: any;
-  // }
-
-  // const contexts: ContextElement[] = [
-  //   { context: ContextA, value: "valueA" },
-  //   { context: ContextB, value: 123 },
-  //   { context: ContextC, value: true },
-  //   // ... other contexts
-  // ];
-  
-  // function ContextProvider({ children }: ContextProviderProps): JSX.Element {
-  //   return (
-  //     <>
-  //       {contexts.reduceRight((children, { context, value }) => 
-  //         React.createElement(context.Provider, { value }, children)
-  //       , children)}
-  //     </>
-  //   );
-  // }
-
   return (
-    // provide contexts to all components-- kind of awkward, but it works
-    // a little better than passing props down the tree. Reducers would be better,
-    // but they introduce unnecessary re-renders if we group the state together.
-    // I would definitely like to know if there's a better way of doing this.
-
-    // Certainly this can be done programmatically, but it would be best to also
-    // have the context be generated programmatically using a DSL object.
-    // Ideally would look like:
-    // const globals = makeNewGlobals()
-    // globals.add('selectedExprId', createContext({} as { selectedExprId: number, setSelectedExprId: React.Dispatch<number> }))
-    <SpecContext.Provider value={{ spec, setSpec }}>
-      <ServerContext.Provider value={{ serverUrl, setServerUrl }}>
-        <SelectedExprIdContext.Provider value={{ selectedExprId, setSelectedExprId }}>
-          <ExpressionsContext.Provider value={{ expressions, setExpressions }}>
-            <AnalysesContext.Provider value={{ analyses, setAnalyses }}>
-              <CompareExprIdsContext.Provider value={{ compareExprIds, setCompareExprIds }}>
-                <Contexts.ExpressionStylesContext.Provider value={{ expressionStyles, setExpressionStyles }}>
-                  <Contexts.SelectedSampleIdContext.Provider value={{ selectedSampleId, setSelectedSampleId }}>
-                    <Contexts.InputRangesTableContext.Provider value={{ inputRangesTable, setInputRangesTable }}>
-                      <HerbieUIInner />
-                    </Contexts.InputRangesTableContext.Provider>
-                  </Contexts.SelectedSampleIdContext.Provider>
-                </Contexts.ExpressionStylesContext.Provider>
-              </CompareExprIdsContext.Provider>
-            </AnalysesContext.Provider>
-          </ExpressionsContext.Provider>
-        </SelectedExprIdContext.Provider>
-      </ServerContext.Provider>
-    </SpecContext.Provider>
+    <div className="grid-container">
+      <div className="header">
+        <SpecComponent />
+        <ServerStatusComponent />
+      </div>
+      <ExpressionTable />
+      <SelectableVisualization />
+    </div>
   );
 }
 
-export { HerbieUI };
+export function HerbieUI() {
+  return (
+    <GlobalContextProvider>
+      <HerbieUIInner />
+    </GlobalContextProvider>
+  )
+}

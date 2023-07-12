@@ -8,6 +8,7 @@ import * as fpcorejs from './fpcore'
 
 import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
+import * as contexts from './HerbieContext'
 
 type ordinal = number
 type varname = string
@@ -155,12 +156,13 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
 // need to get varnames from expression, varidx
 // varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400
 function ErrorPlot() {
-  const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext)
-  const { analyses } = useContext(AnalysesContext);
-  const { expressions } = useContext(ExpressionsContext)
-  const { compareExprIds } = useContext(CompareExprIdsContext)
-  const { expressionStyles } = useContext(HerbieContext.ExpressionStylesContext)
-  const { selectedSampleId } = useContext(HerbieContext.SelectedSampleIdContext)
+
+  const [selectedExprId, setSelectedExprId] = contexts.useGlobal(SelectedExprIdContext)
+  const [analyses, ] = contexts.useGlobal(AnalysesContext)
+  const [expressions, ] = contexts.useGlobal(ExpressionsContext)
+  const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
+  const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
+  const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
 
   console.log('selectedExprId', selectedExprId)
 

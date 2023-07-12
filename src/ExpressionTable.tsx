@@ -5,15 +5,19 @@ import * as HerbieContext from './HerbieContext';
 import { nextId } from './utils'
 
 function ExpressionTable() {
-  const { selectedExprId, setSelectedExprId } = useContext(SelectedExprIdContext);
-  const { expressions, setExpressions } = useContext(ExpressionsContext);
-  const { analyses, setAnalyses } = useContext(AnalysesContext);
-  const { compareExprIds, setCompareExprIds } = useContext(CompareExprIdsContext);
+  // translate the above to use useGlobal
+  const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
+  const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
+  const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
+  const [expressionStyles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
+
   const [addExpression, setAddExpression] = useState('');
-  const { expressionStyles } = useContext(HerbieContext.ExpressionStylesContext)
+
   // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
   
-  const { spec } = useContext(SpecContext);
+  //const { spec } = useContext(SpecContext);
+  // const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
 
 
   const handleExpressionClick = (id: number) => {

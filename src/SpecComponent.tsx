@@ -4,6 +4,7 @@ import { InputRangesTableContext, SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
 import * as HerbieTypes from './HerbieTypes';
 import * as utils from './utils';
+import * as HerbieContext from './HerbieContext';
 import KaTeX from 'katex';
 console.log("KaTeX:", KaTeX);
 
@@ -13,8 +14,10 @@ const math11 = require('mathjs11');
 import * as fpcorejs from './fpcore';
 
 function SpecComponent() {
-  const { spec: value, setSpec: setValue } = useContext(SpecContext);
-  const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
+  // const { spec: value, setSpec: setValue } = useContext(SpecContext);
+  // const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
+  const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0));
 
   // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.

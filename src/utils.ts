@@ -1,4 +1,7 @@
 import { Expression } from './HerbieTypes';
+import * as types from './HerbieTypes';
+import * as contexts from './HerbieContext'
+
 
 function nextId(table: { id: number }[]) {
   return table.sort((a, b) => a.id - b.id).reduce((acc, curr) => {
@@ -8,6 +11,16 @@ function nextId(table: { id: number }[]) {
       return acc;
     }
   }, 0);
+}
+
+export function getGlobals(): contexts.Global<any>[]{
+  return Object.keys(contexts).map((key) => {
+    if ((contexts as any)[key].isGlobal === true) {
+      console.log((contexts as any)[key])
+      return (contexts as any)[key];
+    }
+    return undefined
+  }).filter((x) => x !== undefined)
 }
 
 

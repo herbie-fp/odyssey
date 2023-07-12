@@ -1,18 +1,37 @@
 import React, { createContext } from 'react';
-import { Expression, ErrorAnalysis, Spec, ExpressionStyle } from './HerbieTypes'
-import * as HerbieTypes from './HerbieTypes';
+import * as types from './HerbieTypes';
 
-const SelectedExprIdContext = createContext({} as { selectedExprId: number, setSelectedExprId: React.Dispatch<number> });
-const CompareExprIdsContext = createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
-const ExpressionsContext = createContext({} as { expressions: Expression[], setExpressions: React.Dispatch<Expression[]> });
-const AnalysesContext = createContext({} as { analyses: ErrorAnalysis[], setAnalyses: React.Dispatch<ErrorAnalysis[]> });
-const SpecContext = createContext({} as { spec: Spec, setSpec: React.Dispatch<Spec> });
-// TODO spec table instead of single var?
-const ServerContext = createContext({} as { serverUrl: string | undefined, setServerUrl: React.Dispatch<string> });
-const ExpressionStylesContext = createContext({} as { expressionStyles: ExpressionStyle[], setExpressionStyles: React.Dispatch<ExpressionStyle[]> });
-export const SelectedSampleIdContext = createContext({} as { selectedSampleId: number, setSelectedSampleId: React.Dispatch<number> });
+type setter<T> = React.Dispatch<T>
+
+export interface Global<T> {
+  isGlobal: true
+  context: React.Context<[T, setter<T>]>
+  init: T
+}
+
+const makeGlobal = <T>(init: T): Global<T> => {
+  return {
+    isGlobal: true,
+    context: createContext({} as [T, React.Dispatch<T>]),
+    init: init
+  }
+}
+
+export const useGlobal = <T>(global: Global<T>): [T, setter<T>] => {
+  return React.useContext(global.context)
+}
+
+export const SelectedExprIdContext = makeGlobal(-1)
+export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
+export const ExpressionsContext = makeGlobal([] as types.Expression[]) 
+export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
+export const SpecContext = makeGlobal(new types.Spec('sqrt(x + 1) - sqrt(x)', [new types.SpecRange('x', -1e308, 1e308, 0)], 0) as types.Spec)
+export const ServerContext = makeGlobal('http://127.0.0.1:8000')
+export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
+export const SelectedSampleIdContext = makeGlobal(-1)
+export const SamplesContext = makeGlobal([] as types.Sample[])
+//createContext({} as { selectedSampleId: number, setSelectedSampleId: React.Dispatch<number> });
 // export const ExpressionIdsForSpecsContext = createContext({} as { expressionIdsForSpecs: HerbieTypes.ExpressionIdsForSpec[], setExpressionIdsForSpecs: React.Dispatch<HerbieTypes.ExpressionIdsForSpec[]> });
 
-export const InputRangesTableContext = createContext({} as { inputRangesTable: HerbieTypes.InputRanges[], setInputRangesTable: React.Dispatch<HerbieTypes.InputRanges[]> });
-
-export { SelectedExprIdContext, ExpressionsContext, AnalysesContext, ServerContext, SpecContext, CompareExprIdsContext, ExpressionStylesContext };
+export const InputRangesTableContext = makeGlobal([new types.InputRanges([new types.SpecRange('x', -1e308, 1e308, 0)], 0, 0)])
+//createContext({} as { inputRangesTable: HerbieTypes.InputRanges[], setInputRangesTable: React.Dispatch<HerbieTypes.InputRanges[]> });

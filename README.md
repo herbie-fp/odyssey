@@ -1,3 +1,7 @@
+# ⚠️ In development! v1.0 will release in August. ⚠️
+
+# Development is happening on `main`! To run the most recent pre-rewrite version, use `latest-post-study`. For the study version, use `uist23-eval`.
+
 # Odyssey: An Interactive Numerics Workbench
 
 Odyssey is a VSCode extension developed to enhance the interactivity of floating-point error investigation and improvement systems like the [Herbie](https://herbie.uwplse.org/demo/) tool.
@@ -70,7 +74,10 @@ See the issues tab on Github.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.4.0
+
+* Rename repo + extension
+* Still unofficial; expecting to release 1.0 at the beginning of August
 
 ### 0.1.0
 
@@ -90,8 +97,3 @@ Ensure that you've read through the extensions guidelines and follow the best pr
 * Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
 * Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
 * Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/) -->

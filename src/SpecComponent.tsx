@@ -13,7 +13,7 @@ const math11 = require('mathjs11');
 
 import * as fpcorejs from './fpcore';
 
-function SpecComponent() {
+function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void}) {
   // const { spec: value, setSpec: setValue } = useContext(SpecContext);
   // const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
@@ -21,7 +21,7 @@ function SpecComponent() {
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0));
 
   // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
-  const [showOverlay, setShowOverlay] = useState(false);
+  // const [showOverlay, setShowOverlay] = useState(false);
 
   const handleSpecClick = () => {
     setShowOverlay(true);

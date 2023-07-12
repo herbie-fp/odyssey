@@ -48,6 +48,8 @@ function HerbieUIInner() {
   //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
   const [inputRangesTable, setInputRangesTable] = Contexts.useGlobal(Contexts.InputRangesTableContext)
 
+  const [showOverlay, setShowOverlay] = useState(true);
+
   // Data relationships
   // Reactively update analyses whenever expressions change
   useEffect(() => {
@@ -145,7 +147,7 @@ function HerbieUIInner() {
   return (
     <div className="grid-container">
       <div className="header">
-        <SpecComponent />
+        <SpecComponent {...{showOverlay, setShowOverlay}} />
         <ServerStatusComponent />
       </div>
       <ExpressionTable />

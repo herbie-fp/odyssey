@@ -5,6 +5,8 @@ import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext
 import * as HerbieContext from './HerbieContext'
 
 import * as fpcorejs from './fpcore'
+import * as ordinals from './ordinals'
+import * as herbiejs from './herbiejs'
 
 import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
@@ -163,6 +165,7 @@ function ErrorPlot() {
   const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
+  const [selectedPoint, setSelectedPoint ] = contexts.useGlobal(HerbieContext.SelectedPointContext)
 
   console.log('selectedExprId', selectedExprId)
 
@@ -270,6 +273,21 @@ function ErrorPlot() {
             styles,
             width: 800,
             height: 200
+          });
+          plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+            const { o, id } = JSON.parse(t.textContent)
+
+            // TODO make sure this mouseover text shows up on hover
+            t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
+
+            // TODO set the selected point on click
+            // t.parentNode.onclick = async () => {
+            //   api.select('Expressions', id)
+            //   const expression = getByKey(api, 'Expressions', 'id', id)
+            //   const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }, getHost())
+            //   const entry = { specId, id, tree: result.tree, sample: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }
+            //   api.action('create', 'demo', 'LocalErrors', entry)
+            // }
           });
           [...plot.children].map(c => svg.appendChild(c))
         }} />

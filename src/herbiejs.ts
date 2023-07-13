@@ -90,19 +90,7 @@ export const analyzeExpression = async (
     return max;
   };
 
-  const displayNumber = (v: number) => {
-    const s = v.toPrecision(1)
-    const [base, exponent] = s.split('e')
-    if (!exponent) {
-      return v.toPrecision(1) === v.toString() ? v.toPrecision(1) : v.toPrecision(6)
-    }
-    if (Number(exponent) <= 1 && -1 <= Number(exponent)) {
-      const a = v.toString()
-      const b = v.toPrecision(6)
-      return a.length < b.length ? a : b
-    }
-    return v.toPrecision(1)
-  }
+
 
   const pointsAndErrors = (await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)).points;
   const ordinalSample = sample.points.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
@@ -129,6 +117,20 @@ export const analyzeExpression = async (
     // pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { target: errors } }, meanBitsError
   };
 };
+
+export const displayNumber = (v: number) => {
+  const s = v.toPrecision(1)
+  const [base, exponent] = s.split('e')
+  if (!exponent) {
+    return v.toPrecision(1) === v.toString() ? v.toPrecision(1) : v.toPrecision(6)
+  }
+  if (Number(exponent) <= 1 && -1 <= Number(exponent)) {
+    const a = v.toString()
+    const b = v.toPrecision(6)
+    return a.length < b.length ? a : b
+  }
+  return v.toPrecision(1)
+}
 
 export const fPCoreToMathJS = async (
   fpcore: string,

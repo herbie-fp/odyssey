@@ -46,7 +46,7 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
       fpcorejs.mathjsToFPCore(spec.expression);
 
       // Check to make sure there is at least one variable
-      if(fpcorejs.getVarnamesMathJS(spec.expression).length == 0) {
+      if(fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
         return false
       }
     } catch (e) {
@@ -83,7 +83,7 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
             __html: (() => {
               try {
                 // Check if there are no variables
-                if (fpcorejs.getVarnamesMathJS(spec.expression).length == 0) {
+                if (fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
                   throw new Error("No variables detected.")
                 }
                 
@@ -96,8 +96,9 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
           }} />
           <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecChange} />
           <InputRangesEditor value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} setValue={handleRangesUpdate} />
-          <br></br>
-          <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
+          <div>
+            <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
+          </div>
         </div>
       </div>}
     </div>

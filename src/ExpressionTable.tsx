@@ -81,6 +81,11 @@ function ExpressionTable() {
             <div className="analysis">
               {analysisResult}
             </div>
+            <div className="herbie">
+              <button onClick={() => {}}>
+                Herbie
+              </button>
+            </div>
             <div className="delete">
               <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
                 Delete

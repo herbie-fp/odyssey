@@ -1,19 +1,21 @@
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.resample-overlay {
+    position: absolute; /* Position the overlay relative to the parent */
+    top: 0; /* Position the overlay at the top of the parent */
+    left: 0; /* Position the overlay at the left of the parent */
+    width: 100%; /* Make the overlay as wide as the parent */
+    height: 100%; /* Make the overlay as tall as the parent */
+    background-color: rgba(0, 0, 0, 0.5); /* Make the overlay semi-transparent */
+    display: flex; /* Use flexbox to position the components */
+    justify-content: center; /* Align the components at the center of the overlay */
+    align-items: center; /* Align the components at the center of the overlay */
 }
 
-.modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
+.resample-content {
+    background-color: #fefefe; /* White background */
+    border: 1px solid #888; /* Gray border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 20px; /* Add some padding */
+    width: 80%; /* Make the content 80% of the overlay */
 }
 
 .close {

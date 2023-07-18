@@ -21,8 +21,8 @@ const ResampleComponent = () => {
       <button onClick={openResample}>Resample</button>
 
       {isResampleOpen && (
-        <div className=".resample-overlay">
-          <div className=".resample-content">
+        <div className="resample-overlay">
+          <div className="resample-content">
             <button className="close" onClick={closeResample}>Close Resample</button>
             <h2>Resample Component</h2>
             <p>Resample stuff here.</p>

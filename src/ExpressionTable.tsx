@@ -13,15 +13,16 @@ function ExpressionTable() {
   const [expressionStyles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
 
   const [addExpression, setAddExpression] = useState('');
+  const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
 
   // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
-  
+
   //const { spec } = useContext(SpecContext);
   // const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
 
-
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
+    setClickedRowId(id);
   }
 
   const handleCheckboxChange = (event: any, id: number) => {
@@ -54,38 +55,49 @@ function ExpressionTable() {
                 ...expressions,
               ]);
             }}
-            >
+          >
             Add expression
           </button>
         </div>
       </div>
-      
+
       {expressions.map((expression) => {
         const isChecked = compareExprIds.includes(expression.id);
-        const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data
+        const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
         const analysisResult =
           !analysisData
             ? 'no analysis yet'
             : (analysisData.errors.reduce((acc: number, v: any) => {
-                return acc + v
-              }, 0) / 8000).toFixed(2)
+              return acc + v;
+            }, 0) / 8000).toFixed(2);
         return (
-          <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
-            
-            <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
-              style={({ accentColor: expressionStyles.find((style) => style.expressionId === expression.id)?.color })}
-            />
-            <div >
-              {expression.text}
+          <div>
+            <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
+              <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
+                style={({ accentColor: expressionStyles.find((style) => style.expressionId === expression.id)?.color })}
+              />
+              <div >
+                {expression.text}
+              </div>
+              <div className="analysis">
+                {analysisResult}
+              </div>
+              <div className="herbie">
+                <button onClick={() => { }}>
+                  Herbie
+                </button>
+              </div>
+              <div className="delete">
+                <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
+                  Delete
+                </button>
+              </div>
             </div>
-            <div className="analysis">
-              {analysisResult}
-            </div>
-            <div className="delete">
-              <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
-                Delete
-              </button>
-            </div>
+            {clickedRowId === expression.id && (
+              <div className="placeholder-viz">
+                Placeholder visualization goes here!
+              </div>
+            )}
           </div>
         );
       })}

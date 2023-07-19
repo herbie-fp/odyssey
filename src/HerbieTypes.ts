@@ -55,6 +55,10 @@ export class SpecRange {
 
 export type ExpressionInputs = number[]
 export type OrdinalExpressionInput = number
+
+/**
+ * the error of an expression
+ */
 export type ExpressionError = number
 // A sample is a set of input tuples for a spec
 // TODO probably don't need ExpressionError in this
@@ -68,6 +72,22 @@ export class Sample {
     this.specId = specId;
     this.inputRangesId = inputRangesId;
     this.id = id;
+  }
+}
+
+export class AverageLocalErrorAnalysis {
+  constructor(public readonly expressionId: number, public readonly sampleId: number, public readonly error: ExpressionError) {
+    this.expressionId = expressionId;
+    this.sampleId = sampleId;
+    this.error = error;
+  }
+}
+
+export class PointLocalErrorAnalysis {
+  constructor(public readonly expressionId: number, public readonly point: ExpressionInputs, public readonly error: ExpressionError) {
+    this.expressionId = expressionId;
+    this.point = point;
+    this.error = error;
   }
 }
 

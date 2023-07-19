@@ -44,6 +44,7 @@ function HerbieUIInner() {
   const [styles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext)
   const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext)
   const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
+  const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
 
   // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
   //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
@@ -101,13 +102,6 @@ function HerbieUIInner() {
       return new Types.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
     }))
   }, [expressions])
-      
-  // useEffect(() => {
-  //   // if a new expression appears, it is marked as relevant to the current spec
-  //   // if an expression is removed, it is marked as irrelevant to the current spec
-  //   const newExpressionIds = expressions.map(e => e.id)
-  //   setSpec(new Spec(spec.expression, [...spec.expressionIds.filter(id => expressions.map(e => e.id).includes(id)), ...newExpressionIds], spec.ranges, spec.id))
-  // }, [expressions])
 
   // immediately select the first available expression if none is selected
   useEffect(() => {
@@ -144,6 +138,18 @@ function HerbieUIInner() {
       setSelectedSampleId(samples[samples.length - 1].id)
     }
   }, [samples])
+
+  // in progress work on local error
+  // useEffect(() => {
+  //   for (const expression of expressions) {
+  //     for (const sample of samples) {
+  //       async function foo() {
+  //         const localError = await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl)
+
+  //         setAverageLocalErrors(localError)
+  //     }
+  //   }
+  // }, [expressions, samples, serverUrl])
 
   return (
     <div className="grid-container">

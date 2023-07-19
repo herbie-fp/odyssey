@@ -61,7 +61,7 @@ export const analyzeLocalError = async (
   fpcore: string,
   sample: Sample,
   host: string
-): Promise<HerbieResponse> => {
+): Promise<any> => {
   return getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true);
 };
 

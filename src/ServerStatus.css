@@ -1,14 +1,20 @@
-.connected {
-    color: green;
+/* .connected {
+    border-color: #78D965;
+    box-shadow: 0px 0px 4px 1px #94E185;
 }
 
 .no-server {
     color: red;
+    box-shadow: 0px 0px 4px 1px red;
+} */
+.dropdown-chevron {
+    margin-left: 5px;
 }
 
 .serverStatus {
     display: flex;
     justify-content: space-between;
+    vertical-align: bottom;
 }
 
 .serverStatus > div {

@@ -71,7 +71,12 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
 
   return (
     <div className="spec-container">
-      <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
+      <div className="spec-title">
+        <div className="spec-field">
+          Spec:
+        </div>
+        <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
+      </div>
       {showOverlay && <div className="spec-overlay" onClick={handleOverlayClick}>
         {/* Show a dialogue for editing the spec with a "done" button. */}
         <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>

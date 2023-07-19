@@ -34,3 +34,24 @@
   justify-content: space-between; /* Align the components at the start and end of the header */
   margin-bottom: 10px; /* Add some space between the header and the content */
 }
+
+.spec-title {
+  /* show the items side by side, with spacing */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+}
+
+.spec-field {
+  margin-right: 5px;
+  /*bold*/
+  font-weight: bold;
+  display: none;
+}
+
+.spec-text {
+  font-family: 'Ruda', serif;
+  font-size: 16px;
+  padding-top:2px;
+}

@@ -48,13 +48,29 @@ function ServerStatusComponent() {
 
     return (
         <div className="serverStatus">
-            <div className={status ? 'connected' : 'no-server'}>
+            <div onClick={handleDropdownClick}>
+                <span className={'status ' + (status ? 'connected' : 'no-server')}>
+                    {/* an SVG status indicator dot */}
+                    <svg width="10" height="10" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="5" fill={status ? '#78D965' : 'none'} stroke={status ? '#94E185' : 'red'} filter={
+                            `drop-shadow(0px 0px 2px ${status ? '#94E185' : 'red'})`}
+                        />
+                    </svg>
+                </span>
+                &nbsp;
+            
                 {status ? 'Connected' : 'No Server'}
-            </div>
-            <div>
-                <button onClick={handleDropdownClick}>
-                    {isDropdownOpen ? '▲' : '▼'}
-                </button>
+
+                {/* an SVG dropdown chevron */}
+                <svg className="dropdown-chevron" width="10" height="10" viewBox="0 0 20 20">
+                    <path d="M 0,5 10,15 20,5" fill="none" stroke="black" />
+                </svg>
+
+                {/* <div className="arrow-container">
+                    <div className="dropdown-arrow">
+                        {isDropdownOpen ? '▲' : '▼'}
+                    </div>
+                </div> */}
             </div>
             
             {isDropdownOpen && (

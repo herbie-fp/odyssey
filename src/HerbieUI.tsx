@@ -230,7 +230,6 @@ function HerbieUIInner() {
     <div className="grid-container">
       <div className="header">
         <SpecComponent {...{showOverlay, setShowOverlay}} />
-        <ResampleComponent />
         <ServerStatusComponent />
       </div>
       <ExpressionTable />

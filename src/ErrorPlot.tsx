@@ -10,6 +10,7 @@ import * as herbiejs from './herbiejs'
 import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
 import * as contexts from './HerbieContext'
+import { ResampleComponent } from "./ResampleComponent";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
@@ -262,6 +263,7 @@ function ErrorPlot() {
   // }, []);
   
   return <div>
+    <ResampleComponent />
     {/* Plot all vars */}
     {vars.map((v, i) => {
       return <div key={i}>

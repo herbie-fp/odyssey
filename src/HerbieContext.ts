@@ -31,6 +31,7 @@ export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(-1)
 export const SamplesContext = makeGlobal([] as types.Sample[])
 export const SelectedPointContext = makeGlobal([] as types.ExpressionInputs)
+export const AverageLocalErrorsContext = makeGlobal([] as types.ExpressionError[])
 //createContext({} as { selectedSampleId: number, setSelectedSampleId: React.Dispatch<number> });
 // export const ExpressionIdsForSpecsContext = createContext({} as { expressionIdsForSpecs: HerbieTypes.ExpressionIdsForSpec[], setExpressionIdsForSpecs: React.Dispatch<HerbieTypes.ExpressionIdsForSpec[]> });
 export const InputRangesTableContext = makeGlobal([new types.InputRanges([new types.SpecRange('x', -1e308, 1e308, 0)], 0, 0)])

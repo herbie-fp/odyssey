@@ -12,6 +12,8 @@ import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTyp
 import * as HerbieTypes from './HerbieTypes'
 import * as contexts from './HerbieContext'
 
+const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
+
 type ordinal = number
 type varname = string
 
@@ -54,7 +56,6 @@ interface PlotArgs {
  * @returns An SVG element.
   */
 async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, styles, width = 800, height = 400 }: PlotArgs): Promise<SVGElement> {
-  const Plot = await import( "@observablehq/plot");  // HACK to let us use an ES module in a non-ES module
   const tickStrings = ticks.map(t => t[0])
   const tickOrdinals = ticks.map(t => t[1])
   const tickZeroIndex = tickStrings.indexOf("0")
@@ -115,7 +116,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       Plot.dot(compress(data, width), {
         x: "x", y: "y", r: 3,
           // HACK pass stuff out in the title attribute, we will update titles afterward
-        title: d => JSON.stringify({ o: d.orig, id }),//.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
+        title: (d: {orig: any} ) => JSON.stringify({ o: d.orig, id }),//.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
           // @ts-ignore
             //"data-id": d => id,//() => window.api.select('Expressions', id),
             ...dot
@@ -127,7 +128,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
     width: width,
     height: height,                
     x: {
-        tickFormat: d => tickStrings[tickOrdinals.indexOf(d)],
+        tickFormat: (d: number) => tickStrings[tickOrdinals.indexOf(d)],
         ticks: tickOrdinals, label: `value of ${varnames[varidx]}`,  // LATER axis label
         labelAnchor: 'left', labelOffset: 40, /* tickRotate: 70, */
         domain,
@@ -136,7 +137,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
     y: {
         label: "Bits of Error", domain: [0, bits],
         ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
-        tickFormat: d => d % 8 !== 0 ? '' : d
+        tickFormat: (d: number) => d % 8 !== 0 ? '' : d
     },
     marks: [
       ...[ // Vertical bars ("rules")

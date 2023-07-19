@@ -70,11 +70,12 @@ function HerbieUIInner() {
         if (result) {
           return result as ErrorAnalysis
         }
+        console.log('Getting new analysis for expression', expression.id, 'and sample', sample.id, '...')
+
         // TODO switch to correct analysis object with full pointsJson info
         //herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1].points, 5)
         try {
           const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl)
-          // const analysis: [[number, number], number][] = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
@@ -139,17 +140,26 @@ function HerbieUIInner() {
     }
   }, [samples])
 
-  // in progress work on local error
-  // useEffect(() => {
-  //   for (const expression of expressions) {
-  //     for (const sample of samples) {
-  //       async function foo() {
-  //         const localError = await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl)
+  // TODO in progress work on local error
+  useEffect(() => {
+    for (const expression of expressions) {
+      for (const sample of samples) {
+        async function getLocalError() {
+          const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl))
+          console.log('Local error was:', localErrorTree)
 
-  //         setAverageLocalErrors(localError)
-  //     }
-  //   }
-  // }, [expressions, samples, serverUrl])
+          setAverageLocalErrors([...averageLocalErrors, new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)])
+        }
+        if (!averageLocalErrors.find(a => a.expressionId === expression.id && a.sampleId === sample.id)) {
+          setTimeout(getLocalError)
+        }
+      }
+    }
+  }, [expressions, samples, serverUrl])
+
+  useEffect(() => {
+    console.log('averageLocalErrors:', averageLocalErrors)
+  }, [averageLocalErrors])
 
   return (
     <div className="grid-container">

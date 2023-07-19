@@ -1,12 +1,14 @@
 import * as fpcorejs from './fpcore';
 import * as ordinalsjs from './ordinals';
 import { Sample } from './HerbieTypes';
+import * as types from './HerbieTypes';
 
 
 interface HerbieResponse {
   error?: string;
   mathjs?: string;
   points: any[];
+  tree?: types.LocalErrorTree;
 }
 
 // All Herbie API calls are POSTs to /api/{endpoint}
@@ -61,8 +63,8 @@ export const analyzeLocalError = async (
   fpcore: string,
   sample: Sample,
   host: string
-): Promise<any> => {
-  return getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true);
+): Promise<types.LocalErrorTree> => {
+  return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as {tree: types.LocalErrorTree}).tree;
 };
 
 export const analyzeExpression = async (

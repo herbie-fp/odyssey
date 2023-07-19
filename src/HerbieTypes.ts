@@ -75,11 +75,18 @@ export class Sample {
   }
 }
 
+export interface LocalErrorTree {
+  /** the expression */
+  e: string 
+  children: LocalErrorTree[]
+  'avg-error': string
+}
+
 export class AverageLocalErrorAnalysis {
-  constructor(public readonly expressionId: number, public readonly sampleId: number, public readonly error: ExpressionError) {
+  constructor(public readonly expressionId: number, public readonly sampleId: number, public readonly errorTree: LocalErrorTree) {
     this.expressionId = expressionId;
     this.sampleId = sampleId;
-    this.error = error;
+    this.errorTree = errorTree;
   }
 }
 

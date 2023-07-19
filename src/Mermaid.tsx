@@ -55,7 +55,13 @@ const DEFAULT_CONFIG = {
 
 // mermaid.initialize();
 
-export default class Mermaid extends React.Component<{chart: string}, {}> {
+export default class Mermaid extends React.Component<{chart: string}, {id: string}> {
+  constructor(props: any) {
+    super(props)
+    this.state = {
+      id: "mermaid-chart" + Math.random()
+    }
+  }
   componentDidMount() {
     mermaid.contentLoaded();
   }
@@ -64,7 +70,7 @@ export default class Mermaid extends React.Component<{chart: string}, {}> {
     if (prevProps.chart !== this.props.chart) {
       //@ts-ignore
       document
-        .getElementById("mermaid-chart")
+        .getElementById(this.state.id)
         .removeAttribute("data-processed");
       mermaid.contentLoaded();
     }
@@ -72,7 +78,7 @@ export default class Mermaid extends React.Component<{chart: string}, {}> {
 
   render() {
     return (
-      <div id="mermaid-chart" className="mermaid">
+      <div id={this.state.id} className="mermaid">
         {this.props.chart}
       </div>
     );

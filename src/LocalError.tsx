@@ -50,24 +50,27 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   }
 
   // `BT` means "Bottom to Top"
-  return 'flowchart BT\n\n' + edges.join('\n')
+  return 'flowchart RL\n\n' + edges.join('\n')
 }
 
-function LocalError() {
+function LocalError({ expressionId }: { expressionId: number }) {
   // get the current point selection and selected point local error
   const [selectedPoint, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext);
-  const [selectedPointLocalError, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointLocalErrorContext);
+  const [selectedPointsLocalError, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointsLocalErrorContext);
 
   // get the current sample and expression so we can pick the right local error from the averagelocalerrors table
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext);
   const [selectedExprId,] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
   const [averageLocalErrors,] = HerbieContext.useGlobal(HerbieContext.AverageLocalErrorsContext);
   
+  //
+  const pointLocalError = selectedPointsLocalError.find(a => a.expressionId === expressionId)?.error
+
   // get the local error
   const localError =
-    selectedPoint && selectedPointLocalError
-    ? selectedPointLocalError.error
-    : averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === selectedExprId)?.errorTree
+    selectedPoint && pointLocalError
+    ? pointLocalError
+    : averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === expressionId)?.errorTree
 
   if (!localError) {
     return (

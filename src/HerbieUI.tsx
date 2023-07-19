@@ -91,7 +91,7 @@ function HerbieUIInner() {
   const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
   const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
-  const [selectedPointLocalError, setSelectedPointLocalError] = Contexts.useGlobal(Contexts.SelectedPointLocalErrorContext)
+  const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext)
 
   // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
   //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
@@ -208,14 +208,19 @@ function HerbieUIInner() {
 
   // when the selected point changes, update the selected point local error
   useEffect(() => {
-    const expression = expressions.find(e => e.id === selectedExprId)
-    if (selectedPoint && expression) {
-      async function getPointLocalError(selectedPoint: Types.ExpressionInputs, expression: Expression) {
-        setSelectedPointLocalError(new Types.PointLocalErrorAnalysis(selectedExprId, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[selectedPoint, 1e308]] }, serverUrl)))
+    // const expression = expressions.find(e => e.id === selectedExprId)
+    async function getPointLocalError() {
+      const localErrors = []
+      for (const expression of expressions) {
+        if (selectedPoint && expression) {
+            localErrors.push(new Types.PointLocalErrorAnalysis(expression.id, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[selectedPoint, 1e308]] }, serverUrl)))
+          }
       }
-      setTimeout(() => getPointLocalError(selectedPoint, expression))
+      setSelectedPointsLocalError(localErrors)
     }
-  }, [selectedPoint, selectedExprId, serverUrl])
+    
+    setTimeout(getPointLocalError)
+  }, [selectedPoint, serverUrl, expressions])
 
   useEffect(() => {
     console.log('averageLocalErrors:', averageLocalErrors)
@@ -229,7 +234,7 @@ function HerbieUIInner() {
         <ServerStatusComponent />
       </div>
       <ExpressionTable />
-      <SelectableVisualization />
+      <SelectableVisualization expressionId={ selectedExprId } />
     </div>
   );
 }

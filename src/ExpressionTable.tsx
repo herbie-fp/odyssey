@@ -16,6 +16,9 @@ function ExpressionTable() {
   const [addExpression, setAddExpression] = useState('');
   const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
 
+  // keep track of expanded expressions
+  const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
+
   // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
 
   //const { spec } = useContext(SpecContext);
@@ -23,7 +26,14 @@ function ExpressionTable() {
 
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
-    setClickedRowId(id);
+    // setClickedRowId(id);
+    // toggle expandedExpressions
+    if (expandedExpressions.includes(id)) {
+      setExpandedExpressions(expandedExpressions.filter((exprId) => exprId !== id));
+    }
+    else {
+      setExpandedExpressions([...expandedExpressions, id]);
+    }
   }
 
   const handleCheckboxChange = (event: any, id: number) => {
@@ -94,9 +104,9 @@ function ExpressionTable() {
                 </button>
               </div>
             </div>
-            {clickedRowId === expression.id && (
+            {expandedExpressions.includes(expression.id) && (
               <div className="placeholder-viz">
-                <SelectableVisualization />
+                <SelectableVisualization expressionId={ expression.id } />
               </div>
             )}
           </div>

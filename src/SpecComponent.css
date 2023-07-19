@@ -8,6 +8,10 @@
   margin-right: 10px; /* Add some space between the Spec component and the Server Status component */
 }
 
+.spec-title {
+  cursor: pointer;
+}
+
 /* The spec overlay */
 .spec-overlay {
   position: absolute; /* Position the overlay relative to the parent */

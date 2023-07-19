@@ -4,6 +4,7 @@ import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext
 import * as HerbieContext from './HerbieContext';
 import { nextId } from './utils'
 import { SelectableVisualization } from './SelectableVisualization';
+import { Tooltip } from 'react-tooltip'
 
 import './ExpressionTable.css';
 
@@ -89,7 +90,7 @@ function ExpressionTable() {
             }, 0) / 8000).toFixed(2);
         return (
           <div className="expression-container">
-            <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
+            <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} >
               {/* expand button [+] */}
               <div className="expand">
                 <div onClick={() => handleExpandClick(expression.id)}>
@@ -99,7 +100,7 @@ function ExpressionTable() {
               <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
                 style={({ accentColor: expressionStyles.find((style) => style.expressionId === expression.id)?.color })}
               />
-              <div className="expression-text" >
+            <div className="expression-text" onClick={() => handleExpressionClick(expression.id)} >
                 {expression.text}
               </div>
               <div className="analysis">
@@ -110,15 +111,13 @@ function ExpressionTable() {
                   Herbie
                 </button>
               </div>
-              <div className="copy">
-                {/* Copy the mathjs to the clipboard on click */}
-                <button onClick={() => { navigator.clipboard.writeText(expression.text) }}>
-                  Copy
-                </button>
+              
+              <div className="copy" onClick={() => { navigator.clipboard.writeText(expression.text) }} data-tooltip-id="copy-tooltip" >
+                <a className="copy-anchor">⧉</a>
               </div>
               <div className="delete">
                 <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
-                  Delete
+                x
                 </button>
               </div>
             </div>
@@ -130,6 +129,9 @@ function ExpressionTable() {
           </div>
         );
       })}
+      < Tooltip anchorSelect=".copy-anchor" place="top" >
+        Copy to clipboard
+      </Tooltip> 
     </div>
   )
 }

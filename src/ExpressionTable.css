@@ -13,6 +13,7 @@
   font-family: 'Ruda', serif;
   flex: 1;
   align-self: center;
+  cursor: pointer;
 }
 
 .analysis {
@@ -33,7 +34,12 @@
   /* font-size: large; */
   font-weight: bold;
   color: gray;
+  cursor: pointer;
   /* color: black; */
+}
+
+.copy {
+  cursor: pointer;
 }
 
 .dropdown {
@@ -41,7 +47,7 @@
   padding-left: 12px;
   /* large thick square dots on left border */
   border-left: 5px dashed #ccc;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 .expression-container {
 

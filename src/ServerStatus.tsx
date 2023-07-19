@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { ServerContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
+import Modal from 'react-modal';
 
 import './ServerStatus.css';
 
@@ -36,19 +37,30 @@ function ServerStatusComponent() {
     const handleIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUpdatedServerUrl(event.target.value);
     };
+    const customStyles = {
+        content: {
+          top: '50%',
+          left: '50%',
+          right: 'auto',
+          bottom: 'auto',
+          marginRight: '-50%',
+          transform: 'translate(-50%, -50%)',
+        },
+      };
 
-    const handleDropdownClick = () => {
-        setIsDropdownOpen(!isDropdownOpen);
-    };
+    // const handleDropdownClick = () => {
+    //     setIsDropdownOpen(!isDropdownOpen);
+    // };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         setServerUrl(updatedServerUrl);
+        setIsDropdownOpen(false);
     };
 
     return (
         <div className="serverStatus">
-            <div onClick={handleDropdownClick}>
+            <div onClick={() => setIsDropdownOpen(true)}>
                 <span className={'status ' + (status ? 'connected' : 'no-server')}>
                     {/* an SVG status indicator dot */}
                     <svg width="10" height="10" viewBox="0 0 20 20">
@@ -62,9 +74,9 @@ function ServerStatusComponent() {
                 {status ? 'Connected' : 'No Server'}
 
                 {/* an SVG dropdown chevron */}
-                <svg className="dropdown-chevron" width="10" height="10" viewBox="0 0 20 20">
+                {/* <svg className="dropdown-chevron" width="10" height="10" viewBox="0 0 20 20">
                     <path d="M 0,5 10,15 20,5" fill="none" stroke="black" />
-                </svg>
+                </svg> */}
 
                 {/* <div className="arrow-container">
                     <div className="dropdown-arrow">
@@ -73,14 +85,28 @@ function ServerStatusComponent() {
                 </div> */}
             </div>
             
-            {isDropdownOpen && (
-                <div>
+            <Modal 
+                isOpen={isDropdownOpen}
+                onRequestClose={() => setIsDropdownOpen(false)}
+                contentLabel="Minimal Modal Example"
+                style={customStyles}
+            >
+                
+                <form onSubmit={handleSubmit}>
+                    <label>Server URL (including port): </label>
+                    <input type='text' value={updatedServerUrl} onChange={handleIPChange} />
+                    <button type="submit">Submit</button>
+                </form>
+                {/* <button onClick={this.handleCloseModal}>Close Modal</button> */}
+            </Modal>
+            {/* {isDropdownOpen && (
+                <div className="server-config">
                     <form onSubmit={handleSubmit}>
                         <input type='text' value={updatedServerUrl} onChange={handleIPChange} />
                         <button type="submit">Submit</button>
                     </form>
                 </div>
-            )}
+            )} */}
         </div>
     );
 }

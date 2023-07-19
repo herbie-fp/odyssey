@@ -2,6 +2,8 @@ import * as HerbieContext from './HerbieContext';
 import * as types from './HerbieTypes';
 import Mermaid from './Mermaid';
 
+import './LocalError.css';
+
 function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]

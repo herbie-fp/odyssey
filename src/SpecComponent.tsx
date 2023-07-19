@@ -19,6 +19,7 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0));
+  const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
 
   // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
   // const [showOverlay, setShowOverlay] = useState(false);
@@ -35,6 +36,10 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
   const handleSubmitClick = () => {
     const specId = spec.id + 1;
     const inputRangeId = utils.nextId(inputRangesTable)
+
+    // Reset the expressions list if we are truly switching specs
+    if (spec.expression !== value.expression) { setExpressions([]) }
+
     setValue(new Spec(spec.expression, spec.ranges, specId));
     // TODO handle duplicates etc
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(spec.ranges, specId, inputRangeId)])

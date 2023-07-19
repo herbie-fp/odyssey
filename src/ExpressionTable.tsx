@@ -5,6 +5,8 @@ import * as HerbieContext from './HerbieContext';
 import { nextId } from './utils'
 import { SelectableVisualization } from './SelectableVisualization';
 
+import './ExpressionTable.css';
+
 function ExpressionTable() {
   // translate the above to use useGlobal
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
@@ -27,6 +29,9 @@ function ExpressionTable() {
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
     // setClickedRowId(id);
+  }
+
+  const handleExpandClick = (id: number) => {
     // toggle expandedExpressions
     if (expandedExpressions.includes(id)) {
       setExpandedExpressions(expandedExpressions.filter((exprId) => exprId !== id));
@@ -35,6 +40,7 @@ function ExpressionTable() {
       setExpandedExpressions([...expandedExpressions, id]);
     }
   }
+
 
   const handleCheckboxChange = (event: any, id: number) => {
     if (event.target.checked) {
@@ -82,12 +88,18 @@ function ExpressionTable() {
               return acc + v;
             }, 0) / 8000).toFixed(2);
         return (
-          <div>
+          <div className="expression-container">
             <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
+              {/* expand button [+] */}
+              <div className="expand">
+                <div onClick={() => handleExpandClick(expression.id)}>
+                  {expandedExpressions.includes(expression.id) ? '－' : '＋'}
+                </div>
+              </div>
               <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
                 style={({ accentColor: expressionStyles.find((style) => style.expressionId === expression.id)?.color })}
               />
-              <div >
+              <div className="expression-text" >
                 {expression.text}
               </div>
               <div className="analysis">
@@ -98,6 +110,12 @@ function ExpressionTable() {
                   Herbie
                 </button>
               </div>
+              <div className="copy">
+                {/* Copy the mathjs to the clipboard on click */}
+                <button onClick={() => { navigator.clipboard.writeText(expression.text) }}>
+                  Copy
+                </button>
+              </div>
               <div className="delete">
                 <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
                   Delete
@@ -105,7 +123,7 @@ function ExpressionTable() {
               </div>
             </div>
             {expandedExpressions.includes(expression.id) && (
-              <div className="placeholder-viz">
+              <div className="dropdown">
                 <SelectableVisualization expressionId={ expression.id } />
               </div>
             )}

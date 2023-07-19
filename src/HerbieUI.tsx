@@ -97,7 +97,7 @@ function HerbieUIInner() {
   //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
   const [inputRangesTable, setInputRangesTable] = Contexts.useGlobal(Contexts.InputRangesTableContext)
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);  // TODO switch back to show overlay in production
 
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -174,9 +174,9 @@ function HerbieUIInner() {
       }
         // TODO use input range from inputRangesTable in the sample call
         const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
-        setExpressions([])  // prevent samples from updating analyses
+        // setExpressions([])  // prevent samples from updating analyses
         setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
-        setExpressions([new Expression(spec.expression, nextId(expressions))])
+        setExpressions([...expressions, new Expression(spec.expression, nextId(expressions))])
       }
       if (!samples.find(s => s.specId === spec.id)) { sample() }
     // }

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { FC, useEffect } from "react";
 const mermaid = require( "mermaid").default;
 
-mermaid.initialize({
+const DEFAULT_CONFIG = {
   startOnLoad: true,
   // theme: "default",
   securityLevel: "loose",
@@ -51,13 +51,49 @@ mermaid.initialize({
   //     stroke-width: 1;
   //   }`,
   // fontFamily: "Fira Code"
-});
+}
+
+// mermaid.initialize();
 
 export default class Mermaid extends React.Component<{chart: string}, {}> {
   componentDidMount() {
     mermaid.contentLoaded();
   }
+  componentDidUpdate(prevProps:any, prevState:any) {
+    if (document === null) { return }
+    if (prevProps.chart !== this.props.chart) {
+      //@ts-ignore
+      document
+        .getElementById("mermaid-chart")
+        .removeAttribute("data-processed");
+      mermaid.contentLoaded();
+    }
+  }
+
   render() {
-    return <div className="mermaid">{this.props.chart}</div>;
+    return (
+      <div id="mermaid-chart" className="mermaid">
+        {this.props.chart}
+      </div>
+    );
   }
 }
+
+// export interface MermaidProps {
+//   name?: any;
+//   children: any;
+// }
+
+// export const Mermaid: FC<MermaidProps> = ({ children }) => {
+//   mermaid.initialize(DEFAULT_CONFIG);
+
+//   useEffect(() => {
+//     mermaid.contentLoaded();
+//   }, [children]);
+
+//   return (
+//     <div className="mermaid" style={{ textAlign: 'center' }}>
+//       {children}
+//     </div>
+//   );
+// };

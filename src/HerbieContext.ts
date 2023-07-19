@@ -30,7 +30,8 @@ export const ServerContext = makeGlobal('http://127.0.0.1:8000')
 export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(-1)
 export const SamplesContext = makeGlobal([] as types.Sample[])
-export const SelectedPointContext = makeGlobal([] as types.ExpressionInputs)
+export const SelectedPointContext = makeGlobal(undefined as types.ExpressionInputs | undefined)
+export const SelectedPointLocalErrorContext = makeGlobal(undefined as types.PointLocalErrorAnalysis | undefined)
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
 //createContext({} as { selectedSampleId: number, setSelectedSampleId: React.Dispatch<number> });
 // export const ExpressionIdsForSpecsContext = createContext({} as { expressionIdsForSpecs: HerbieTypes.ExpressionIdsForSpec[], setExpressionIdsForSpecs: React.Dispatch<HerbieTypes.ExpressionIdsForSpec[]> });

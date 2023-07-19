@@ -1,6 +1,5 @@
-// Want to port over old visualization code to React
 // Also want to fix build -- maybe switch to vite, but most important is to move webview to subfolder
-import {useState, useContext} from "react";
+import {useState, useContext, useRef, useEffect} from "react";
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
 import * as HerbieContext from './HerbieContext'
 
@@ -166,7 +165,7 @@ function ErrorPlot() {
   const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
-  const [selectedPoint, setSelectedPoint ] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [, setSelectedPoint ] = contexts.useGlobal(HerbieContext.SelectedPointContext)
 
   console.log('selectedExprId', selectedExprId)
 
@@ -252,6 +251,15 @@ function ErrorPlot() {
   if (styles.length !== compareExpressions.length) {
     throw new Error(`Missing a style for one of the expressions`)
   }
+
+
+  // TODO Could use hooks for this
+  // const plotRef = useRef<Element>();
+  // useEffect(() => {
+  //   const chart = Plot.plot(...);
+  //   plotRef.current?.append(chart);
+  //   return () => chart.remove();
+  // }, []);
   
   return <div>
     {/* Plot all vars */}
@@ -262,6 +270,7 @@ function ErrorPlot() {
           if (!svg) {
             return
           }
+          svg.innerHTML = ''
           const plot = await plotError({
             varnames,
             varidx: i,
@@ -276,19 +285,16 @@ function ErrorPlot() {
             height: 200
           });
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
-            const { o, id } = JSON.parse(t.textContent)
+            const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
 
             // TODO make sure this mouseover text shows up on hover
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
 
-            // TODO set the selected point on click
-            // t.parentNode.onclick = async () => {
-            //   api.select('Expressions', id)
-            //   const expression = getByKey(api, 'Expressions', 'id', id)
-            //   const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }, getHost())
-            //   const entry = { specId, id, tree: result.tree, sample: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }
-            //   api.action('create', 'demo', 'LocalErrors', entry)
-            // }
+            t.parentNode.onclick = async () => {
+              console.log('Setting selected point to', o)
+              setSelectedPoint(o.map((v: ordinal) => ordinals.ordinalToFloat(v)))
+              setSelectedExprId(id)
+            }
           });
           [...plot.children].map(c => svg.appendChild(c))
         }} />

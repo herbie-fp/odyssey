@@ -61,7 +61,7 @@ export const suggestExpressions = async (
 
 export const analyzeLocalError = async (
   fpcore: string,
-  sample: Sample,
+  sample: { points: [types.ExpressionInputs, number][] },
   host: string
 ): Promise<types.LocalErrorTree> => {
   return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as {tree: types.LocalErrorTree}).tree;

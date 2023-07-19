@@ -54,8 +54,9 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
 }
 
 function LocalError() {
-  // get the current point selection
-  const [pointSelection, setPointSelection] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext);
+  // get the current point selection and selected point local error
+  const [selectedPoint, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext);
+  const [selectedPointLocalError, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointLocalErrorContext);
 
   // get the current sample and expression so we can pick the right local error from the averagelocalerrors table
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext);
@@ -63,7 +64,10 @@ function LocalError() {
   const [averageLocalErrors,] = HerbieContext.useGlobal(HerbieContext.AverageLocalErrorsContext);
   
   // get the local error
-  const localError = averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === selectedExprId)?.errorTree
+  const localError =
+    selectedPoint && selectedPointLocalError
+    ? selectedPointLocalError.error
+    : averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === selectedExprId)?.errorTree
 
   if (!localError) {
     return (
@@ -74,12 +78,11 @@ function LocalError() {
   }
 
   const graph = localErrorTreeAsMermaidGraph(localError, 64)
-  // dangerouslySetInnerHTML={{ __html: localErrorTreeAsMermaidGraph(localError, 64) }}
 
   return (
     <div className="local-error">
       <div className="local-error-graph">
-      <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)} />
+        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)}  />
       </div>
     </div>
   )

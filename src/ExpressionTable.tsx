@@ -3,6 +3,7 @@ import { Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
 import { nextId } from './utils'
+import { SelectableVisualization } from './SelectableVisualization';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -95,7 +96,7 @@ function ExpressionTable() {
             </div>
             {clickedRowId === expression.id && (
               <div className="placeholder-viz">
-                Placeholder visualization goes here!
+                <SelectableVisualization />
               </div>
             )}
           </div>

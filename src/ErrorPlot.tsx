@@ -11,6 +11,7 @@ import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTyp
 import * as HerbieTypes from './HerbieTypes'
 import * as contexts from './HerbieContext'
 import { ResampleComponent } from "./ResampleComponent";
+import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
@@ -166,7 +167,9 @@ function ErrorPlot() {
   const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
-  const [, setSelectedPoint ] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
+  const [inputRangesTable, ] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
 
   console.log('selectedExprId', selectedExprId)
 
@@ -179,6 +182,14 @@ function ErrorPlot() {
   // get the variables from the expression
   const varnames = fpcorejs.getVarnamesMathJS(selectedExpr.text)
   // we will iterate over indices
+  const sample = samples.find(s => s.id === selectedSampleId)
+  if (!sample) {
+    return <div>Could not find sample with id {selectedSampleId}</div>
+  }
+  const inputRanges = inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges
+  if (!inputRanges) {
+    return <div>Could not find input ranges with id {sample.inputRangesId}</div>
+  }
 
   // TODO ticks are stored with expressions/sample
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
@@ -266,8 +277,21 @@ function ErrorPlot() {
     <ResampleComponent />
     {/* Plot all vars */}
     {vars.map((v, i) => {
+      const range = inputRanges.find(r => r.variable === v)
+      if (!range) {
+        return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
+      }
       return <div key={i}>
         <div>{v}</div>
+        <InputRangeEditor1 value={{
+          lower: range.lowerBound.toString(),
+          upper: range.upperBound.toString()
+        }} setValue={ 
+          (value: { lower: string, upper: string }) => {
+            // TODO update the inputRangesTable and sample etc. 
+            console.log('TODO set input range', v, value)
+          }
+        } />
         <svg viewBox="0 0 800 200" ref={async (svg) => {
           if (!svg) {
             return

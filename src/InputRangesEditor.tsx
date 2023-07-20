@@ -60,6 +60,65 @@ const InputRangeEditor: React.FC<InputRangeEditorProps> = ({
 };
 
 /**
+ * Props for the InputRangeEditor component.
+ */
+interface InputRangeEditor1Props {
+  value: InputRange ;
+  setValue: (inputRange: InputRange) => void;
+}
+
+/**
+ * InputRangeEditor component.
+ * Renders an input range editor for a specific variable.
+ * @param {InputRangeEditorProps} props - The component props.
+ * @returns {JSX.Element} The rendered component.
+ */
+export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, setValue }) => {
+  const [lowerBound, setLowerBound] = useState(value.lower);
+  const [upperBound, setUpperBound] = useState(value.upper);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (rangesValid()) {
+      setValue({ lower: lowerBound, upper: upperBound });
+    }
+  }, [lowerBound, upperBound]);
+
+  const rangesValid = () => {
+    if (lowerBound === '' || upperBound === '') {
+      setError('All ranges must be filled.');
+      return false;
+    } else if (Number(lowerBound) >= Number(upperBound)) {
+      setError('Lower bound must be less than upper bound for all ranges.');
+      return false;
+    }
+    setError('');
+    return true
+  };
+
+  return (
+    <div>
+      <div>
+        <input
+          type="number"
+          placeholder="Lower bound"
+          value={lowerBound}
+          onChange={e => setLowerBound(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Upper bound"
+          value={upperBound}
+          onChange={e => setUpperBound(e.target.value)}
+        />
+      </div>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+    </div>
+  );
+};
+
+
+/**
  * Props for the InputRangesEditor component.
  */
 interface InputRangesEditorProps {

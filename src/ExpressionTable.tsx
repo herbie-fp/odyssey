@@ -2,7 +2,9 @@ import { useContext, useState } from 'react';
 import { Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
-import { nextId } from './utils'
+import { nextId } from './utils';
+
+import './ExpressionTable.css';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -14,6 +16,7 @@ function ExpressionTable() {
 
   const [addExpression, setAddExpression] = useState('');
   const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
+  const [useTex, setUseTex] = useState(true);
 
   // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
 
@@ -72,6 +75,13 @@ function ExpressionTable() {
             }, 0) / 8000).toFixed(2);
         return (
           <div>
+            <div className="tex-toggle">
+              <label className="toggle-label">
+                <input type="checkbox" checked={useTex} onChange={() => setUseTex(!useTex)} className="toggle-checkbox" />
+                <span className="slider round"></span>
+              </label>
+            </div>
+
             <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
               <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
                 style={({ accentColor: expressionStyles.find((style) => style.expressionId === expression.id)?.color })}

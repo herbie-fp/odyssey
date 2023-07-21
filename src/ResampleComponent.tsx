@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 
 import './ResampleComponent.css';
 
-
-import './SpecComponent.css';
-
 const ResampleComponent = () => {
   const [isResampleOpen, setIsResampleOpen] = useState(false);
 

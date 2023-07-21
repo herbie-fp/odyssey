@@ -1,6 +1,6 @@
 .grid-container {
   display: grid;
-  grid-template-columns: 50% 50%; /*1fr 1fr; doesn't seem to work in vscode /* Divide the layout into two columns */
+  grid-template-columns: 1fr 1fr;
   grid-template-areas:
     "header header"
     "expressions visualization"; /* Define the grid areas */
@@ -12,6 +12,8 @@
   grid-area: header; /* Place the header in the "header" grid area */
   display: flex; /* Use flexbox to position the components */
   justify-content: space-between; /* Align the components at the start and end of the header */
+  padding-bottom: 5px;
+  border-bottom: 2px solid #95d5ff;
 }
 
 .expressions {
@@ -22,20 +24,3 @@
   grid-area: visualization; /* Place the visualization section in the "visualization" grid area */
 }
 
-.expression {
-  display: flex;
-  align-items: left;
-  margin-bottom: 10px; /* Add some space between expressions */
-}
-
-.expression > div {
-  margin-right: 10px; /* Adjust the spacing between expression and analysis as needed */
-}
-
-.expression.selected {
-  background-color: #f0f0f0; /* Highlight the selected expression */
-}
-
-.analysis {
-  margin-bottom: 5px; /* Add some space between analyses */
-}

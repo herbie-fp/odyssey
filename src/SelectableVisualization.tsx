@@ -5,7 +5,7 @@ import { SelectedExprIdContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
 
 // Define SelectableVisualization component
-function SelectableVisualization() {
+function SelectableVisualization({ expressionId }: { expressionId: number }) {
   const [selectedOption, setSelectedOption] = useState('errorPlot');
 
   const handleOptionChange : React.ChangeEventHandler<HTMLSelectElement> = (event) => {
@@ -17,7 +17,7 @@ function SelectableVisualization() {
   if (selectedOption === 'errorPlot') {
     selectedComponent = <ErrorPlot />;
   } else if (selectedOption === 'localError') {
-    selectedComponent = <LocalError />;
+    selectedComponent = <LocalError expressionId={expressionId}/>;
   }
 
   // const { selectedExprId } = useContext(SelectedExprIdContext);

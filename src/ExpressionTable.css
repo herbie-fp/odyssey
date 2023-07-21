@@ -54,3 +54,58 @@
 .slider.round:before {
     border-radius: 50%;
 }
+
+/* flex container
+  items float right
+*/
+.expression {
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  /* margin-bottom: 10px; Add some space between expressions */
+  /* flex gap */
+  gap: 4px;
+}
+.expression-text {
+  font-family: 'Ruda', serif;
+  flex: 1;
+  align-self: center;
+  cursor: pointer;
+}
+
+.analysis {
+  font-family: 'Ruda', serif;
+  align-self: center;
+}
+
+.expression.selected {
+  background-color: #f0f0f0; /* Highlight the selected expression */
+}
+
+.expand div {
+  /* fix the button text width so it doesn't change when the text changes */
+  /* width: 25px;
+  font-size: x-large;
+  max-height: 1em;
+  text-align: top; */
+  /* font-size: large; */
+  font-weight: bold;
+  color: gray;
+  cursor: pointer;
+  /* color: black; */
+}
+
+.copy {
+  cursor: pointer;
+}
+
+.dropdown {
+  margin-left: 4px;
+  padding-left: 12px;
+  /* large thick square dots on left border */
+  border-left: 5px dashed #ccc;
+  margin-top: 5px;
+}
+.expression-container {
+  margin-top: 10px;
+}

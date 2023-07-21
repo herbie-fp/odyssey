@@ -86,9 +86,11 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta
 			http-equiv="Content-Security-Policy"
-			content="script-src http://localhost:* https://cdn.jsdelivr.net/* ${webView.cspSource} 'unsafe-eval'  'unsafe-inline';"
+			content="script-src http://localhost:* https://cdn.jsdelivr.net/* https://fonts.googleapis.com/* ${webView.cspSource} 'unsafe-eval'  'unsafe-inline';"
 		/>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css" integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous">
+		<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Ruda">
 	</head>
 	<body>
 	  <script type="module">

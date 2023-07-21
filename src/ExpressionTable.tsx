@@ -2,7 +2,9 @@ import { useContext, useState } from 'react';
 import { Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
-import { nextId } from './utils';
+import { nextId } from './utils'
+import { SelectableVisualization } from './SelectableVisualization';
+import { Tooltip } from 'react-tooltip'
 
 import './ExpressionTable.css';
 
@@ -18,6 +20,9 @@ function ExpressionTable() {
   const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
   const [useTex, setUseTex] = useState(true);
 
+  // keep track of expanded expressions
+  const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
+
   // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
 
   //const { spec } = useContext(SpecContext);
@@ -25,8 +30,19 @@ function ExpressionTable() {
 
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
-    setClickedRowId(id);
+    // setClickedRowId(id);
   }
+
+  const handleExpandClick = (id: number) => {
+    // toggle expandedExpressions
+    if (expandedExpressions.includes(id)) {
+      setExpandedExpressions(expandedExpressions.filter((exprId) => exprId !== id));
+    }
+    else {
+      setExpandedExpressions([...expandedExpressions, id]);
+    }
+  }
+
 
   const handleCheckboxChange = (event: any, id: number) => {
     if (event.target.checked) {
@@ -74,19 +90,18 @@ function ExpressionTable() {
               return acc + v;
             }, 0) / 8000).toFixed(2);
         return (
-          <div>
-            <div className="tex-toggle">
-              <label className="toggle-label">
-                <input type="checkbox" checked={useTex} onChange={() => setUseTex(!useTex)} className="toggle-checkbox" />
-                <span className="slider round"></span>
-              </label>
-            </div>
-
-            <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} onClick={() => handleExpressionClick(expression.id)} >
+          <div className="expression-container">
+            <div key={expression.id} className={`expression ${expression.id === selectedExprId ? 'selected' : ''}`} >
+              {/* expand button [+] */}
+              <div className="expand">
+                <div onClick={() => handleExpandClick(expression.id)}>
+                  {expandedExpressions.includes(expression.id) ? '－' : '＋'}
+                </div>
+              </div>
               <input type="checkbox" checked={isChecked} onChange={(event) => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
                 style={({ accentColor: expressionStyles.find((style) => style.expressionId === expression.id)?.color })}
               />
-              <div >
+            <div className="expression-text" onClick={() => handleExpressionClick(expression.id)} >
                 {expression.text}
               </div>
               <div className="analysis">
@@ -97,20 +112,27 @@ function ExpressionTable() {
                   Herbie
                 </button>
               </div>
+              
+              <div className="copy" onClick={() => { navigator.clipboard.writeText(expression.text) }} data-tooltip-id="copy-tooltip" >
+                <a className="copy-anchor">⧉</a>
+              </div>
               <div className="delete">
                 <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
-                  Delete
+                x
                 </button>
               </div>
             </div>
-            {clickedRowId === expression.id && (
-              <div className="placeholder-viz">
-                Placeholder visualization goes here!
+            {expandedExpressions.includes(expression.id) && (
+              <div className="dropdown">
+                <SelectableVisualization expressionId={ expression.id } />
               </div>
             )}
           </div>
         );
       })}
+      < Tooltip anchorSelect=".copy-anchor" place="top" >
+        Copy to clipboard
+      </Tooltip> 
     </div>
   )
 }

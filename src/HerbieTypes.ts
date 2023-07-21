@@ -18,7 +18,7 @@ export class ExpressionStyle {
   // expressions have a color
   // and style object like { line: { stroke: string }, dot: { stroke: string }
   constructor(public readonly color: string,
-              public readonly style: { line: { stroke: string }, dot: { stroke: string } },
+              public readonly style: { line: { stroke: string }, dot: { stroke: string, r?: number } },
               public readonly expressionId: number) {
     this.color = color;
     this.style = style;
@@ -75,16 +75,23 @@ export class Sample {
   }
 }
 
+export interface LocalErrorTree {
+  /** the expression */
+  e: string 
+  children: LocalErrorTree[]
+  'avg-error': string
+}
+
 export class AverageLocalErrorAnalysis {
-  constructor(public readonly expressionId: number, public readonly sampleId: number, public readonly error: ExpressionError) {
+  constructor(public readonly expressionId: number, public readonly sampleId: number, public readonly errorTree: LocalErrorTree) {
     this.expressionId = expressionId;
     this.sampleId = sampleId;
-    this.error = error;
+    this.errorTree = errorTree;
   }
 }
 
 export class PointLocalErrorAnalysis {
-  constructor(public readonly expressionId: number, public readonly point: ExpressionInputs, public readonly error: ExpressionError) {
+  constructor(public readonly expressionId: number, public readonly point: ExpressionInputs, public readonly error: LocalErrorTree) {
     this.expressionId = expressionId;
     this.point = point;
     this.error = error;

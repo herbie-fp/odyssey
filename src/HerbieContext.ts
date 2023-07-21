@@ -23,15 +23,16 @@ export const useGlobal = <T>(global: Global<T>): [T, setter<T>] => {
 
 export const SelectedExprIdContext = makeGlobal(-1)
 export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
-export const ExpressionsContext = makeGlobal([] as types.Expression[]) 
+export const ExpressionsContext = makeGlobal([new types.Expression('sqrt(x + 1) - sqrt(x)', 0), new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[]) 
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
 export const SpecContext = makeGlobal(new types.Spec('sqrt(x + 1) - sqrt(x)', [new types.SpecRange('x', -1e308, 1e308, 0)], 0) as types.Spec)
 export const ServerContext = makeGlobal('http://127.0.0.1:8000')
 export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(-1)
 export const SamplesContext = makeGlobal([] as types.Sample[])
-export const SelectedPointContext = makeGlobal([] as types.ExpressionInputs)
-export const AverageLocalErrorsContext = makeGlobal([] as types.ExpressionError[])
+export const SelectedPointContext = makeGlobal(undefined as types.ExpressionInputs | undefined)
+export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocalErrorAnalysis[])
+export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
 //createContext({} as { selectedSampleId: number, setSelectedSampleId: React.Dispatch<number> });
 // export const ExpressionIdsForSpecsContext = createContext({} as { expressionIdsForSpecs: HerbieTypes.ExpressionIdsForSpec[], setExpressionIdsForSpecs: React.Dispatch<HerbieTypes.ExpressionIdsForSpec[]> });
 export const InputRangesTableContext = makeGlobal([new types.InputRanges([new types.SpecRange('x', -1e308, 1e308, 0)], 0, 0)])

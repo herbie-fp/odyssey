@@ -1,6 +1,5 @@
-// Want to port over old visualization code to React
 // Also want to fix build -- maybe switch to vite, but most important is to move webview to subfolder
-import {useState, useContext} from "react";
+import {useState, useContext, useRef, useEffect} from "react";
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
 import * as HerbieContext from './HerbieContext'
 
@@ -11,6 +10,8 @@ import * as herbiejs from './herbiejs'
 import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
 import * as contexts from './HerbieContext'
+import { ResampleComponent } from "./ResampleComponent";
+import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
@@ -166,7 +167,9 @@ function ErrorPlot() {
   const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
-  const [selectedPoint, setSelectedPoint ] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
+  const [inputRangesTable, ] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
 
   console.log('selectedExprId', selectedExprId)
 
@@ -179,6 +182,14 @@ function ErrorPlot() {
   // get the variables from the expression
   const varnames = fpcorejs.getVarnamesMathJS(selectedExpr.text)
   // we will iterate over indices
+  const sample = samples.find(s => s.id === selectedSampleId)
+  if (!sample) {
+    return <div>Could not find sample with id {selectedSampleId}</div>
+  }
+  const inputRanges = inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges
+  if (!inputRanges) {
+    return <div>Could not find input ranges with id {sample.inputRangesId}</div>
+  }
 
   // TODO ticks are stored with expressions/sample
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
@@ -252,16 +263,40 @@ function ErrorPlot() {
   if (styles.length !== compareExpressions.length) {
     throw new Error(`Missing a style for one of the expressions`)
   }
+
+
+  // TODO Could use hooks for this
+  // const plotRef = useRef<Element>();
+  // useEffect(() => {
+  //   const chart = Plot.plot(...);
+  //   plotRef.current?.append(chart);
+  //   return () => chart.remove();
+  // }, []);
   
   return <div>
+    <ResampleComponent />
     {/* Plot all vars */}
     {vars.map((v, i) => {
+      const range = inputRanges.find(r => r.variable === v)
+      if (!range) {
+        return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
+      }
       return <div key={i}>
         <div>{v}</div>
+        <InputRangeEditor1 value={{
+          lower: range.lowerBound.toString(),
+          upper: range.upperBound.toString()
+        }} setValue={ 
+          (value: { lower: string, upper: string }) => {
+            // TODO update the inputRangesTable and sample etc. 
+            console.log('TODO set input range', v, value)
+          }
+        } />
         <svg viewBox="0 0 800 200" ref={async (svg) => {
           if (!svg) {
             return
           }
+          svg.innerHTML = ''
           const plot = await plotError({
             varnames,
             varidx: i,
@@ -276,19 +311,16 @@ function ErrorPlot() {
             height: 200
           });
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
-            const { o, id } = JSON.parse(t.textContent)
+            const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
 
             // TODO make sure this mouseover text shows up on hover
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
 
-            // TODO set the selected point on click
-            // t.parentNode.onclick = async () => {
-            //   api.select('Expressions', id)
-            //   const expression = getByKey(api, 'Expressions', 'id', id)
-            //   const result = await herbiejs.analyzeLocalError(expression.fpcore, { points: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }, getHost())
-            //   const entry = { specId, id, tree: result.tree, sample: [[o.map(v => ordinalsjs.ordinalToFloat(v)), 1e308]] }
-            //   api.action('create', 'demo', 'LocalErrors', entry)
-            // }
+            t.parentNode.onclick = async () => {
+              console.log('Setting selected point to', o)
+              setSelectedPoint(o.map((v: ordinal) => ordinals.ordinalToFloat(v)))
+              setSelectedExprId(id)
+            }
           });
           [...plot.children].map(c => svg.appendChild(c))
         }} />

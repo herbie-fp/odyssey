@@ -19,6 +19,7 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0));
+  const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
 
   // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
   // const [showOverlay, setShowOverlay] = useState(false);
@@ -35,6 +36,10 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
   const handleSubmitClick = () => {
     const specId = spec.id + 1;
     const inputRangeId = utils.nextId(inputRangesTable)
+
+    // Reset the expressions list if we are truly switching specs
+    if (spec.expression !== value.expression) { setExpressions([]) }
+
     setValue(new Spec(spec.expression, spec.ranges, specId));
     // TODO handle duplicates etc
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(spec.ranges, specId, inputRangeId)])
@@ -71,7 +76,12 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
 
   return (
     <div className="spec-container">
-      <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
+      <div className="spec-title">
+        <div className="spec-field">
+          Spec:
+        </div>
+        <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
+      </div>
       {showOverlay && <div className="spec-overlay" onClick={handleOverlayClick}>
         {/* Show a dialogue for editing the spec with a "done" button. */}
         <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>

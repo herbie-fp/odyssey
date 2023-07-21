@@ -34,6 +34,51 @@ function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element
   );
 }
 
+/**
+ * Converts an HSL color value to RGB. Conversion formula
+ * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+ * Assumes h, s, and l are contained in the set [0, 1] and
+ * returns r, g, and b in the set [0, 255].
+ *
+ * @param   {number}  h       The hue
+ * @param   {number}  s       The saturation
+ * @param   {number}  l       The lightness
+ * @return  {Array}           The RGB representation
+ */
+function hslToRgb(h: number, s: number, l: number) {
+  const { round } = Math;
+  function hueToRgb(p:number, q:number, t:number) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  }
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l; // achromatic
+  } else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hueToRgb(p, q, h + 1/3);
+    g = hueToRgb(p, q, h);
+    b = hueToRgb(p, q, h - 1/3);
+  }
+
+  function componentToHex(c :number) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+  
+  function rgbToHex(r:number, g:number, b:number) {
+    return componentToHex(r) + componentToHex(g) + componentToHex(b);
+  }
+
+  return rgbToHex(round(r * 255), round(g * 255), round(b * 255));
+}
+
 function HerbieUIInner() {
   const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext)
   const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
@@ -45,12 +90,14 @@ function HerbieUIInner() {
   const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext)
   const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
+  const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
+  const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext)
 
   // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
   //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
   const [inputRangesTable, setInputRangesTable] = Contexts.useGlobal(Contexts.InputRangesTableContext)
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);  // TODO switch back to show overlay in production
 
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -70,11 +117,12 @@ function HerbieUIInner() {
         if (result) {
           return result as ErrorAnalysis
         }
+        console.log('Getting new analysis for expression', expression.id, 'and sample', sample.id, '...')
+
         // TODO switch to correct analysis object with full pointsJson info
         //herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1].points, 5)
         try {
           const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl)
-          // const analysis: [[number, number], number][] = (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore(expression.text), sample: samples[samples.length - 1].points, seed: 5 }) })).json()).points
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
@@ -98,7 +146,9 @@ function HerbieUIInner() {
       // but they do need to be unique
       // and they need to be consistent across renders
       // so we use the expression id to index into a list of colors
-      const color = `hsl(${(expression.id + 7) * 100 % 360}, 100%, 40%)`
+      const color = '#'+ hslToRgb((expression.id + 7) * 100 % 360 / 360, 1, .4)
+        //`hsl(${(expression.id + 7) * 100 % 360}, 100%, 40%)`
+      console.log('color for expression', expression.id, 'is', color)
       return new Types.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
     }))
   }, [expressions])
@@ -124,9 +174,9 @@ function HerbieUIInner() {
       }
         // TODO use input range from inputRangesTable in the sample call
         const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
-        setExpressions([])  // prevent samples from updating analyses
+        // setExpressions([])  // prevent samples from updating analyses
         setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
-        setExpressions([new Expression(spec.expression, nextId(expressions))])
+        setExpressions([...expressions, new Expression(spec.expression, nextId(expressions))])
       }
       if (!samples.find(s => s.specId === spec.id)) { sample() }
     // }
@@ -139,27 +189,51 @@ function HerbieUIInner() {
     }
   }, [samples])
 
-  // in progress work on local error
-  // useEffect(() => {
-  //   for (const expression of expressions) {
-  //     for (const sample of samples) {
-  //       async function foo() {
-  //         const localError = await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl)
+  // TODO in progress work on local error
+  useEffect(() => {
+    for (const expression of expressions) {
+      for (const sample of samples) {
+        async function getLocalError() {
+          const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl))
+          console.log('Local error was:', localErrorTree)
 
-  //         setAverageLocalErrors(localError)
-  //     }
-  //   }
-  // }, [expressions, samples, serverUrl])
+          setAverageLocalErrors([...averageLocalErrors, new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)])
+        }
+        if (!averageLocalErrors.find(a => a.expressionId === expression.id && a.sampleId === sample.id)) {
+          setTimeout(getLocalError)
+        }
+      }
+    }
+  }, [expressions, samples, serverUrl])
+
+  // when the selected point changes, update the selected point local error
+  useEffect(() => {
+    // const expression = expressions.find(e => e.id === selectedExprId)
+    async function getPointLocalError() {
+      const localErrors = []
+      for (const expression of expressions) {
+        if (selectedPoint && expression) {
+            localErrors.push(new Types.PointLocalErrorAnalysis(expression.id, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[selectedPoint, 1e308]] }, serverUrl)))
+          }
+      }
+      setSelectedPointsLocalError(localErrors)
+    }
+    
+    setTimeout(getPointLocalError)
+  }, [selectedPoint, serverUrl, expressions])
+
+  useEffect(() => {
+    console.log('averageLocalErrors:', averageLocalErrors)
+  }, [averageLocalErrors])
 
   return (
     <div className="grid-container">
       <div className="header">
         <SpecComponent {...{showOverlay, setShowOverlay}} />
-        <ResampleComponent />
         <ServerStatusComponent />
       </div>
       <ExpressionTable />
-      <SelectableVisualization />
+      <SelectableVisualization expressionId={ selectedExprId } />
     </div>
   );
 }

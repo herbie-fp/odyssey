@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { LocalError } from './LocalError';
 import { ErrorPlot } from './ErrorPlot';
+import { DerivationComponent } from './DerivationComponent';
 import { SelectedExprIdContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
 
@@ -18,6 +19,8 @@ function SelectableVisualization({ expressionId }: { expressionId: number }) {
     selectedComponent = <ErrorPlot />;
   } else if (selectedOption === 'localError') {
     selectedComponent = <LocalError expressionId={expressionId}/>;
+  } else if (selectedOption === 'derivationComponent') {
+    selectedComponent = <DerivationComponent></DerivationComponent>;
   }
 
   // const { selectedExprId } = useContext(SelectedExprIdContext);
@@ -28,6 +31,7 @@ function SelectableVisualization({ expressionId }: { expressionId: number }) {
       <select value={selectedOption} onChange={handleOptionChange}>
         <option value="errorPlot">Error Plot</option>
         <option value="localError">Local Error</option>
+        <option value="derivationComponent">Derivation</option>
       </select>
       <div>
         {selectedComponent}

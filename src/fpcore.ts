@@ -1,5 +1,7 @@
 
-const math = require('mathjs4');
+// const math = require('mathjs1');
+// @ts-ignore ignore typescript errors for now
+import * as math from 'mathjs1';
 
 // TODO use these for type validation (not raw strings)
 interface mathjs extends String { }
@@ -120,8 +122,12 @@ function bottom_up(tree: any, cb: any) {
 function dump_fpcore(formula: any, ranges:any ) {  // NOTE modified get_precondition...
   var tree = math.parse(formula);
 
-  var names : any= [];
-  var body = dump_tree(tree, names);
+  var names: any = [];
+  try {
+    var body = dump_tree(tree, names);
+  } catch (e: any) {
+    throw new Error("Error handling formula: " + formula + "\n" + e.message);
+  }
   var precondition = ranges ? FPCorePrecondition(ranges) : null;
 
   var dnames = [];
@@ -173,7 +179,7 @@ function dump_tree(tree: any, names: string[]) {
           " " + node.trueExpr.res +
           " " + node.falseExpr.res + ")";
       default:
-        throw SyntaxError("Invalid tree!");
+        throw SyntaxError(`Invalid tree! node:{ ${JSON.stringify(node)} }`);
     }
   }
   return bottom_up(tree, node_processor).res;
@@ -184,8 +190,12 @@ window.dump_tree = dump_tree
 window.math = math
 
 function getVarnamesMathJS(mathjs_text: string) {
-  const names : string[]= []
-  dump_tree(math.parse(mathjs_text), names)
+  const names: string[] = []
+  try {
+    dump_tree(math.parse(mathjs_text), names)
+  } catch (e: any) {
+    throw new Error(`Error getting varnames from formula: ${mathjs_text}\n${e.message}`)
+  }
   var dnames = [];
   for (var i = 0; i < names.length; i++) {
     if (dnames.indexOf(names[i]) === -1) { dnames.push(names[i]); }
@@ -224,7 +234,11 @@ function rangeErrors([low, high] = [undefined, undefined], empty_if_missing = fa
   return A
 }
 function FPCoreBody(mathJSExpr: string) {
-  return dump_tree(math.parse(mathJSExpr), [])
+  try {
+    return dump_tree(math.parse(mathJSExpr), [])
+  } catch (e: any) {
+    throw new Error(`Error handling formula: ${mathJSExpr}\n${e.message}`)
+  }
 }
 
 function FPCoreGetBody(fpcore: string) {
@@ -301,7 +315,9 @@ function makeFPCore ({ specMathJS, ranges, specFPCore, targetFPCoreBody = undefi
   return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${FPCorePrecondition(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
 }
 
-function mathjsToFPCore(mathjs: mathjs, specFPCore = undefined) {
+type FPCore = string
+
+function mathjsToFPCore(mathjs: mathjs, specFPCore: undefined | FPCore = undefined) {
   // TODO use mathjs/fpcore types to make this less hacky
   const vars = specFPCore === undefined ? getVarnamesMathJS(mathjs as string) : getVarnamesFPCore(specFPCore)
   return `(FPCore (${vars.join(' ')}) ${FPCoreBody(mathjs as string)})`

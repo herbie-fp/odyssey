@@ -122,7 +122,10 @@ function HerbieUIInner() {
         // TODO switch to correct analysis object with full pointsJson info
         //herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), samples[samples.length - 1].points, 5)
         try {
-          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl)
+          // HACK to make sampling work on Herbie side
+          const vars = fpcorejs.getVarnamesMathJS(expression.text)
+          const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(spec.ranges[i].variable)), y]), sample.specId, sample.inputRangesId, sample.id)
+          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), modSample, serverUrl)
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
@@ -131,8 +134,10 @@ function HerbieUIInner() {
           
           return new ErrorAnalysis(analysis, expression.id, sample.id)
         } catch (e) {
-          throw e;
-          // TODO handle + display errors
+          const throwError = (e: any) => () => {
+            throw Error(`Analysis failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
+          }
+          setTimeout(throwError(e))
           return;
         }
       }))).filter(e => e) as ErrorAnalysis[]);
@@ -148,7 +153,7 @@ function HerbieUIInner() {
       // so we use the expression id to index into a list of colors
       const color = '#'+ hslToRgb((expression.id + 7) * 100 % 360 / 360, 1, .4)
         //`hsl(${(expression.id + 7) * 100 % 360}, 100%, 40%)`
-      console.log('color for expression', expression.id, 'is', color)
+      console.debug('color for expression', expression.id, 'is', color)
       return new Types.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
     }))
   }, [expressions])
@@ -173,6 +178,7 @@ function HerbieUIInner() {
         throw new Error(`No input ranges found for spec ${spec.id}`)
       }
         // TODO use input range from inputRangesTable in the sample call
+        // TODO make sure errors are converted to numbers from strings
         const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
         // setExpressions([])  // prevent samples from updating analyses
         setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
@@ -189,15 +195,20 @@ function HerbieUIInner() {
     }
   }, [samples])
 
-  // TODO in progress work on local error
   useEffect(() => {
     for (const expression of expressions) {
       for (const sample of samples) {
         async function getLocalError() {
-          const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), sample, serverUrl))
-          console.log('Local error was:', localErrorTree)
-
-          setAverageLocalErrors([...averageLocalErrors, new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)])
+          try {
+            // HACK to make sampling work on Herbie side
+            const vars = fpcorejs.getVarnamesMathJS(expression.text)
+            const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(spec.ranges[i].variable)), y]), sample.specId, sample.inputRangesId, sample.id)
+            const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl))
+            setAverageLocalErrors([...averageLocalErrors, new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)])
+          } catch (e: any) {
+            throw Error(`Local error failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
+          }
+          // console.log('Local error was:', localErrorTree)
         }
         if (!averageLocalErrors.find(a => a.expressionId === expression.id && a.sampleId === sample.id)) {
           setTimeout(getLocalError)
@@ -213,8 +224,11 @@ function HerbieUIInner() {
       const localErrors = []
       for (const expression of expressions) {
         if (selectedPoint && expression) {
-            localErrors.push(new Types.PointLocalErrorAnalysis(expression.id, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[selectedPoint, 1e308]] }, serverUrl)))
-          }
+          // HACK to make sampling work on Herbie side
+          const vars = fpcorejs.getVarnamesMathJS(expression.text)
+          const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(spec.ranges[i].variable))
+          localErrors.push(new Types.PointLocalErrorAnalysis(expression.id, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[modSelectedPoint, 1e308]] } as Sample, serverUrl)))
+        }
       }
       setSelectedPointsLocalError(localErrors)
     }

@@ -98,11 +98,10 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		const vscode = await window.acquireVsCodeApi();
 		window.addEventListener("error", (event) => {
 			console.log('caught error', event)
-			console.log(vscode)
-			vscode.postMessage(JSON.stringify({ command: 'error', error: JSON.stringify(event.error) }))
+			vscode.postMessage(JSON.stringify({ command: 'error', error: event.error?.toString ? event.error.toString() : (JSON.stringify(event.error) + '\\n' + 'Message:' + event.message) }))
 		})
 		window.addEventListener("unhandledrejection", (event) => {
-			console.log('caught error', event)
+			console.log('caught unhandledrejection', event)
 			console.log(vscode)
 			vscode.postMessage(JSON.stringify({ command: 'error', error: event.reason.stack }))
 		})

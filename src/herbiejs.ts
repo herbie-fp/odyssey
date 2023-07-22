@@ -17,10 +17,10 @@ const getHerbieApi = async (
   endpoint: string,
   data: object,
   retry: boolean
-): Promise<HerbieResponse> => {
+): Promise<any> => {
   const url = `${host}/api/${endpoint}`;
   // TODO add timeout?
-  console.log('calling', url, 'with data', data);
+  console.debug('calling', url, 'with data', data);
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -30,17 +30,18 @@ const getHerbieApi = async (
     if (responseData.error) {
       throw new Error('Herbie server: ' + responseData.error);
     }
-    console.log('got data', responseData);
+    console.debug('got data', responseData);
     return responseData;
   } catch (error: any) {
     throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`)
-    console.error('Bad call to', url, 'with data', data, 'error was', error);
-    if (retry) {
-      console.error('retrying once');
-      return getHerbieApi(host, endpoint, data, false);
-    } else {
-      throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`);
-    }
+    // old retry code
+    // console.error('Bad call to', url, 'with data', data, 'error was', error);
+    // if (retry) {
+    //   console.error('retrying once');
+    //   return getHerbieApi(host, endpoint, data, false);
+    // } else {
+    //   throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`);
+    // }
   }
 };
 
@@ -51,21 +52,44 @@ export const getSample = async (
   return getHerbieApi(host, 'sample', { formula: fpcore, seed: 5 }, true);
 };
 
+export type FPCore = string;
+type HTMLHistory = string;
+type ordinal = number;
+
+interface HerbieAlternativesResponse {
+  alternatives: FPCore[];
+  /** The history of each alternative. */
+  histories: HTMLHistory[];
+  /** The splitpoints for each alternative. */
+  splitpoints: ordinal[][];
+}
+
 export const suggestExpressions = async (
   fpcore: string,
   sample: Sample,
   host: string
-): Promise<HerbieResponse> => {
+): Promise<HerbieAlternativesResponse> => {
   return getHerbieApi(host, 'alternatives', { formula: fpcore, sample: sample.points, seed: 5 }, true);
 };
 
+interface LocalErrorResponse {
+  tree: types.LocalErrorTree;
+}
+
 export const analyzeLocalError = async (
   fpcore: string,
-  sample: { points: [types.ExpressionInputs, number][] },
+  sample: Sample,
   host: string
 ): Promise<types.LocalErrorTree> => {
-  return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as {tree: types.LocalErrorTree}).tree;
+  return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as LocalErrorResponse).tree;
 };
+
+type point = ordinal[]
+type error = string
+
+interface AnalyzeResponse {
+  points: [point, error][];
+}
 
 export const analyzeExpression = async (
   fpcore: string,
@@ -94,7 +118,7 @@ export const analyzeExpression = async (
 
 
 
-  const pointsAndErrors = (await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)).points;
+  const pointsAndErrors = ((await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)) as AnalyzeResponse).points;
   const ordinalSample = sample.points.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
 
   const vars = fpcorejs.getVarnamesFPCore(fpcore);
@@ -103,7 +127,7 @@ export const analyzeExpression = async (
     return ordinalsjs.chooseTicks(fastMin(values), fastMax(values)).map(v => [displayNumber(v), ordinalsjs.floatToApproximateOrdinal(v)]);
   });
 
-  console.log(`ticksByVarIdx`, sample, ticksByVarIdx);
+  // console.debug(`ticksByVarIdx`, sample, ticksByVarIdx);
 
   const splitpointsByVarIdx = vars.map(v => []);  // HACK no splitpoints for now
   const errors = pointsAndErrors.map(([point, error]) => parseFloat(error));
@@ -137,6 +161,6 @@ export const displayNumber = (v: number) => {
 export const fPCoreToMathJS = async (
   fpcore: string,
   host: string
-): Promise<string | undefined> => {
+): Promise<string> => {
   return (await getHerbieApi(host, 'mathjs', { formula: fpcore, seed: 5 }, true)).mathjs;
 };

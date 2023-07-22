@@ -27,13 +27,13 @@ export class ExpressionStyle {
 }
 
 export type ErrorAnalysisData = {
-  ordinalSample: OrdinalExpressionInput[][];
+  ordinalSample: ordinal[][];
   ticksByVarIdx: [string, number][][];
   splitpointsByVarIdx: never[][];
   bits: number;
   vars: string[];
-  errors: ExpressionError[];
-  meanBitsError: ExpressionError;
+  errors: expressionError[];
+  meanBitsError: expressionError;
 }
 
 export class ErrorAnalysis {
@@ -53,18 +53,20 @@ export class SpecRange {
   }
 }
 
-export type ExpressionInputs = number[]
-export type OrdinalExpressionInput = number
+// TODO I think this should be a string? Is there a truncation risk?
+export type ordinal = number
+export type ordinalPoint = ordinal[]
+export type FPCore = string
 
 /**
  * the error of an expression
  */
-export type ExpressionError = number
+export type expressionError = number
 // A sample is a set of input tuples for a spec
 // TODO probably don't need ExpressionError in this
 export class Sample {
   constructor(
-      public readonly points: [ExpressionInputs, ExpressionError][],
+      public readonly points: [ordinalPoint, expressionError][],
       public readonly specId: number,
       public readonly inputRangesId: number,
       public readonly id: number) {
@@ -91,7 +93,7 @@ export class AverageLocalErrorAnalysis {
 }
 
 export class PointLocalErrorAnalysis {
-  constructor(public readonly expressionId: number, public readonly point: ExpressionInputs, public readonly error: LocalErrorTree) {
+  constructor(public readonly expressionId: number, public readonly point: ordinalPoint, public readonly error: LocalErrorTree) {
     this.expressionId = expressionId;
     this.point = point;
     this.error = error;

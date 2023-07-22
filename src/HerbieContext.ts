@@ -30,7 +30,7 @@ export const ServerContext = makeGlobal('http://127.0.0.1:8000')
 export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(-1)
 export const SamplesContext = makeGlobal([] as types.Sample[])
-export const SelectedPointContext = makeGlobal(undefined as types.ExpressionInputs | undefined)
+export const SelectedPointContext = makeGlobal(undefined as types.ordinalPoint | undefined)
 export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocalErrorAnalysis[])
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
 //createContext({} as { selectedSampleId: number, setSelectedSampleId: React.Dispatch<number> });

@@ -7,7 +7,7 @@ import * as fpcorejs from './fpcore'
 import * as ordinals from './ordinals'
 import * as herbiejs from './herbiejs'
 
-import { Expression, OrdinalExpressionInput, ExpressionError } from './HerbieTypes'
+import { Expression, ordinal, expressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
 import * as contexts from './HerbieContext'
 import { ResampleComponent } from "./ResampleComponent";
@@ -15,13 +15,12 @@ import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
-type ordinal = number
 type varname = string
 
 interface OrdinalErrorPoint {
-  x: OrdinalExpressionInput,
-  y: ExpressionError,
-  orig: OrdinalExpressionInput[]  // the original point associated with this input
+  x: ordinal,
+  y: expressionError,
+  orig: ordinal[]  // the original point associated with this input
 }
 interface PlotArgs {
   /** A list of variable names for the original points. */
@@ -171,7 +170,7 @@ function ErrorPlot() {
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, ] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
 
-  console.log('selectedExprId', selectedExprId)
+  // console.log('selectedExprId', selectedExprId)
 
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)

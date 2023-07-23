@@ -48,11 +48,11 @@ function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element
 function hslToRgb(h: number, s: number, l: number) {
   const { round } = Math;
   function hueToRgb(p:number, q:number, t:number) {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1/6) return p + (q - p) * 6 * t;
-    if (t < 1/2) return q;
-    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    if (t < 0) {t += 1;}
+    if (t > 1) {t -= 1;}
+    if (t < 1/6) {return p + (q - p) * 6 * t;}
+    if (t < 1/2) {return q;}
+    if (t < 2/3) {return p + (q - p) * (2/3 - t) * 6;}
     return p;
   }
   let r, g, b;
@@ -69,7 +69,7 @@ function hslToRgb(h: number, s: number, l: number) {
 
   function componentToHex(c :number) {
     var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
+    return hex.length === 1 ? "0" + hex : hex;
   }
   
   function rgbToHex(r:number, g:number, b:number) {
@@ -101,7 +101,10 @@ function HerbieUIInner() {
 
   // Data relationships
   // Reactively update analyses whenever expressions change
-  useEffect(() => {
+  useEffect(updateAnalyses, [expressions, samples]);
+  function updateAnalyses() {
+    // TODO we don't need setTimeout, 
+    // just make it an async function and call directly after defining it
     setTimeout(async () => {
       // When a new expression is added, add a new analysis
       // An analysis is obtained by taking the most recent sample and checking the error of the expression on that sample
@@ -142,60 +145,66 @@ function HerbieUIInner() {
         }
       }))).filter(e => e) as ErrorAnalysis[]);
     });
-  }, [expressions, samples]);
+  }
 
   // Reactively update expression styles whenever expressions change
-  useEffect(() => {
+  
+  useEffect(updateExpressionStyles, [expressions])
+  function updateExpressionStyles() {
     setExpressionStyles(expressions.map((expression) => {
       // expression styles are just a list of colors for each expression
       // but they do need to be unique
       // and they need to be consistent across renders
       // so we use the expression id to index into a list of colors
-      const color = '#'+ hslToRgb((expression.id + 7) * 100 % 360 / 360, 1, .4)
-        //`hsl(${(expression.id + 7) * 100 % 360}, 100%, 40%)`
+      const color = '#' + hslToRgb((expression.id + 7) * 100 % 360 / 360, 1, .4)
+      //`hsl(${(expression.id + 7) * 100 % 360}, 100%, 40%)`
       console.debug('color for expression', expression.id, 'is', color)
       return new Types.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
     }))
-  }, [expressions])
+  }
 
-  // immediately select the first available expression if none is selected
-  useEffect(() => {
-    if (expressions.length === 1) {
+  // HACK immediately select the first available expression if none is selected
+  // TODO make this more robust
+  useEffect(selectFirstExpression, [expressions])
+  function selectFirstExpression() {
+    if (expressions.length > 0) {
       setSelectedExprId(expressions[0].id);
       setCompareExprIds([expressions[0].id]);
     }
-  }, [expressions])
+  }
 
   // Example of calling the server:
-  // whenever the spec is defined, 
+  // whenever the spec is defined,
   // * reset expressions to just the naive expression(the spec)
   // * sample the spec
-  useEffect(() => {
-    // if (spec !== undefined) {
+  useEffect(sampleSpecOnDefinition, [inputRangesTable])
+  function sampleSpecOnDefinition() {
     async function sample() {
       const inputRanges = inputRangesTable.find(r => r.specId === spec.id)
       if (inputRanges === undefined) {
         throw new Error(`No input ranges found for spec ${spec.id}`)
       }
-        // TODO use input range from inputRangesTable in the sample call
-        // TODO make sure errors are converted to numbers from strings
-        const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
-        // setExpressions([])  // prevent samples from updating analyses
-        setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
-        setExpressions([...expressions, new Expression(spec.expression, nextId(expressions))])
-      }
-      if (!samples.find(s => s.specId === spec.id)) { sample() }
-    // }
-  }, [inputRangesTable])
+      // TODO use input range from inputRangesTable in the sample call
+      // TODO make sure errors are converted to numbers from strings
+      const sample_points = (await (await fetch(`${serverUrl}/api/sample`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), seed: 5 }) })).json()).points
+      // setExpressions([])  // prevent samples from updating analyses
+      setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
+      setExpressions([...expressions, new Expression(spec.expression, nextId(expressions))])
+    }
+    if (!samples.find(s => s.specId === spec.id)) { sample() }
+  }
 
   // Select and show the sample whenever one is added
-  useEffect(() => {
+  useEffect(selectLastSample, [samples])
+  function selectLastSample() {
     if (samples.length > 0) {
       setSelectedSampleId(samples[samples.length - 1].id)
     }
-  }, [samples])
+  }
 
-  useEffect(() => {
+  // Reactively update average local errors
+  useEffect(updateAverageLocalErrors, [expressions, samples, serverUrl])
+  function updateAverageLocalErrors() {
     for (const expression of expressions) {
       for (const sample of samples) {
         async function getLocalError() {
@@ -215,11 +224,11 @@ function HerbieUIInner() {
         }
       }
     }
-  }, [expressions, samples, serverUrl])
+  }
 
   // when the selected point changes, update the selected point local error
-  useEffect(() => {
-    // const expression = expressions.find(e => e.id === selectedExprId)
+  useEffect(updateSelectedPointLocalError, [selectedPoint, serverUrl, expressions])
+  function updateSelectedPointLocalError() {
     async function getPointLocalError() {
       const localErrors = []
       for (const expression of expressions) {
@@ -234,11 +243,7 @@ function HerbieUIInner() {
     }
     
     setTimeout(getPointLocalError)
-  }, [selectedPoint, serverUrl, expressions])
-
-  useEffect(() => {
-    console.log('averageLocalErrors:', averageLocalErrors)
-  }, [averageLocalErrors])
+  }
 
   return (
     <div className="grid-container">

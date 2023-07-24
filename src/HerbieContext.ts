@@ -21,6 +21,7 @@ export const useGlobal = <T>(global: Global<T>): [T, setter<T>] => {
   return React.useContext(global.context)
 }
 
+export const hoveredExpressionId = makeGlobal(0)
 export const SelectedExprIdContext = makeGlobal(-1)
 export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
 export const ExpressionsContext = makeGlobal([new types.Expression('sqrt(x + 1) - sqrt(x)', 0), new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[]) 

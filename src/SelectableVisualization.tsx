@@ -20,7 +20,7 @@ function SelectableVisualization({ expressionId }: { expressionId: number }) {
   } else if (selectedOption === 'localError') {
     selectedComponent = <LocalError expressionId={expressionId}/>;
   } else if (selectedOption === 'derivationComponent') {
-    selectedComponent = <DerivationComponent></DerivationComponent>;
+    selectedComponent = <DerivationComponent/>;
   }
 
   // const { selectedExprId } = useContext(SelectedExprIdContext);

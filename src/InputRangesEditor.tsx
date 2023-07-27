@@ -97,22 +97,24 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
   };
 
   return (
-    <div>
-      <div>
+    <div className="input-ranges-editor">
+      <span className="lower">
         <input
           type="number"
           placeholder="Lower bound"
           value={lowerBound}
           onChange={e => setLowerBound(e.target.value)}
         />
+      </span>
+      <span className="upper">
         <input
           type="number"
           placeholder="Upper bound"
           value={upperBound}
           onChange={e => setUpperBound(e.target.value)}
         />
-      </div>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
+      </span>
+      {error && <div style={{ color: 'red' }} className="error">{error}</div>}
     </div>
   );
 };

@@ -5,6 +5,8 @@ import { DerivationComponent } from './DerivationComponent';
 import { SelectedExprIdContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
 
+import './SelectableVisualization.css';
+
 // Define SelectableVisualization component
 function SelectableVisualization({ expressionId }: { expressionId: number }) {
   const [selectedOption, setSelectedOption] = useState('errorPlot');

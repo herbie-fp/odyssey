@@ -9,7 +9,7 @@ const DEFAULT_CONFIG = {
   //   g.classGroup rect {
   //     fill: #282a36;
   //     stroke: #6272a4;
-  //   } 
+  //   }
   //   g.classGroup text {
   //     fill: #f8f8f2;
   //   }
@@ -44,18 +44,21 @@ const DEFAULT_CONFIG = {
   //     fill: #00bcd4;
   //     stroke: #00bcd4;
   //     stroke-width: 1;
-  //   } 
+  //   }
   //   #extensionStart, #extensionEnd {
   //     fill: #f8f8f2;
   //     stroke: #f8f8f2;
   //     stroke-width: 1;
   //   }`,
   // fontFamily: "Fira Code"
+  themeVariables: {
+    "fontSize": '10px'
+  }
 }
 
-// mermaid.initialize();
+mermaid.initialize(DEFAULT_CONFIG);
 
-export default class Mermaid extends React.Component<{chart: string}, {id: string}> {
+export default class Mermaid extends React.Component<{ chart: string }, { id: string }> {
   constructor(props: any) {
     super(props)
     this.state = {
@@ -65,7 +68,7 @@ export default class Mermaid extends React.Component<{chart: string}, {id: strin
   componentDidMount() {
     mermaid.contentLoaded();
   }
-  componentDidUpdate(prevProps:any, prevState:any) {
+  componentDidUpdate(prevProps: any, prevState: any) {
     if (document === null) { return }
     if (prevProps.chart !== this.props.chart) {
       //@ts-ignore
@@ -78,7 +81,7 @@ export default class Mermaid extends React.Component<{chart: string}, {id: strin
 
   render() {
     return (
-      <div id={this.state.id} className="mermaid">
+      <div id={this.state.id} className="mermaid" >
         {this.props.chart}
       </div>
     );

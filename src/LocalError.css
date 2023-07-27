@@ -2,9 +2,16 @@
   min-height: 30px;
   min-width: 30px;
   resize: both;
-  overflow: scroll;
+  overflow: auto;
   max-height: fit-content;
-  max-width: 400px;
-
+  /* width: 200px; */
   /* border: 1px solid #ccc; */
 }
+
+.mermaid svg path {
+  stroke: var(--foreground-color) !important;
+}
+
+/* .nodeLocalError {
+  font-size: 10px;
+} */

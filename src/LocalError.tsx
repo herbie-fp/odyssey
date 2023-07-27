@@ -82,7 +82,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
     )
   }
 
-  const graph = localErrorTreeAsMermaidGraph(localError, 64)
+  // const graph = localErrorTreeAsMermaidGraph(localError, 64)
 
   return (
     <div className="local-error">

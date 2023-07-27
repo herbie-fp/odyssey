@@ -13,6 +13,8 @@ import * as contexts from './HerbieContext'
 import { ResampleComponent } from "./ResampleComponent";
 import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
 
+import './ErrorPlot.css'
+
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
 type varname = string
@@ -123,7 +125,6 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
         })
     ]
   }
-  console.log('splitpoints', splitpoints)
   const out = Plot.plot({
     width: width,
     height: height,                
@@ -272,8 +273,8 @@ function ErrorPlot() {
   //   return () => chart.remove();
   // }, []);
   
-  return <div>
-    <ResampleComponent />
+  return <div className="error-plot">
+    {/* <ResampleComponent /> */}
     {/* Plot all vars */}
     {vars.map((v, i) => {
       const range = inputRanges.find(r => r.variable === v)
@@ -281,7 +282,7 @@ function ErrorPlot() {
         return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
       }
       return <div key={i}>
-        <div>{v}</div>
+        <span>{v}: </span>
         <InputRangeEditor1 value={{
           lower: range.lowerBound.toString(),
           upper: range.upperBound.toString()
@@ -291,7 +292,7 @@ function ErrorPlot() {
             console.log('TODO set input range', v, value)
           }
         } />
-        <svg viewBox="0 0 800 200" ref={async (svg) => {
+        <svg viewBox="0 0 830 215" ref={async (svg) => {
           if (!svg) {
             return
           }

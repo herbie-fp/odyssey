@@ -1,5 +1,5 @@
 .spec-tex {
-  color: black;
+  /* color: black; */
   /* add space */
   margin: 10px;
 }
@@ -9,7 +9,11 @@
 }
 
 .spec-title {
+  margin-left: 5px;
   cursor: pointer;
+}
+.spec-container .rewriting {
+  font-size: 10px;
 }
 
 /* The spec overlay */
@@ -23,10 +27,12 @@
   display: flex; /* Use flexbox to position the components */
   justify-content: center; /* Align the components at the center of the overlay */
   align-items: center; /* Align the components at the center of the overlay */
+  z-index: 2; /* Make sure the overlay is on top of the other components */
 }
 
 .spec-overlay-content {
-  background-color: #fefefe; /* White background */
+  /* background-color: #fefefe; White background */
+  background-color: var(--background-color);
   border: 1px solid #888; /* Gray border */
   border-radius: 5px; /* Rounded corners */
   padding: 20px; /* Add some padding */
@@ -56,6 +62,6 @@
 
 .spec-text {
   font-family: 'Ruda', serif;
-  font-size: 16px;
+  font-size: 20px;
   padding-top:2px;
 }

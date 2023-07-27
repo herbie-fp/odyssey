@@ -1,3 +1,10 @@
+.expressions {
+  display: flex;
+  flex-direction: column;
+  /* put 10px space between items */
+  gap: 2px;
+}
+
 .tex-toggle {
     position: relative;
     display: inline-block;
@@ -62,15 +69,31 @@
   display: flex;
   flex-direction: row;
   justify-content: right;
-  /* margin-bottom: 10px; Add some space between expressions */
-  /* flex gap */
-  gap: 4px;
+  gap: 6px;
+  font-size: 14px;
+  padding: 4px;
 }
+
+/** center buttons in the rows with no stretch */
+.expression>div {
+  display: flex; /** center in row */
+}
+.expression>div button {
+  margin: auto;
+}
+
+.expression>div>a {
+  margin: auto;
+}
+
 .expression-text {
   font-family: 'Ruda', serif;
   flex: 1;
   align-self: center;
   cursor: pointer;
+}
+.expression button {
+  font-size: 10px;
 }
 
 .analysis {
@@ -78,8 +101,8 @@
   align-self: center;
 }
 
-.expression.selected {
-  background-color: #f0f0f0; /* Highlight the selected expression */
+.expression-container.selected {
+  background-color: var(--highlight); /* Highlight the selected expression */
 }
 
 .expand div {
@@ -92,7 +115,9 @@
   font-weight: bold;
   color: gray;
   cursor: pointer;
+  text-align: center;
   /* color: black; */
+  margin: auto;
 }
 
 .copy {
@@ -100,12 +125,69 @@
 }
 
 .dropdown {
-  margin-left: 4px;
-  padding-left: 12px;
+  margin-left: 9px;
+  padding: 5px;
+  padding-left: 9px;
+  padding-top: 0px;
   /* large thick square dots on left border */
   border-left: 5px dashed #ccc;
-  margin-top: 5px;
+  margin-bottom: 5px;
+  font-size: 10px;
 }
-.expression-container {
-  margin-top: 10px;
+
+.dropdown select {
+  font-size: 10px;
+}
+
+.expression-container:has(.dropdown) {
+  margin-bottom: 15px;
+}
+
+.expression-table-header-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px;
+  padding-right: 10px;
+  border-bottom: 1px solid #ccc;
+  margin-right: 10px;
+  align-items: center;
+}
+
+.expand-header {
+  font-weight: bold;
+  color: gray;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.checkbox-header {
+  margin-left: 6px;
+}
+.expressions-header {
+  margin-right: auto;
+  margin-left: 6px;
+}
+.error-header {
+  margin-right: 82px;
+}
+
+.add-expression {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.add-expression .checkbox {
+  margin-left: 20px;
+}
+
+.add-expression-button {
+  margin-left:auto;
+}
+
+.add-expression button {
+  font-size: 12px;
 }

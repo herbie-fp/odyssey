@@ -1,11 +1,43 @@
+
+
+
+button, input, select {
+  /* font-size: 12px; */
+  background: var(--background-color);
+  color: var(--foreground-color);
+  border-radius: 2px;
+  border-block-width: 1px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--foreground-color), transparent 40%);
+}
+
+input[type="checkbox"] {
+  outline: none;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .grid-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   grid-template-areas:
     "header header"
     "expressions visualization"; /* Define the grid areas */
-  gap: 20px; /* Add some gap between the grid items */
+  /* column-gap: 20px; Add some gap between the grid items */
   /* expressions and visualization should take up half each */
+  height: 100vh; /* Make the grid container take up the entire screen */
+  grid-template-rows: 60px 1fr;
+  grid-template-columns: 4.5fr 5.5fr;
 }
 
 .header {
@@ -13,14 +45,24 @@
   display: flex; /* Use flexbox to position the components */
   justify-content: space-between; /* Align the components at the start and end of the header */
   padding-bottom: 5px;
-  border-bottom: 2px solid #95d5ff;
+  border-bottom: 2px solid #a2b9c8;
+  align-items: center;
+  /* fit content */
+  height: fit-content;
 }
 
-.expressions {
+.expression-table {
   grid-area: expressions; /* Place the expression table in the "expressions" grid area */
+  border-right: 2px solid #5e5e5f1a;
+  padding-top: 5px;
+  padding-right: 5px;
+  /* overflow-y: scroll;
+  scrollbar-color: var(--highlight) var(--background-color);
+  scrollbar-width: thin; */
 }
 
 .visualization {
   grid-area: visualization; /* Place the visualization section in the "visualization" grid area */
+  margin-left: 10px;
 }
 

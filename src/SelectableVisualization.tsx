@@ -1,9 +1,7 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { LocalError } from './LocalError';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
-import { SelectedExprIdContext } from './HerbieContext';
-import * as HerbieContext from './HerbieContext';
 
 import './SelectableVisualization.css';
 
@@ -11,35 +9,30 @@ import './SelectableVisualization.css';
 function SelectableVisualization({ expressionId }: { expressionId: number }) {
   const [selectedOption, setSelectedOption] = useState('errorPlot');
 
-  const handleOptionChange : React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+  const handleOptionChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
     setSelectedOption(event.target.value);
   };
 
-  // Render the selected visualization component based on the chosen option
-  let selectedComponent;
-  if (selectedOption === 'errorPlot') {
-    selectedComponent = <ErrorPlot />;
-  } else if (selectedOption === 'localError') {
-    selectedComponent = <LocalError expressionId={expressionId}/>;
-  } else if (selectedOption === 'derivationComponent') {
-    selectedComponent = <DerivationComponent/>;
-  }
+  const components = [
+    { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
+    { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
+    { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
+  ];
 
-  // const { selectedExprId } = useContext(SelectedExprIdContext);
-  const [selectedExprId, ] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
+  const selectedComponent = components.find((comp) => comp.value === selectedOption)?.component;
 
   return (
     <div className="visualization">
       <select value={selectedOption} onChange={handleOptionChange}>
-        <option value="errorPlot">Error Plot</option>
-        <option value="localError">Local Error</option>
-        <option value="derivationComponent">Derivation</option>
+        {components.map((comp) => (
+          <option key={comp.value} value={comp.value}>
+            {comp.label}
+          </option>
+        ))}
       </select>
-      <div>
-        {selectedComponent}
-      </div>
+      <div>{selectedComponent}</div>
     </div>
   );
 }
 
-export { SelectableVisualization}
+export { SelectableVisualization };

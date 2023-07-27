@@ -21,6 +21,7 @@ import 'simplebar-react/dist/simplebar.min.css';
 
 
 import './ExpressionTable.css';
+import { error } from 'console';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -96,6 +97,25 @@ function ExpressionTable() {
     }
   }
 
+  const extraVariables = (expression: string) => {
+    const specVariables = fpcore.getVarnamesMathJS(spec.expression);
+    const expressionVariables = fpcore.getVarnamesMathJS(expression);
+
+    return expressionVariables.filter((symbol) => !specVariables.includes(symbol));
+  };
+
+  const validateExpression = (expression: string) => {
+    const variables = extraVariables(expression);
+
+    if (variables.length !== 0) {
+      const variableListString = variables.join(", ");
+      const errorMessage = 
+        "The added expression is not valid. The expression you tried to add has the following variables not seen in the spec expression: " + 
+        variableListString;
+      throw Error(errorMessage);
+    }
+  }
+
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -129,6 +149,7 @@ function ExpressionTable() {
             <div className="add-expression-button">
               <button 
                 onClick={() => {
+                  validateExpression(addExpression);
                   setExpressions([
                     new Expression(addExpression, nextId(expressions)),
                     ...expressions,

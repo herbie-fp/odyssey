@@ -8,6 +8,8 @@ import { Tooltip } from 'react-tooltip'
 import * as herbiejs from './herbiejs'
 import * as fpcore from './fpcore'
 import * as types from './HerbieTypes'
+import { LocalError } from './LocalError';
+import { DerivationComponent } from './DerivationComponent';
 
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
@@ -148,6 +150,10 @@ function ExpressionTable() {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
             const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
+            const components = [
+                { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
+                { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
+              ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
                 <div key={expression.id} className={`expression`} >
@@ -196,7 +202,7 @@ function ExpressionTable() {
                 </div>
                 {expandedExpressions.includes(expression.id) && (
                   <div className="dropdown">
-                    <SelectableVisualization expressionId={ expression.id } />
+                    <SelectableVisualization components={components} />
                   </div>
                 )}
               </div>

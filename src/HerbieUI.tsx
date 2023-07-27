@@ -12,6 +12,8 @@ import * as Types from './HerbieTypes'
 import { nextId } from './utils';
 import * as utils from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
+import { ErrorPlot } from './ErrorPlot';
+import { DerivationComponent } from './DerivationComponent';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejs from './herbiejs';
@@ -245,6 +247,12 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
+  const components = [
+    { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
+    // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
+    { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
+  ];
+
   return (
     <div className="grid-container">
       <div className="header">
@@ -252,7 +260,7 @@ function HerbieUIInner() {
         <ServerStatusComponent />
       </div>
       <ExpressionTable />
-      <SelectableVisualization expressionId={ selectedExprId } />
+      <SelectableVisualization components={ components } />
     </div>
   );
 }

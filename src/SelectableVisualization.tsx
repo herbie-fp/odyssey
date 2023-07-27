@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ReactText, useState } from 'react';
 import { LocalError } from './LocalError';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
@@ -6,18 +6,12 @@ import { DerivationComponent } from './DerivationComponent';
 import './SelectableVisualization.css';
 
 // Define SelectableVisualization component
-function SelectableVisualization({ expressionId }: { expressionId: number }) {
-  const [selectedOption, setSelectedOption] = useState('errorPlot');
+function SelectableVisualization({ components }: { components: { value:string, label: string, component: React.ReactElement}[] }) {
+  const [selectedOption, setSelectedOption] = useState(components[0].value);
 
   const handleOptionChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
     setSelectedOption(event.target.value);
   };
-
-  const components = [
-    { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
-    { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
-    { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
-  ];
 
   const selectedComponent = components.find((comp) => comp.value === selectedOption)?.component;
 

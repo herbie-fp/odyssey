@@ -1,0 +1,15 @@
+.input-ranges-editor input {
+  font-size: 10px;
+  width: 70px;
+}
+.input-ranges-editor {
+  display: inline-block;
+}
+
+.error-plot svg text {
+  font-size: 14px;
+}
+
+.error-plot svg {
+  margin-top: 5px;
+}

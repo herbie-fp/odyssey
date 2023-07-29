@@ -193,6 +193,8 @@ function HerbieUIInner() {
         }), serverUrl)).points;
 
       setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
+
+      // TODO need to adjust here to solve https://trello.com/c/rV7PkpDV/2350-resample-should-not-duplicate-existing-expressions
       setExpressions([...expressions, new Expression(spec.expression, nextId(expressions))])
     }
     sample()

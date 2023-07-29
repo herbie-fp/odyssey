@@ -210,13 +210,13 @@
   margin-left: 49px;
 }
 
-textarea {
+.expression-table textarea {
   height: 1em;
   width: 50%;
   transition: all .3s ease;
 }
 
-textarea:focus-visible, textarea.has-text {
+.expression-table textarea:focus-visible, textarea.has-text {
   height: 5em;
   transition: all .3s ease;
 }

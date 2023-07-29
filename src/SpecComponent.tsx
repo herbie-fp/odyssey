@@ -70,7 +70,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(mySpecRanges, specId, inputRangeId)])
     console.log('Added, now setting spec', spec.expression, specId)
     setValue(new Spec(spec.expression, specId));
-    // setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges((inputRangesTable.findLast(r => r.specId === spec.id) as HerbieTypes.InputRanges).ranges, specId, inputRangeId)])
+    
     setShowOverlay(false);
   }
 
@@ -144,7 +144,11 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             <div className="spec-range-inputs">
             {getVariables(spec).map((v, i) => {
               const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
-              return <InputRangeEditor1 value={{
+              return <div className="spec-range-input">
+                <div className="varname">
+                  {v}:
+                </div>
+                <InputRangeEditor1 value={{
                 lower: range.lowerBound.toString(),
                 upper: range.upperBound.toString()
               }} setValue={ 
@@ -155,6 +159,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                   setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
                 }
               } />
+              </div>
             })}
             </div>
             {/* <div className='spec-input-range-editor'>

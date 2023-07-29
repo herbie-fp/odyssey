@@ -71,3 +71,8 @@
   font-size: 20px;
   padding-top:2px;
 }
+
+.spec-textarea {
+  width: 50%;
+  height: 5em;
+}

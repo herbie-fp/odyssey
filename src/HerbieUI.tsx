@@ -208,7 +208,7 @@ function HerbieUIInner() {
   }
 
   // Reactively update average local errors
-  useEffect(updateAverageLocalErrors, [expressions, samples, serverUrl])
+  // useEffect(updateAverageLocalErrors, [expressions, samples, serverUrl])
   function updateAverageLocalErrors() {
     /* A little tricky. We have to make sure that we've collected our responses and then update the state in one pass. */
     async function getLocalErrorUpdates() {

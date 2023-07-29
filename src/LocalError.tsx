@@ -77,7 +77,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
   if (!localError) {
     return (
       <div className="local-error not-computed">
-        <div>Local error not yet computed.</div>
+        <div>Please select a point to compute local error.</div>
       </div>
     )
   }

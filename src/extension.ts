@@ -97,13 +97,15 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 				--background-color: var(--vscode-editor-background, #f5f5f5);
 				--foreground-color: var(--vscode-editor-foreground, #3c3b3b);
 				--highlight: #99b7cb1a;
+				--foreground-extreme: #000000;
 			}
 		}
 		@media (prefers-color-scheme: dark) {
 			body {
 				--background-color: var(--vscode-editor-background, rgb(16, 27, 37));
 				--foreground-color: var(--vscode-editor-foreground, rgb(232, 232, 233));
-				--highlight: #99b7cb1a;
+				--highlight: #b7b7cb1a;
+				--background-extreme: #ffffff;
 			}
 		}
 

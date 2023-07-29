@@ -238,7 +238,21 @@
   transition: opacity .1s ease-in
 }
 
-.expression-container {
+.expression-container:hover .copy {
+  opacity: 1;
+}
+
+.expression-container:hover button {
+  opacity: 1;
+  transition: opacity .1s ease-in
+}
+
+.expression-container button {
+  opacity: 0;
+  transition: opacity .1s ease-in
+}
+
+/* .expression-container {
   &:hover {
     .copy {
       opacity: 1;
@@ -252,7 +266,7 @@
     opacity: 0;
     transition: opacity .1s ease-in
   }
-}
+} */
 
 .delete {
   font-size: 7px;
@@ -260,9 +274,10 @@
 
 .expand, .expand-header {
   user-select: none;
-  &:hover {
-    color: color-mix(in srgb, var(--foreground-color), var(--foreground-extreme) 50%);
-  }
+}
+
+.expand:hover, .expand-header:hover {
+  color: var(--foreground-color);
 }
 
 .dropdown .visualization {

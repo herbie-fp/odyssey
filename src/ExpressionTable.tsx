@@ -114,8 +114,8 @@ function ExpressionTable() {
   const addExpressionErrors = (expression: string) : string[] => {
     try {
       fpcore.getVarnamesMathJS(expression);
-    } catch (e) {
-      return [(e as Error).toString()];
+    } catch (e:any) {
+      return [(e as Error).message];
     }
     const variables = extraVariables(expression);
 

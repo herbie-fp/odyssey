@@ -138,6 +138,13 @@
 .dropdown select {
   font-size: 10px;
 }
+.expression-table {
+  display: flex;
+  flex-direction: column;
+}
+.expressions-actual {
+  overflow-y: scroll;
+}
 
 .expression-container:has(.dropdown) {
   margin-bottom: 15px;

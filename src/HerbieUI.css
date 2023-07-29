@@ -28,32 +28,34 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-.grid-container {
+/* .grid-container {
   display: grid;
   grid-template-areas:
-    "header header"
-    "expressions visualization"; /* Define the grid areas */
-  /* column-gap: 20px; Add some gap between the grid items */
-  /* expressions and visualization should take up half each */
-  height: 100vh; /* Make the grid container take up the entire screen */
+    "header expressions"
+    "visualization expressions";
+  height: 100vh; 
   grid-template-rows: 60px 1fr;
-  grid-template-columns: 4.5fr 5.5fr;
-}
+  grid-template-columns: 4fr 7fr;
+} */
 
 .header {
-  grid-area: header; /* Place the header in the "header" grid area */
+  /* grid-area: header; Place the header in the "header" grid area */
+  flex-grow: 4;
   display: flex; /* Use flexbox to position the components */
   justify-content: space-between; /* Align the components at the start and end of the header */
-  padding-bottom: 5px;
   border-bottom: 2px solid #a2b9c8;
   align-items: center;
-  /* fit content */
-  height: fit-content;
+}
+.table {
+  flex-grow: 7;
+  display:flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .expression-table {
-  grid-area: expressions; /* Place the expression table in the "expressions" grid area */
-  border-right: 2px solid #5e5e5f1a;
+  /* grid-area: expressions; Place the expression table in the "expressions" grid area */
+
   padding-top: 5px;
   padding-right: 5px;
   /* overflow-y: scroll;
@@ -66,3 +68,18 @@ input[type=number] {
   margin-left: 10px;
 }
 
+/* .split {
+  display: flex;
+  flex-direction: row;
+}
+
+.gutter {
+  background-color: #eee;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  cursor: col-resize;
+} */

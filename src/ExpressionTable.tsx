@@ -119,27 +119,28 @@ function ExpressionTable() {
 
         </div>
       </div>
-      <SimpleBar style={{ maxHeight: 400 }}>
-        <div className="expressions">
-          <div className="expression add-expression">
-            <div className="checkbox">
-              <input type="checkbox"></input>
-            </div>
-            <input type="text" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} />
-            <div className="add-expression-button">
-              <button 
-                onClick={() => {
-                  setExpressions([
-                    new Expression(addExpression, nextId(expressions)),
-                    ...expressions,
-                  ]);
-                }}
-              >
-                Add expression
-              </button>
-            </div>
+      <div className="expressions">
+        <div className="expression add-expression">
+          <div className="checkbox">
+            <input type="checkbox"></input>
           </div>
-
+          <input type="text" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} />
+          <div className="add-expression-button">
+            <button 
+              onClick={() => {
+                setExpressions([
+                  new Expression(addExpression, nextId(expressions)),
+                  ...expressions,
+                ]);
+              }}
+            >
+              Add expression
+            </button>
+          </div>
+        </div>
+      </div>
+      {/* <SimpleBar style={{ maxHeight: 'initial' }}> */}
+        <div className="expressions-actual">
           {expressions.map((expression) => {
             const isChecked = compareExprIds.includes(expression.id);
             const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
@@ -207,13 +208,12 @@ function ExpressionTable() {
                 )}
               </div>
             );
-          })}
-          < Tooltip anchorSelect=".copy-anchor" place="top" >
-            Copy to clipboard
-          </Tooltip> 
+          })}                
         </div>
-      </SimpleBar>
-      
+        < Tooltip anchorSelect=".copy-anchor" place="top" >
+          Copy to clipboard
+        </Tooltip> 
+      {/* </SimpleBar> */}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { InputRange, InputRangesEditor } from './InputRangesEditor';
+import { InputRange, InputRangesEditor, InputRangeEditor1 } from './InputRangesEditor';
 import { InputRangesTableContext, SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
 import * as HerbieTypes from './HerbieTypes';
@@ -21,6 +21,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', 0));
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [mySpecRanges, setMySpecRanges] = useState(inputRangesTable.findLast(r => r.specId === spec.id)?.ranges || [])
 
   const specExpressionErrors = (expression: string) =>  {
     const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
@@ -61,9 +62,15 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setExpressions([]) }
 
-    setValue(new Spec(spec.expression, specId));
     // TODO handle duplicates etc
-    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges((inputRangesTable.findLast(r => r.specId === spec.id) as HerbieTypes.InputRanges).ranges, specId, inputRangeId)])
+    // const inputRangesId = nextId(inputRangesTable)
+    // HACK TODO FIX
+    // if (!myInputRanges) { return }
+    console.log('Adding to inputRangesTable: ', mySpecRanges, specId, inputRangeId)
+    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(mySpecRanges, specId, inputRangeId)])
+    console.log('Added, now setting spec', spec.expression, specId)
+    setValue(new Spec(spec.expression, specId));
+    // setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges((inputRangesTable.findLast(r => r.specId === spec.id) as HerbieTypes.InputRanges).ranges, specId, inputRangeId)])
     setShowOverlay(false);
   }
 
@@ -95,7 +102,8 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
-    setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
+    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))))
+    // setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
   }
 
   return (
@@ -133,12 +141,28 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                 }
               })()
             }} />
-            <div className='spec-input-range-editor'>
+            <div className="spec-range-inputs">
+            {getVariables(spec).map((v, i) => {
+              const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
+              return <InputRangeEditor1 value={{
+                lower: range.lowerBound.toString(),
+                upper: range.upperBound.toString()
+              }} setValue={ 
+                (value: { lower: string, upper: string }) => {
+                  // if (!myInputRanges) { return }  // HACK to fix react bug
+                  // TODO update the inputRangesTable and sample etc. 
+                  console.debug('set input range', v, value)
+                  setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
+                }
+              } />
+            })}
+            </div>
+            {/* <div className='spec-input-range-editor'>
               <InputRangesEditor 
               value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} 
               setValue={handleRangesUpdate} 
               />
-            </div>
+            </div> */}
             <div>
               <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
             </div>

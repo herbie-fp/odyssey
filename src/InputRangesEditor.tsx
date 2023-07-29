@@ -74,8 +74,8 @@ interface InputRangeEditor1Props {
  * @returns {JSX.Element} The rendered component.
  */
 export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, setValue }) => {
-  const [lowerBound, setLowerBound] = useState(value.lower);
-  const [upperBound, setUpperBound] = useState(value.upper);
+  const [lowerBound, setLowerBound] = useState(value.lower || '-1e308');
+  const [upperBound, setUpperBound] = useState(value.upper || '1e308');
   const [error, setError] = useState('');
 
   useEffect(() => {

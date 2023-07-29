@@ -44,6 +44,7 @@ function ExpressionTable() {
   const [useTex, setUseTex] = useState(true);
   // keep track of expanded expressions
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
+  const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
   function toggleShowMath() {
     setShowMath(!showMath);
@@ -158,6 +159,8 @@ function ExpressionTable() {
     }
   }
 
+  const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -195,7 +198,7 @@ function ExpressionTable() {
                 onClick={() => {
                   validateExpression(addExpression);
                   setExpressions([
-                    new Expression(addExpression, nextId(expressions)),
+                    new Expression(addExpression, nextId(expressions), spec.id),
                     ...expressions,
                   ]);
                   setDerivations([
@@ -225,7 +228,7 @@ function ExpressionTable() {
       </div>
       {/* <SimpleBar style={{ maxHeight: 'initial' }}> */}
         <div className="expressions-actual">
-          {expressions.map((expression) => {
+          {activeExpressions.map((expression) => {
             const isChecked = compareExprIds.includes(expression.id);
             const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
             const analysisResult =
@@ -300,7 +303,7 @@ function ExpressionTable() {
 
                         const s = alternatives[i];
                         const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-                        const newExpression = new Expression(fPCoreToMathJS, newId);
+                        const newExpression = new Expression(fPCoreToMathJS, newId, spec.id);
                         newExpressions.push(newExpression);
 
                         // The following code assumes the HTMLHistory[] returend by Herbie
@@ -319,7 +322,7 @@ function ExpressionTable() {
                   
                   
                   <div className="delete">
-                    <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
+                    <button onClick={() => setArchivedExpressions([...archivedExpressions, expression.id])}>
                     ╳
                     </button>
                   </div>

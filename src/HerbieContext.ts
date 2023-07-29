@@ -38,3 +38,4 @@ export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocal
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
 export const InputRangesTableContext = makeGlobal([] as types.InputRanges[])
 export const SelectedInputRangeIdContext = makeGlobal(0)
+export const ArchivedExpressionsContext = makeGlobal([] as number[])

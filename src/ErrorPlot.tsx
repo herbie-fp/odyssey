@@ -170,7 +170,7 @@ function ErrorPlot() {
   const [spec, ] = contexts.useGlobal(SpecContext)
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(SelectedExprIdContext)
   const [analyses, ] = contexts.useGlobal(AnalysesContext)
-  const [expressions, ] = contexts.useGlobal(ExpressionsContext)
+  const [allExpressions, ] = contexts.useGlobal(ExpressionsContext)
   const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
@@ -180,7 +180,9 @@ function ErrorPlot() {
   const sample = samples.find(s => s.id === selectedSampleId)
   const inputRanges = sample ? inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges : undefined
   const [myInputRanges, setMyInputRanges] = useState(inputRanges)
+  const [archivedExpressions, ] = contexts.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
+  const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id)) 
   // console.log('selectedExprId', selectedExprId)
 
   // get the expression

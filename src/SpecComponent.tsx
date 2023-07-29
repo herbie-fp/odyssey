@@ -22,6 +22,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', 0));
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [mySpecRanges, setMySpecRanges] = useState(inputRangesTable.findLast(r => r.specId === spec.id)?.ranges || [])
+  const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
   const specExpressionErrors = (expression: string) =>  {
     const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
@@ -56,16 +57,18 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
 
   // Wait until submit click to set the spec
   const handleSubmitClick = () => {
-    const specId = spec.id + 1;
+    const specId = value.id + 1;
     const inputRangeId = utils.nextId(inputRangesTable)
 
     // Reset the expressions list if we are truly switching specs
-    if (spec.expression !== value.expression) { setExpressions([]) }
+    if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
 
-    console.log('Adding to inputRangesTable: ', mySpecRanges, specId, inputRangeId)
-    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(mySpecRanges, specId, inputRangeId)])
-    console.log('Added, now setting spec', spec.expression, specId)
-    setValue(new Spec(spec.expression, specId));
+    const inputRanges = new HerbieTypes.InputRanges(mySpecRanges, specId, inputRangeId)
+    console.debug('Adding to inputRangesTable: ', inputRanges)
+    setInputRangesTable([...inputRangesTable, inputRanges])
+    const mySpec = new Spec(spec.expression, specId);
+    console.debug('Added, now setting spec', mySpec)
+    setValue(mySpec);
     
     setShowOverlay(false);
   }

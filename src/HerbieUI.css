@@ -1,4 +1,30 @@
+@media (prefers-color-scheme: light) {
+  body {
+    --background-color: var(--vscode-editor-background, #f5f5f5);
+    --foreground-color: var(--vscode-editor-foreground, #3c3b3b);
+    --highlight: #bcbcbc7d;
+    --foreground-extreme: #000000;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    --background-color: var(--vscode-editor-background, rgb(16, 27, 37));
+    --foreground-color: var(--vscode-editor-foreground, rgb(232, 232, 233));
+    --highlight: #bcbcbc70;
+    --background-extreme: #ffffff;
+  }
+}
+body {
+  color: var(--foreground-color);
+  fill: var(--foreground-color);
+  background-color: var(--background-color);
+  font-family: Arial;
+  padding: 0px;
+}
 
+body {
+  margin: 0px;
+}
 
 
 button, input, select {
@@ -25,11 +51,12 @@ input::-webkit-inner-spin-button {
 
 /* Firefox */
 input[type=number] {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 
 
-@media (prefers-color-scheme: light),  {
+@media (prefers-color-scheme: light)  {
   :root {
     --ui-color: #eeeeee;
     --ui-hover-color: #dddddd;
@@ -52,6 +79,7 @@ input[type=number] {
     --ui-hover-color: #dddddd;
     --ui-focus-color: #dededebd;
     --ui-pressed-color: #656565;
+    --foreground-deemphasize-color: gray;
   }
 :root:has(.vscode-dark) {
   /* invert the above colors */
@@ -59,6 +87,7 @@ input[type=number] {
   --ui-hover-color: #4b4b4b;
   --ui-focus-color: #1f1f1f;
   --ui-pressed-color: #a2a2a2;
+  --foreground-deemphasize-color: gray;
   }
 
 button, select {
@@ -93,7 +122,7 @@ input[type="text"]:focus, select:focus {
     "visualization expressions";
   height: 100vh; 
   grid-template-rows: 60px 1fr;
-  grid-template-columns: 4fr min(67%, 518px);
+  grid-template-columns: 4fr min(70%, 600px);
 }
 
 .header {
@@ -103,6 +132,7 @@ input[type="text"]:focus, select:focus {
   border-bottom: 2px solid #a2b9c8;
   align-items: center;
   border-right: 2px solid #5e5e5f1a;
+  padding-left: 5px;
 }
 .table {
   flex-grow: 7;

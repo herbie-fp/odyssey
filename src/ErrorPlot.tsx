@@ -127,19 +127,26 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
   }
   const out = Plot.plot({
     width: width,
-    height: height,                
+    height: height,
     x: {
-        tickFormat: (d: number) => tickStrings[tickOrdinals.indexOf(d)],
+      tickFormat: (d: number) => tickStrings[tickOrdinals.indexOf(d)],
+      line: true, grid: true,
         ticks: tickOrdinals, label: `value of ${varnames[varidx]}`,  // LATER axis label
-        labelAnchor: 'left', labelOffset: 40, /* tickRotate: 70, */
-        domain,
-        grid: true
+      labelAnchor: 'left', labelOffset: 40, /* tickRotate: 70, */
+        domain
     },
     y: {
+        line: true,
         label: "Bits of Error", domain: [0, bits],
         ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
-        tickFormat: (d: number) => d % 8 !== 0 ? '' : d
+        tickFormat: (d: number) => d % 16 !== 0 ? '' : d
     },
+    // y: {
+    //     line: true,
+    //     label: "% Accuracy", domain: [0, 100],
+    //     ticks: new Array(100 / 25 + 1).fill(0).map((_, i) => i * 25),
+    //     tickFormat: '%' //(d: number) => d % 25 !== 0 ? '' : `%`
+    // },
     marks: [
       ...[ // Vertical bars ("rules")
         // The splitpoints
@@ -292,7 +299,7 @@ function ErrorPlot() {
             console.log('TODO set input range', v, value)
           }
         } />
-        <svg viewBox="0 0 830 215" ref={async (svg) => {
+        <svg viewBox="0 -25 840 360" ref={async (svg) => {
           if (!svg) {
             return
           }
@@ -308,7 +315,7 @@ function ErrorPlot() {
             bits,
             styles,
             width: 800,
-            height: 200
+            height: 300
           });
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)

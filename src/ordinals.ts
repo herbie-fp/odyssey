@@ -119,7 +119,7 @@ function pick_spaced_ordinals(
 }
 
 function choose_ticks(min: number, max: number): number[] {
-  let tick_count = 13;
+  let tick_count = 9;
   let necessary = [min, -1.0, 0, 1.0, max].filter(
     (v) => min <= v && v <= max && min <= max
   ).map((v) => real_to_ordinal(v));

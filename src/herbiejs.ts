@@ -155,7 +155,8 @@ export const displayNumber = (v: number) => {
     const b = v.toPrecision(6)
     return a.length < b.length ? a : b
   }
-  return v.toPrecision(1)
+  const result = v.toPrecision(1)
+  return result.startsWith('1e') ? result.slice(1) : result
 }
 
 export const fPCoreToMathJS = async (

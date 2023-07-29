@@ -28,23 +28,44 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-/* .grid-container {
+button, select {
+  background: color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 90%), var(--background-color) 50%);
+}
+
+button:hover, select:hover, option:hover {
+  background: color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 50%), var(--background-color) 50%);
+}
+
+option {
+  background: var(--background-color);
+}
+
+button:active:hover {
+  background: color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 10%), var(--background-color) 50%);
+}
+
+input[type="text"]:focus, select:focus {
+  outline: 1px solid color-mix(in srgb, var(--foreground-color), transparent 70%);
+}
+
+
+.grid-container {
   display: grid;
   grid-template-areas:
     "header expressions"
     "visualization expressions";
   height: 100vh; 
   grid-template-rows: 60px 1fr;
-  grid-template-columns: 4fr 7fr;
-} */
+  grid-template-columns: 4fr min(67%, 518px);
+}
 
 .header {
-  /* grid-area: header; Place the header in the "header" grid area */
-  flex-grow: 4;
+  grid-area: header; /*Place the header in the "header" grid area */
   display: flex; /* Use flexbox to position the components */
   justify-content: space-between; /* Align the components at the start and end of the header */
   border-bottom: 2px solid #a2b9c8;
   align-items: center;
+  border-right: 2px solid #5e5e5f1a;
 }
 .table {
   flex-grow: 7;
@@ -54,7 +75,7 @@ input[type=number] {
 }
 
 .expression-table {
-  /* grid-area: expressions; Place the expression table in the "expressions" grid area */
+  grid-area: expressions; /*Place the expression table in the "expressions" grid area
 
   padding-top: 5px;
   padding-right: 5px;
@@ -63,9 +84,10 @@ input[type=number] {
   scrollbar-width: thin; */
 }
 
-.visualization {
+.grid-container > .visualization {
   grid-area: visualization; /* Place the visualization section in the "visualization" grid area */
   margin-left: 10px;
+  border-right: 2px solid #5e5e5f1a;
 }
 
 /* .split {

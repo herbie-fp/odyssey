@@ -105,13 +105,14 @@
   background-color: var(--highlight); /* Highlight the selected expression */
 }
 
-.expand div {
+.expand {
   /* fix the button text width so it doesn't change when the text changes */
   /* width: 25px;
-  font-size: x-large;
+  
   max-height: 1em;
   text-align: top; */
   /* font-size: large; */
+  font-size: 20px;
   font-weight: bold;
   color: gray;
   cursor: pointer;
@@ -125,12 +126,12 @@
 }
 
 .dropdown {
-  margin-left: 9px;
+  margin-left: 7px;
   padding: 5px;
   padding-left: 9px;
   padding-top: 0px;
   /* large thick square dots on left border */
-  border-left: 5px dashed #ccc;
+  border-left: 4px dotted #888;
   margin-bottom: 5px;
   font-size: 10px;
 }
@@ -142,12 +143,18 @@
   display: flex;
   flex-direction: column;
 }
+.expressions {
+  box-shadow: 0px 2px 2px 0px #ccc;
+  clip-path: inset(0px 0px -4px 0px);
+}
 .expressions-actual {
   overflow-y: scroll;
+  padding-top: 3px;
 }
 
 .expression-container:has(.dropdown) {
   margin-bottom: 15px;
+  padding-bottom: 4px;
 }
 
 .expression-table-header-row {
@@ -159,7 +166,6 @@
   padding: 4px;
   padding-right: 10px;
   border-bottom: 1px solid #ccc;
-  margin-right: 10px;
   align-items: center;
 }
 
@@ -167,7 +173,7 @@
   font-weight: bold;
   color: gray;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 20px;
 }
 
 .checkbox-header {
@@ -178,7 +184,7 @@
   margin-left: 6px;
 }
 .error-header {
-  margin-right: 82px;
+  margin-right: 109px;
 }
 
 .add-expression {
@@ -187,14 +193,78 @@
   justify-content: flex-start;
 }
 
-.add-expression .checkbox {
-  margin-left: 20px;
-}
-
 .add-expression-button {
-  margin-left:auto;
 }
 
 .add-expression button {
   font-size: 12px;
+}
+
+.expand-header {
+  margin-left: 5px;
+}
+
+.expand {
+  margin-left: 5px;
+}
+
+.dropdown {
+  margin-left: 13px;
+  transition: all 1s ease-in;
+}
+.dropdown:hover {
+  cursor: pointer;
+}
+
+.add-expression .checkbox {
+  margin-left: 23px;
+}
+
+.expression-container:hover {
+  outline: 2px solid var(--highlight);
+}
+.expression-container {
+  outline-offset: -2px;
+  outline: 2px solid transparent;
+  transition: outline .3s ease-out;
+}
+
+/* .expression-container.selected:not(:hover) {
+  outline: 2px solid var(--highlight)
+} */
+
+.copy {
+  opacity: 0;
+  transition: opacity .1s ease-in
+}
+
+.expression-container {
+  &:hover {
+    .copy {
+      opacity: 1;
+    }
+    & button {
+      opacity: 1;
+      transition: opacity .1s ease-in
+    }
+  }
+  & button {
+    opacity: 0;
+    transition: opacity .1s ease-in
+  }
+}
+
+.delete {
+  font-size: 7px;
+}
+
+.expand, .expand-header {
+  user-select: none;
+  &:hover {
+    color: color-mix(in srgb, var(--foreground-color), var(--foreground-extreme) 50%);
+  }
+}
+
+.dropdown .visualization {
+  margin-left: 5px;
 }

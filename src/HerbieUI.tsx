@@ -2,8 +2,6 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 
 import './HerbieUI.css';
 
-import Split from 'react-split'
-
 import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { ResampleComponent } from './ResampleComponent';
@@ -257,18 +255,12 @@ function HerbieUIInner() {
 
   return (
     <div className="grid-container">
-      <Split className="split" sizes={[37, 63]}>
-        <div className="sidebar">
-          <div className="header">
-            <SpecComponent {...{showOverlay, setShowOverlay}} />
-            <ServerStatusComponent />
-          </div>
-          <SelectableVisualization components={components} />
-        </div>
-        <div className="table">
-          <ExpressionTable />
-        </div>
-      </Split>
+      <div className="header">
+        <SpecComponent {...{showOverlay, setShowOverlay}} />
+        <ServerStatusComponent />
+      </div>
+      <ExpressionTable />
+      <SelectableVisualization components={ components } />
     </div>
   );
 }

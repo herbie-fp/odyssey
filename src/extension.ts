@@ -112,7 +112,6 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 			fill: var(--foreground-color);
 			background-color: var(--background-color);
 			font-family: Arial;
-			padding: 0 5px;
 		}
 			body {
 				margin: 0;

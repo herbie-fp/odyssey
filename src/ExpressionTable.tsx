@@ -101,7 +101,7 @@ function ExpressionTable() {
       <div className="expression-table-header-row">
         <div className="expand-header">
         <div onClick={() => handleExpandAllClick()}>
-                      {noneExpanded ? '＋' : '－'}
+                      {noneExpanded ? '+' : '−'}
                     </div>
         </div>
         <div className="checkbox-header">
@@ -134,7 +134,7 @@ function ExpressionTable() {
                 ]);
               }}
             >
-              Add expression
+              Add
             </button>
           </div>
         </div>
@@ -161,7 +161,7 @@ function ExpressionTable() {
                   {/* expand button [+] */}
                   <div className="expand">
                     <div onClick={() => handleExpandClick(expression.id)}>
-                      {expandedExpressions.includes(expression.id) ? '－' : '＋'}
+                      {expandedExpressions.includes(expression.id) ? '−' : '+' }
                     </div>
                   </div>
                   <input type="checkbox" checked={isChecked} onChange={event => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
@@ -197,12 +197,12 @@ function ExpressionTable() {
                   </div>
                   <div className="delete">
                     <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
-                    x
+                    ╳
                     </button>
                   </div>
                 </div>
                 {expandedExpressions.includes(expression.id) && (
-                  <div className="dropdown">
+                  <div className="dropdown" onClick={() => handleExpressionClick(expression.id)}>
                     <SelectableVisualization components={components} />
                   </div>
                 )}

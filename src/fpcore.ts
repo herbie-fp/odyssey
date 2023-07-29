@@ -2,6 +2,7 @@
 // const math = require('mathjs1');
 // @ts-ignore
 import * as math from 'mathjs1';
+import * as math11 from 'mathjs11'
 
 // TODO use these for type validation (not raw strings)
 export interface mathjs extends String { }
@@ -335,6 +336,52 @@ type FPCore = string
 function mathjsToFPCore(mathjs: mathjs, spec: undefined | mathjs = undefined, varnames: string[] | undefined = undefined) {
   const vars = varnames || getVarnamesMathJS(mathjs)
   return `(FPCore (${vars.join(' ')}) ${!spec ? '' : `:spec ${FPCoreBody(spec)}`} ${FPCoreBody(mathjs)})`
+}
+
+
+const renderTex = (h: string) => {
+  
+  const el = document.createElement('span') as HTMLElement
+  el.innerHTML = (window as any).katex.renderToString(h, {
+    throwOnError: false
+  });//'\\(' + html + '\\)';
+  //(window as any).renderMathInElement(el)
+  return el
+}
+
+function cleanupTex(node: any, options:any) {
+  // TODO handle other special functions
+  if (node.fn?.name === 'hypot' && !(node.args.length === 2)) { throw Error('hypot takes two arguments') }
+  if (node.fn?.name === 'log1p' && !(node.args.length === 1)) { throw Error('log1p takes one argument') }
+  if (node.fn?.name === 'log' && !(node.args.length === 1)) { throw Error('log takes one argument') }
+  return node.fn?.name === 'hypot' ? `\\mathbf{hypot}(${node.args[0].toTex(options)}, ${node.args[1].toTex(options)})` 
+    : node.fn?.name === 'log1p' ? `\\mathbf{log1p}(${node.args[0].toTex(options)})`
+    : node.fn?.name === 'log' ? `\\mathbf{log}(${node.args[0].toTex(options)})`
+    : node._toTex(options)
+}
+
+function branchConditionalHandler(node: any, options : any) {
+  options = {handler: cleanupTex}
+  if (node.type !== 'ConditionalNode') {
+    return node.toTex(options)
+  }
+  const deparen = (node: any) => node.type === 'ParenthesisNode' ? node.content : node
+  const conditions = [node]
+  let curr = node
+  while (deparen(curr.falseExpr).type === 'ConditionalNode') {
+    conditions.push(deparen(curr.falseExpr))
+    curr = deparen(curr.falseExpr)
+  }
+  conditions.push(conditions[conditions.length - 1])  // duplicate the final condition
+  
+  const deparenCondition = (c: {condition: any, trueExpr: any, falseExpr: any}) => ({...c, condition: deparen(c.condition), trueExpr: deparen(c.trueExpr), falseExpr: deparen(c.falseExpr)})
+  return conditions.map(deparenCondition).map((c, i) => 
+    i === 0 ? `\\mathbf{if} \\> ${c.condition.toTex(options)}: \\\\ \\quad ${c.trueExpr.toTex(options)}`
+    : i !== conditions.length - 1 ? `\\mathbf{elif} \\> ${c.condition.toTex(options)}: \\\\ \\quad ${c.trueExpr.toTex(options)}`
+    : `\\mathbf{else :} \\\\ \\quad ${c.falseExpr.toTex(options)}`).join('\\\\')
+}
+const math2Tex = (mathjs: string) => {
+  return math11.parse(mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')).toTex({handler: branchConditionalHandler})
 }
 
 export {

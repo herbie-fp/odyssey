@@ -62,10 +62,6 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setExpressions([]) }
 
-    // TODO handle duplicates etc
-    // const inputRangesId = nextId(inputRangesTable)
-    // HACK TODO FIX
-    // if (!myInputRanges) { return }
     console.log('Adding to inputRangesTable: ', mySpecRanges, specId, inputRangeId)
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(mySpecRanges, specId, inputRangeId)])
     console.log('Added, now setting spec', spec.expression, specId)
@@ -92,7 +88,6 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   function getVariables(spec: Spec): string[] {
-    // TODO
     return specValid() ? fpcorejs.getVarnamesMathJS(spec.expression) : []
   }
 
@@ -152,9 +147,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                 lower: range.lowerBound.toString(),
                 upper: range.upperBound.toString()
               }} setValue={ 
-                (value: { lower: string, upper: string }) => {
-                  // if (!myInputRanges) { return }  // HACK to fix react bug
-                  // TODO update the inputRangesTable and sample etc. 
+                (value: { lower: string, upper: string }) => { 
                   console.debug('set input range', v, value)
                   setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
                 }

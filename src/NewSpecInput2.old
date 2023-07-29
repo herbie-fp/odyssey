@@ -21,7 +21,6 @@ const zip = (arr1: any[], arr2: any[], arr3=[]) => arr1.reduce((acc, _, i) => (a
 
 
 function cleanupTex(node :any, options :any) {
-  // TODO handle other special functions
   if (node.fn?.name === 'hypot' && !(node.args.length === 2)) { throw Error('hypot takes two arguments') }
   if (node.fn?.name === 'log1p' && !(node.args.length === 1)) { throw Error('log1p takes one argument') }
   if (node.fn?.name === 'log' && !(node.args.length === 1)) { throw Error('log takes one argument') }

@@ -21,7 +21,6 @@ const math2Tex = (mathjs : any) => {
 }
 
 const NewSpecInput = () => {
-  // TODO: this is ugly old code with no typescript types
   const [text, setText] = useState('sqrt(x + 1) - sqrt(x)');
   const [varValues, setVarValues] = useState({ x: { low: 0, high: 1e308 } } as any);
 

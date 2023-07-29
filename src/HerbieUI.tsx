@@ -158,7 +158,6 @@ function HerbieUIInner() {
   }
 
   // HACK immediately select the first available expression if none is selected
-  // TODO make this more robust
   useEffect(selectFirstExpression, [expressions])
   function selectFirstExpression() {
     if (expressions.length > 0) {
@@ -178,7 +177,6 @@ function HerbieUIInner() {
       if (inputRanges === undefined) {
         throw new Error(`No input ranges found for spec ${spec.id}`)
       }
-      // TODO make sure errors are converted to numbers from strings
       const sample_points = (await herbiejs.getSample(
         fpcorejs.makeFPCore2({
           vars: fpcorejs.getVarnamesMathJS(spec.expression),

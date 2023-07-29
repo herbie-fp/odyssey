@@ -119,7 +119,7 @@ const fpcorejs = (() => {
               FUNCTIONS[node.op][0].length + " arguments");
           } else if ("" + extract(node.args) !== "" + FUNCTIONS[node.op][0] &&
             !(node.op === "-" && "" + extract(node.args) === "real") &&
-            !(is_comparison(node.op) /* TODO improve */)) {
+            !(is_comparison(node.op) /* LATER improve */)) {
             messages.push("Operator <code>" + node.op + "</code>" +
               " expects arguments of type " +
               FUNCTIONS[node.op][0].join(", ") +
@@ -210,7 +210,7 @@ const fpcorejs = (() => {
           // NOTE changed from node.op reassignment to be compatible with mathjs 4.4.2
           const op = SECRETFUNCTIONS[node.op] || node.op;
           if (is_comparison(op)) {
-            // TODO: removed because of bugs; is this even necessary?
+            // LATER: removed because of bugs; is this even necessary?
             // return flatten_comparisons({ ...node, op });
             return "(" + op + " " + extract(node.args).join(" ") + ")";
           } else {
@@ -561,7 +561,6 @@ const herbiejs = (() => {
   // All Herbie API calls are POSTs to /api/{endpoint}
   const getHerbieApi = async (host: string, endpoint: string, data: object, retry: boolean) => {
     const url = `${host}/api/${endpoint}`
-    // TODO add timeout?
     console.log('calling', url, 'with data', data)
     return await fetch(url, {
       method: 'POST',

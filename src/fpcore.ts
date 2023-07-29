@@ -5,7 +5,7 @@ import * as math from 'mathjs1';
 // @ts-ignore
 import * as math11 from 'mathjs11'
 
-// TODO use these for type validation (not raw strings)
+// LATER? use these for type validation (not raw strings)
 export interface mathjs extends String { }
 interface fpcore extends String { }
 
@@ -70,7 +70,7 @@ function tree_errors(tree: any, expected: string) /* tree -> list */ {
             FUNCTIONS[node.op][0].length + " arguments");
         } else if ("" + extract(node.args) !== "" + FUNCTIONS[node.op][0] &&
           !(node.op === "-" && "" + extract(node.args) === "real") &&
-          !(is_comparison(node.op) /* TODO improve */)) {
+          !(is_comparison(node.op) /* LATER improve */)) {
           messages.push("Operator <code>" + node.op + "</code>" +
             " expects arguments of type " +
             FUNCTIONS[node.op][0].join(", ") +
@@ -168,7 +168,7 @@ function dump_tree(tree: any, names: string[]) {
         // NOTE changed from node.op reassignment to be compatible with mathjs 4.4.2
         const op = SECRETFUNCTIONS[node.op] || node.op;
         if (is_comparison(op)) {
-          // TODO: removed because of bugs; is this even necessary?
+          // LATER: removed because of bugs; is this even necessary?
           // return flatten_comparisons({ ...node, op });
           return "(" + op + " " + extract(node.args).join(" ") + ")";
         } else {
@@ -316,13 +316,6 @@ function parseErrors(mathJSExpr: string) {
   return mjserrors.length > 0 ? mjserrors : tree_errors(math.parse(mathJSExpr), 'real')
 }
 
-// TODO deprecated, remove
-export function makeFPCore ({ specMathJS, ranges, specFPCore, targetFPCoreBody = undefined, name = specMathJS }: {specMathJS: string, ranges : [string, [number, number]][], specFPCore: string, targetFPCoreBody?: string, name?: string}) {
-  const vars = specFPCore === undefined ? getVarnamesMathJS(specMathJS) : getVarnamesFPCore(specFPCore)
-  const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
-  return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${FPCorePreconditionFromRanges(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
-}
-
 type FPCorePrecondition = string;
 
 /**
@@ -351,7 +344,7 @@ const renderTex = (h: string) => {
 }
 
 function cleanupTex(node: any, options:any) {
-  // TODO handle other special functions
+  // LATER handle other special functions
   if (node.fn?.name === 'hypot' && !(node.args.length === 2)) { throw Error('hypot takes two arguments') }
   if (node.fn?.name === 'log1p' && !(node.args.length === 1)) { throw Error('log1p takes one argument') }
   if (node.fn?.name === 'log' && !(node.args.length === 1)) { throw Error('log takes one argument') }

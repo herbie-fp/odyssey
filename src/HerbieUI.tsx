@@ -92,25 +92,18 @@ function HerbieUIInner() {
   const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
   const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
-  const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext)
-
-  // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
-  //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
+  const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
   const [inputRangesTable, ] = Contexts.useGlobal(Contexts.InputRangesTableContext)
 
-  const [showOverlay, setShowOverlay] = useState(false);  // TODO switch back to show overlay in production
+  const [showOverlay, setShowOverlay] = useState(true);
 
   // Data relationships
   // Reactively update analyses whenever expressions change
   useEffect(updateAnalyses, [expressions, samples]);
   function updateAnalyses() {
-    // TODO we don't need setTimeout, 
-    // just make it an async function and call directly after defining it
-    setTimeout(async () => {
+    async function updateAnalysesAsync () {
       // When a new expression is added, add a new analysis
       // An analysis is obtained by taking the most recent sample and checking the error of the expression on that sample
-      // The analyze server call looks like
-      // (await (await fetch(`${serverUrl}/api/analyze`, { method: 'POST', body: JSON.stringify({ formula: fpcorejs.mathjsToFPCore((spec as Spec).expression), sample: samples[samples.length - 1], seed: 5 }) })).json())
       if (samples.length === 0) {
         return
       }
@@ -144,7 +137,8 @@ function HerbieUIInner() {
           return;
         }
       }))).filter(e => e) as ErrorAnalysis[]);
-    });
+    }
+    updateAnalysesAsync();
   }
 
   // Reactively update expression styles whenever expressions change

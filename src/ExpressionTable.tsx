@@ -282,11 +282,9 @@ function ExpressionTable() {
                   </div>
                   <div className="herbie">
                     <button onClick={async () => { 
-                      // get suggested expressions with Herbie and put them in the expressions table
-                      // TODO for now we default to the spec expression, but we will soon send this particular expression
-                      console.log('suggesting expression')
+                      // get suggested expressions with Herbie and put them in the expressions table                      
                       const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
-                      console.log('suggested', suggested)
+                      
                       
                       const histories = suggested.histories;
                       const alternatives = suggested.alternatives;

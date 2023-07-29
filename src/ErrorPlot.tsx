@@ -199,11 +199,7 @@ function ErrorPlot() {
   if (!inputRanges) {
     return <div>Could not find input ranges with id {sample.inputRangesId}</div>
   }
-  // if (!myInputRanges) {
-  //   return <div>Could not find my input ranges</div>
-  // }
 
-  // TODO ticks are stored with expressions/sample
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
 
@@ -266,7 +262,7 @@ function ErrorPlot() {
         fill: color,
         fillOpacity: 0
       },
-      // TODO check why these are necessary
+      // LATER check why these are necessary
       selected,
       id: e.id
     }
@@ -275,15 +271,6 @@ function ErrorPlot() {
   if (styles.length !== compareExpressions.length) {
     throw new Error(`Missing a style for one of the expressions`)
   }
-
-
-  // TODO Could use hooks for this
-  // const plotRef = useRef<Element>();
-  // useEffect(() => {
-  //   const chart = Plot.plot(...);
-  //   plotRef.current?.append(chart);
-  //   return () => chart.remove();
-  // }, []);
   
   // create state for the input ranges
   // just use a list that looks like input ranges
@@ -293,7 +280,7 @@ function ErrorPlot() {
   function resample() {
     // Add a new inputRangesTable entry
     const inputRangesId = nextId(inputRangesTable)
-    // HACK TODO FIX
+    // HACK need to think through cases when myInputRanges isn't defined
     if (!myInputRanges) { return }
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
   }
@@ -313,8 +300,7 @@ function ErrorPlot() {
           upper: range.upperBound.toString()
         }} setValue={ 
           (value: { lower: string, upper: string }) => {
-            if (!myInputRanges) { return }  // HACK to fix react bug
-            // TODO update the inputRangesTable and sample etc. 
+            if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
             console.debug('set input range', v, value)
             setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
           }
@@ -340,7 +326,6 @@ function ErrorPlot() {
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
 
-            // TODO make sure this mouseover text shows up on hover
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
 
             t.parentNode.onclick = async () => {

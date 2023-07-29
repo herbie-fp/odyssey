@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 			})
 		panel.webview.html = getWebviewContent(panel.webview, context);
 		const addMessageHandler = (panel: vscode.WebviewPanel) => {
-			// TODO: old code, only use if we need to receive messages from the webview
+			// old code, only use if we need to receive messages from the webview
 			panel.webview.onDidReceiveMessage(
 				async message => {
 					console.log('got message', message)
@@ -76,7 +76,6 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 	// 	? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', cssFile))).toString()
 	// 	: `${localServerUrl}/${cssFile}`
 	
-	// TODO we are forcing production here right now, need to set properly elsewhere
 	scriptUrl = webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString();
 
 	return `<!DOCTYPE html>

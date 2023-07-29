@@ -19,7 +19,7 @@ const getHerbieApi = async (
   retry: boolean
 ): Promise<any> => {
   const url = `${host}/api/${endpoint}`;
-  // TODO add timeout?
+  // LATER add timeout?
   console.debug('calling', url, 'with data', data);
   try {
     const response = await fetch(url, {

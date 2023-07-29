@@ -1,6 +1,6 @@
 export type HTMLHistory = string;
 
-// TODO I think this should be a string? Is there a truncation risk?
+// LATER I think this should be a string? Is there a truncation risk?
 export type ordinal = number
 export type ordinalPoint = ordinal[]
 export type FPCore = string
@@ -71,7 +71,7 @@ export class SpecRange {
  */
 export type expressionError = number
 // A sample is a set of input tuples for a spec
-// TODO probably don't need ExpressionError in this
+// LATER probably don't need ExpressionError in this
 export class Sample {
   constructor(
       public readonly points: [ordinalPoint, expressionError][],

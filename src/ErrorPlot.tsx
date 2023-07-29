@@ -10,7 +10,6 @@ import * as herbiejs from './herbiejs'
 import { Expression, ordinal, expressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
 import * as contexts from './HerbieContext'
-import { ResampleComponent } from "./ResampleComponent";
 import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
 
 import './ErrorPlot.css'

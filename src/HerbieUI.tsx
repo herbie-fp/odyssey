@@ -4,7 +4,6 @@ import './HerbieUI.css';
 
 import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
-import { ResampleComponent } from './ResampleComponent';
 import { ExpressionTable } from './ExpressionTable';
 import * as Contexts from './HerbieContext';
 import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';

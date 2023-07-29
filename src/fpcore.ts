@@ -157,7 +157,6 @@ function dump_tree(tree: any, names: string[]) {
         // NOTE changed from node.name reassignment to be compatible with mathjs 4.4.2
         const name = SECRETFUNCTIONS[node.name] || node.name;
         if (node.args.length === 0) {
-          console.debug('HEREEEE')
           throw new SyntaxError(`Function without arguments: ${name}. Node was: ${JSON.stringify(node)}`)
         }
         return "(" + name + " " + extract(node.args).join(" ") + ")";

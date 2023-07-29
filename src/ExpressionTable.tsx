@@ -10,6 +10,9 @@ import * as fpcore from './fpcore'
 import * as types from './HerbieTypes'
 import { LocalError } from './LocalError';
 import { DerivationComponent } from './DerivationComponent';
+import KaTeX from 'katex';
+const math11 = require('mathjs11');
+
 
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
@@ -104,15 +107,28 @@ function ExpressionTable() {
     return expressionVariables.filter((symbol) => !specVariables.includes(symbol));
   };
 
-  const validateExpression = (expression: string) => {
+  const addExpressionErrors = (expression: string) : string[] => {
+    try {
+      fpcore.getVarnamesMathJS(expression);
+    } catch (e) {
+      return [(e as Error).toString()];
+    }
     const variables = extraVariables(expression);
 
     if (variables.length !== 0) {
       const variableListString = variables.join(", ");
-      const errorMessage = 
-        "The added expression is not valid. The expression you tried to add has the following variables not seen in the spec expression: " + 
+      const errorMessage =
+        "The added expression is not valid. The expression you tried to add has the following variables not seen in the spec expression: " +
         variableListString;
-      throw Error(errorMessage);
+      return [errorMessage];
+    }
+    return []
+  }
+
+  const validateExpression = (expression: string) => {
+    const errors = addExpressionErrors(expression)
+    if (errors.length !== 0) {
+      throw new Error(errors[0])
     }
   }
 
@@ -140,23 +156,38 @@ function ExpressionTable() {
         </div>
       </div>
       <div className="expressions">
-        <div className="expression add-expression">
-          <div className="checkbox">
-            <input type="checkbox"></input>
+        <div className="add-expression">
+          <div className="add-expression-top">
+            {/* <div className="checkbox">
+                  <input type="checkbox"></input>
+                </div> */}
+            <textarea value={addExpression} onChange={(event) => setAddExpression(event.target.value)} />
+            <div className="add-expression-button">
+              <button 
+                disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
+                onClick={() => {
+                  validateExpression(addExpression);
+                  setExpressions([
+                    new Expression(addExpression, nextId(expressions)),
+                    ...expressions,
+                  ]);
+                }}
+              >
+                Add
+              </button>
+            </div>
           </div>
-          <input type="text" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} />
-          <div className="add-expression-button">
-            <button 
-              onClick={() => {
-                validateExpression(addExpression);
-                setExpressions([
-                  new Expression(addExpression, nextId(expressions)),
-                  ...expressions,
-                ]);
-              }}
-            >
-              Add
-            </button>
+          <div className="add-expression-dropdown">
+            <div className="add-expression-tex" dangerouslySetInnerHTML={{
+                __html: (() => {
+                  try {      
+                    return addExpression.trim() === '' ? '' : KaTeX.renderToString(math11.parse(addExpression).toTex(), { throwOnError: false })
+                  } catch (e) {
+                    //throw e;
+                    return (e as Error).toString()
+                  }
+                })()
+              }} />
           </div>
         </div>
       </div>
@@ -191,6 +222,21 @@ function ExpressionTable() {
                 <div className="expression-text" onClick={() => handleExpressionClick(expression.id)} >
                     {expression.text}
                   </div>
+                  <div className="expression-tex" dangerouslySetInnerHTML={{
+                      __html: (() => {
+                        try {
+                          // Check if there are no variables
+                          if (fpcore.getVarnamesMathJS(spec.expression).length === 0) {
+                            throw new Error("No variables detected.")
+                          }
+                          
+                          return KaTeX.renderToString(math11.parse(expression.text).toTex(), { throwOnError: false })
+                        } catch (e) {
+                          //throw e;
+                          return (e as Error).toString()
+                        }
+                      })()
+                    }} />
                   <div className="analysis">
                     {analysisResult}
                   </div>

@@ -2,6 +2,7 @@
   body {
     --background-color: var(--vscode-editor-background, #f5f5f5);
     --foreground-color: var(--vscode-editor-foreground, #3c3b3b);
+    --foreground-light: #a9a9a9;
     --highlight: #bcbcbc7d;
     --foreground-extreme: #000000;
   }
@@ -10,6 +11,7 @@
   body {
     --background-color: var(--vscode-editor-background, rgb(16, 27, 37));
     --foreground-color: var(--vscode-editor-foreground, rgb(232, 232, 233));
+    --foreground-light: var(--vscode-editor-foreground, #888888);
     --highlight: #bcbcbc70;
     --background-extreme: #ffffff;
   }
@@ -27,7 +29,7 @@ body {
 }
 
 
-button, input, select {
+button, input, select, textarea {
   /* font-size: 12px; */
   background: var(--background-color);
   color: var(--foreground-color);
@@ -95,7 +97,11 @@ button, select {
   /* color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 90%), var(--background-color) 50%); */
 }
 
-button:hover, select:hover, option:hover {
+button:disabled {
+  color: var(--foreground-light) !important;
+}
+
+button:hover:not(:disabled), select:hover, option:hover {
   background: var(--ui-hover-color);
   /* color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 50%), var(--background-color) 50%); */
 }
@@ -104,7 +110,7 @@ option {
   background: var(--background-color);
 }
 
-button:active:hover {
+button:active:hover:not(:disabled) {
   background: var(--ui-pressed-color);
   /* color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 10%), var(--background-color) 50%); */
 }

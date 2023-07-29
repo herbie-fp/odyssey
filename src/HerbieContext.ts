@@ -36,6 +36,7 @@ export const SamplesContext = makeGlobal([] as types.Sample[])
 export const SelectedPointContext = makeGlobal(undefined as types.ordinalPoint | undefined)
 export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocalErrorAnalysis[])
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
+export const JobCountContext = makeGlobal(0)
 //createContext({} as { selectedSampleId: number, setSelectedSampleId: React.Dispatch<number> });
 // export const ExpressionIdsForSpecsContext = createContext({} as { expressionIdsForSpecs: HerbieTypes.ExpressionIdsForSpec[], setExpressionIdsForSpecs: React.Dispatch<HerbieTypes.ExpressionIdsForSpec[]> });
 export const InputRangesTableContext = makeGlobal([new types.InputRanges([new types.SpecRange('x', -1e308, 1e308)], 0, 0)])

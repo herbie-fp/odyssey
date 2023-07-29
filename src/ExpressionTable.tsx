@@ -42,6 +42,7 @@ function ExpressionTable() {
   const [addExpression, setAddExpression] = useState('');
   const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
   const [useTex, setUseTex] = useState(true);
+  const [jobCount, setJobCount] = HerbieContext.useGlobal(HerbieContext.JobCountContext)
   // keep track of expanded expressions
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
 
@@ -285,7 +286,7 @@ function ExpressionTable() {
                       // get suggested expressions with Herbie and put them in the expressions table
                       // TODO for now we default to the spec expression, but we will soon send this particular expression
                       console.log('suggesting expression')
-                      const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
+                      const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl, () => jobCount, setJobCount)
                       console.log('suggested', suggested)
                       
                       const histories = suggested.histories;
@@ -301,7 +302,7 @@ function ExpressionTable() {
                         const newId = nextId(expressions) + i;
 
                         const s = alternatives[i];
-                        const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
+                        const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl, () => jobCount, setJobCount);
                         const newExpression = new Expression(fPCoreToMathJS, newId);
                         newExpressions.push(newExpression);
 

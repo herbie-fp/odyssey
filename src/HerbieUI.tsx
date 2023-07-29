@@ -4,7 +4,6 @@ import './HerbieUI.css';
 
 import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
-import { ResampleComponent } from './ResampleComponent';
 import { ExpressionTable } from './ExpressionTable';
 import * as Contexts from './HerbieContext';
 import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
@@ -94,6 +93,8 @@ function HerbieUIInner() {
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
   const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext)
+  const [jobCount, setJobCount] = Contexts.useGlobal(Contexts.JobCountContext)
+
 
   // const [expressionIdsForSpec, setExpressionIdsForSpec] = useState([] as Types.ExpressionIdsForSpec[]);
   //const [inputRangesTable, ] = useState([] as Types.InputRanges[]);
@@ -103,7 +104,7 @@ function HerbieUIInner() {
 
   // Data relationships
   // Reactively update analyses whenever expressions change
-  useEffect(updateAnalyses, [expressions, samples]);
+  useEffect(updateAnalyses, [expressions, samples, jobCount]);
   function updateAnalyses() {
     // TODO we don't need setTimeout, 
     // just make it an async function and call directly after defining it
@@ -129,7 +130,7 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
-          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), modSample, serverUrl)
+          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), modSample, serverUrl, ()=> jobCount, (n :number) => {console.log('setting job count', n); setJobCount(n)})
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
@@ -178,7 +179,7 @@ function HerbieUIInner() {
   // whenever the spec is defined,
   // * reset expressions to just the naive expression(the spec)
   // * sample the spec
-  useEffect(sampleSpecOnDefinition, [inputRangesTable])
+  useEffect(sampleSpecOnDefinition, [inputRangesTable, jobCount])
   function sampleSpecOnDefinition() {
     async function sample() {
       const inputRanges = inputRangesTable.findLast(r => r.specId === spec.id)
@@ -191,7 +192,7 @@ function HerbieUIInner() {
           vars: fpcorejs.getVarnamesMathJS(spec.expression),
           pre: fpcorejs.FPCorePreconditionFromRanges(inputRanges.ranges.map(r => [r.variable, [r.lowerBound, r.upperBound]])),
           body: fpcorejs.FPCoreBody(spec.expression)
-        }), serverUrl)).points;
+        }), serverUrl, ()=>jobCount, setJobCount)).points;
 
       setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
       setExpressions([...expressions, new Expression(spec.expression, nextId(expressions))])
@@ -209,7 +210,7 @@ function HerbieUIInner() {
   }
 
   // Reactively update average local errors
-  useEffect(updateAverageLocalErrors, [expressions, samples, serverUrl])
+  useEffect(updateAverageLocalErrors, [expressions, samples, serverUrl, jobCount])
   function updateAverageLocalErrors() {
     /* A little tricky. We have to make sure that we've collected our responses and then update the state in one pass. */
     async function getLocalErrorUpdates() {
@@ -219,7 +220,7 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
-          const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl))
+          const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl, ()=>jobCount, setJobCount))
           return new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)
           // updates.push(new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree))
         } catch (e: any) {
@@ -238,7 +239,7 @@ function HerbieUIInner() {
   }
 
   // when the selected point changes, update the selected point local error
-  useEffect(updateSelectedPointLocalError, [selectedPoint, serverUrl, expressions])
+  useEffect(updateSelectedPointLocalError, [selectedPoint, serverUrl, expressions, jobCount])
   function updateSelectedPointLocalError() {
     async function getPointLocalError() {
       const localErrors = []
@@ -248,7 +249,7 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
-          localErrors.push(new Types.PointLocalErrorAnalysis(expression.id, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[modSelectedPoint, 1e308]] } as Sample, serverUrl)))
+          localErrors.push(new Types.PointLocalErrorAnalysis(expression.id, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[modSelectedPoint, 1e308]] } as Sample, serverUrl, () => jobCount, setJobCount)))
         }
       }
       setSelectedPointsLocalError(localErrors)

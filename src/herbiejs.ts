@@ -16,11 +16,15 @@ const getHerbieApi = async (
   host: string,
   endpoint: string,
   data: object,
-  retry: boolean
-): Promise<any> => {
+  retry: boolean,
+  jobCounterGetter: any,
+  jobCounterSetter: any
+  ): Promise<any> => {
   const url = `${host}/api/${endpoint}`;
   // TODO add timeout?
   console.debug('calling', url, 'with data', data);
+  
+  jobCounterSetter(jobCounterGetter() + 1)
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -28,11 +32,14 @@ const getHerbieApi = async (
     });
     const responseData = await response.json();
     if (responseData.error) {
+      jobCounterSetter(jobCounterGetter() - 1)
       throw new Error('Herbie server: ' + responseData.error);
     }
     console.debug('got data', responseData);
+    jobCounterSetter(jobCounterGetter() - 1)
     return responseData;
   } catch (error: any) {
+    jobCounterSetter(jobCounterGetter() - 1)
     throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`)
     // old retry code
     // console.error('Bad call to', url, 'with data', data, 'error was', error);
@@ -47,9 +54,11 @@ const getHerbieApi = async (
 
 export const getSample = async (
   fpcore: string,
-  host: string
+  host: string,
+  jcget: any,
+  jcset: any
 ): Promise<HerbieResponse> => {
-  return getHerbieApi(host, 'sample', { formula: fpcore, seed: 5 }, true);
+  return getHerbieApi(host, 'sample', { formula: fpcore, seed: 5 }, true, jcget, jcset);
 };
 
 export type FPCore = string;
@@ -78,9 +87,11 @@ interface HerbieAlternativesResponse {
 export const suggestExpressions = async (
   fpcore: string,
   sample: Sample,
-  host: string
+  host: string,
+  jcget: any,
+  jcset: any
 ): Promise<HerbieAlternativesResponse> => {
-  return getHerbieApi(host, 'alternatives', { formula: fpcore, sample: sample.points, seed: 5 }, true);
+  return getHerbieApi(host, 'alternatives', { formula: fpcore, sample: sample.points, seed: 5 }, true, jcget, jcset);
 };
 
 interface LocalErrorResponse {
@@ -90,9 +101,11 @@ interface LocalErrorResponse {
 export const analyzeLocalError = async (
   fpcore: string,
   sample: Sample,
-  host: string
+  host: string,
+  jcget: any,
+  jcset: any
 ): Promise<types.LocalErrorTree> => {
-  return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as LocalErrorResponse).tree;
+  return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true, jcget, jcset) as LocalErrorResponse).tree;
 };
 
 type point = ordinal[]
@@ -105,7 +118,9 @@ interface AnalyzeResponse {
 export const analyzeExpression = async (
   fpcore: string,
   sample: Sample,
-  host: string
+  host: string,
+  jcget: any,
+  jcset: any
 ) => {
   function fastMin(arr: number[]) {
     var len = arr.length, min = Infinity;
@@ -129,7 +144,7 @@ export const analyzeExpression = async (
 
 
 
-  const pointsAndErrors = ((await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)) as AnalyzeResponse).points;
+  const pointsAndErrors = ((await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true, jcget, jcset)) as AnalyzeResponse).points;
   const ordinalSample = sample.points.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
 
   const vars = fpcorejs.getVarnamesFPCore(fpcore);
@@ -172,7 +187,9 @@ export const displayNumber = (v: number) => {
 
 export const fPCoreToMathJS = async (
   fpcore: string,
-  host: string
+  host: string,
+  jcget: any,
+  jcset: any
 ): Promise<string> => {
-  return (await getHerbieApi(host, 'mathjs', { formula: fpcore, seed: 5 }, true)).mathjs;
+  return (await getHerbieApi(host, 'mathjs', { formula: fpcore, seed: 5 }, true, jcget, jcset)).mathjs;
 };

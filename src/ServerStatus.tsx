@@ -10,9 +10,10 @@ const timeBetweenChecks = 3000; // Time between checking for the status, in mill
 function ServerStatusComponent() {
   // const { serverUrl, setServerUrl } = useContext(ServerContext);
   const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
-  const [status, setStatus] = useState<number | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [updatedServerUrl, setUpdatedServerUrl] = useState<string>(serverUrl || '');
+  const [jobCount, ] = HerbieContext.useGlobal(HerbieContext.JobCountContext)
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -23,7 +24,8 @@ function ServerStatusComponent() {
         // const response = (await fetch('http://127.0.0.1:8000/api/analyze', { method: 'POST', body: JSON.stringify({ formula: '(FPCore (x) (- (sqrt (+ x 1)) (sqrt x)))', sample: [[[
         //   14.97651307489794
         //   ], 0.12711304680349078]] }) }))
-        setStatus(response.status);
+        setStatus(`Connected: ${jobCount} jobs`)
+        // setStatus(response.status);
       } catch (error) {
         setStatus(null);
       }
@@ -32,7 +34,7 @@ function ServerStatusComponent() {
     fetchStatus();
     const intervalId = setInterval(fetchStatus, timeBetweenChecks);
     return () => clearInterval(intervalId);
-  }, [serverUrl]);
+  }, [serverUrl, jobCount]);
 
   const handleIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUpdatedServerUrl(event.target.value);
@@ -71,7 +73,7 @@ function ServerStatusComponent() {
         </span>
         &nbsp;
       
-        {status ? 'Connected' : 'No Server'}
+        {status === null ? 'No Server' : status}
 
         {/* an SVG dropdown chevron */}
         {/* <svg className="dropdown-chevron" width="10" height="10" viewBox="0 0 20 20">

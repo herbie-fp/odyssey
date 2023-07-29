@@ -181,6 +181,9 @@ function ErrorPlot() {
   const inputRanges = sample ? inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges : undefined
   const [myInputRanges, setMyInputRanges] = useState(inputRanges)
   const [archivedExpressions, ] = contexts.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  
+  // Update myInputRanges when the sample changes
+  useEffect(() => {setMyInputRanges(inputRanges)}, [sample])
 
   const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id)) 
   // console.log('selectedExprId', selectedExprId)

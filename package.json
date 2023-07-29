@@ -60,7 +60,7 @@
     "katex": "^0.16.7",
     "mathjs1": "npm:mathjs@^1.6.0",
     "mathjs11": "npm:mathjs@^11.8.1",
-    "mermaid": "^10.2.4",
+    "mermaid": "^10.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-latex-next": "^2.2.0",

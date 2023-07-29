@@ -90,6 +90,7 @@ function ServerStatusComponent() {
         onRequestClose={() => setIsDropdownOpen(false)}
         contentLabel="Minimal Modal Example"
         style={customStyles}
+        ariaHideApp={false}
       >
         
         <form onSubmit={handleSubmit}>

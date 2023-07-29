@@ -281,7 +281,9 @@ function ErrorPlot() {
     // Add a new inputRangesTable entry
     const inputRangesId = nextId(inputRangesTable)
     // HACK need to think through cases when myInputRanges isn't defined
-    if (!myInputRanges) { return }
+    if (!myInputRanges) { 
+      console.log('Doing nothing because myInputRanges is undefined')
+      return }
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
   }
   return <div className="error-plot">

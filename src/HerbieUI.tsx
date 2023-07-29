@@ -81,6 +81,7 @@ function hslToRgb(h: number, s: number, l: number) {
 }
 
 function HerbieUIInner() {
+  // use declarations
   const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext)
   const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
   const [serverUrl, ] = Contexts.useGlobal(Contexts.ServerContext)
@@ -166,16 +167,28 @@ function HerbieUIInner() {
     }
   }
 
+  // Add spec to expressions if it doesn't exist
+  useEffect(addSpecToExpressions, [spec])
+  function addSpecToExpressions() {
+    if (expressions.find(e => e.text === spec.expression)) { return }
+    setExpressions([new Expression(spec.expression, nextId(expressions)), ...expressions])
+  }
+
   // Example of calling the server:
-  // whenever the spec is defined,
+  // whenever a new input range is defined,
   // * reset expressions to just the naive expression(the spec)
   // * sample the spec
-  useEffect(sampleSpecOnDefinition, [inputRangesTable])
-  function sampleSpecOnDefinition() {
+  useEffect(sampleSpecOnInputRange, [spec, inputRangesTable])
+  function sampleSpecOnInputRange() {
     async function sample() {
       const inputRanges = inputRangesTable.findLast(r => r.specId === spec.id)
       if (inputRanges === undefined) {
-        throw new Error(`No input ranges found for spec ${spec.id}`)
+        console.debug(`No input ranges found for spec ${spec.id}. Input ranges and spec must be defined for sampling to occur.` )
+        return;
+      }
+      if (samples.find(s => s.inputRangesId === inputRanges.id)) {
+        console.debug(`Already sampled for input ranges ${inputRanges.id}. Skipping.`)
+        return;
       }
       const sample_points = (await herbiejs.getSample(
         fpcorejs.makeFPCore2({
@@ -183,14 +196,10 @@ function HerbieUIInner() {
           pre: fpcorejs.FPCorePreconditionFromRanges(inputRanges.ranges.map(r => [r.variable, [r.lowerBound, r.upperBound]])),
           body: fpcorejs.FPCoreBody(spec.expression)
         }), serverUrl)).points;
-
+      // always create a new sample with this spec and these input ranges
       setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
-
-      // TODO need to adjust here to solve https://trello.com/c/rV7PkpDV/2350-resample-should-not-duplicate-existing-expressions
-      setExpressions([...expressions, new Expression(spec.expression, nextId(expressions))])
     }
     sample()
-    //if (!samples.find(s => s.specId === spec.id && s.inputRangesId === inputRangesTable.)) { sample() }
   }
 
   // Select and show the sample whenever one is added
@@ -201,7 +210,7 @@ function HerbieUIInner() {
     }
   }
 
-  // Reactively update average local errors
+  // Reactively update average local errors (currently off because this gets very slow)
   // useEffect(updateAverageLocalErrors, [expressions, samples, serverUrl])
   function updateAverageLocalErrors() {
     /* A little tricky. We have to make sure that we've collected our responses and then update the state in one pass. */

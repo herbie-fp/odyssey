@@ -112,6 +112,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
       <Modal
         isOpen={showOverlay}
         onRequestClose={() => setShowOverlay(false)}
+        ariaHideApp={false}
       >
         <div className="spec-overlay" onClick={handleOverlayClick}>
           {/* Show a dialogue for editing the spec with a "done" button. */}
@@ -139,7 +140,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             <div className="spec-range-inputs">
             {getVariables(spec).map((v, i) => {
               const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
-              return <div className="spec-range-input">
+              return <div className="spec-range-input" key={v}>
                 <div className="varname">
                   {v}:
                 </div>

@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('interactive-herbie.openTab', () => {
+	let disposable = vscode.commands.registerCommand('odyssey-fp.openTab', () => {
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(
 			'herbieIndex', // Identifies the type of the webview. Used internally

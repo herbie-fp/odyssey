@@ -1,7 +1,8 @@
 
-// const math = require('mathjs1');
+// const math11 = require('mathjs11');
 // @ts-ignore
 import * as math from 'mathjs1';
+// @ts-ignore
 import * as math11 from 'mathjs11'
 
 // TODO use these for type validation (not raw strings)

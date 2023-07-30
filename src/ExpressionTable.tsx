@@ -49,12 +49,12 @@ function ExpressionTable() {
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
 
-  const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+  const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
 
   // if there's only one active expression, expand it
   useEffect(() => {
     if (activeExpressions.length === 1) {
-      setExpandedExpressions([activeExpressions[0].id]);
+      setExpandedExpressions([activeExpressions[0]]);
     }
   }, [expressions]);
 
@@ -107,7 +107,7 @@ function ExpressionTable() {
     }
   }, 0);
   
-  const noneExpanded = expandedExpressions.length === 0;
+  const noneExpanded = expandedExpressions.filter(e => !archivedExpressions.includes(e)).length === 0;
 
   const handleExpandAllClick = () => {
     if (noneExpanded) {
@@ -117,7 +117,7 @@ function ExpressionTable() {
     }
   }
 
-  const allChecked = compareExprIds.length === expressions.length;
+  const allChecked = compareExprIds.filter(id => activeExpressions.includes(id)).length === activeExpressions.length;
 
   const toggleAllChecked = () => {
     if (allChecked) {
@@ -240,7 +240,8 @@ function ExpressionTable() {
       </div>
       {/* <SimpleBar style={{ maxHeight: 'initial' }}> */}
         <div className="expressions-actual">
-          {activeExpressions.map((expression) => {
+          {activeExpressions.map((id) => {
+            const expression = expressions.find((expression) => expression.id === id) as Expression;
             const isChecked = compareExprIds.includes(expression.id);
             const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
             const analysisResult =

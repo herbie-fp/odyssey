@@ -342,9 +342,11 @@ function ErrorPlot() {
               setSelectedPoint(point)
               setSelectedExprId(id)
             }
-            if (point.toString() === selectedPoint?.toString()) {
+            if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
               c.setAttribute('r', '15')
-              c.setAttribute('fill-opacity', '1')
+              c.setAttribute('opacity', '1')
+              c.setAttribute('stroke', 'black')
+              c.setAttribute('data-selected', 'true')
             }
           });
           [...plot.children].map(c => svg.appendChild(c))

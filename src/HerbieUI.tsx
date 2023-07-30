@@ -213,7 +213,7 @@ function HerbieUIInner() {
     setExpressions([new Expression(spec.expression, expressionId, spec.id), ...expressions])
   }
 
-  // Select and show the sample whenever one is added
+  // // Select and show the sample whenever one is added
   useEffect(selectLastSample, [samples])
   function selectLastSample() {
     if (samples.length > 0) {

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
@@ -11,6 +11,8 @@ import * as types from './HerbieTypes'
 import { LocalError } from './LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import KaTeX from 'katex';
+import { DebounceInput } from 'react-debounce-input';
+
 const math11 = require('mathjs11');
 
 
@@ -45,6 +47,16 @@ function ExpressionTable() {
   // keep track of expanded expressions
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+
+
+  const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+
+  // if there's only one active expression, expand it
+  useEffect(() => {
+    if (activeExpressions.length === 1) {
+      setExpandedExpressions([activeExpressions[0].id]);
+    }
+  }, [expressions]);
 
   function toggleShowMath() {
     setShowMath(!showMath);
@@ -159,7 +171,6 @@ function ExpressionTable() {
     }
   }
 
-  const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
 
   return (
     <div className="expression-table">
@@ -191,7 +202,7 @@ function ExpressionTable() {
             {/* <div className="checkbox">
                   <input type="checkbox"></input>
                 </div> */}
-            <textarea value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
+            <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
             <div className="add-expression-button">
               <button 
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}

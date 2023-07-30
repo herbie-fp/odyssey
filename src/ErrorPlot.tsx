@@ -174,7 +174,7 @@ function ErrorPlot() {
   const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
-  const [, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
   const sample = samples.find(s => s.id === selectedSampleId)
@@ -335,10 +335,16 @@ function ErrorPlot() {
 
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
 
+            const c = t.parentNode
+            const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
             t.parentNode.onclick = async () => {
               console.log('Setting selected point to', o)
-              setSelectedPoint(o.map((v: ordinal) => ordinals.ordinalToFloat(v)))
+              setSelectedPoint(point)
               setSelectedExprId(id)
+            }
+            if (point.toString() === selectedPoint?.toString()) {
+              c.setAttribute('r', '15')
+              c.setAttribute('fill-opacity', '1')
             }
           });
           [...plot.children].map(c => svg.appendChild(c))

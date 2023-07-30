@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useCallback, ChangeEvent, useContext, useState } from 'react';
 import { InputRange, InputRangesEditor, InputRangeEditor1 } from './InputRangesEditor';
 import { InputRangesTableContext, SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
@@ -7,6 +7,8 @@ import * as utils from './utils';
 import * as HerbieContext from './HerbieContext';
 import KaTeX from 'katex';
 import Modal from 'react-modal';
+
+import { DebounceInput, DebounceTextArea } from 'react-debounce-input';
 console.log("KaTeX:", KaTeX);
 
 import './SpecComponent.css';
@@ -94,8 +96,61 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     return specValid() ? fpcorejs.getVarnamesMathJS(spec.expression) : []
   }
 
+  // function debounce(func: any, timeout = 300){
+  //   let timer: NodeJS.Timeout;
+  //   return (...args: any[]) => {
+  //     clearTimeout(timer);
+  //     //@ts-ignore
+  //     timer = setTimeout(() => { func.apply(this, ...args); }, timeout);
+  //   };
+  // }
+
+  // function debounce(func: any, wait: number, immediate :boolean = false) {
+  //   // 'private' variable for instance
+  //   // The returned function will be able to reference this due to closure.
+  //   // Each call to the returned function will share this common timer.
+  //   var timeout: NodeJS.Timeout | null;
+  
+  //   // Calling debounce returns a new anonymous function
+  //   return function() {
+  //     // reference the context and args for the setTimeout function
+  //     // @ts-ignore
+  //     var context = this,
+  //       args = arguments;
+  
+  //     // Should the function be called now? If immediate is true
+  //     //   and not already in a timeout then the answer is: Yes
+  //     var callNow = immediate && !timeout;
+  
+  //     // This is the basic debounce behaviour where you can call this
+  //     //   function several times, but it will only execute once
+  //     //   (before or after imposing a delay).
+  //     //   Each time the returned function is called, the timer starts over.
+  //     clearTimeout(timeout!);
+  
+  //     // Set the new timeout
+  //     timeout = setTimeout(function() {
+  
+  //       // Inside the timeout function, clear the timeout variable
+  //       // which will let the next execution run when in 'immediate' mode
+  //       timeout = null;
+  
+  //       // Check if the function already ran with the immediate flag
+  //       if (!immediate) {
+  //         // Call the original function with apply
+  //         // apply lets you define the 'this' object as well as the arguments
+  //         //    (both captured before setTimeout)
+  //         func.apply(context, args);
+  //       }
+  //     }, wait);
+  
+  //     // Immediate mode and no wait timer? Execute the function...
+  //     if (callNow) { func.apply(context, args); }
+  //   }
+  // }
+
   // Create a new Spec when the spec is submitted by clicking the done button
-  const handleSpecTextUpdate: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
+  const handleSpecTextUpdate : React.ChangeEventHandler<HTMLInputElement> = (event) => {
     setSpec(new Spec(event.target.value, spec.id));
   }
 
@@ -123,7 +178,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             <div className="spec-overlay-header">
               <div>Spec</div>
             </div>
-            <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
+            <DebounceInput element="textarea" debounceTimeout={300} className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
             {/* Render the expression into HTML with KaTeX */}
             <div className="spec-tex" dangerouslySetInnerHTML={{
               __html: (() => {
@@ -171,7 +226,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
               setValue={handleRangesUpdate} 
               />
             </div> */}
-            <div>
+            <div className="submit">
               <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
             </div>
           </div>

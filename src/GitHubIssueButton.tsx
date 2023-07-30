@@ -1,10 +1,12 @@
 import React from 'react';
 
-const link = 'https://github.com/herbie-fp/odyssey/issues/new';
-
 const GitHubIssueButton = () => {
   const handleButtonClick = () => {
-    window.open(link, '_blank');
+    //@ts-ignore
+    window.vscode.postMessage(JSON.stringify({
+      command: 'openLink',
+      link: 'https://github.com/herbie-fp/odyssey/issues/new'
+    }))
   };
 
   return (

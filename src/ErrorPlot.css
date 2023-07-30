@@ -38,13 +38,13 @@ g[aria-label="y-axis label"] {
   font-size: 10px;
 }
 
-circle:hover {
+.error-plot circle:hover {
   r: 15px;
   fill-opacity: 1;
   transition: r 0s ease-in-out;
   z-index: 100;
 }
-circle {
+.error-plot circle {
   border: 10px solid transparent;
   transition: all 0.2s ease-out;
 

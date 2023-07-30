@@ -16,6 +16,7 @@ import { DerivationComponent } from './DerivationComponent';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejs from './herbiejs';
+import GitHubIssueButton from './GitHubIssueButton';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -287,6 +288,9 @@ function HerbieUIInner() {
       </div>
       <ExpressionTable />
       <SelectableVisualization components={ components } />
+      <div className="open-gh-issue" >
+        <GitHubIssueButton />
+      </div>
     </div>
   );
 }

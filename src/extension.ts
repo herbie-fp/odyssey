@@ -29,6 +29,8 @@ export function activate(context: vscode.ExtensionContext) {
 					console.log('got message', message)
 					message = JSON.parse(message)
 					switch (message.command) {
+						case 'openLink':
+							vscode.env.openExternal(vscode.Uri.parse(message.link))
 						case 'error':
 							// Show a button for copying the error message to the clipboard
 							const copy = 'Copy to clipboard'
@@ -97,7 +99,7 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 	<body>
 	  <script type="module">
 		console.log('getting vscodeapi')
-		const vscode = await window.acquireVsCodeApi();
+		window.vscode = await window.acquireVsCodeApi();
 		window.addEventListener("error", (event) => {
 			console.log('caught error', event)
 			vscode.postMessage(JSON.stringify({ command: 'error', error: event.error?.toString ? event.error.toString() : (JSON.stringify(event.error) + '\\n' + 'Message:' + event.message) }))
@@ -106,6 +108,10 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 			console.log('caught unhandledrejection', event)
 			console.log(vscode)
 			vscode.postMessage(JSON.stringify({ command: 'error', error: event.reason.stack }))
+		})
+		window.addEventListener("openLink", (event) => {
+			console.log('caught openLink', event)
+			vscode.postMessage(JSON.stringify({ command: 'openLink', link: event.detail }))
 		})
 		</script>
 		<div id="root"></div>

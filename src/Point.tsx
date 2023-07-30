@@ -10,7 +10,7 @@ import './Point.css'
 
 // takes a dictionary of variable names to values
 // and renders them as x: 1, y: 2, z: 3 etc.
-export function Point({values}: { [varname: string]: number }) {
+export function Point({values} : {values: { [key: string]: number }}) {
   return (
     <div className="point">
       {

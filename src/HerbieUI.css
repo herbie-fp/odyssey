@@ -122,7 +122,7 @@ input[type="text"]:focus, select:focus {
     "visualization expressions";
   height: 100vh; 
   grid-template-rows: 60px 1fr;
-  grid-template-columns: 4fr min(70%, 600px);
+  grid-template-columns: 3fr 7fr; /*min(70%, 600px);*/
 }
 
 .header {

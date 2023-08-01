@@ -18,7 +18,7 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
   // const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
-  const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308, 0)], 0));
+  const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', [new SpecRange('x', -1e308, 1e308)], 0));
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
 
   // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
@@ -40,9 +40,9 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setExpressions([]) }
 
-    setValue(new Spec(spec.expression, spec.ranges, specId));
+    setValue(new Spec(spec.expression, specId));
     // TODO handle duplicates etc
-    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(spec.ranges, specId, inputRangeId)])
+    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges((inputRangesTable.findLast(r => r.specId === spec.id) as HerbieTypes.InputRanges).ranges, specId, inputRangeId)])
     setShowOverlay(false);
   }
 
@@ -66,12 +66,12 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
   }
 
   // Create a new Spec when the spec is submitted by clicking the done button
-  const handleSpecChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
-    setSpec(new Spec(event.target.value, spec.ranges, spec.id));
+  const handleSpecTextUpdate: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
+    setSpec(new Spec(event.target.value, spec.id));
   }
 
   const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
-    setSpec(new Spec(spec.expression, Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper), id)), spec.id));
+    setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
   }
 
   return (
@@ -107,7 +107,7 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
               }
             })()
           }} />
-          <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecChange} />
+          <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
           <InputRangesEditor value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} setValue={handleRangesUpdate} />
           <div>
             <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>

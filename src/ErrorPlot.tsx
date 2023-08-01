@@ -14,6 +14,7 @@ import { ResampleComponent } from "./ResampleComponent";
 import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
 
 import './ErrorPlot.css'
+import { nextId } from "./utils";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
@@ -167,7 +168,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
 // need to get varnames from expression, varidx
 // varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400
 function ErrorPlot() {
-
+  const [spec, ] = contexts.useGlobal(SpecContext)
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(SelectedExprIdContext)
   const [analyses, ] = contexts.useGlobal(AnalysesContext)
   const [expressions, ] = contexts.useGlobal(ExpressionsContext)
@@ -176,7 +177,7 @@ function ErrorPlot() {
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
-  const [inputRangesTable, ] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
+  const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
 
   // console.log('selectedExprId', selectedExprId)
 
@@ -280,9 +281,20 @@ function ErrorPlot() {
   //   return () => chart.remove();
   // }, []);
   
+  // create state for the input ranges
+  // just use a list that looks like input ranges
+  const [myInputRanges, setMyInputRanges] = useState(inputRanges)
+
+  // resample the data using the updated input ranges on click
+  function resample() {
+    // Add a new inputRangesTable entry
+    const inputRangesId = nextId(inputRangesTable)
+    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
+  }
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
+    <button onClick={ resample }>Resample</button>
     {vars.map((v, i) => {
       const range = inputRanges.find(r => r.variable === v)
       if (!range) {
@@ -296,7 +308,8 @@ function ErrorPlot() {
         }} setValue={ 
           (value: { lower: string, upper: string }) => {
             // TODO update the inputRangesTable and sample etc. 
-            console.log('TODO set input range', v, value)
+            console.debug('set input range', v, value)
+            setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
           }
         } />
         <svg viewBox="0 -25 840 360" ref={async (svg) => {

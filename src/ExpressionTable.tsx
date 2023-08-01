@@ -199,7 +199,7 @@ function ExpressionTable() {
                       // get suggested expressions with Herbie and put them in the expressions table
                       // TODO for now we default to the spec expression, but we will soon send this particular expression
                       console.log('suggesting expression')
-                      const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(spec.expression), sample, serverUrl)
+                      const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
                       console.log('suggested', suggested)
                       
                       // add the suggested expressions to the expressions table

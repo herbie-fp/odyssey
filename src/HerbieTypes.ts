@@ -45,11 +45,10 @@ export class ErrorAnalysis {
 }
 
 export class SpecRange {
-  constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number, public readonly id: number) {
+  constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number) {
     this.variable = variable;
     this.lowerBound = lowerBound;
     this.upperBound = upperBound;
-    this.id = id;
   }
 }
 
@@ -109,10 +108,10 @@ export class InputRanges {
 }
 
 export class Spec {
-  constructor(public readonly expression: string, public readonly ranges: SpecRange[], public readonly id: number) {
+  constructor(public readonly expression: string, public readonly id: number) {
     this.expression = expression;
     // this.expressionIds = expressionIds;
-    this.ranges = ranges;
+    // this.ranges = ranges;
     this.id = id;
   }
 }

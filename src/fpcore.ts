@@ -4,7 +4,7 @@
 import * as math from 'mathjs1';
 
 // TODO use these for type validation (not raw strings)
-interface mathjs extends String { }
+export interface mathjs extends String { }
 interface fpcore extends String { }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -128,7 +128,7 @@ function dump_fpcore(formula: any, ranges:any ) {  // NOTE modified get_precondi
   } catch (e: any) {
     throw new Error("Error handling formula: " + formula + "\n" + e.message);
   }
-  var precondition = ranges ? FPCorePrecondition(ranges) : null;
+  var precondition = ranges ? FPCorePreconditionFromRanges(ranges) : null;
 
   var dnames = [];
   for (var i = 0; i < names.length; i++) {
@@ -189,7 +189,7 @@ window.dump_tree = dump_tree
 //@ts-ignore
 window.math = math
 
-function getVarnamesMathJS(mathjs_text: string) {
+function getVarnamesMathJS(mathjs_text: mathjs) {
   const names: string[] = []
   try {
     dump_tree(math.parse(mathjs_text), names)
@@ -207,11 +207,11 @@ function getVarnamesFPCore(fpcore: string) {
   return fpcore.split(/[()]/)[2].split(' ')
 }
 
-function FPCorePrecondition(ranges : [string, [number, number]][]) {  // NOTE modified get_precondition...
+export function FPCorePreconditionFromRanges(ranges : [string, [number, number]][]) : FPCorePrecondition {  // NOTE modified get_precondition...
   // ranges should be like [["x", [-1, 1]], ["y", [0, 1000]]
   // assumes ranges was already checked for validity using eg. get_input_range_errors
   const exprs = ranges.map(([name, [start, end]]) => `(<= ${start} ${name} ${end})`).join(' ')
-  return `(and ${exprs})`
+  return ranges.length <= 1 ? exprs : `(and ${exprs})`
 }
 
 function rangeErrors([low, high] = [undefined, undefined], empty_if_missing = false) {
@@ -233,7 +233,7 @@ function rangeErrors([low, high] = [undefined, undefined], empty_if_missing = fa
 
   return A
 }
-function FPCoreBody(mathJSExpr: string) {
+function FPCoreBody(mathJSExpr: mathjs) {
   try {
     return dump_tree(math.parse(mathJSExpr), [])
   } catch (e: any) {
@@ -241,7 +241,9 @@ function FPCoreBody(mathJSExpr: string) {
   }
 }
 
-function FPCoreGetBody(fpcore: string) {
+type FPCoreBody = string
+
+function FPCoreGetBody(fpcore: FPCore): FPCoreBody {
   function readToken (token: any) {
     if (token === '(') {
       return {
@@ -309,29 +311,37 @@ function parseErrors(mathJSExpr: string) {
   return mjserrors.length > 0 ? mjserrors : tree_errors(math.parse(mathJSExpr), 'real')
 }
 
-function makeFPCore ({ specMathJS, ranges, specFPCore, targetFPCoreBody = undefined, name = specMathJS }: {specMathJS: string, ranges : [string, [number, number]][], specFPCore: string, targetFPCoreBody?: string, name?: string}) {
+// TODO deprecated, remove
+export function makeFPCore ({ specMathJS, ranges, specFPCore, targetFPCoreBody = undefined, name = specMathJS }: {specMathJS: string, ranges : [string, [number, number]][], specFPCore: string, targetFPCoreBody?: string, name?: string}) {
   const vars = specFPCore === undefined ? getVarnamesMathJS(specMathJS) : getVarnamesFPCore(specFPCore)
   const target = targetFPCoreBody ? `:herbie-target ${targetFPCoreBody}\n  ` : ''
-  return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${FPCorePrecondition(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
+  return `(FPCore (${vars.join(' ')})\n  :name "${name}"\n  :pre ${FPCorePreconditionFromRanges(ranges)}\n  ${target}${specFPCore ? FPCoreGetBody(specFPCore) : FPCoreBody(specMathJS)})`
+}
+
+type FPCorePrecondition = string;
+
+/**
+ * Makes an FPCore string with a bunch of options.
+ */
+export function makeFPCore2 ({ vars, pre, body }: {vars: string[], pre: FPCorePrecondition, body: FPCoreBody }) {
+  return `(FPCore (${vars.join(' ')})\n  ${ pre ? `:pre ${pre}\n` : ''}  ${body})`
 }
 
 type FPCore = string
 
-function mathjsToFPCore(mathjs: mathjs, specFPCore: undefined | FPCore = undefined) {
-  // TODO use mathjs/fpcore types to make this less hacky
-  const vars = specFPCore === undefined ? getVarnamesMathJS(mathjs as string) : getVarnamesFPCore(specFPCore)
-  return `(FPCore (${vars.join(' ')}) ${FPCoreBody(mathjs as string)})`
+function mathjsToFPCore(mathjs: mathjs, spec: undefined | mathjs = undefined, varnames: string[] | undefined = undefined) {
+  const vars = varnames || getVarnamesMathJS(mathjs)
+  return `(FPCore (${vars.join(' ')}) ${!spec ? '' : `:spec ${FPCoreBody(spec)}`} ${FPCoreBody(mathjs)})`
 }
 
 export {
   //dumpFPCore: dump_fpcore,  // Currently has no error handling!
   rangeErrors,
-  FPCorePrecondition,
+  FPCorePreconditionFromRanges as FPCorePrecondition,
   getVarnamesMathJS,
   getVarnamesFPCore,
   parseErrors,
   FPCoreBody,
   FPCoreGetBody,  // HACK just the fpcore version of the above, gets just the body
-  makeFPCore,
   mathjsToFPCore
 }

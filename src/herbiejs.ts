@@ -58,8 +58,10 @@ type ordinal = number;
 
 interface HerbieAlternativesResponse {
   alternatives: FPCore[];
+
   /** The history of each alternative. */
   histories: HTMLHistory[];
+
   /** The splitpoints for each alternative. */
   splitpoints: ordinal[][];
 }

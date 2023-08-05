@@ -18,16 +18,9 @@ const DerivationComponent = () => {
     return <div>Could not find expression with id {selectedExprId}</div>
   }
 
-  // Function to handle button click
-  const handleButtonClick = () => {
-    console.log(derivations[selectedExprId])
-    console.log('derivations');
-  };
-
   return (
     <div>
       <div dangerouslySetInnerHTML={{ __html: derivations[selectedExprId].derivation }} />
-      <button onClick={handleButtonClick}>Click Me</button>
     </div>
   );
 };

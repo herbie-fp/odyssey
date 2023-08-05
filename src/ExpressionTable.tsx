@@ -248,19 +248,33 @@ function ExpressionTable() {
                       console.log('suggesting expression')
                       const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
                       console.log('suggested', suggested)
-
-                      const alternatives = suggested.alternatives
-                      const derivations = suggested.histories
                       
-                      // add the suggested expressions to the expressions table
-                      setExpressions([
-                        ...await Promise.all(suggested.alternatives.map(async (s: types.FPCore, i) =>
-                            new Expression(await herbiejs.fPCoreToMathJS(s, serverUrl), nextId(expressions) + i))),
-                        ...expressions,
-                      ]);
+                      const derivations = suggested.histories;
+                      const alternatives = suggested.alternatives;
+                      
+                      const newExpressions = [];
+                      const newDerivations = [];
+                    
+                      // Add the suggested expressions to the expressions table,
+                      // and add the suggested derivations to the derivations table
+                      for (let i = 0; i < alternatives.length; i++) {
+                        // Generate a new ID
+                        const newId = nextId(expressions) + i;
 
-                      // add the derivations to the expressions table
-                      setDerivations(suggested.histories);
+                        const s = alternatives[i];
+                        const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
+                        const newExpression = new Expression(fPCoreToMathJS, newId);
+                        newExpressions.push(newExpression);
+
+                        // The following code assumes the HTMLHistory[] returend by Herbie
+                        // is mapped to the alternatives array 1:1
+                        const d = derivations[i];
+                        const newDerivation = new Derivation(d, newId);
+                        newDerivations.push(newDerivation);
+                      }
+                    
+                      setExpressions([...newExpressions, ...expressions]);
+                      setDerivations([...newDerivations]);
                     }}>
                       Herbie
                     </button>

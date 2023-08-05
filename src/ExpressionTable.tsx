@@ -249,7 +249,7 @@ function ExpressionTable() {
                       const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
                       console.log('suggested', suggested)
                       
-                      const derivations = suggested.histories;
+                      const histories = suggested.histories;
                       const alternatives = suggested.alternatives;
                       
                       const newExpressions = [];
@@ -268,13 +268,13 @@ function ExpressionTable() {
 
                         // The following code assumes the HTMLHistory[] returend by Herbie
                         // is mapped to the alternatives array 1:1
-                        const d = derivations[i];
+                        const d = histories[i];
                         const newDerivation = new Derivation(d, newId);
                         newDerivations.push(newDerivation);
                       }
                     
                       setExpressions([...newExpressions, ...expressions]);
-                      setDerivations([...newDerivations]);
+                      setDerivations([...newDerivations, ...derivations]);
                     }}>
                       Herbie
                     </button>

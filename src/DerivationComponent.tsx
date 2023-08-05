@@ -8,8 +8,7 @@ import * as contexts from './HerbieContext';
 
 import './DerivationComponent.css';
 
-const DerivationComponent = () => {
-  const [expressions, setExpressions] = contexts.useGlobal(contexts.ExpressionsContext)
+const DerivationComponent = () => { 
   const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
   

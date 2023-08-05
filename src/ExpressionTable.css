@@ -187,11 +187,47 @@
   margin-right: 109px;
 }
 
-.add-expression {
+.add-expression-top {
+  margin: 5px;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
 }
+.add-expression-dropdown {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  margin-left: 49px;
+}
+
+textarea {
+  height: 1em;
+  width: 50%;
+  transition: all .3s ease;
+}
+
+textarea:focus-visible {
+  height: 5em;
+  transition: all .3s ease;
+}
+
+.add-expression-dropdown {
+  transition: all .3s ease;
+  margin-left: 50px;
+  opacity: 0;
+  max-height: 0;
+}
+
+.add-expression:has(textarea:focus-visible) .add-expression-dropdown {
+  min-height: 2em;
+  transition: all .3s ease;
+  max-height: 100%;
+  opacity: 1;
+}
+/* } {
+  background-color: orange;
+  
+} */
 
 /* .add-expression-button {
 } */
@@ -282,4 +318,8 @@
 
 .dropdown .visualization {
   margin-left: 5px;
+}
+
+.add-expression-top textarea {
+  margin-left: 49px;
 }

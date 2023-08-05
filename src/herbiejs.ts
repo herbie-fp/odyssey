@@ -56,6 +56,13 @@ export type FPCore = string;
 export type HTMLHistory = string;
 type ordinal = number;
 
+/** 
+ * The response containing alternatives from Herbie.
+ * Each alternative will have a history (derivation) and
+ * splitpoints that correspond to the alternatives array
+ * (e.g. alternatives[1] will have its history stored in
+ * histories[1] and splitpoints in splitpoints[1])
+**/
 interface HerbieAlternativesResponse {
   alternatives: FPCore[];
 

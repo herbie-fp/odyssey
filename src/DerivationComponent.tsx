@@ -14,16 +14,19 @@ const DerivationComponent = () => {
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
   
   const selectedExpr = expressions.find(e => e.id === selectedExprId)
-  
+  if (!selectedExpr) {
+    return <div>Could not find expression with id {selectedExprId}</div>
+  }
+
   // Function to handle button click
   const handleButtonClick = () => {
-    console.log(derivations)
+    console.log(derivations[selectedExprId])
     console.log('derivations');
   };
 
   return (
     <div>
-      <p>Derivation component here.</p>      
+      <div dangerouslySetInnerHTML={{ __html: derivations[selectedExprId].derivation }} />
       <button onClick={handleButtonClick}>Click Me</button>
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { createContext } from 'react';
 import * as types from './HerbieTypes';
+import * as herbiejs from './herbiejs';
 
 type setter<T> = React.Dispatch<T>
 
@@ -25,6 +26,7 @@ export const hoveredExpressionId = makeGlobal(0)
 export const SelectedExprIdContext = makeGlobal(-1)
 export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
 export const ExpressionsContext = makeGlobal([new types.Expression('sqrt(x + 1) - sqrt(x)', 0), new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[]) 
+export const DerivationsContext = makeGlobal([] as herbiejs.HTMLHistory[]) 
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
 export const SpecContext = makeGlobal(new types.Spec('sqrt(x + 1) - sqrt(x)', 0) as types.Spec)
 export const ServerContext = makeGlobal('http://127.0.0.1:8000')

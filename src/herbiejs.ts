@@ -53,7 +53,7 @@ export const getSample = async (
 };
 
 export type FPCore = string;
-type HTMLHistory = string;
+export type HTMLHistory = string;
 type ordinal = number;
 
 interface HerbieAlternativesResponse {

@@ -1,3 +1,17 @@
+export type HTMLHistory = string;
+
+// TODO I think this should be a string? Is there a truncation risk?
+export type ordinal = number
+export type ordinalPoint = ordinal[]
+export type FPCore = string
+
+export class Derivation {
+  constructor(public readonly derivation: HTMLHistory, public readonly id: number) { 
+    this.derivation = derivation;
+    this.id = id;
+  }
+}
+
 export class Expression {
   /**
    *  @param {string} text - mathjs expression */
@@ -51,11 +65,6 @@ export class SpecRange {
     this.upperBound = upperBound;
   }
 }
-
-// TODO I think this should be a string? Is there a truncation risk?
-export type ordinal = number
-export type ordinalPoint = ordinal[]
-export type FPCore = string
 
 /**
  * the error of an expression

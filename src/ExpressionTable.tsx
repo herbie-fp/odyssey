@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
+import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
 import { nextId } from './utils'
@@ -26,6 +26,7 @@ import { error } from 'console';
 function ExpressionTable() {
   // translate the above to use useGlobal
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
   const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
   const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
@@ -201,6 +202,9 @@ function ExpressionTable() {
                       console.log('suggesting expression')
                       const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
                       console.log('suggested', suggested)
+
+                      const alternatives = suggested.alternatives
+                      const derivations = suggested.histories
                       
                       // add the suggested expressions to the expressions table
                       setExpressions([
@@ -208,6 +212,9 @@ function ExpressionTable() {
                             new Expression(await herbiejs.fPCoreToMathJS(s, serverUrl), nextId(expressions) + i))),
                         ...expressions,
                       ]);
+
+                      // add the derivations to the expressions table
+                      setDerivations(suggested.histories);
                     }}>
                       Herbie
                     </button>

@@ -66,10 +66,12 @@ type ordinal = number;
 interface HerbieAlternativesResponse {
   alternatives: FPCore[];
 
-  /** The history of each alternative. */
+  /** The history of each alternative. (e.g. alternatives[1] will have its history stored in
+ * histories[1] and splitpoints in splitpoints[1]) */
   histories: HTMLHistory[];
 
-  /** The splitpoints for each alternative. */
+  /** The splitpoints for each alternative. (e.g. alternatives[1] will have its history stored in
+ * histories[1] and splitpoints in splitpoints[1]) */
   splitpoints: ordinal[][];
 }
 

@@ -192,7 +192,7 @@
   margin-left: 6px;
 }
 .error-header {
-  margin-right: 109px;
+  margin-right: 93px;
 }
 
 .add-expression-top {
@@ -320,6 +320,11 @@ textarea:focus-visible, textarea.has-text {
 
 .expand, .expand-header {
   user-select: none;
+  margin-right: 0px;
+}
+
+.expression-tex {
+  margin-right: auto;
 }
 
 .expand:hover, .expand-header:hover {

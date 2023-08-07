@@ -178,6 +178,9 @@ function ErrorPlot() {
   const [, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
+  const sample = samples.find(s => s.id === selectedSampleId)
+  const inputRanges = sample ? inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges : undefined
+  const [myInputRanges, setMyInputRanges] = useState(inputRanges)
 
   // console.log('selectedExprId', selectedExprId)
 
@@ -190,14 +193,16 @@ function ErrorPlot() {
   // get the variables from the expression
   const varnames = fpcorejs.getVarnamesMathJS(selectedExpr.text)
   // we will iterate over indices
-  const sample = samples.find(s => s.id === selectedSampleId)
+  
   if (!sample) {
     return <div>Could not find sample with id {selectedSampleId}</div>
   }
-  const inputRanges = inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges
   if (!inputRanges) {
     return <div>Could not find input ranges with id {sample.inputRangesId}</div>
   }
+  // if (!myInputRanges) {
+  //   return <div>Could not find my input ranges</div>
+  // }
 
   // TODO ticks are stored with expressions/sample
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
@@ -283,7 +288,7 @@ function ErrorPlot() {
   
   // create state for the input ranges
   // just use a list that looks like input ranges
-  const [myInputRanges, setMyInputRanges] = useState(inputRanges)
+ 
 
   // resample the data using the updated input ranges on click
   function resample() {
@@ -294,7 +299,7 @@ function ErrorPlot() {
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
-    <button class="resample" onClick={ resample }>Resample</button>
+    <button className="resample" onClick={ resample }>Resample</button>
     {vars.map((v, i) => {
       const range = inputRanges.find(r => r.variable === v)
       if (!range) {
@@ -307,6 +312,7 @@ function ErrorPlot() {
           upper: range.upperBound.toString()
         }} setValue={ 
           (value: { lower: string, upper: string }) => {
+            if (!myInputRanges) { return }  // HACK to fix react bug
             // TODO update the inputRangesTable and sample etc. 
             console.debug('set input range', v, value)
             setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))

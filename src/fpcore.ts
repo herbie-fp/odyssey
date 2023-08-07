@@ -1,6 +1,6 @@
 
 // const math = require('mathjs1');
-// @ts-ignore ignore typescript errors for now
+// @ts-ignore
 import * as math from 'mathjs1';
 
 // TODO use these for type validation (not raw strings)

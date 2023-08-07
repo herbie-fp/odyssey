@@ -28,6 +28,7 @@ import { error } from 'console';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
+  const [showMath, setShowMath] = useState(false);
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
   const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
@@ -38,19 +39,21 @@ function ExpressionTable() {
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [samples,] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
+  const [addExpression, setAddExpression] = useState('');
+  const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
+  const [useTex, setUseTex] = useState(true);
+  // keep track of expanded expressions
+  const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
+
+  function toggleShowMath() {
+    setShowMath(!showMath);
+  }
 
   const sample = samples.find((sample) => sample.id === selectedSampleId)
   if (!sample) {
     // show error message on page
     return <div>Sample id {selectedSampleId} not found</div>
   }
-
-  const [addExpression, setAddExpression] = useState('');
-  const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
-  const [useTex, setUseTex] = useState(true);
-
-  // keep track of expanded expressions
-  const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
 
   // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
 
@@ -146,6 +149,7 @@ function ExpressionTable() {
         </div>
         <div className="expressions-header">
           Expression
+          <input type="checkbox" onChange={ toggleShowMath } checked={ showMath }></input>
         </div>
         <div className="compare-header">
         </div>
@@ -220,27 +224,30 @@ function ExpressionTable() {
                   <input type="checkbox" checked={isChecked} onChange={event => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
                     style={({ accentColor: color })}
                   />
-                <div className="expression-text" onClick={() => handleExpressionClick(expression.id)} >
-                    {expression.text}
-                    <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
-                    <a className="copy-anchor">⧉</a>
-                  </div>
-                  </div>
+                {showMath ?
                   <div className="expression-tex" dangerouslySetInnerHTML={{
-                      __html: (() => {
-                        try {
-                          // Check if there are no variables
-                          if (fpcore.getVarnamesMathJS(spec.expression).length === 0) {
-                            throw new Error("No variables detected.")
-                          }
-                          
-                          return KaTeX.renderToString(math11.parse(expression.text).toTex(), { throwOnError: false })
-                        } catch (e) {
-                          //throw e;
-                          return (e as Error).toString()
+                    __html: (() => {
+                      try {
+                        // Check if there are no variables
+                        if (fpcore.getVarnamesMathJS(spec.expression).length === 0) {
+                          throw new Error("No variables detected.")
                         }
-                      })()
+                        
+                        return KaTeX.renderToString(math11.parse(expression.text).toTex(), { throwOnError: false })
+                      } catch (e) {
+                        //throw e;
+                        return (e as Error).toString()
+                      }
+                    })()
                     }} />
+                    :
+                    <div className="expression-text" onClick={() => handleExpressionClick(expression.id)} >
+                      {expression.text}
+                      <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
+                        <a className="copy-anchor">⧉</a>
+                      </div>
+                    </div>
+                }
                   <div className="analysis">
                     {analysisResult}
                   </div>

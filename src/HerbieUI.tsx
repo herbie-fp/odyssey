@@ -265,7 +265,7 @@ function HerbieUIInner() {
     <div className="grid-container">
       <div className="header">
         <div className="header-top">
-          <div className="app-name">Odyssey: Expression Rewriting</div>
+          <div className="app-name">Odyssey</div>
           <ServerStatusComponent />
         </div>
         <SpecComponent {...{showOverlay, setShowOverlay}} />

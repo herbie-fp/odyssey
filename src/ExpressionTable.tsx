@@ -186,6 +186,7 @@ function ExpressionTable() {
             <div className="add-expression-tex" dangerouslySetInnerHTML={{
                 __html: (() => {
                   try {      
+                    validateExpression(addExpression);
                     return addExpression.trim() === '' ? '' : KaTeX.renderToString(math11.parse(addExpression).toTex(), { throwOnError: false })
                   } catch (e) {
                     //throw e;

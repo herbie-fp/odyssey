@@ -346,5 +346,7 @@ export {
   parseErrors,
   FPCoreBody,
   FPCoreGetBody,  // HACK just the fpcore version of the above, gets just the body
-  mathjsToFPCore
+  mathjsToFPCore,
+  SECRETFUNCTIONS,
+  FUNCTIONS
 }

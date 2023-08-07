@@ -22,6 +22,26 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', 0));
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
 
+  const specExpressionErrors = (expression: string) =>  {
+    const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
+    const expressionVariables = fpcorejs.getVarnamesMathJS(expression);
+    const functionNamedVariables = expressionVariables.filter((symbol) => functionNames.includes(symbol));
+    if (functionNamedVariables.length !== 0) {
+      const functionVariableString = functionNamedVariables.join(", ");
+      const errorMessage =
+        "The added expression is not valid. The expression you tried to add has the following variables that have the same name as FPCore functions: " +
+        functionVariableString;    
+      return [errorMessage];
+    }
+    return [];
+  }
+
+  const validateSpecExpression = (expression: string) => {
+    const errors = specExpressionErrors(expression);
+    if (errors.length !== 0) {
+      throw new Error(errors[0])
+    }
+  }
   // When the spec is clicked, we show an overlay menu for editing the spec and the input ranges for each variable.
   // const [showOverlay, setShowOverlay] = useState(false);
 
@@ -56,6 +76,9 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
         return false
       }
     } catch (e) {
+      return false
+    }
+    if (specExpressionErrors(spec.expression).length !== 0) {
       return false
     }
     return true
@@ -101,7 +124,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                   if (fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
                     throw new Error("No variables detected.")
                   }
-
+                  validateSpecExpression(spec.expression);
                   return KaTeX.renderToString(math11.parse(spec.expression).toTex(), { throwOnError: false })
                 } catch (e) {
                   //throw e;

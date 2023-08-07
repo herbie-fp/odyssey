@@ -294,7 +294,7 @@ function ErrorPlot() {
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
-    <button onClick={ resample }>Resample</button>
+    <button class="resample" onClick={ resample }>Resample</button>
     {vars.map((v, i) => {
       const range = inputRanges.find(r => r.variable === v)
       if (!range) {

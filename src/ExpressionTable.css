@@ -123,6 +123,14 @@
 
 .copy {
   cursor: pointer;
+  margin-left: 6px;
+  font-size: .8em;
+}
+.copy:active {
+  background-color: var(--highlight);
+  :root .tooltip {
+    background-color: white;
+  }
 }
 
 .dropdown {
@@ -192,6 +200,8 @@
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+  align-items: center;
+  gap: 5px;
 }
 .add-expression-dropdown {
   display: flex;
@@ -206,7 +216,7 @@ textarea {
   transition: all .3s ease;
 }
 
-textarea:focus-visible {
+textarea:focus-visible, textarea.has-text {
   height: 5em;
   transition: all .3s ease;
 }
@@ -218,7 +228,7 @@ textarea:focus-visible {
   max-height: 0;
 }
 
-.add-expression:has(textarea:focus-visible) .add-expression-dropdown {
+.add-expression:has(textarea:focus-visible) .add-expression-dropdown, .add-expression:has(textarea.has-text) .add-expression-dropdown {
   min-height: 2em;
   transition: all .3s ease;
   max-height: 100%;
@@ -304,7 +314,7 @@ textarea:focus-visible {
   }
 } */
 
-.delete {
+.delete button {
   font-size: 7px;
 }
 

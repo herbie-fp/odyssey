@@ -33,3 +33,7 @@ g[aria-label="x-axis label"] {
 g[aria-label="y-axis label"] {
   transform: translate(-24px, -40px);
 }
+
+.resample {
+  font-size: 10px;
+}

@@ -162,7 +162,7 @@ function ExpressionTable() {
             {/* <div className="checkbox">
                   <input type="checkbox"></input>
                 </div> */}
-            <textarea value={addExpression} onChange={(event) => setAddExpression(event.target.value)} />
+            <textarea value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
             <div className="add-expression-button">
               <button 
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
@@ -222,6 +222,9 @@ function ExpressionTable() {
                   />
                 <div className="expression-text" onClick={() => handleExpressionClick(expression.id)} >
                     {expression.text}
+                    <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
+                    <a className="copy-anchor">⧉</a>
+                  </div>
                   </div>
                   <div className="expression-tex" dangerouslySetInnerHTML={{
                       __html: (() => {
@@ -280,9 +283,7 @@ function ExpressionTable() {
                     </button>
                   </div>
                   
-                  <div className="copy" onClick={() => { navigator.clipboard.writeText(expression.text) }} data-tooltip-id="copy-tooltip" >
-                    <a className="copy-anchor">⧉</a>
-                  </div>
+                  
                   <div className="delete">
                     <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
                     ╳

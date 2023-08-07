@@ -17,7 +17,7 @@ function SelectableVisualization({ components }: { components: { value:string, l
 
   return (
     <div className="visualization">
-      <select value={selectedOption} onChange={handleOptionChange}>
+      <select value={selectedOption} onClick={e => e.stopPropagation() } onChange={handleOptionChange}>
         {components.map((comp) => (
           <option key={comp.value} value={comp.value}>
             {comp.label}

@@ -6,6 +6,7 @@ import * as HerbieTypes from './HerbieTypes';
 import * as utils from './utils';
 import * as HerbieContext from './HerbieContext';
 import KaTeX from 'katex';
+import Modal from 'react-modal';
 console.log("KaTeX:", KaTeX);
 
 import './SpecComponent.css';
@@ -13,7 +14,7 @@ const math11 = require('mathjs11');
 
 import * as fpcorejs from './fpcore';
 
-function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void}) {
+function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void }) {
   // const { spec: value, setSpec: setValue } = useContext(SpecContext);
   // const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
@@ -51,7 +52,7 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
       fpcorejs.mathjsToFPCore(spec.expression);
 
       // Check to make sure there is at least one variable
-      if(fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
+      if (fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
         return false
       }
     } catch (e) {
@@ -82,35 +83,41 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
         </div>
         <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
       </div>
-      {showOverlay && <div className="spec-overlay" onClick={handleOverlayClick}>
-        {/* Show a dialogue for editing the spec with a "done" button. */}
-        <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>
-          <div className="spec-overlay-header">
-            <div>Spec</div>
-          </div>
-          {/* Render the expression into HTML with KaTeX */}
-          <div className="spec-tex" dangerouslySetInnerHTML={{
-            __html: (() => {
-              try {
-                // Check if there are no variables
-                if (fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
-                  throw new Error("No variables detected.")
+      <Modal
+        isOpen={showOverlay}
+        onRequestClose={() => setShowOverlay(false)}
+      >
+        <div className="spec-overlay" onClick={handleOverlayClick}>
+          {/* Show a dialogue for editing the spec with a "done" button. */}
+          <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>
+            <div className="spec-overlay-header">
+              <div>Spec</div>
+            </div>
+            {/* Render the expression into HTML with KaTeX */}
+            <div className="spec-tex" dangerouslySetInnerHTML={{
+              __html: (() => {
+                try {
+                  // Check if there are no variables
+                  if (fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
+                    throw new Error("No variables detected.")
+                  }
+
+                  return KaTeX.renderToString(math11.parse(spec.expression).toTex(), { throwOnError: false })
+                } catch (e) {
+                  //throw e;
+                  return (e as Error).toString()
                 }
-                
-                return KaTeX.renderToString(math11.parse(spec.expression).toTex(), { throwOnError: false })
-              } catch (e) {
-                //throw e;
-                return (e as Error).toString()
-              }
-            })()
-          }} />
-          <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
-          <InputRangesEditor value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} setValue={handleRangesUpdate} />
-          <div>
-            <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
+              })()
+            }} />
+            <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
+            <InputRangesEditor value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} setValue={handleRangesUpdate} />
+            <div>
+              <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
+            </div>
           </div>
         </div>
-      </div>}
+      </Modal>
+      {/* {showOverlay && } */}
     </div>
   );
 }

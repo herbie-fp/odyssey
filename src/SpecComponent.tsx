@@ -76,9 +76,6 @@ function SpecComponent({showOverlay, setShowOverlay}: {showOverlay: boolean, set
 
   return (
     <div className="spec-container">
-      <div className="rewriting">
-          Rewriting... 
-        </div>
       <div className="spec-title">
         <div className="spec-field">
           Spec:

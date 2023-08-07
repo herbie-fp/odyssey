@@ -264,8 +264,11 @@ function HerbieUIInner() {
   return (
     <div className="grid-container">
       <div className="header">
+        <div className="header-top">
+          <div className="app-name">Odyssey</div>
+          <ServerStatusComponent />
+        </div>
         <SpecComponent {...{showOverlay, setShowOverlay}} />
-        <ServerStatusComponent />
       </div>
       <ExpressionTable />
       <SelectableVisualization components={ components } />

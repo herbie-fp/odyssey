@@ -17,7 +17,8 @@
     vertical-align: bottom;
     cursor: pointer;
     background-color: var(--background-color);
-    font-size: 12px
+    font-size: 12px;
+    align-items: center;
 }
 
 .serverStatus > div {

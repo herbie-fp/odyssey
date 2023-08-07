@@ -127,24 +127,41 @@ input[type="text"]:focus, select:focus {
     "header expressions"
     "visualization expressions";
   height: 100vh; 
-  grid-template-rows: 60px 1fr;
+  grid-template-rows: 63px 1fr;
   grid-template-columns: 3fr 7fr; /*min(70%, 600px);*/
 }
 
 .header {
   grid-area: header; /*Place the header in the "header" grid area */
-  display: flex; /* Use flexbox to position the components */
-  justify-content: space-between; /* Align the components at the start and end of the header */
-  border-bottom: 2px solid #a2b9c8;
-  align-items: center;
+  /* display: flex; Use flexbox to position the components */
+  justify-content: space-around; /* Align the components at the start and end of the header */
+  display: flex;
+  flex-direction: column;
+  /* border-bottom: 2px solid #5e5e5f1a; */
   border-right: 2px solid #5e5e5f1a;
-  padding-left: 5px;
+  box-shadow: 0px 2px 2px 0px #ccc;
+    clip-path: inset(0px 0px -4px 0px);
+  /* padding-left: 5px; */
+  .app-name {
+    font-size: 1em;
+    font-family: 'Ruda';
+    font-weight: 500;
+    margin: 3px;
+  }
 }
 .table {
   flex-grow: 7;
   display:flex;
   flex-direction: column;
   height: 100%;
+}
+
+.header-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-bottom: 2px solid #a2b9c8;
+  padding-left: 5px;
 }
 
 .expression-table {

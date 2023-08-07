@@ -126,6 +126,18 @@ function ExpressionTable() {
         variableListString;
       return [errorMessage];
     }
+
+    const functionNames = Object.keys(fpcore.SECRETFUNCTIONS).concat(Object.keys(fpcore.FUNCTIONS));
+    const expressionVariables = fpcore.getVarnamesMathJS(expression);
+    const functionNamedVariables = expressionVariables.filter((symbol) => functionNames.includes(symbol));
+    if (functionNamedVariables.length !== 0) {
+      const functionVariableString = functionNamedVariables.join(", ");
+      const errorMessage =
+        "The added expression is not valid. The expression you tried to add has the following variables that have the same name as FPCore functions: " +
+        functionVariableString;    
+      return [errorMessage];
+    }
+
     return []
   }
 

@@ -93,7 +93,7 @@ function ServerStatusComponent() {
             >
                 
                 <form onSubmit={handleSubmit}>
-                    <label>Server URL (including port): </label>
+                    <label>Herbie Server URL (including port): </label>
                     <input type='text' value={updatedServerUrl} onChange={handleIPChange} />
                     <button type="submit">Submit</button>
                 </form>

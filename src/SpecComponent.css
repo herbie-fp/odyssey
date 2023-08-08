@@ -2,6 +2,11 @@
   /* color: black; */
   /* add space */
   margin: 10px;
+  min-height: 80px;
+}
+
+.spec-input-range-editor {
+  min-height: 140px;
 }
 
 .spec {

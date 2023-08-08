@@ -116,6 +116,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             <div className="spec-overlay-header">
               <div>Spec</div>
             </div>
+            <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
             {/* Render the expression into HTML with KaTeX */}
             <div className="spec-tex" dangerouslySetInnerHTML={{
               __html: (() => {
@@ -132,15 +133,18 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                 }
               })()
             }} />
-            <textarea className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
-            <InputRangesEditor value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} setValue={handleRangesUpdate} />
+            <div className='spec-input-range-editor'>
+              <InputRangesEditor 
+              value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} 
+              setValue={handleRangesUpdate} 
+              />
+            </div>
             <div>
               <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
             </div>
           </div>
         </div>
       </Modal>
-      {/* {showOverlay && } */}
     </div>
   );
 }

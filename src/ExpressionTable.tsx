@@ -104,6 +104,16 @@ function ExpressionTable() {
     }
   }
 
+  const allChecked = compareExprIds.length === expressions.length;
+
+  const toggleAllChecked = () => {
+    if (allChecked) {
+      setCompareExprIds([]);
+    } else {
+      setCompareExprIds(expressions.map((expr) => expr.id));
+    }
+  }
+
   const extraVariables = (expression: string) => {
     const specVariables = fpcore.getVarnamesMathJS(spec.expression);
     const expressionVariables = fpcore.getVarnamesMathJS(expression);
@@ -157,11 +167,11 @@ function ExpressionTable() {
                     </div>
         </div>
         <div className="checkbox-header">
-          <input type="checkbox"></input>
+          <input type="checkbox" onChange={ toggleAllChecked } checked={ allChecked }></input>
         </div>
         <div className="expressions-header">
           Expression
-          <input type="checkbox" onChange={ toggleShowMath } checked={ showMath }></input>
+          (Show TeX <input type="checkbox" onChange={ toggleShowMath } checked={ showMath }></input>)
         </div>
         <div className="compare-header">
         </div>

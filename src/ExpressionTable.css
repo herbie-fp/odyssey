@@ -174,7 +174,7 @@
   padding: 4px;
   padding-right: 10px;
   border-bottom: 1px solid #ccc;
-  align-items: end;
+  align-items: center;
 }
 
 .expand-header {
@@ -200,7 +200,7 @@
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: center;
+  align-items: end;
   gap: 5px;
 }
 .add-expression-dropdown {

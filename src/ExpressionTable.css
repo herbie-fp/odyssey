@@ -174,7 +174,7 @@
   padding: 4px;
   padding-right: 10px;
   border-bottom: 1px solid #ccc;
-  align-items: center;
+  align-items: end;
 }
 
 .expand-header {

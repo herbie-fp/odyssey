@@ -294,6 +294,8 @@ function ErrorPlot() {
   function resample() {
     // Add a new inputRangesTable entry
     const inputRangesId = nextId(inputRangesTable)
+    // HACK TODO FIX
+    if (!myInputRanges) { return }
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
   }
   return <div className="error-plot">

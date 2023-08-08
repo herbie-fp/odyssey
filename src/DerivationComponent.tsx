@@ -1,10 +1,6 @@
-import React, { useState } from 'react';
-import { Expression } from './HerbieTypes';
-import { nextId } from './utils'
-import * as herbiejs from './herbiejs'
-import * as fpcore from './fpcore'
-import * as types from './HerbieTypes'
 import * as contexts from './HerbieContext';
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
 
 import './DerivationComponent.css';
 
@@ -19,7 +15,7 @@ const DerivationComponent = () => {
 
   return (
     <div>
-      <div dangerouslySetInnerHTML={{ __html: selectedExprDerivation.derivation }} />
+      <Latex>{selectedExprDerivation.derivation}</Latex>
     </div>
   );
 };

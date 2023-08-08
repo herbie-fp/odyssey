@@ -188,6 +188,10 @@ function ExpressionTable() {
                     new Expression(addExpression, nextId(expressions)),
                     ...expressions,
                   ]);
+                  setDerivations([
+                    new Derivation("<p>User Input Expression</p>", nextId(expressions)),
+                    ...derivations,
+                  ]);
                 }}
               >
                 Add

@@ -17,7 +17,6 @@ import { DerivationComponent } from './DerivationComponent';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejs from './herbiejs';
-import { e } from 'mathjs';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -236,26 +235,6 @@ function HerbieUIInner() {
       }
     }
     setTimeout(getLocalErrorUpdates)
-    // for (const expression of expressions) {
-    //   for (const sample of samples) {
-    //     async function getLocalError() {
-    //       try {
-    //         // HACK to make sampling work on Herbie side
-    //         const vars = fpcorejs.getVarnamesMathJS(expression.text)
-    //         const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-    //         const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
-    //         const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl))
-    //         setAverageLocalErrors([...averageLocalErrors, new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)])
-    //       } catch (e: any) {
-    //         throw Error(`Local error failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
-    //       }
-    //       // console.log('Local error was:', localErrorTree)
-    //     }
-    //     if (!averageLocalErrors.find(a => a.expressionId === expression.id && a.sampleId === sample.id)) {
-    //       setTimeout(getLocalError)
-    //     }
-    //   }
-    // }
   }
 
   // when the selected point changes, update the selected point local error

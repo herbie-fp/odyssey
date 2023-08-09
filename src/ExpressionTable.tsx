@@ -171,7 +171,7 @@ function ExpressionTable() {
         </div>
         <div className="expressions-header">
           Expression
-          (Show TeX <input type="checkbox" onChange={ toggleShowMath } checked={ showMath }></input>)
+          (Show TeX<input type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>)
         </div>
         <div className="compare-header">
         </div>
@@ -251,30 +251,32 @@ function ExpressionTable() {
                   <input type="checkbox" checked={isChecked} onChange={event => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
                     style={({ accentColor: color })}
                   />
-                {showMath ?
-                  <div className="expression-tex" dangerouslySetInnerHTML={{
-                    __html: (() => {
-                      try {
-                        // Check if there are no variables
-                        if (fpcore.getVarnamesMathJS(spec.expression).length === 0) {
-                          throw new Error("No variables detected.")
+                  <div className="expression-name-container" onClick={() => handleExpressionClick(expression.id)}>
+                  {showMath ?
+                    <div className="expression-tex" dangerouslySetInnerHTML={{
+                      __html: (() => {
+                        try {
+                          // Check if there are no variables
+                          if (fpcore.getVarnamesMathJS(spec.expression).length === 0) {
+                            throw new Error("No variables detected.")
+                          }
+                          
+                          return KaTeX.renderToString(math11.parse(expression.text).toTex(), { throwOnError: false })
+                        } catch (e) {
+                          //throw e;
+                          return (e as Error).toString()
                         }
-                        
-                        return KaTeX.renderToString(math11.parse(expression.text).toTex(), { throwOnError: false })
-                      } catch (e) {
-                        //throw e;
-                        return (e as Error).toString()
-                      }
-                    })()
-                    }} />
+                      })()
+                        }} />
                     :
-                    <div className="expression-text" onClick={() => handleExpressionClick(expression.id)} >
+                    <div className="expression-text"  >
                       {expression.text}
-                      <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
+                    </div>
+                    }
+                    <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
                         <a className="copy-anchor">⧉</a>
                       </div>
                     </div>
-                }
                   <div className="analysis">
                     {analysisResult}
                   </div>

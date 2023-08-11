@@ -150,7 +150,13 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
               }} setValue={ 
                 (value: { lower: string, upper: string }) => { 
                   console.debug('set input range', v, value)
-                  setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
+                  if (mySpecRanges.map(r => r.variable).includes(v)) {
+                    setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
+                  } else {
+                    const newSpecRanges = [...mySpecRanges, new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper))]
+                    const specVariables = getVariables(spec)
+                    setMySpecRanges(newSpecRanges.filter(r => specVariables.includes(r.variable)))
+                  }
                 }
               } />
               </div>

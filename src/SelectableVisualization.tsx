@@ -2,6 +2,7 @@ import React, { ReactText, useState } from 'react';
 import { LocalError } from './LocalError';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
+import GitHubIssueButton from './GitHubIssueButton';
 
 import './SelectableVisualization.css';
 
@@ -25,6 +26,7 @@ function SelectableVisualization({ components }: { components: { value:string, l
         ))}
       </select>
       <div>{selectedComponent}</div>
+      <GitHubIssueButton />
     </div>
   );
 }

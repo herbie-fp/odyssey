@@ -95,7 +95,16 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
+    console.log(value);
+    console.log(Object.entries(value.ranges));
     setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
+    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges( Object.entries(value.ranges)
+      .map(
+        ([variable, range]) => new HerbieTypes.SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))
+      ),
+      spec.id,
+      utils.nextId(inputRangesTable))
+      ]);
   }
 
   return (
@@ -135,7 +144,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             }} />
             <div className='spec-input-range-editor'>
               <InputRangesEditor 
-              value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} 
+              value={{ ranges: Object.fromEntries((inputRangesTable.findLast(r => r.specId === spec.id) as HerbieTypes.InputRanges).ranges.map(r => [r.variable, { lower: r.lowerBound.toString(), upper: r.upperBound.toString()}])) }} 
               setValue={handleRangesUpdate} 
               />
             </div>

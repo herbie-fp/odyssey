@@ -7,6 +7,8 @@
 
 Followed by getting expression with Herbie. -->
 
+Odyssey is an application that lets you explore floating-point error.
+
 <!-- Odyssey is a VSCode extension developed to enhance the interactivity of floating-point error investigation and improvement systems like the [Herbie](https://herbie.uwplse.org/demo/) tool.
 
 Odyssey is designed to help users identify sources of error in floating-point expressions and then rewrite the expressions to improve their accuracy. It includes analyses of local error for particular inputs as well as a plot of error across a uniform sample of possible inputs for a floating-point expresssion, and uses Herbie to generate rewrite suggestions. -->
@@ -20,10 +22,10 @@ herbie web --port 8000 --quiet
 ```
 <!-- TODO picture of good Herbie output -->
 
-You can adjust the server address where Odyssey looks for Herbie in the Odyssey interface.
-<!-- TODO talk about using the server status component -->
-<!-- TODO picture of server status component -->
+At this point, if Herbie is connected properly, you should see that the server status is green with the text "Connected".
 
+If the server status is red with the text "No Server", Odyssey can't access the Herbie server. You can adjust the server address where Odyssey looks for Herbie by clicking on the server status component. Make sure that the port Odyssey is connecting to is the same one Herbie is being hosted on.
+<!-- TODO picture of server status component -->
 
 ### Starting Odyssey
 
@@ -39,6 +41,11 @@ After starting the Herbie server, run Odyssey from the VSCode command palette us
 ## Features
 
 <!-- TODO Full list of features here, with images -->
+* Plot the floating-point error of all expressions for a specific range.
+* Show the local error of each expression, highlighting the components that cause the most error. 
+* Automatically generate a set of improved expressions for a specified expression with Herbie.
+* Modify the sample range for your exact use case.
+* Display the derivation of each expression, showing how Herbie achieved its result.
 <!-- ![The Odyssey interface](images/odyssey-interface.png) -->
 
 # Setting up a development environment
@@ -75,11 +82,11 @@ This extension contributes the following settings:
 
 ## Citing Odyssey
 
-<!-- Point to UIST citation/DOI -->
+<!-- TODO Point to UIST citation/DOI -->
 
-## Known Issues
+## How to Submit Issues and Bug Reports
 
-See the issues tab on Github.
+[Click here to submit an issue](https://github.com/herbie-fp/odyssey/issues/new).
 
 ## Release Notes
 

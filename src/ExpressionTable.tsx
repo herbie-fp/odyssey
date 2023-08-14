@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
@@ -11,6 +11,8 @@ import * as types from './HerbieTypes'
 import { LocalError } from './LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import KaTeX from 'katex';
+import { DebounceInput } from 'react-debounce-input';
+
 const math11 = require('mathjs11');
 
 
@@ -44,6 +46,17 @@ function ExpressionTable() {
   const [useTex, setUseTex] = useState(true);
   // keep track of expanded expressions
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
+  const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+
+
+  const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
+
+  // if there's only one active expression, expand it
+  useEffect(() => {
+    if (activeExpressions.length === 1) {
+      setExpandedExpressions([activeExpressions[0]]);
+    }
+  }, [expressions]);
 
   function toggleShowMath() {
     setShowMath(!showMath);
@@ -94,7 +107,7 @@ function ExpressionTable() {
     }
   }, 0);
   
-  const noneExpanded = expandedExpressions.length === 0;
+  const noneExpanded = expandedExpressions.filter(e => !archivedExpressions.includes(e)).length === 0;
 
   const handleExpandAllClick = () => {
     if (noneExpanded) {
@@ -104,7 +117,7 @@ function ExpressionTable() {
     }
   }
 
-  const allChecked = compareExprIds.length === expressions.length;
+  const allChecked = compareExprIds.filter(id => activeExpressions.includes(id)).length === activeExpressions.length;
 
   const toggleAllChecked = () => {
     if (allChecked) {
@@ -158,6 +171,7 @@ function ExpressionTable() {
     }
   }
 
+
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -188,20 +202,21 @@ function ExpressionTable() {
             {/* <div className="checkbox">
                   <input type="checkbox"></input>
                 </div> */}
-            <textarea value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
+            <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
             <div className="add-expression-button">
               <button 
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
                 onClick={() => {
                   validateExpression(addExpression);
                   setExpressions([
-                    new Expression(addExpression, nextId(expressions)),
+                    new Expression(addExpression, nextId(expressions), spec.id),
                     ...expressions,
                   ]);
                   setDerivations([
                     new Derivation("<p>User Input Expression</p>", nextId(expressions)),
                     ...derivations,
                   ]);
+                  setAddExpression('')
                 }}
               >
                 Add
@@ -225,7 +240,8 @@ function ExpressionTable() {
       </div>
       {/* <SimpleBar style={{ maxHeight: 'initial' }}> */}
         <div className="expressions-actual">
-          {expressions.map((expression) => {
+          {activeExpressions.map((id) => {
+            const expression = expressions.find((expression) => expression.id === id) as Expression;
             const isChecked = compareExprIds.includes(expression.id);
             const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
             const analysisResult =
@@ -300,7 +316,7 @@ function ExpressionTable() {
 
                         const s = alternatives[i];
                         const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-                        const newExpression = new Expression(fPCoreToMathJS, newId);
+                        const newExpression = new Expression(fPCoreToMathJS, newId, spec.id);
                         newExpressions.push(newExpression);
 
                         // The following code assumes the HTMLHistory[] returend by Herbie
@@ -319,7 +335,7 @@ function ExpressionTable() {
                   
                   
                   <div className="delete">
-                    <button onClick={() => setExpressions(expressions.filter((e) => e.id !== expression.id))}>
+                    <button onClick={() => setArchivedExpressions([...archivedExpressions, expression.id])}>
                     ╳
                     </button>
                   </div>

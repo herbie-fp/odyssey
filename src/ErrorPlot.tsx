@@ -170,17 +170,22 @@ function ErrorPlot() {
   const [spec, ] = contexts.useGlobal(SpecContext)
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(SelectedExprIdContext)
   const [analyses, ] = contexts.useGlobal(AnalysesContext)
-  const [expressions, ] = contexts.useGlobal(ExpressionsContext)
+  const [allExpressions, ] = contexts.useGlobal(ExpressionsContext)
   const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
-  const [, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
   const sample = samples.find(s => s.id === selectedSampleId)
   const inputRanges = sample ? inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges : undefined
   const [myInputRanges, setMyInputRanges] = useState(inputRanges)
+  const [archivedExpressions, ] = contexts.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  
+  // Update myInputRanges when the sample changes
+  useEffect(() => {setMyInputRanges(inputRanges)}, [sample])
 
+  const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id)) 
   // console.log('selectedExprId', selectedExprId)
 
   // get the expression
@@ -330,10 +335,18 @@ function ErrorPlot() {
 
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
 
+            const c = t.parentNode
+            const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
             t.parentNode.onclick = async () => {
               console.log('Setting selected point to', o)
-              setSelectedPoint(o.map((v: ordinal) => ordinals.ordinalToFloat(v)))
+              setSelectedPoint(point)
               setSelectedExprId(id)
+            }
+            if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
+              c.setAttribute('r', '15')
+              c.setAttribute('opacity', '1')
+              c.setAttribute('stroke', 'black')
+              c.setAttribute('data-selected', 'true')
             }
           });
           [...plot.children].map(c => svg.appendChild(c))

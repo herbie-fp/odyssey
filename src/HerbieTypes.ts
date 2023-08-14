@@ -15,9 +15,10 @@ export class Derivation {
 export class Expression {
   /**
    *  @param {string} text - mathjs expression */
-  constructor(public readonly text: string, public readonly id: number) { 
+  constructor(public readonly text: string, public readonly id: number, public readonly specId: number) { 
     this.text = text;
     this.id = id;
+    this.specId = specId;
   }
 }
 

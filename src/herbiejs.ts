@@ -158,12 +158,13 @@ export const analyzeExpression = async (
 export const displayNumber = (v: number) => {
   const s = v.toPrecision(1)
   const [base, exponent] = s.split('e')
+  const digits = 4
   if (!exponent) {
-    return v.toPrecision(1) === v.toString() ? v.toPrecision(1) : v.toPrecision(6)
+    return v.toPrecision(1) === v.toString() ? v.toPrecision(1) : v.toPrecision(digits)
   }
   if (Number(exponent) <= 1 && -1 <= Number(exponent)) {
     const a = v.toString()
-    const b = v.toPrecision(6)
+    const b = v.toPrecision(digits)
     return a.length < b.length ? a : b
   }
   const result = v.toPrecision(1)

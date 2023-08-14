@@ -37,3 +37,18 @@ g[aria-label="y-axis label"] {
 .resample {
   font-size: 10px;
 }
+
+.error-plot circle:hover {
+  r: 15px;
+  fill-opacity: 1;
+  transition: r 0s ease-in-out;
+  z-index: 100;
+}
+.error-plot circle {
+  border: 10px solid transparent;
+  transition: all 0.2s ease-out;
+
+  stroke: transparent;
+  stroke-width: 15px;
+  fill-opacity: .5;
+}

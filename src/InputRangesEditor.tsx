@@ -106,6 +106,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           onChange={e => setLowerBound(e.target.value)}
         />
       </span>
+      <span className="separator"> to </span>
       <span className="upper">
         <input
           type="number"

@@ -2,11 +2,11 @@
   /* color: black; */
   /* add space */
   margin: 10px;
-  min-height: 80px;
+  min-height: 2em;
 }
 
-.spec-input-range-editor {
-  min-height: 140px;
+.spec-range-inputs {
+  min-height: 4em;
 }
 
 .spec {
@@ -75,4 +75,15 @@
 .spec-textarea {
   width: 50%;
   height: 5em;
+}
+
+.spec-range-input {
+  display: flex;
+  gap: 5px;
+}
+
+.spec-overlay-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }

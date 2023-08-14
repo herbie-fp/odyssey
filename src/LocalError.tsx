@@ -1,6 +1,8 @@
 import * as HerbieContext from './HerbieContext';
 import * as types from './HerbieTypes';
+import * as fpcore from './fpcore';
 import Mermaid from './Mermaid';
+import { Point } from './Point'
 
 import './LocalError.css';
 
@@ -64,7 +66,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext);
   const [selectedExprId,] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
   const [averageLocalErrors,] = HerbieContext.useGlobal(HerbieContext.AverageLocalErrorsContext);
-  
+  const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
   //
   const pointLocalError = selectedPointsLocalError.find(a => a.expressionId === expressionId)?.error
 
@@ -77,15 +79,22 @@ function LocalError({ expressionId }: { expressionId: number }) {
   if (!localError) {
     return (
       <div className="local-error not-computed">
-        <div>Please select a point to compute local error.</div>
+        <div>Please select a point on the error plot to compute local error.</div>
       </div>
     )
   }
 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
+  const varnames = fpcore.getVarnamesMathJS(expressions.find(e => e.id === expressionId)?.text as string)
+
+  const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
 
   return (
     <div className="local-error">
+      <div className="selected-point">
+        <div className="selected-point-title">Selected Point:</div>
+        <Point values={selectedPointValue}/>
+      </div>
       <div className="local-error-graph">
         <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)}  />
       </div>

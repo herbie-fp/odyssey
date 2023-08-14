@@ -16,6 +16,7 @@ import { DerivationComponent } from './DerivationComponent';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejs from './herbiejs';
+import GitHubIssueButton from './GitHubIssueButton';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -95,12 +96,13 @@ function HerbieUIInner() {
   const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
   const [inputRangesTable, ] = Contexts.useGlobal(Contexts.InputRangesTableContext)
+  const [archivedExpressions, ] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
 
   const [showOverlay, setShowOverlay] = useState(true);
 
   // Data relationships
   // Reactively update analyses whenever expressions change
-  useEffect(updateAnalyses, [expressions, samples]);
+  useEffect(updateAnalyses, [spec, expressions, samples]);
   function updateAnalyses() {
     async function updateAnalysesAsync () {
       // When a new expression is added, add a new analysis
@@ -115,7 +117,12 @@ function HerbieUIInner() {
         if (result) {
           return result as ErrorAnalysis
         }
-        console.log('Getting new analysis for expression', expression.id, 'and sample', sample.id, '...')
+        
+        // Only get analyses for the current spec
+        if (sample.specId !== spec.id) {
+          return;
+        }
+        console.debug('Getting new analysis for expression', expression, 'and sample', sample, '...')
 
         try {
           // HACK to make sampling work on Herbie side
@@ -167,13 +174,6 @@ function HerbieUIInner() {
     }
   }
 
-  // Add spec to expressions if it doesn't exist
-  useEffect(addSpecToExpressions, [spec])
-  function addSpecToExpressions() {
-    if (expressions.find(e => e.text === spec.expression)) { return }
-    setExpressions([new Expression(spec.expression, nextId(expressions)), ...expressions])
-  }
-
   // Example of calling the server:
   // whenever a new input range is defined,
   // * reset expressions to just the naive expression(the spec)
@@ -190,6 +190,7 @@ function HerbieUIInner() {
         console.debug(`Already sampled for input ranges ${inputRanges.id}. Skipping.`)
         return;
       }
+      console.debug(`Sampling spec ${spec.id} for input ranges ${inputRanges.id}...`)
       const sample_points = (await herbiejs.getSample(
         fpcorejs.makeFPCore2({
           vars: fpcorejs.getVarnamesMathJS(spec.expression),
@@ -197,12 +198,23 @@ function HerbieUIInner() {
           body: fpcorejs.FPCoreBody(spec.expression)
         }), serverUrl)).points;
       // always create a new sample with this spec and these input ranges
-      setSamples([...samples, new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))]);
+      const sample = new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))
+      setSamples([...samples, sample]);
+      console.debug(`Sampled spec ${spec.id} for input ranges ${inputRanges.id}:`, sample)
     }
     sample()
   }
 
-  // Select and show the sample whenever one is added
+  // Add spec to expressions if it doesn't exist
+  useEffect(addSpecToExpressions, [spec, expressions])
+  function addSpecToExpressions() {
+    if (expressions.find(e => e.text === spec.expression)) { return }
+    const expressionId = nextId(expressions)
+    console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
+    setExpressions([new Expression(spec.expression, expressionId, spec.id), ...expressions])
+  }
+
+  // // Select and show the sample whenever one is added
   useEffect(selectLastSample, [samples])
   function selectLastSample() {
     if (samples.length > 0) {
@@ -276,6 +288,9 @@ function HerbieUIInner() {
       </div>
       <ExpressionTable />
       <SelectableVisualization components={ components } />
+      <div className="open-gh-issue" >
+        <GitHubIssueButton />
+      </div>
     </div>
   );
 }

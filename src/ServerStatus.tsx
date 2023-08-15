@@ -13,6 +13,7 @@ function ServerStatusComponent() {
   const [status, setStatus] = useState<number | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [updatedServerUrl, setUpdatedServerUrl] = useState<string>(serverUrl || '');
+  const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -58,20 +59,25 @@ function ServerStatusComponent() {
     setIsDropdownOpen(false);
   };
 
+  const statusClass = !status ? 'no-server' : jobCount > 0 ? 'pending' : 'connected'
+  
+  // Show job count if there are jobs pending
+  const statusText = jobCount > 0 ? `Jobs: ${jobCount}` : status ? 'Connected' : 'No Server'
+
   return (
     <div className="serverStatus">
       <div onClick={() => setIsDropdownOpen(true)}>
-        <span className={'status ' + (status ? 'connected' : 'no-server')}>
+        <span className={'status ' + statusClass}>
           {/* an SVG status indicator dot */}
           <svg width="10" height="10" viewBox="0 0 20 20">
-            <circle cx="10" cy="10" r="5" fill={status ? '#78D965' : 'none'} stroke={status ? '#94E185' : 'red'} filter={
-              `drop-shadow(0px 0px 2px ${status ? '#94E185' : 'red'})`}
+            <circle cx="10" cy="10" r="5" fill={statusClass === 'pending' ? 'orange' : status ? '#78D965' : 'none'} stroke={status ? '#94E185' : 'red'} filter={
+              `drop-shadow(0px 0px 2px ${statusClass === 'connected' ? '#94E185' : statusClass === 'pending' ? 'orange' : 'red'})`}
             />
           </svg>
         </span>
         &nbsp;
       
-        {status ? 'Connected' : 'No Server'}
+        {statusText}
 
         {/* an SVG dropdown chevron */}
         {/* <svg className="dropdown-chevron" width="10" height="10" viewBox="0 0 20 20">

@@ -5,13 +5,15 @@ import * as HerbieContext from './HerbieContext';
 import { nextId } from './utils'
 import { SelectableVisualization } from './SelectableVisualization';
 import { Tooltip } from 'react-tooltip'
-import * as herbiejs from './herbiejs'
+import * as herbiejsImport from './herbiejs'
 import * as fpcore from './fpcore'
 import * as types from './HerbieTypes'
 import { LocalError } from './LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';
+
+import { addJobRecorder } from './HerbieUI';
 
 const math11 = require('mathjs11');
 
@@ -48,6 +50,7 @@ function ExpressionTable() {
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
+  const herbiejs = addJobRecorder(herbiejsImport)
 
   const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
 
@@ -171,7 +174,7 @@ function ExpressionTable() {
     }
   }
 
-
+  console.debug('rendering ExpressionTable', expressions)
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">

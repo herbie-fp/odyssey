@@ -10,6 +10,25 @@ export interface Global<T> {
   init: T
 }
 
+type reducerAction = { type: string }
+type reducer<T> = (init: T, action: any) => T
+export type reducerApply = (action: reducerAction) => void
+export interface ReducerGlobal<T> {
+  isReducerGlobal: true
+  context: React.Context<[T, reducerApply]>
+  reducer: reducer<T>
+  init: T
+}
+
+const makeReducerGlobal = <T>(reducer: reducer<T>, init: T): ReducerGlobal<T> => {
+  return {
+    isReducerGlobal: true,
+    context: createContext({} as [T, reducerApply]),
+    reducer,
+    init: init
+  }
+}
+
 const makeGlobal = <T>(init: T): Global<T> => {
   return {
     isGlobal: true,
@@ -20,6 +39,10 @@ const makeGlobal = <T>(init: T): Global<T> => {
 
 export const useGlobal = <T>(global: Global<T>): [T, setter<T>] => {
   return React.useContext(global.context)
+}
+
+export const useReducerGlobal = <T>(reducerGlobal: ReducerGlobal<T>): [T, reducerApply] => {
+  return React.useContext(reducerGlobal.context)
 }
 
 export const hoveredExpressionId = makeGlobal(0)
@@ -39,3 +62,15 @@ export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErro
 export const InputRangesTableContext = makeGlobal([] as types.InputRanges[])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
+
+type jobCountAction = { type: 'increment' } | { type: 'decrement' }
+function jobCountReducer(jobCount: number, action : jobCountAction ) {
+  switch (action.type) {
+    case 'increment':
+      return jobCount + 1;
+    case 'decrement':
+      return jobCount - 1;
+  }
+}
+
+export const JobCountContext = makeReducerGlobal(jobCountReducer, 0)

@@ -15,7 +15,7 @@ import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 
 import * as fpcorejs from './fpcore';
-import * as herbiejs from './herbiejs';
+import * as herbiejsImport from './herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 
 interface ContextProviderProps {
@@ -26,10 +26,13 @@ function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element
   const globals = utils.getGlobals().map((g) => {
     return ({ context: g.context, value: useState(g.init) })
   })
+  const reducerGlobals = utils.getReducerGlobals().map((g) => {
+    return ({ context: g.context, value: useReducer(g.reducer, g.init) })
+  })
 
   return (
     <>
-      {globals.reduceRight((children, { context, value }) => 
+      {[...globals, ...reducerGlobals].reduceRight((children, { context, value }) => 
         React.createElement(context.Provider, { value }, children)
       , children)}
     </>
@@ -81,6 +84,24 @@ function hslToRgb(h: number, s: number, l: number) {
   return rgbToHex(round(r * 255), round(g * 255), round(b * 255));
 }
 
+export function addJobRecorder(herbiejs: typeof herbiejsImport) {
+  const [, setJobCount] = Contexts.useReducerGlobal(Contexts.JobCountContext)
+  function jobRecorder<P extends any[], Q>(f: (...args: P) => Q) {
+    return async function run(...args: P) {
+      console.debug('Running job', f.name, 'with args', args)
+      setJobCount({ type: 'increment' })
+      try {
+        return await f(...args)
+      } finally {
+        console.debug('Finished job', f.name, 'with args', args)
+        setJobCount({ type: 'decrement' })
+      }
+    }
+  }
+  // HACK apply the decorator to all functions in the module
+  return utils.applyDecoratorToAllModuleFunctions(herbiejsImport, jobRecorder)
+}
+
 function HerbieUIInner() {
   // use declarations
   const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext)
@@ -96,8 +117,10 @@ function HerbieUIInner() {
   const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
   const [inputRangesTable, ] = Contexts.useGlobal(Contexts.InputRangesTableContext)
-  const [archivedExpressions, ] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
+  const [archivedExpressions,] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
 
+  const herbiejs = addJobRecorder(herbiejsImport)
+  
   const [showOverlay, setShowOverlay] = useState(true);
 
   // Data relationships
@@ -191,6 +214,7 @@ function HerbieUIInner() {
         return;
       }
       console.debug(`Sampling spec ${spec.id} for input ranges ${inputRanges.id}...`)
+      console.debug(herbiejs.getSample)
       const sample_points = (await herbiejs.getSample(
         fpcorejs.makeFPCore2({
           vars: fpcorejs.getVarnamesMathJS(spec.expression),

@@ -2,7 +2,7 @@
   "name": "odyssey-fp",
   "displayName": "Odyssey",
   "description": "An interactive workbench for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
   "publisher": "herbie-fp",
   "engines": {

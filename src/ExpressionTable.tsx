@@ -174,7 +174,6 @@ function ExpressionTable() {
     }
   }
 
-  console.debug('rendering ExpressionTable', expressions)
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -211,10 +210,11 @@ function ExpressionTable() {
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
                 onClick={() => {
                   validateExpression(addExpression);
-                  setExpressions([
+                  const newExpressions = [
                     new Expression(addExpression, nextId(expressions), spec.id),
                     ...expressions,
-                  ]);
+                  ]
+                  setExpressions(newExpressions);
                   setDerivations([
                     new Derivation("<p>User Input Expression</p>", nextId(expressions)),
                     ...derivations,

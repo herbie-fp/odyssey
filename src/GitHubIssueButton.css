@@ -1,5 +1,6 @@
 .github-issue-button {
-    position: fixed;
+    /* position: fixed;
     bottom: 20px;
-    left: 20px;
+    left: 20px; */
+    display: flex;
 }

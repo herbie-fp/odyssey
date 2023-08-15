@@ -126,15 +126,18 @@ input[type="text"]:focus, select:focus {
   grid-template-areas:
     "header expressions"
     "visualization expressions"
-    "open-gh-issue expressions";
+    "help-buttons expressions";
   height: 100vh; 
-  grid-template-rows: 63px 1fr 2em;
-  grid-template-columns: 3fr 7fr; /*min(70%, 600px);*/
+  grid-template-rows: 63px 1fr 3em;
+  grid-template-columns: 4fr 6fr; /*min(70%, 600px);*/
 }
 
-.open-gh-issue {
-  grid-area: open-gh-issue;
+.help-buttons {
+  grid-area: help-buttons;
   border-right: 2px solid #5e5e5f1a;
+  display: flex;
+  justify-content: space-evenly;
+  padding: 10px;
 }
 
 .header {

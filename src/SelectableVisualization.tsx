@@ -26,7 +26,6 @@ function SelectableVisualization({ components }: { components: { value:string, l
         ))}
       </select>
       <div>{selectedComponent}</div>
-      <GitHubIssueButton />
     </div>
   );
 }

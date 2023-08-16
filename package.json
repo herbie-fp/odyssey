@@ -2,6 +2,7 @@
   "name": "odyssey-fp",
   "displayName": "Odyssey",
   "description": "An interactive workbench for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
+  "icon": "images/odyssey-icon.png",
   "version": "0.3.3",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
   "publisher": "herbie-fp",
@@ -29,7 +30,8 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "start": "node server.js"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

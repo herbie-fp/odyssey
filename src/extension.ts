@@ -19,8 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
 				enableScripts: true,
 				// Only allow the webview to access resources in these directories
 				localResourceRoots: [vscode.Uri.file(join(context.extensionPath, 'dist'))],
-				retainContextWhenHidden: true
+				retainContextWhenHidden: true,
 			})
+		panel.iconPath = vscode.Uri.file(join(context.extensionPath, 'images/odyssey-icon.png'))
 		panel.webview.html = getWebviewContent(panel.webview, context);
 		const addMessageHandler = (panel: vscode.WebviewPanel) => {
 			// old code, only use if we need to receive messages from the webview

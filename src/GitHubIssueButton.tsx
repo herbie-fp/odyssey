@@ -10,9 +10,9 @@ const GitHubIssueButton = () => {
   };
 
   return (
-    <button onClick={handleButtonClick}>
+    <a onClick={handleButtonClick}>
       Open GitHub Issue
-    </button>
+    </a>
   );
 };
 

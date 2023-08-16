@@ -8,8 +8,8 @@ export const DocumentationButton = () => {
   };
 
   return (
-    <button onClick={handleButtonClick}>
+    <a onClick={handleButtonClick}>
       Documentation
-    </button>
+    </a>
   );
 };

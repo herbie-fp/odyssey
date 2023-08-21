@@ -216,7 +216,7 @@ function ExpressionTable() {
                   ]
                   setExpressions(newExpressions);
                   setDerivations([
-                    new Derivation("<p>User Input Expression</p>", nextId(expressions)),
+                    new Derivation("<p>User Input Expression</p>", nextId(expressions), undefined),
                     ...derivations,
                   ]);
                   setAddExpression('')
@@ -325,7 +325,7 @@ function ExpressionTable() {
                         // The following code assumes the HTMLHistory[] returend by Herbie
                         // is mapped to the alternatives array 1:1
                         const d = histories[i];
-                        const newDerivation = new Derivation(d, newId);
+                        const newDerivation = new Derivation(d, newId, expression.id);
                         newDerivations.push(newDerivation);
                       }
                     

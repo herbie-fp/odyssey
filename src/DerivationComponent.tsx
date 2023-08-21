@@ -8,14 +8,14 @@ const DerivationComponent = () => {
   const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
   
-  const selectedExprDerivation = derivations.find(d => d.id === selectedExprId)
-  if (!selectedExprDerivation) {
+  const selectedDerivation = derivations.find(d => d.id === selectedExprId)
+  if (!selectedDerivation) {
     return <div>Could not find expression with id {selectedExprId}</div>
   }
 
   return (
     <div>
-      <Latex>{selectedExprDerivation.derivation}</Latex>
+      <Latex>{selectedDerivation.derivation}</Latex>
     </div>
   );
 };

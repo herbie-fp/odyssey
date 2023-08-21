@@ -6,9 +6,13 @@ export type ordinalPoint = ordinal[]
 export type FPCore = string
 
 export class Derivation {
-  constructor(public readonly derivation: HTMLHistory, public readonly id: number) { 
+  // derivation: The HTMLHistory object containing the derivation (as HTML) for an expression.
+  // id: The id of this derivation.
+  // parentId: The id of this derivation's parent, or undefined if this derivation has no parent.
+  constructor(public readonly derivation: HTMLHistory, public readonly id: number, public readonly parentId: number | undefined) { 
     this.derivation = derivation;
     this.id = id;
+    this.parentId = parentId;
   }
 }
 

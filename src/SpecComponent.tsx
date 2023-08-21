@@ -23,6 +23,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', 0));
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
   const [mySpecRanges, setMySpecRanges] = useState(inputRangesTable.findLast(r => r.specId === spec.id)?.ranges || [])
   const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
@@ -70,6 +71,8 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     setInputRangesTable([...inputRangesTable, inputRanges])
     const mySpec = new Spec(spec.expression, specId);
     console.debug('Added, now setting spec', mySpec)
+
+    // Add to derivations
     setValue(mySpec);
     
     setShowOverlay(false);

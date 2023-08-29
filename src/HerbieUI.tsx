@@ -6,7 +6,7 @@ import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { ExpressionTable } from './ExpressionTable';
 import * as Contexts from './HerbieContext';
-import { Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
+import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
 import * as Types from './HerbieTypes'
 import { nextId } from './utils';
 import * as utils from './utils';
@@ -106,6 +106,7 @@ export function addJobRecorder(herbiejs: typeof herbiejsImport) {
 function HerbieUIInner() {
   // use declarations
   const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext)
+  const [derivations, setDerivations] = Contexts.useGlobal(Contexts.DerivationsContext)
   const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
   const [serverUrl, ] = Contexts.useGlobal(Contexts.ServerContext)
   const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext)
@@ -237,6 +238,10 @@ function HerbieUIInner() {
     const expressionId = nextId(expressions)
     console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
     setExpressions([new Expression(spec.expression, expressionId, spec.id), ...expressions])
+    setDerivations([
+      new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
+      ...derivations,
+    ]);
   }
 
   // // Select and show the sample whenever one is added

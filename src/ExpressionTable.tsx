@@ -255,7 +255,7 @@ function ExpressionTable() {
                 }, 0) / 8000).toFixed(2);
             const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
             const components = [
-                { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
+                { value: 'localError', label: '[Herbie] Local Error', component: <LocalError expressionId={expression.id} /> },
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
               ];
             return (
@@ -335,7 +335,18 @@ function ExpressionTable() {
                       Herbie
                     </button>
                   </div>
-                  
+                  {/* Add 2 more dummy buttons like the Herbie button, but called Satire and Precimonious */}
+                  <div className="satire">
+                    <button>
+                      Satire
+                    </button>
+                  </div>
+                  <div className="precimonious">
+                    <button>
+                      Precimonious
+                    </button>
+                  </div>
+
                   
                   <div className="delete">
                     <button onClick={() => setArchivedExpressions([...archivedExpressions, expression.id])}>

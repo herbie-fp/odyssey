@@ -13,6 +13,7 @@ import * as utils from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
+import { HistoryComponent } from './HistoryComponent';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejsImport from './herbiejs';
@@ -305,6 +306,7 @@ function HerbieUIInner() {
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
+    { value: 'historyComponent', label: 'Expression History', component: <HistoryComponent /> },
   ];
 
   return (

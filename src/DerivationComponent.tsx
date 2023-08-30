@@ -3,7 +3,6 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 import './DerivationComponent.css';
-import { Derivation } from './HerbieTypes';
 
 const DerivationComponent = () => {
   const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)

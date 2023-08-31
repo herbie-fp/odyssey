@@ -87,8 +87,11 @@ function LocalError({ expressionId }: { expressionId: number }) {
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
   const varnames = fpcore.getVarnamesMathJS(expressions.find(e => e.id === expressionId)?.text as string)
 
+
+  console.log("doink2", selectedPoint)
   const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
 
+  console.log("doink", selectedPointValue)
   return (
     <div className="local-error">
       <div className="selected-point">

@@ -291,13 +291,19 @@ function ErrorPlot() {
       return }
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
   }
+  console.log("doink7", vars);
+  console.log("doink8", inputRanges)
+  const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
     <button className="resample" onClick={ resample }>Resample</button>
-    {vars.map((v, i) => {
+    {specVars.map((v, i) => {
+      console.log("doink5, ", v, "   ", i)
+      console.log("doink3", v, i, inputRanges)
       const range = inputRanges.find(r => r.variable === v)
-      if (!range) {
+      console.log("doink4",v,i, range)
+      if (!range ) {
         return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
       }
       return <div key={i}>

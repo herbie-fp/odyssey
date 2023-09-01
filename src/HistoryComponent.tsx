@@ -9,18 +9,19 @@ import { Derivation } from './HerbieTypes';
 
 interface DerivationTreeProps {
     derivations: Derivation[];
+    selectedExprId: number;
     parentId?: number;
 }
 
-const DerivationTree: React.FC<DerivationTreeProps> = ({ derivations, parentId }) => {
+const DerivationTree: React.FC<DerivationTreeProps> = ({ derivations, selectedExprId, parentId }) => {
     const childDerivations = derivations.filter(derivation => derivation.parentId === parentId);
 
     return (
         <ul>
             {childDerivations.map(derivation => (
-                <li key={derivation.id}>
+                <li key={derivation.id} className={derivation.id === selectedExprId ? 'selected' : ''}>
                     {derivation.id}
-                    <DerivationTree derivations={derivations} parentId={derivation.id} />
+                    <DerivationTree derivations={derivations} selectedExprId={selectedExprId} parentId={derivation.id} />
                 </li>
             ))}
         </ul>
@@ -29,10 +30,11 @@ const DerivationTree: React.FC<DerivationTreeProps> = ({ derivations, parentId }
 
 const HistoryComponent = () => {
     const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
+    const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
     return (
         <div>
             <h2>Derivation Tree</h2>
-            <DerivationTree derivations={derivations} />
+            <DerivationTree derivations={derivations} selectedExprId={selectedExprId} />
         </div>
     );
 }

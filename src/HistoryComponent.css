@@ -1,4 +1,6 @@
 .selected {
-    background-color: yellow;
-    font-weight: bold; 
+    color: #fff;
+    background-color: #3498db;
+    border-color: #2980b9;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
 }

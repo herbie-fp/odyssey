@@ -8,35 +8,59 @@ import './HistoryComponent.css';
 import { Derivation } from './HerbieTypes';
 
 interface DerivationTreeProps {
-    derivations: Derivation[];
-    selectedExprId: number;
-    parentId?: number;
+  derivations: Derivation[];
+  selectedExprId: number;
+  parentId?: number;
+  level?: number; // Add a level prop to track the indentation level
 }
 
-const DerivationTree: React.FC<DerivationTreeProps> = ({ derivations, selectedExprId, parentId }) => {
-    const childDerivations = derivations.filter(derivation => derivation.parentId === parentId);
+const DerivationTree: React.FC<DerivationTreeProps> = ({
+  derivations,
+  selectedExprId,
+  parentId,
+  level = 0, // Default indentation level is 0
+}) => {
+  const childDerivations = derivations.filter(
+    (derivation) => derivation.parentId === parentId
+  );
 
-    return (
-        <ul>
-            {childDerivations.map(derivation => (
-                <li key={derivation.id} className={derivation.id === selectedExprId ? 'selected' : ''}>
-                    {derivation.id}
-                    <DerivationTree derivations={derivations} selectedExprId={selectedExprId} parentId={derivation.id} />
-                </li>
-            ))}
-        </ul>
-    );
+  return (
+    <div className="tree-node" style={{ marginLeft: `${level * 20}px` }}>
+      {childDerivations.map((derivation) => (
+        <div
+          key={derivation.id}
+          className={`tree-node-content ${
+            derivation.id === selectedExprId ? 'selected' : ''
+          }`}
+        >
+          {derivation.id}
+          <DerivationTree
+            derivations={derivations}
+            selectedExprId={selectedExprId}
+            parentId={derivation.id}
+            level={level + 1} // Increase the indentation level
+          />
+        </div>
+      ))}
+    </div>
+  );
 };
 
 const HistoryComponent = () => {
-    const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
-    const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
-    return (
-        <div>
-            <h2>Derivation Tree</h2>
-            <DerivationTree derivations={derivations} selectedExprId={selectedExprId} />
-        </div>
-    );
-}
+  const [derivations, setDerivations] = contexts.useGlobal(
+    contexts.DerivationsContext
+  );
+  const [selectedExprId, setSelectedExprId] = contexts.useGlobal(
+    contexts.SelectedExprIdContext
+  );
+  return (
+    <div>
+      <h2>Derivation Tree</h2>
+      <div className="tree-container">
+        <DerivationTree derivations={derivations} selectedExprId={selectedExprId} />
+      </div>
+    </div>
+  );
+};
 
 export { HistoryComponent };

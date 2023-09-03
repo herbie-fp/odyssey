@@ -62,11 +62,14 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const handleSubmitClick = () => {
     const specId = value.id + 1;
     const inputRangeId = utils.nextId(inputRangesTable)
-
+    const variables = getVariables(spec)
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
 
-    const inputRanges = new HerbieTypes.InputRanges(mySpecRanges, specId, inputRangeId)
+    const inputRanges = new HerbieTypes.InputRanges(
+      mySpecRanges.filter((range) => variables.includes(range.variable)),
+      specId, 
+      inputRangeId)
     console.debug('Adding to inputRangesTable: ', inputRanges)
     setInputRangesTable([...inputRangesTable, inputRanges])
     const mySpec = new Spec(spec.expression, specId);

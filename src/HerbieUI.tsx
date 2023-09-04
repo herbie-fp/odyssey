@@ -151,10 +151,8 @@ function HerbieUIInner() {
 
         try {
           // HACK to make sampling work on Herbie side
-          const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-          const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
-          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text), modSample, serverUrl)
+          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text,spec.expression, specVars), sample, serverUrl)
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 

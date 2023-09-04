@@ -59,6 +59,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
 
 function LocalError({ expressionId }: { expressionId: number }) {
   // get the current point selection and selected point local error
+  const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext);
   const [selectedPoint, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext);
   const [selectedPointsLocalError, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointsLocalErrorContext);
 
@@ -85,7 +86,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
   }
 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
-  const varnames = fpcore.getVarnamesMathJS(expressions.find(e => e.id === expressionId)?.text as string)
+  const varnames = fpcore.getVarnamesMathJS(spec.expression)
 
   const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
 

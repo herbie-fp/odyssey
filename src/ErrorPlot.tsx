@@ -195,7 +195,7 @@ function ErrorPlot() {
     // throw new Error(`Could not find expression with id ${selectedExprId}`)
   }
   // get the variables from the expression
-  const varnames = fpcorejs.getVarnamesMathJS(selectedExpr.text)
+  const varnames = fpcorejs.getVarnamesMathJS(spec.expression)
   // we will iterate over indices
   
   if (!sample) {
@@ -297,7 +297,7 @@ function ErrorPlot() {
     <button className="resample" onClick={ resample }>Resample</button>
     {vars.map((v, i) => {
       const range = inputRanges.find(r => r.variable === v)
-      if (!range) {
+      if (!range ) {
         return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
       }
       return <div key={i}>

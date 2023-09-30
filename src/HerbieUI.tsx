@@ -13,11 +13,13 @@ import * as utils from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
+import { ExternalLoader } from './ExternalLoader';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejsImport from './herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 import { DocumentationButton } from './DocumentationButton';
+import ExternalComponent from './ExternalComponent';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -303,6 +305,7 @@ function HerbieUIInner() {
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
+    { value: 'externalComponent', label: 'External Component', component: <ExternalLoader /> },
   ];
 
   return (

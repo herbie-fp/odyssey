@@ -11,7 +11,7 @@ interface DerivationTreeProps {
   derivations: Derivation[];
   selectedExprId: number;
   parentId?: number;
-  level?: number; // Add a level prop to track the indentation level
+  level?: number;
 }
 
 const DerivationTree: React.FC<DerivationTreeProps> = ({
@@ -53,6 +53,7 @@ const HistoryComponent = () => {
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(
     contexts.SelectedExprIdContext
   );
+  return (<div></div>);
   return (
     <div>
       <h2>Derivation Tree</h2>

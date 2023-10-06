@@ -19,7 +19,6 @@ import * as fpcorejs from './fpcore';
 import * as herbiejsImport from './herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 import { DocumentationButton } from './DocumentationButton';
-import ExternalComponent from './ExternalComponent';
 
 interface ContextProviderProps {
   children: React.ReactNode;

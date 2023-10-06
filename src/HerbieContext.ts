@@ -63,6 +63,12 @@ export const InputRangesTableContext = makeGlobal([] as types.InputRanges[])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
 
+// TODO: Create contexts for plugins
+type pluginConfig = {}
+type loadedPlugin = {}
+export const PluginsConfigsContext = makeGlobal([] as pluginConfig[])
+export const LoadedPluginsContext = makeGlobal([] as loadedPlugin[])
+
 type jobCountAction = { type: 'increment' } | { type: 'decrement' }
 function jobCountReducer(jobCount: number, action : jobCountAction ) {
   switch (action.type) {

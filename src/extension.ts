@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { join } from 'path';
+import * as fs from 'fs';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -18,6 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
 			{
 				enableScripts: true,
 				// Only allow the webview to access resources in these directories
+				// TODO: Modify localResourceRoots to access some folder for user extensions
+				// (in user home directory)
 				localResourceRoots: [vscode.Uri.file(join(context.extensionPath, 'dist'))],
 				retainContextWhenHidden: true,
 			})
@@ -32,6 +35,18 @@ export function activate(context: vscode.ExtensionContext) {
 					switch (message.command) {
 						case 'openLink':
 							vscode.env.openExternal(vscode.Uri.parse(message.link))
+						case 'loadExternal':
+							// TODO: VERY BASIC HARD-CODED RIGHT NOW
+							let fileData = ''
+							const filePath = __dirname + '/' + message.file;
+							fs.readFile(filePath, 'utf8', (err, data) => {
+								if (err) {
+									console.error('Error reading the file:', err);
+									return;
+								}
+								panel.webview.postMessage({ command: 'loadExternal', fileContents: data });
+							});
+							break
 						case 'error':
 							// Show a button for copying the error message to the clipboard
 							const copy = 'Copy to clipboard'
@@ -55,12 +70,12 @@ export function activate(context: vscode.ExtensionContext) {
 						// 			localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
 						// 			retainContextWhenHidden: true
 						// 		})
-						}
+					}
 				})
 		}
 		addMessageHandler(panel)
 	})
-	
+
 	context.subscriptions.push(disposable)
 }
 
@@ -68,17 +83,17 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 	const jsFile = "webview.bundle.js";
 	// const cssFile = "webview.css";
 	// this is the webpack dev server; in theory, this could be used for hot module reloading, but it doesn't work right now.
-	const localServerUrl = "http://localhost:3000";  
+	const localServerUrl = "http://localhost:3000";
 	const isProduction = context.extensionMode === vscode.ExtensionMode.Production;
 
 	let scriptUrl = isProduction
 		? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString()
 		: `${localServerUrl}/${jsFile}`
-	
+
 	// let cssUrl = isProduction
 	// 	? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', cssFile))).toString()
 	// 	: `${localServerUrl}/${cssFile}`
-	
+
 	scriptUrl = webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString();
 
 	return `<!DOCTYPE html>
@@ -123,4 +138,4 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 };
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

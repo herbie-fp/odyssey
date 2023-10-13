@@ -34,6 +34,7 @@
     "start": "node server.js"
   },
   "devDependencies": {
+    "@types/babel__standalone": "^7.1.5",
     "@types/glob": "^8.1.0",
     "@types/katex": "^0.16.0",
     "@types/mathjs": "^9.4.2",
@@ -57,6 +58,7 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
+    "@babel/standalone": "^7.23.2",
     "@observablehq/plot": "^0.6.9",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "katex": "^0.16.7",

@@ -1,4 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import DynamicComponentLoader from "./DynamicComponentLoader"
+
+const componentString = `
+import React from 'react';
+
+function Component(props) {
+    return <div>{props.data.message}</div>;
+}
+
+export default Component;
+`;
 
 export const ExternalLoader = () => {
   const [externalComponent, setExternalComponent] = useState('<div>Loading...</div>');
@@ -14,12 +25,15 @@ export const ExternalLoader = () => {
   window.addEventListener('message', event => {
     //@ts-ignore
     setExternalComponent(event.data.fileContents);
-    console.log(event.data.fileContents)
   });
 
+  const data = {
+    message: "Hello from the existing program!"
+  };
+
   return (
-    <div dangerouslySetInnerHTML={{ __html: externalComponent }}>
-      
+    <div>
+      <DynamicComponentLoader componentString={componentString} data={data} />
     </div>
   );
 };

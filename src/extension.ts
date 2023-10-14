@@ -2,6 +2,35 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { join } from 'path';
+import { spawn } from 'child_process';
+
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const url = require('url');
+
+/**
+ * Downloads a file from a URL to a specified directory.
+ * 
+ * @param {string} downloadUrl - The URL of the file to download.
+ * @param {string} dest - The path to the directory where the file should be saved.
+ * @param {function} callback - A callback function to execute once download is complete.
+ */
+function downloadFile(downloadUrl: string, dest: string, callback: (err: any) => void) {
+	const parsedUrl = url.parse(downloadUrl);
+	const protocol = parsedUrl.protocol === 'https:' ? https : http;
+
+	const file = fs.createWriteStream(dest);
+	const request = protocol.get(downloadUrl, function(response: any) {
+			response.pipe(file);
+			file.on('finish', function() {
+					file.close(callback); // Call the callback once the file is written to disk.
+			});
+	}).on('error', function(err: any) {
+			fs.unlink(dest); // Delete the file if there's an error.
+			if (callback) { callback(err.message); }
+	});
+}
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -30,6 +59,47 @@ export function activate(context: vscode.ExtensionContext) {
 					console.log('got message', message)
 					message = JSON.parse(message)
 					switch (message.command) {
+						case 'downloadHerbie':
+							console.log('downloading herbie')
+							// show information message
+							vscode.window.showInformationMessage('Downloading Herbie...')
+							// spawn the download process
+							// get zip file from site
+							const url = "http://104.200.24.142:8000/herbie-compiled.zip"
+							// download with curl to home local share odyssey
+							const home = require('os').homedir()
+							const dest = home + '/.local/share/odyssey/herbie-compiled.zip'
+							downloadFile(url, dest, (err: any) => {
+								if (err) {
+									vscode.window.showErrorMessage('Error downloading Herbie: ' + err, 'Copy to clipboard').then((action) => {
+										if (action === 'Copy to clipboard') {
+											vscode.env.clipboard.writeText(err)
+										}
+									})
+								} else {
+									vscode.window.showInformationMessage('Herbie downloaded successfully. Please wait while it is installed...')
+								}
+								// unzip to home local share odyssey
+								const unzip = require('unzipper')
+								const extract = unzip.Extract({ path: home + '/.local/share/odyssey' })
+								fs.createReadStream(dest).pipe(extract)
+								// wait for close event
+								extract.on('close', () => {
+									// delete zip file
+									fs.unlinkSync(dest)
+									// make bin executable
+									const bin = home + '/.local/share/odyssey/herbie-compiled/bin/herbie'
+									fs.chmodSync(bin, '755')
+									// create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
+									const symlink = home + '/.local/share/odyssey/bin/herbie'
+									fs.symlinkSync(bin, symlink)
+									// show information message
+									vscode.window.showInformationMessage('Herbie installed successfully. Starting server...')
+									spawn(symlink, ['web', '--quiet']);
+								})
+							})
+
+							break
 						case 'openLink':
 							vscode.env.openExternal(vscode.Uri.parse(message.link))
 						case 'error':
@@ -60,6 +130,8 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		addMessageHandler(panel)
 	})
+
+	spawn(require('os').homedir() + '/.local/share/odyssey/bin/herbie', ['web', '--quiet']);
 	
 	context.subscriptions.push(disposable)
 }
@@ -123,4 +195,7 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 };
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+
+	// TODO clean up servers
+}

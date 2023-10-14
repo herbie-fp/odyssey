@@ -68,6 +68,11 @@ export function activate(context: vscode.ExtensionContext) {
 							const url = "http://104.200.24.142:8000/herbie-compiled.zip"
 							// download with curl to home local share odyssey
 							const home = require('os').homedir()
+							// TODO path.join instead of string concat
+							const odysseyDir = home + '/.local/share/odyssey'
+							if (!fs.existsSync(odysseyDir)) {
+								fs.mkdirSync(odysseyDir)
+							}
 							const dest = home + '/.local/share/odyssey/herbie-compiled.zip'
 							downloadFile(url, dest, (err: any) => {
 								if (err) {
@@ -88,7 +93,11 @@ export function activate(context: vscode.ExtensionContext) {
 									// delete zip file
 									fs.unlinkSync(dest)
 									// make bin executable
-									const bin = home + '/.local/share/odyssey/herbie-compiled/bin/herbie'
+									const bindir = odysseyDir + '/herbie-compiled/bin'
+									if (!fs.existsSync(bindir)) {
+										fs.mkdirSync(bindir)
+									}
+									const bin = bindir + '/herbie'
 									fs.chmodSync(bin, '755')
 									// create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
 									const symlink = home + '/.local/share/odyssey/bin/herbie'

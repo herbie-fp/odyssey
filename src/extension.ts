@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 							// TODO path.join instead of string concat
 							const odysseyDir = home + '/.local/share/odyssey'
 							if (!fs.existsSync(odysseyDir)) {
-								fs.mkdirSync(odysseyDir)
+								fs.mkdirSync(odysseyDir, { recursive: true })
 							}
 							const dest = home + '/.local/share/odyssey/herbie-compiled.zip'
 							downloadFile(url, dest, (err: any) => {

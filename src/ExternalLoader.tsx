@@ -1,39 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import DynamicComponentLoader from "./DynamicComponentLoader"
+import React, { useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 
-const componentString = `
-import React from 'react';
-
-function Component(props) {
-    return <div>{props.data.message}</div>;
-}
-
-export default Component;
-`;
-
-export const ExternalLoader = () => {
-  const [externalComponent, setExternalComponent] = useState('<div>Loading...</div>');
+const ExternalLoader: React.FC<{ componentString: string }> = ({ componentString }) => {
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    //@ts-ignore
-    window.vscode.postMessage(JSON.stringify({
-      command: 'loadExternal',
-      file: 'external/ExternalComponent.tsx'
-    }));
-  })
+    const componentFunction = new Function('React', 'return ' + componentString)(React);
 
-  window.addEventListener('message', event => {
-    //@ts-ignore
-    setExternalComponent(event.data.fileContents);
-  });
+    if (componentFunction) {
+      const Component = componentFunction;
+      const element = React.createElement(Component);
+      ReactDOM.render(element, containerRef.current);
+    }
+  }, [componentString]);
 
-  const data = {
-    message: "Hello from the existing program!"
-  };
-
-  return (
-    <div>
-      <DynamicComponentLoader componentString={componentString} data={data} />
-    </div>
-  );
+  return <div ref={containerRef} />;
 };
+
+export default ExternalLoader;

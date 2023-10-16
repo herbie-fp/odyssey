@@ -1,37 +1,33 @@
 import React, { useState, useEffect } from 'react';
 
-const babel = require('@babel/core');
-
 interface DynamicComponentLoaderProps {
-    componentString: string;
-    data: any;
+  componentString: string;
+  data: any; // Replace 'any' with a more specific type if possible
 }
 
 function DynamicComponentLoader(props: DynamicComponentLoaderProps) {
-    const { componentString, data } = props;
-    const [Component, setComponent] = useState<React.ComponentType<any> | null>(null);
+  const { componentString, data } = props;
+  const [Component, setComponent] = useState<React.ComponentType<any> | null>(null);
 
-    useEffect(() => {
-        transpileAndLoad(componentString);
-    }, [componentString]);
+  useEffect(() => {
+    loadComponent(componentString);
+  }, [componentString]);
 
-    const transpileAndLoad = (code: string) => {
-        try {
-            const transpiledCode = babel.transform(code, {
-                presets: ['react'],
-            }).code;
+  const loadComponent = (code: string) => {
+    try {
+      const dynamicModule: { exports: React.ComponentType<any> } = {
+        exports: () => <div>Default Component</div> // Provide a default component or type
+      };
+      const evaluatedResult = eval(code + '\nmodule.exports = Component;');
+      setComponent(() => dynamicModule.exports);
+    } catch (error) {
+      console.error("Failed to load the component:", error);
+    }
+  };
 
-            const dynamicModule: any = {};
-            eval(transpiledCode + '\nmodule.exports = Component;');
-            setComponent(() => dynamicModule.exports);
-        } catch (error) {
-            console.error("Failed to transpile and load the component:", error);
-        }
-    };
+  if (!Component) {return null;}
 
-    if (!Component) return null;
-
-    return <Component data={data} />;
+  return <Component data={data} />;
 }
 
 export default DynamicComponentLoader;

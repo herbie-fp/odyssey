@@ -302,9 +302,9 @@ function HerbieUIInner() {
 
   const dynamicComponentString = `
   function MyDynamicComponent() {
-    return <h1>Hello from Dynamic Component!</h1>;
-  }
-`;
+    return React.createElement('h1', null, 'Hello from Dynamic Component!');
+  }  
+  `;
 
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },

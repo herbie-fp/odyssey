@@ -21,6 +21,12 @@
       }
     ]
   },
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ]
+  },
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
@@ -34,6 +40,8 @@
     "start": "node server.js"
   },
   "devDependencies": {
+    "@babel/preset-react": "^7.22.15",
+    "@babel/preset-typescript": "^7.23.2",
     "@types/babel__standalone": "^7.1.5",
     "@types/glob": "^8.1.0",
     "@types/katex": "^0.16.0",
@@ -58,6 +66,7 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
+    "@babel/core": "^7.23.2",
     "@babel/standalone": "^7.23.2",
     "@observablehq/plot": "^0.6.9",
     "@vscode/webview-ui-toolkit": "^1.2.2",

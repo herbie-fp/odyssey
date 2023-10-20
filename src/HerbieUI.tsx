@@ -13,7 +13,7 @@ import * as utils from './utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
-import ExternalLoader from './ExternalLoader';
+import { ExternalLoader } from './ExternalLoader';
 
 import * as fpcorejs from './fpcore';
 import * as herbiejsImport from './herbiejs';
@@ -310,7 +310,8 @@ function HerbieUIInner() {
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
     {
       value: 'externalComponent', label: 'External Component', component:
-        <ExternalLoader componentString={dynamicComponentString} />
+        <ExternalLoader />
+        //componentString={dynamicComponentString}
     },
   ];
 

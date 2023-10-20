@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import * as fs from 'fs';
 
+const babel = require('@babel/core');
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -35,6 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
 					switch (message.command) {
 						case 'openLink':
 							vscode.env.openExternal(vscode.Uri.parse(message.link))
+							break
 						case 'loadExternal':
 							// TODO: VERY BASIC HARD-CODED RIGHT NOW
 							let fileData = ''
@@ -44,8 +47,20 @@ export function activate(context: vscode.ExtensionContext) {
 									console.error('Error reading the file:', err);
 									return;
 								}
+
+								function transpileJSXToJSX(jsxCode: string) {
+									const transpiledCode = babel.transform(jsxCode, {
+										presets: ['@babel/preset-react'],
+									});
+									return transpiledCode.code;
+								}
+
+								const transpiledCode = transpileJSXToJSX(data);
+								console.log(transpiledCode)
+
 								panel.webview.postMessage({ command: 'loadExternal', fileContents: data });
 							});
+
 							break
 						case 'error':
 							// Show a button for copying the error message to the clipboard

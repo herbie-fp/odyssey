@@ -5,13 +5,13 @@ import Latex from 'react-latex-next';
 import './DerivationComponent.css';
 import { Derivation } from './HerbieTypes';
 
-const DerivationComponent = () => {
+const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
   const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
 
-  const selectedDerivation = derivations.find(d => d.id === selectedExprId)
+  const selectedDerivation = derivations.find(d => d.id === expressionId)
   if (!selectedDerivation) {
-    return <div>Could not find expression with id {selectedExprId}</div>
+    return <div>Could not find expression with id {expressionId}</div>
   }
 
   let currentExpressionId: number | undefined = selectedDerivation.id

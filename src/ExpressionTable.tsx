@@ -256,7 +256,7 @@ function ExpressionTable() {
             const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
             const components = [
                 { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
-                { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
+                { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>

@@ -9,12 +9,6 @@ const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
 
   let selectedDerivation = derivations.find(d => d.id === expressionId)
-
-  if(expressionId === -1) {
-    const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
-    selectedDerivation = derivations.find(d => d.id === selectedExprId)
-  }
-
   if (!selectedDerivation) {
     return <div>Could not find expression with id {expressionId}</div>
   }

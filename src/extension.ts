@@ -97,9 +97,10 @@ export function activate(context: vscode.ExtensionContext) {
 									fs.unlinkSync(dest)
 									// make bin executable
 									fs.chmodSync(odysseyDir + '/herbie-compiled/bin', '755')
-									// create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
+									// try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
 									const symlink = odysseyDir + '/bin/herbie'
 									fs.symlinkSync(odysseyDir + '/herbie-compiled/bin/herbie', symlink)
+
 									// show information message
 									vscode.window.showInformationMessage('Herbie installed successfully. Starting server...')
 									spawn(symlink, ['web', '--quiet']);

@@ -300,9 +300,7 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
-  const dynamicComponentString = `function MyDynamicComponent() {
-    return React.createElement('h1', null, 'Hello from Dynamic Component!');
-  }`;
+  const dynamicComponentString = `(()=>{"use strict";var r={251:(r,e,t)=>{var o=t(363);Symbol.for("react.element"),Symbol.for("react.fragment"),Object.prototype.hasOwnProperty,o.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner},893:(r,e,t)=>{t(251)},363:r=>{r.exports=React}},e={};!function t(o){var _=e[o];if(void 0!==_)return _.exports;var a=e[o]={exports:{}};return r[o](a,a.exports,t),a.exports}(893)})();`;
 
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },

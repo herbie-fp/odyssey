@@ -300,8 +300,7 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
-  const dynamicComponentString = `/*! For license information please see bundle.js.LICENSE.txt */
-  (()=>{"use strict";var e={251:(e,r,t)=>{var o=t(363),n=Symbol.for("react.element"),a=(Symbol.for("react.fragment"),Object.prototype.hasOwnProperty),p=o.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner,l={key:!0,ref:!0,__self:!0,__source:!0};r.jsx=function(e,r,t){var o,s={},c=null,f=null;for(o in void 0!==t&&(c=""+t),void 0!==r.key&&(c=""+r.key),void 0!==r.ref&&(f=r.ref),r)a.call(r,o)&&!l.hasOwnProperty(o)&&(s[o]=r[o]);if(e&&e.defaultProps)for(o in r=e.defaultProps)void 0===s[o]&&(s[o]=r[o]);return{$$typeof:n,type:e,key:c,ref:f,props:s,_owner:p.current}}},893:(e,r,t)=>{e.exports=t(251)},363:e=>{e.exports=React}},r={};function t(o){var n=r[o];if(void 0!==n)return n.exports;var a=r[o]={exports:{}};return e[o](a,a.exports,t),a.exports}t.n=e=>{var r=e&&e.__esModule?()=>e.default:()=>e;return t.d(r,{a:r}),r},t.d=(e,r)=>{for(var o in r)t.o(r,o)&&!t.o(e,o)&&Object.defineProperty(e,o,{enumerable:!0,get:r[o]})},t.o=(e,r)=>Object.prototype.hasOwnProperty.call(e,r),(()=>{var e=t(893);const r=ReactDOM;t.n(r)().render((0,e.jsx)((()=>(0,e.jsx)("div",{children:"Hello, React and TypeScript!"})),{}),document.getElementById("root"))})()})();`;
+  const dynamicComponentString = "";
 
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },

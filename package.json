@@ -62,8 +62,8 @@
     "style-loader": "^3.3.3",
     "ts-loader": "^9.4.2",
     "typescript": "^5.0.4",
-    "webpack": "^5.81.0",
-    "webpack-cli": "^5.0.2"
+    "webpack": "5.81.0",
+    "webpack-cli": "5.0.2"
   },
   "dependencies": {
     "@babel/core": "^7.23.2",

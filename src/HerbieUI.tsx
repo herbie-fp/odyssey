@@ -300,15 +300,13 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
-  const dynamicComponentString = "";
-
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
     {
       value: 'externalComponent', label: 'External Component', component:
-        <ExternalLoader componentString={dynamicComponentString} />
+        <ExternalLoader/>
     },
   ];
 

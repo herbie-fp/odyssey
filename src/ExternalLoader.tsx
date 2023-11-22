@@ -1,38 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect } from 'react';
 
-const ExternalLoader: React.FC<{ componentString: string }> = ({ componentString }) => {
-  const [externalComponent, setExternalComponent] = useState('<div>Loading...</div>');
-
+const ExternalLoader = ({}) => {
   useEffect(() => {
-    //@ts-ignore
-    window.vscode.postMessage(JSON.stringify({
-      command: 'loadExternal',
-      file: 'external/app.es.js'
-    }));
-  })
+    const script = document.createElement('script');
+    script.src = 'http://localhost:8001/app.es.js';
+    script.async = true;
 
-  window.addEventListener('message', event => {
-    //@ts-ignore
-    setExternalComponent(event.data.fileContents);
-    console.log(event.data.fileContents)
-  });
+    const head = document.head || document.getElementsByTagName('head')[0];
+    head.appendChild(script);
 
-  const renderCode = () => {
-    // Create a script element to execute the code
-    const scriptElement = document.createElement('script');
-    scriptElement.type = 'text/javascript';
-    scriptElement.text = externalComponent;
-    document.head.appendChild(scriptElement);
-  };
+    return () => {
+      head.removeChild(script);
+    };
+  }, []);
 
-  return (
-    <div>
-      <button onClick={renderCode}>Render Code</button>
-      <div id="root"></div>
-    </div>
-  );
-  // return new Function('React', 'return ' + componentString)(React)()
+  return <div>Loading external component...</div>;
 };
 
 export default ExternalLoader;

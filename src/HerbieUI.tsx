@@ -305,12 +305,12 @@ function HerbieUIInner() {
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent /> },
   ];
 
-  const downloadHerbie = () => {
-    //@ts-ignore
-    window.vscode.postMessage(JSON.stringify({
-      command: 'downloadHerbie',
-    }))
-  };
+  // const downloadHerbie = () => {
+  //   //@ts-ignore
+  //   window.vscode.postMessage(JSON.stringify({
+  //     command: 'downloadHerbie',
+  //   }))
+  // };
   return (
     <div className="grid-container">
       <div className="header">
@@ -325,7 +325,6 @@ function HerbieUIInner() {
       <div className="help-buttons" >
         <DocumentationButton />
         <GitHubIssueButton />
-        <button onClick={downloadHerbie}>Toggle Overlay</button>
       </div>
     </div>
   );

@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import { spawn } from 'child_process';
 
-const fs = require('fs');
+import * as fs from 'fs';
+const lnk = require('lnk');
 const http = require('http');
 const https = require('https');
 const url = require('url');
@@ -27,7 +28,7 @@ function downloadFile(downloadUrl: string, dest: string, callback: (err: any) =>
 					file.close(callback); // Call the callback once the file is written to disk.
 			});
 	}).on('error', function(err: any) {
-			fs.unlink(dest); // Delete the file if there's an error.
+		fs.unlink(dest, () => { }); // Delete the file if there's an error.
 			if (callback) { callback(err.message); }
 	});
 }
@@ -35,10 +36,192 @@ function downloadFile(downloadUrl: string, dest: string, callback: (err: any) =>
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+
+	const showError = (message: string) => {
+		vscode.window.showErrorMessage(message, 'Copy to clipboard').then((action) => {
+			if (action === 'Copy to clipboard') {
+				vscode.env.clipboard.writeText(message)
+			}
+		})
+	}
+	const showInfo = (message: string) => {
+		vscode.window.showInformationMessage(message)
+	}
+
+	let terminal: vscode.Terminal | null = null
+	const getTerminal = () => {
+		if (terminal === null) {
+			terminal = vscode.window.createTerminal('Herbie')
+			vscode.window.onDidCloseTerminal((closedTerminal: vscode.Terminal) => {
+				// Handle the closed terminal event here
+				if (terminal === closedTerminal) {
+					terminal = null
+				}
+			});
+		}
+		return terminal
+	}
+
+	const downloadAndRunHerbie = async () => {
+		console.log('downloading herbie')
+		// show information message
+		vscode.window.showInformationMessage('Downloading Herbie...')
+		// spawn the download process
+		// get zip file from site
+		const url = "http://104.200.24.142:8000/herbie-dist.zip"
+		// download with curl to home local share odyssey
+		const home = require('os').homedir()
+		// TODO path.join instead of string concat
+		const odysseyDir = home + '/.local/share/odyssey'
+		if (!fs.existsSync(odysseyDir)) {
+			fs.mkdirSync(odysseyDir, { recursive: true })
+		}
+		if (!fs.existsSync(odysseyDir + '/bin')) {
+			fs.mkdirSync(odysseyDir + '/bin')
+		}
+		if (!fs.existsSync(odysseyDir + '/dist')) {
+			fs.mkdirSync(odysseyDir + '/dist')
+		}
+		const dest = home + '/.local/share/odyssey/herbie-compiled.zip'
+		downloadFile(url, dest, (err: any) => {
+			if (err) {
+				vscode.window.showErrorMessage('Error downloading Herbie: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			} else {
+				vscode.window.showInformationMessage('Herbie downloaded successfully. Please wait while it is installed...')
+			}
+			// unzip to home local share odyssey
+			const unzip = require('unzipper')
+			const extract = unzip.Extract({ path: odysseyDir + '/dist' })
+			fs.createReadStream(dest).pipe(extract)
+			// wait for close event
+			extract.on('close', async () => {
+				// delete zip file
+				fs.unlinkSync(dest)
+
+				// the binary path varies depending on platform
+				let binaryPath = ''
+				switch (process.platform) {
+					case 'win32':
+						binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
+						break
+					case 'linux':
+						binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
+						break
+					case 'darwin':
+						binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
+						break
+				}
+
+				// make binary executable
+				fs.chmodSync(binaryPath, '755')
+				// try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
+				const symlink = odysseyDir + '/bin/herbie'
+				const bin = odysseyDir + '/bin'
+				try {
+					lnk.sync(binaryPath, bin, { force: true, type: 'symbolic' }) // fs.symlinkSync(binaryPath, symlink)
+				} catch (err: any) {
+					// if symlink already exists, delete it and try again
+					// if (err.code === 'EEXIST') {
+					// 	fs.unlinkSync(symlink)
+					// 	fs.symlinkSync(binaryPath, symlink)
+					// } else {
+					vscode.window.showErrorMessage('Error creating link: ' + err, 'Copy to clipboard').then((action) => {
+						if (action === 'Copy to clipboard') {
+							vscode.env.clipboard.writeText(err)
+						}
+					})
+				}
+
+				// show information message
+				vscode.window.showInformationMessage('Herbie installed successfully. Starting server...')
+				try {
+					//spawn(symlink, ['web', '--quiet']);
+					// run the command in the VSCode terminal
+					// get a filesystem-safe path to the executable
+					//const terminal = vscode.window.createTerminal('Herbie')
+					// show the terminal
+					terminal = getTerminal()
+					terminal.show()
+					terminal.sendText(symlink + ' web --quiet')
+					console.log('started herbie server')
+				} catch (err: any) {
+					vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
+						if (action === 'Copy to clipboard') {
+							vscode.env.clipboard.writeText(err)
+						}
+					})
+				}
+			})
+		})
+	}
+
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('odyssey-fp.openTab', () => {
+	let disposable = vscode.commands.registerCommand('odyssey-fp.openTab', async () => {
+		
+		
+
+		// Start the Herbie server if it is available and not already running
+		try {
+			//spawn(symlink, ['web', '--quiet']);
+			// run the command in the VSCode terminal
+			// get a filesystem-safe path to the executable
+			const symlink = require('os').homedir() + '/.local/share/odyssey/bin/herbie'
+			const port = 8000
+
+			// check if port is in use
+			let somethingOnPort = false
+			const net = require('net')
+			const server = net.createServer()
+			server.once('error', function (err: any) {
+				if (err.code === 'EADDRINUSE') {
+					somethingOnPort = true
+				}
+			})
+			server.once('listening', function () {
+				server.close()
+			})
+			server.listen(port)
+
+			if (somethingOnPort) { // yes
+				// is it herbie?
+				try {
+					const response = await fetch('http://localhost:' + port + '/up')
+				} catch (err: any) {
+					showError(`A process is running on port ${port} but it isn't a working Herbie server. Full error:\n` + err)
+				}
+			}
+
+			// check if symlink exists
+			if (!fs.existsSync(symlink)) {
+				// wait for user to download herbie
+				vscode.window.showErrorMessage("Herbie doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
+					if (action === 'Download') {
+						downloadAndRunHerbie()
+					}
+				})
+			} else if (somethingOnPort) {
+				// wait for user to kill process using port
+				showInfo("Not starting Herbie server because something else is using port " + port + ".")
+			} else {
+				terminal = getTerminal()
+				terminal.show()
+				terminal.sendText(symlink + ' web --quiet')
+				console.log('started herbie server')
+			}
+		} catch (err: any) {
+			vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
+				if (action === 'Copy to clipboard') {
+					vscode.env.clipboard.writeText(err)
+				}
+			})
+		}
+
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(
 			'herbieIndex', // Identifies the type of the webview. Used internally
@@ -60,53 +243,7 @@ export function activate(context: vscode.ExtensionContext) {
 					message = JSON.parse(message)
 					switch (message.command) {
 						case 'downloadHerbie':
-							console.log('downloading herbie')
-							// show information message
-							vscode.window.showInformationMessage('Downloading Herbie...')
-							// spawn the download process
-							// get zip file from site
-							const url = "http://104.200.24.142:8000/herbie-compiled.zip"
-							// download with curl to home local share odyssey
-							const home = require('os').homedir()
-							// TODO path.join instead of string concat
-							const odysseyDir = home + '/.local/share/odyssey'
-							if (!fs.existsSync(odysseyDir)) {
-								fs.mkdirSync(odysseyDir, { recursive: true })
-							}
-							if (!fs.existsSync(odysseyDir + '/bin')) {
-								fs.mkdirSync(odysseyDir + '/bin')
-							}
-							const dest = home + '/.local/share/odyssey/herbie-compiled.zip'
-							downloadFile(url, dest, (err: any) => {
-								if (err) {
-									vscode.window.showErrorMessage('Error downloading Herbie: ' + err, 'Copy to clipboard').then((action) => {
-										if (action === 'Copy to clipboard') {
-											vscode.env.clipboard.writeText(err)
-										}
-									})
-								} else {
-									vscode.window.showInformationMessage('Herbie downloaded successfully. Please wait while it is installed...')
-								}
-								// unzip to home local share odyssey
-								const unzip = require('unzipper')
-								const extract = unzip.Extract({ path: home + '/.local/share/odyssey' })
-								fs.createReadStream(dest).pipe(extract)
-								// wait for close event
-								extract.on('close', () => {
-									// delete zip file
-									fs.unlinkSync(dest)
-									// make bin executable
-									fs.chmodSync(odysseyDir + '/herbie-compiled/bin', '755')
-									// try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
-									const symlink = odysseyDir + '/bin/herbie'
-									fs.symlinkSync(odysseyDir + '/herbie-compiled/bin/herbie', symlink)
-
-									// show information message
-									vscode.window.showInformationMessage('Herbie installed successfully. Starting server...')
-									spawn(symlink, ['web', '--quiet']);
-								})
-							})
-
+							downloadAndRunHerbie()
 							break
 						case 'openLink':
 							vscode.env.openExternal(vscode.Uri.parse(message.link))
@@ -139,7 +276,7 @@ export function activate(context: vscode.ExtensionContext) {
 		addMessageHandler(panel)
 	})
 
-	spawn(require('os').homedir() + '/.local/share/odyssey/bin/herbie', ['web', '--quiet']);
+	// spawn(require('os').homedir() + '/.local/share/odyssey/bin/herbie', ['web', '--quiet']);
 	
 	context.subscriptions.push(disposable)
 }

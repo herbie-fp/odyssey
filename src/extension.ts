@@ -199,10 +199,14 @@ export function activate(context: vscode.ExtensionContext) {
 					somethingOnPort = true
 				}
 			})
+			let resolver: any = null;
+			const p = new Promise((resolve) => resolver = resolve) 
 			server.once('listening', function () {
 				server.close()
+				resolver()
 			})
 			server.listen(port)
+			await p;
 
 			if (somethingOnPort) { // yes
 				// is it herbie?

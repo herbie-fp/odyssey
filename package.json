@@ -16,7 +16,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "odyssey-fp.openTab",
+        "command": "odyssey-fp-oneclick.openTab",
         "title": "Odyssey: Herbie"
       }
     ]

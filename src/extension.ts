@@ -174,15 +174,8 @@ export function activate(context: vscode.ExtensionContext) {
 			})
 		})
 	}
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('odyssey-fp.openTab', async () => {
-		
-		
-
-		// Start the Herbie server if it is available and not already running
+	
+	const runHerbieServer = async () => {
 		try {
 			//spawn(symlink, ['web', '--quiet']);
 			// run the command in the VSCode terminal
@@ -190,30 +183,29 @@ export function activate(context: vscode.ExtensionContext) {
 			// const symlink = require('os').homedir() + '/.local/share/odyssey/bin/herbie'
 			const port = 8000
 
+			const isPortFree = (port:number) =>
+				new Promise(resolve => {
+					const server = require('http')
+						.createServer()
+						.listen(port, () => {
+							server.close()
+							resolve(true)
+						})
+						.on('error', () => {
+							resolve(false)
+							return false
+						})
+				})
 			// check if port is in use
-			let somethingOnPort = false
-			const net = require('net')
-			const server = net.createServer()
-			server.once('error', function (err: any) {
-				if (err.code === 'EADDRINUSE') {
-					somethingOnPort = true
-				}
-			})
-			let resolver: any = null;
-			const p = new Promise((resolve) => resolver = resolve) 
-			server.once('listening', function () {
-				server.close()
-				resolver()
-			})
-			server.listen(port)
-			await p;
+			let somethingOnPort = !(await isPortFree(port))
 
 			if (somethingOnPort) { // yes
 				// is it herbie?
 				try {
-					const response = await fetch('http://localhost:' + port + '/up')
+					const response = await fetch('http://127.0.0.1:' + port + '/up')
 				} catch (err: any) {
 					showError(`A process is running on port ${port} but it isn't a working Herbie server. Full error:\n` + err)
+					return
 				}
 			}
 
@@ -226,8 +218,8 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 				})
 			} else if (somethingOnPort) {
-				// wait for user to kill process using port
-				showInfo("Not starting Herbie server because something else is using port " + port + ".")
+				showInfo("Using existing Herbie server on port " + port + ".")
+				return
 			} else {
 				terminal = getTerminal()
 				terminal.show()
@@ -241,6 +233,18 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			})
 		}
+	}
+
+	// read name from package.json
+	const packageJson = require('../package.json')
+	const extensionName = packageJson.name
+
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
+		
+		await runHerbieServer()
 
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(

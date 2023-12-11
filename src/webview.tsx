@@ -1,5 +1,5 @@
 // import * as ReactDOM from 'react-dom';
-import { HerbieUI } from './HerbieUI';
+import { HerbieUI } from './herbie/HerbieUI';
 
 // const vscode = acquireVsCodeApi();
 interface vscode {

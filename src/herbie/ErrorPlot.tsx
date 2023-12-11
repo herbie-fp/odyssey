@@ -3,9 +3,9 @@ import {useState, useContext, useRef, useEffect} from "react";
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
 import * as HerbieContext from './HerbieContext'
 
-import * as fpcorejs from './fpcore'
-import * as ordinals from './ordinals'
-import * as herbiejs from './herbiejs'
+import * as fpcorejs from './lib/fpcore'
+import * as ordinals from './lib/ordinals'
+import * as herbiejs from './lib/herbiejs'
 
 import { Expression, ordinal, expressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
@@ -13,7 +13,7 @@ import * as contexts from './HerbieContext'
 import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
 
 import './ErrorPlot.css'
-import { nextId } from "./utils";
+import { nextId } from "./lib/utils";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 

@@ -2,13 +2,13 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
-import { nextId } from './utils'
+import { nextId } from './lib/utils'
 import { SelectableVisualization } from './SelectableVisualization';
 import { Tooltip } from 'react-tooltip'
-import * as herbiejsImport from './herbiejs'
-import * as fpcore from './fpcore'
+import * as herbiejsImport from './lib/herbiejs'
+import * as fpcore from './lib/fpcore'
 import * as types from './HerbieTypes'
-import { LocalError } from './LocalError';
+import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';

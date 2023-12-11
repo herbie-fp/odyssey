@@ -1,6 +1,4 @@
-import { Expression } from './HerbieTypes';
-import * as types from './HerbieTypes';
-import * as contexts from './HerbieContext'
+import * as contexts from '../HerbieContext'
 
 
 export function nextId(table: { id: number }[]) {

@@ -1,7 +1,7 @@
 import * as fpcorejs from './fpcore';
 import * as ordinalsjs from './ordinals';
-import { Sample } from './HerbieTypes';
-import * as types from './HerbieTypes';
+import { Sample } from '../HerbieTypes';
+import * as types from '../HerbieTypes';
 
 
 interface HerbieResponse {

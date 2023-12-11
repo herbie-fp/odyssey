@@ -8,14 +8,14 @@ import { ExpressionTable } from './ExpressionTable';
 import * as Contexts from './HerbieContext';
 import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
 import * as Types from './HerbieTypes'
-import { nextId } from './utils';
-import * as utils from './utils';
+import { nextId } from './lib/utils';
+import * as utils from './lib/utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 
-import * as fpcorejs from './fpcore';
-import * as herbiejsImport from './herbiejs';
+import * as fpcorejs from './lib/fpcore';
+import * as herbiejsImport from './lib/herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 import { DocumentationButton } from './DocumentationButton';
 

@@ -1,6 +1,6 @@
-import * as HerbieContext from './HerbieContext';
-import * as types from './HerbieTypes';
-import * as fpcore from './fpcore';
+import * as HerbieContext from '../HerbieContext';
+import * as types from '../HerbieTypes';
+import * as fpcore from '../lib/fpcore';
 import Mermaid from './Mermaid';
 import { Point } from './Point'
 

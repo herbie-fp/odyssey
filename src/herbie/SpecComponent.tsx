@@ -3,7 +3,7 @@ import { InputRange, InputRangesEditor, InputRangeEditor1 } from './InputRangesE
 import { InputRangesTableContext, SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
 import * as HerbieTypes from './HerbieTypes';
-import * as utils from './utils';
+import * as utils from './lib/utils';
 import * as HerbieContext from './HerbieContext';
 import KaTeX from 'katex';
 import Modal from 'react-modal';
@@ -14,7 +14,7 @@ console.log("KaTeX:", KaTeX);
 import './SpecComponent.css';
 const math11 = require('mathjs11');
 
-import * as fpcorejs from './fpcore';
+import * as fpcorejs from './lib/fpcore';
 
 function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void }) {
   // const { spec: value, setSpec: setValue } = useContext(SpecContext);

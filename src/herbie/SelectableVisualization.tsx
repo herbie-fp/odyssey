@@ -1,5 +1,5 @@
 import React, { ReactText, useState } from 'react';
-import { LocalError } from './LocalError';
+import { LocalError } from './LocalError/LocalError';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 import GitHubIssueButton from './GitHubIssueButton';

@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
+import { useEffect, useState } from 'react';
+import { Derivation, Expression } from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
 import { nextId } from './lib/utils'
 import { SelectableVisualization } from './SelectableVisualization';
@@ -22,18 +22,15 @@ function ExpressionTable() {
   const [showMath, setShowMath] = useState(false);
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
-  const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
+  const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
   const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
-  const [expressionStyles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
+  const [expressionStyles, ] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
   const [spec,] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [samples,] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
-  const [clickedRowId, setClickedRowId] = useState<number | null>(null); // State to keep track of the clicked row id
-  const [useTex, setUseTex] = useState(true);
-  // keep track of expanded expressions
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
@@ -41,21 +38,15 @@ function ExpressionTable() {
 
   const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
 
-  // if there's only one active expression, expand it
-  useEffect(() => {
+  useEffect(expandSingleActiveExpression, [expressions]);
+  function expandSingleActiveExpression () {
     if (activeExpressions.length === 1) {
       setExpandedExpressions([activeExpressions[0]]);
     }
-  }, [expressions]);
+  }
 
   function toggleShowMath() {
     setShowMath(!showMath);
-  }
-
-  const sample = samples.find((sample) => sample.id === selectedSampleId)
-  if (!sample) {
-    // show error message on page
-    return <div>Sample id {selectedSampleId} not found</div>
   }
 
   const handleExpressionClick = (id: number) => {
@@ -72,7 +63,6 @@ function ExpressionTable() {
     }
   }
 
-
   const handleCheckboxChange = (event: any, id: number) => {
     if (event.target.checked) {
       setCompareExprIds([...compareExprIds, id]);
@@ -80,16 +70,6 @@ function ExpressionTable() {
       setCompareExprIds(compareExprIds.filter((exprId) => exprId !== id));
     }
   };
-
-  // exprId is the first available id for a new expression given the current values in expressions
-  // we compute this by sorting expressions on id and then finding the first id that is not used
-  const getNextExprId = (expressions: Expression[]) => () => expressions.sort((a, b) => a.id - b.id).reduce((acc, curr) => {
-    if (acc === curr.id) {
-      return acc + 1;
-    } else {
-      return acc;
-    }
-  }, 0);
   
   const noneExpanded = expandedExpressions.filter(e => !archivedExpressions.includes(e)).length === 0;
 
@@ -153,6 +133,12 @@ function ExpressionTable() {
     if (errors.length !== 0) {
       throw new Error(errors[0])
     }
+  }
+
+  const sample = samples.find((sample) => sample.id === selectedSampleId)
+  if (!sample) {
+    // show error message on page
+    return <div>Sample id {selectedSampleId} not found</div>
   }
 
   return (

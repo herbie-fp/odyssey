@@ -19,6 +19,10 @@ import * as herbiejsImport from './lib/herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 import { DocumentationButton } from './DocumentationButton';
 
+import { Provider } from 'react-redux';
+import store from '../fptaylor/store';
+
+
 interface ContextProviderProps {
   children: React.ReactNode;
 }
@@ -326,8 +330,10 @@ function HerbieUIInner() {
 
 export function HerbieUI() {
   return (
-    <GlobalContextProvider>
-      <HerbieUIInner />
-    </GlobalContextProvider>
+    <Provider store={store}>
+      <GlobalContextProvider>
+        <HerbieUIInner />
+      </GlobalContextProvider>
+    </Provider>
   )
 }

@@ -1,6 +1,5 @@
 import React, { createContext } from 'react';
 import * as types from './HerbieTypes';
-import * as herbiejs from './lib/herbiejs';
 
 type setter<T> = React.Dispatch<T>
 
@@ -45,6 +44,18 @@ export const useReducerGlobal = <T>(reducerGlobal: ReducerGlobal<T>): [T, reduce
   return React.useContext(reducerGlobal.context)
 }
 
+interface Plugin {
+  name: string,
+  tableCols: [
+    header: string,
+    key: string,
+    render: (expression: types.Expression) => JSX.Element
+  ],
+  contexts: {
+    [key: string]: Global<any> | ReducerGlobal<any>
+  }
+}
+
 export const hoveredExpressionId = makeGlobal(0)
 export const SelectedExprIdContext = makeGlobal(-1)
 export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
@@ -62,6 +73,7 @@ export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErro
 export const InputRangesTableContext = makeGlobal([] as types.InputRanges[])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
+export const PluginContext = makeGlobal([] as Plugin[])
 
 type jobCountAction = { type: 'increment' } | { type: 'decrement' }
 function jobCountReducer(jobCount: number, action : jobCountAction ) {

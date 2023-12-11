@@ -17,6 +17,10 @@ const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
 
+import { useSelector, useDispatch } from 'react-redux';
+import { addAnalysis } from '../fptaylor/slice';
+import { FPTaylorState } from '../fptaylor/slice';
+
 function ExpressionTable() {
   // translate the above to use useGlobal
   const [showMath, setShowMath] = useState(false);
@@ -37,6 +41,46 @@ function ExpressionTable() {
   const herbiejs = addJobRecorder(herbiejsImport)
 
   const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
+
+  const extraTableCols = [
+    {
+      header: 'Absolute Error',
+      key: 'absoluteError',
+      // render takes in the expression and returns a react component
+      render: (expression: Expression) => {
+        const dispatch = useDispatch();
+        const absoluteError = useSelector((state: FPTaylorState) => state.analyses.filter((analysis) => analysis.expressionId === expression.id)?.[0]?.data);
+
+        // Ensure the data is in our database -- make a call to FPTaylor server if it isn't
+        useEffect(() => {
+          if (!absoluteError) {
+            // convert to fpcore
+            const fpcoreExpression = fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression));
+            // make call to FPTaylor server
+            async function updateAbsoluteError() {
+              const result = await (await fetch(`${serverUrl}/fptaylor`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  expression: fpcoreExpression,
+                  errorType: 'absolute'
+                })
+              })).json();
+              dispatch(addAnalysis({ expressionId: expression.id, data: result }));
+            }
+            updateAbsoluteError();
+          }
+        })
+
+        if (!absoluteError) {
+          return <div>...</div>
+        }
+        return <div>{absoluteError}</div>
+      }
+    }
+  ]
 
   useEffect(expandSingleActiveExpression, [expressions]);
   function expandSingleActiveExpression () {

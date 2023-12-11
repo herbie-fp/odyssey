@@ -1,13 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec } from './HerbieTypes';
-import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext';
 import * as HerbieContext from './HerbieContext';
 import { nextId } from './lib/utils'
 import { SelectableVisualization } from './SelectableVisualization';
 import { Tooltip } from 'react-tooltip'
 import * as herbiejsImport from './lib/herbiejs'
 import * as fpcore from './lib/fpcore'
-import * as types from './HerbieTypes'
 import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import KaTeX from 'katex';
@@ -17,18 +15,7 @@ import { addJobRecorder } from './HerbieUI';
 
 const math11 = require('mathjs11');
 
-
-import SimpleBar from 'simplebar-react';
-import 'simplebar-react/dist/simplebar.min.css';
-
-// // @ts-ignore
-// import { VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
-
-// provideVSCodeDesignSystem().register(vsCodeButton());
-
-
 import './ExpressionTable.css';
-import { error } from 'console';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -71,14 +58,8 @@ function ExpressionTable() {
     return <div>Sample id {selectedSampleId} not found</div>
   }
 
-  // const { expressionIdsForSpecs } = useContext(HerbieContext.ExpressionIdsForSpecsContext)  
-
-  //const { spec } = useContext(SpecContext);
-  // const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
-
   const handleExpressionClick = (id: number) => {
     setSelectedExprId(id);
-    // setClickedRowId(id);
   }
 
   const handleExpandClick = (id: number) => {
@@ -201,9 +182,6 @@ function ExpressionTable() {
       <div className="expressions">
         <div className="add-expression">
           <div className="add-expression-top">
-            {/* <div className="checkbox">
-                  <input type="checkbox"></input>
-                </div> */}
             <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
             <div className="add-expression-button">
               <button 
@@ -241,7 +219,6 @@ function ExpressionTable() {
           </div>
         </div>
       </div>
-      {/* <SimpleBar style={{ maxHeight: 'initial' }}> */}
         <div className="expressions-actual">
           {activeExpressions.map((id) => {
             const expression = expressions.find((expression) => expression.id === id) as Expression;
@@ -355,7 +332,6 @@ function ExpressionTable() {
         < Tooltip anchorSelect=".copy-anchor" place="top" >
           Copy to clipboard
         </Tooltip> 
-      {/* </SimpleBar> */}
     </div>
   )
 }

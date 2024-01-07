@@ -3,7 +3,7 @@
   "displayName": "Odyssey",
   "description": "An interactive workbench for the Herbie floating-point tool https://github.com/herbie-fp/herbie",
   "icon": "images/odyssey-icon.png",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "repository": "https://github.com/herbie-fp/herbie-vscode",
   "publisher": "herbie-fp",
   "engines": {
@@ -22,6 +22,7 @@
     ]
   },
   "scripts": {
+    "publish": "vsce publish",
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",

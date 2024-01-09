@@ -157,7 +157,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
 
   // Create a new Spec when the spec is submitted by clicking the done button
   const handleSpecTextUpdate : React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    setSpec(new Spec(event.target.value, spec.id));
+    setSpec(new Spec(event.target.value.trim(), spec.id));
   }
 
   const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {

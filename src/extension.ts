@@ -110,28 +110,42 @@ export function activate(context: vscode.ExtensionContext) {
 			// unzip to home local share odyssey
 			const unzip = require('unzipper')
 			const extract = unzip.Extract({ path: odysseyDir + '/dist' })
-			fs.createReadStream(dest).pipe(extract)
+			extract.on('error', async (err: any) => {
+				vscode.window.showErrorMessage('Error installing Herbie (extraction): ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			})
 			// wait for close event
 			extract.on('close', async () => {
 				// delete zip file
-				fs.unlinkSync(dest)
+				try {
+					fs.unlinkSync(dest)
 
-				// // the binary path varies depending on platform
-				// let binaryPath = ''
-				// switch (process.platform) {
-				// 	case 'win32':
-				// 		binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
-				// 		break
-				// 	case 'linux':
-				// 		binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
-				// 		break
-				// 	case 'darwin':
-				// 		binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
-				// 		break
-				// }
+					// // the binary path varies depending on platform
+					// let binaryPath = ''
+					// switch (process.platform) {
+					// 	case 'win32':
+					// 		binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
+					// 		break
+					// 	case 'linux':
+					// 		binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
+					// 		break
+					// 	case 'darwin':
+					// 		binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
+					// 		break
+					// }
 
-				// make binary executable
-				fs.chmodSync(binaryPath, '755')
+					// make binary executable
+					fs.chmodSync(binaryPath, '755')
+				} catch (err: any) {
+					vscode.window.showErrorMessage('Error installing Herbie: ' + err, 'Copy to clipboard').then((action) => {
+						if (action === 'Copy to clipboard') {
+							vscode.env.clipboard.writeText(err)
+						}
+					})
+				}
 				
 				// // try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
 				// const symlink = odysseyDir + '/bin/herbie'
@@ -172,6 +186,7 @@ export function activate(context: vscode.ExtensionContext) {
 					})
 				}
 			})
+			fs.createReadStream(dest).pipe(extract)
 		})
 	}
 	

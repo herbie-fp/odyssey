@@ -113,6 +113,13 @@ export class PointLocalErrorAnalysis {
   }
 }
 
+export class FPTaylorAnalysis {
+  constructor(public readonly expressionId: number, public readonly analysis: any) {
+    this.expressionId = expressionId;
+    this.analysis = analysis;
+  }
+}
+
 export class InputRanges {
   constructor(public readonly ranges: SpecRange[], public readonly specId: number, public readonly id: number) {
     this.ranges = ranges;

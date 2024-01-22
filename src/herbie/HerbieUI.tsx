@@ -118,6 +118,7 @@ function HerbieUIInner() {
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
   const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
+  const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [inputRangesTable, ] = Contexts.useGlobal(Contexts.InputRangesTableContext)
   const [archivedExpressions,] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
 
@@ -290,13 +291,64 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
-          localErrors.push(new Types.PointLocalErrorAnalysis(expression.id, selectedPoint, await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text), { points: [[modSelectedPoint, 1e308]] } as Sample, serverUrl)))
+          localErrors.push(
+            new Types.PointLocalErrorAnalysis(
+              expression.id, 
+              selectedPoint, 
+              await herbiejs.analyzeLocalError(
+                fpcorejs.mathjsToFPCore(expression.text), 
+                { points: [[modSelectedPoint, 1e308]] } as Sample,
+                 serverUrl
+              )
+            )
+          )
         }
       }
       setSelectedPointsLocalError(localErrors)
     }
     
     setTimeout(getPointLocalError)
+  }
+
+  // when the selected point changes, update the selected point local error
+  useEffect(updateFPTaylorAnalysis, [serverUrl, expressions])
+  function updateFPTaylorAnalysis() {
+    async function getFPTaylorAnalysis() {
+      const localErrors = []
+      for (const expression of expressions) {
+        if (expression) {
+          // HACK to make sampling work on Herbie side
+          const vars = fpcorejs.getVarnamesMathJS(expression.text)
+          const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
+          
+          localErrors.push(
+            new Types.FPTaylorAnalysis(
+              expression.id, 
+              (
+                await fetch(
+                  "http://localhost:3000", 
+                  {
+                    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                    mode: 'cors', // no-cors, *cors, same-origin
+                    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                    credentials: 'same-origin', // include, *same-origin, omit
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    redirect: 'follow', // manual, *follow, error
+                    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                    body: JSON.stringify({formulas: ["(FPCore (x) :pre (>= 1 x 0) (- x 1))"]}) // body data type must match "Content-Type" header
+                  }
+                )
+              ).json()
+            )
+          )
+        }
+      }
+      setFPTaylorAnalysis(localErrors)
+    }
+    
+    setTimeout(getFPTaylorAnalysis)
   }
 
   const components = [

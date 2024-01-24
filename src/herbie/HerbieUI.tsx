@@ -13,6 +13,7 @@ import * as utils from './lib/utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
+import { FPTaylorComponent } from './FPTaylorComponent';
 
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
@@ -33,7 +34,7 @@ function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element
 
   return (
     <>
-      {[...globals, ...reducerGlobals].reduceRight((children, { context, value }) => 
+      {[...globals, ...reducerGlobals].reduceRight((children, { context, value }) =>
         React.createElement(context.Provider, { value }, children)
       , children)}
     </>
@@ -77,7 +78,7 @@ function hslToRgb(h: number, s: number, l: number) {
     var hex = c.toString(16);
     return hex.length === 1 ? "0" + hex : hex;
   }
-  
+
   function rgbToHex(r:number, g:number, b:number) {
     return componentToHex(r) + componentToHex(g) + componentToHex(b);
   }
@@ -123,7 +124,7 @@ function HerbieUIInner() {
   const [archivedExpressions,] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
 
   const herbiejs = addJobRecorder(herbiejsImport)
-  
+
   const [showOverlay, setShowOverlay] = useState(true);
 
   // Data relationships
@@ -143,7 +144,7 @@ function HerbieUIInner() {
         if (result) {
           return result as ErrorAnalysis
         }
-        
+
         // Only get analyses for the current spec
         if (sample.specId !== spec.id) {
           return;
@@ -159,7 +160,7 @@ function HerbieUIInner() {
 
           // setCompareExprIds to include the new expression without duplicates
           setCompareExprIds([...compareExprIds, expression.id].filter((v, i, a) => a.indexOf(v) === i))
-          
+
           return new ErrorAnalysis(analysis, expression.id, sample.id)
         } catch (e) {
           const throwError = (e: any) => () => {
@@ -174,7 +175,7 @@ function HerbieUIInner() {
   }
 
   // Reactively update expression styles whenever expressions change
-  
+
   useEffect(updateExpressionStyles, [expressions])
   function updateExpressionStyles() {
     setExpressionStyles(expressions.map((expression) => {
@@ -293,10 +294,10 @@ function HerbieUIInner() {
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
           localErrors.push(
             new Types.PointLocalErrorAnalysis(
-              expression.id, 
-              selectedPoint, 
+              expression.id,
+              selectedPoint,
               await herbiejs.analyzeLocalError(
-                fpcorejs.mathjsToFPCore(expression.text), 
+                fpcorejs.mathjsToFPCore(expression.text),
                 { points: [[modSelectedPoint, 1e308]] } as Sample,
                  serverUrl
               )
@@ -306,7 +307,7 @@ function HerbieUIInner() {
       }
       setSelectedPointsLocalError(localErrors)
     }
-    
+
     setTimeout(getPointLocalError)
   }
 
@@ -320,13 +321,13 @@ function HerbieUIInner() {
           // HACK to make sampling work on Herbie side
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-          
+
           localErrors.push(
             new Types.FPTaylorAnalysis(
-              expression.id, 
-              (
+              expression.id,
+              await (
                 await fetch(
-                  "http://localhost:3000", 
+                  "http://localhost:3000",
                   {
                     method: 'POST', // *GET, POST, PUT, DELETE, etc.
                     mode: 'cors', // no-cors, *cors, same-origin
@@ -337,7 +338,7 @@ function HerbieUIInner() {
                     },
                     redirect: 'follow', // manual, *follow, error
                     referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                    body: JSON.stringify({formulas: ["(FPCore (x) :pre (>= 1 x 0) (- x 1))"]}) // body data type must match "Content-Type" header
+                    body: JSON.stringify({ formulas: ["(FPCore (x) :pre (>= 1 x 0) (- x 1))"] }) // body data type must match "Content-Type" header
                   }
                 )
               ).json()
@@ -347,7 +348,7 @@ function HerbieUIInner() {
       }
       setFPTaylorAnalysis(localErrors)
     }
-    
+
     setTimeout(getFPTaylorAnalysis)
   }
 
@@ -355,6 +356,7 @@ function HerbieUIInner() {
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId}/> },
+    // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
   ];
 
   return (

@@ -9,7 +9,7 @@ export class Derivation {
   // derivation: The HTMLHistory object containing the derivation (as HTML) for an expression.
   // id: The id of this derivation.
   // parentId: The id of this derivation's parent, or undefined if this derivation has no parent.
-  constructor(public readonly derivation: HTMLHistory, public readonly id: number, public readonly parentId: number | undefined) { 
+  constructor(public readonly derivation: HTMLHistory, public readonly id: number, public readonly parentId: number | undefined) {
     this.derivation = derivation;
     this.id = id;
     this.parentId = parentId;
@@ -19,7 +19,7 @@ export class Derivation {
 export class Expression {
   /**
    *  @param {string} text - mathjs expression */
-  constructor(public readonly text: string, public readonly id: number, public readonly specId: number) { 
+  constructor(public readonly text: string, public readonly id: number, public readonly specId: number) {
     this.text = text;
     this.id = id;
     this.specId = specId;
@@ -56,7 +56,7 @@ export type ErrorAnalysisData = {
 }
 
 export class ErrorAnalysis {
-  constructor(public readonly data: ErrorAnalysisData, public readonly expressionId: number, public readonly sampleId: number) { 
+  constructor(public readonly data: ErrorAnalysisData, public readonly expressionId: number, public readonly sampleId: number) {
     this.data = data;
     this.expressionId = expressionId;
     this.sampleId = sampleId;
@@ -92,7 +92,7 @@ export class Sample {
 
 export interface LocalErrorTree {
   /** the expression */
-  e: string 
+  e: string
   children: LocalErrorTree[]
   'avg-error': string
 }

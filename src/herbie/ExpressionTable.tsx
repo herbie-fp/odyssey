@@ -8,6 +8,7 @@ import * as herbiejsImport from './lib/herbiejs'
 import * as fpcore from './lib/fpcore'
 import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
+import { FPTaylorComponent } from './FPTaylorComponent';
 import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';
 
@@ -70,7 +71,7 @@ function ExpressionTable() {
       setCompareExprIds(compareExprIds.filter((exprId) => exprId !== id));
     }
   };
-  
+
   const noneExpanded = expandedExpressions.filter(e => !archivedExpressions.includes(e)).length === 0;
 
   const handleExpandAllClick = () => {
@@ -121,7 +122,7 @@ function ExpressionTable() {
       const functionVariableString = functionNamedVariables.join(", ");
       const errorMessage =
         "The added expression is not valid. The expression you tried to add has the following variables that have the same name as FPCore functions: " +
-        functionVariableString;    
+        functionVariableString;
       return [errorMessage];
     }
 
@@ -170,7 +171,7 @@ function ExpressionTable() {
           <div className="add-expression-top">
             <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
             <div className="add-expression-button">
-              <button 
+              <button
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
                 onClick={() => {
                   validateExpression(addExpression);
@@ -193,7 +194,7 @@ function ExpressionTable() {
           <div className="add-expression-dropdown">
             <div className="add-expression-tex" dangerouslySetInnerHTML={{
                 __html: (() => {
-                  try {      
+                  try {
                     validateExpression(addExpression);
                     return addExpression.trim() === '' ? '' : KaTeX.renderToString(math11.parse(addExpression).toTex(), { throwOnError: false })
                   } catch (e) {
@@ -220,6 +221,7 @@ function ExpressionTable() {
             const components = [
                 { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
+                { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent/> },
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
@@ -242,7 +244,7 @@ function ExpressionTable() {
                           if (fpcore.getVarnamesMathJS(spec.expression).length === 0) {
                             throw new Error("No variables detected.")
                           }
-                          
+
                           return KaTeX.renderToString(math11.parse(expression.text).toTex(), { throwOnError: false })
                         } catch (e) {
                           //throw e;
@@ -263,17 +265,17 @@ function ExpressionTable() {
                     {analysisResult}
                   </div>
                   <div className="herbie">
-                    <button onClick={async () => { 
-                      // get suggested expressions with Herbie and put them in the expressions table                      
+                    <button onClick={async () => {
+                      // get suggested expressions with Herbie and put them in the expressions table
                       const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
-                      
-                      
+
+
                       const histories = suggested.histories;
                       const alternatives = suggested.alternatives;
-                      
+
                       const newExpressions = [];
                       const newDerivations = [];
-                    
+
                       // Add the suggested expressions to the expressions table,
                       // and add the suggested derivations to the derivations table
                       for (let i = 0; i < alternatives.length; i++) {
@@ -291,15 +293,15 @@ function ExpressionTable() {
                         const newDerivation = new Derivation(d, newId, expression.id);
                         newDerivations.push(newDerivation);
                       }
-                    
+
                       setExpressions([...newExpressions, ...expressions]);
                       setDerivations([...newDerivations, ...derivations]);
                     }}>
                       Herbie
                     </button>
                   </div>
-                  
-                  
+
+
                   <div className="delete">
                     <button onClick={() => setArchivedExpressions([...archivedExpressions, expression.id])}>
                     ╳
@@ -313,11 +315,11 @@ function ExpressionTable() {
                 )}
               </div>
             );
-          })}                
+          })}
         </div>
         < Tooltip anchorSelect=".copy-anchor" place="top" >
           Copy to clipboard
-        </Tooltip> 
+        </Tooltip>
     </div>
   )
 }

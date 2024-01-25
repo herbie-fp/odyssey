@@ -270,7 +270,7 @@ function FPCoreGetBody(fpcore: FPCore): FPCoreBody {
       };
     }
   }
-  
+
   function tokenize (expression: string) {
     return expression
       .replace(/\(/g, ' ( ')
@@ -279,7 +279,7 @@ function FPCoreGetBody(fpcore: FPCore): FPCoreBody {
       .split(/\s+/)
       .map(readToken);
   }
-  
+
   function buildAST (tokens: any[]) {
     return tokens.reduce((ast, token) => {
       if (token.type === 'OPENING_PARENS') {
@@ -295,7 +295,7 @@ function FPCoreGetBody(fpcore: FPCore): FPCoreBody {
       return ast;
     }, [[]])[0][0];
   }
-  
+
   function parse (expression: string) {
     return buildAST(tokenize(expression));
   }
@@ -334,7 +334,7 @@ function mathjsToFPCore(mathjs: mathjs, spec: undefined | mathjs = undefined, va
 
 
 const renderTex = (h: string) => {
-  
+
   const el = document.createElement('span') as HTMLElement
   el.innerHTML = (window as any).katex.renderToString(h, {
     throwOnError: false
@@ -348,7 +348,7 @@ function cleanupTex(node: any, options:any) {
   if (node.fn?.name === 'hypot' && !(node.args.length === 2)) { throw Error('hypot takes two arguments') }
   if (node.fn?.name === 'log1p' && !(node.args.length === 1)) { throw Error('log1p takes one argument') }
   if (node.fn?.name === 'log' && !(node.args.length === 1)) { throw Error('log takes one argument') }
-  return node.fn?.name === 'hypot' ? `\\mathbf{hypot}(${node.args[0].toTex(options)}, ${node.args[1].toTex(options)})` 
+  return node.fn?.name === 'hypot' ? `\\mathbf{hypot}(${node.args[0].toTex(options)}, ${node.args[1].toTex(options)})`
     : node.fn?.name === 'log1p' ? `\\mathbf{log1p}(${node.args[0].toTex(options)})`
     : node.fn?.name === 'log' ? `\\mathbf{log}(${node.args[0].toTex(options)})`
     : node._toTex(options)
@@ -367,9 +367,9 @@ function branchConditionalHandler(node: any, options : any) {
     curr = deparen(curr.falseExpr)
   }
   conditions.push(conditions[conditions.length - 1])  // duplicate the final condition
-  
+
   const deparenCondition = (c: {condition: any, trueExpr: any, falseExpr: any}) => ({...c, condition: deparen(c.condition), trueExpr: deparen(c.trueExpr), falseExpr: deparen(c.falseExpr)})
-  return conditions.map(deparenCondition).map((c, i) => 
+  return conditions.map(deparenCondition).map((c, i) =>
     i === 0 ? `\\mathbf{if} \\> ${c.condition.toTex(options)}: \\\\ \\quad ${c.trueExpr.toTex(options)}`
     : i !== conditions.length - 1 ? `\\mathbf{elif} \\> ${c.condition.toTex(options)}: \\\\ \\quad ${c.trueExpr.toTex(options)}`
     : `\\mathbf{else :} \\\\ \\quad ${c.falseExpr.toTex(options)}`).join('\\\\')

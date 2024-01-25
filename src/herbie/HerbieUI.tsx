@@ -120,6 +120,7 @@ function HerbieUIInner() {
   const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
+  const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
   const [inputRangesTable, ] = Contexts.useGlobal(Contexts.InputRangesTableContext)
   const [archivedExpressions,] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
 
@@ -217,6 +218,8 @@ function HerbieUIInner() {
       }
       console.debug(`Sampling spec ${spec.id} for input ranges ${inputRanges.id}...`)
       console.debug(herbiejs.getSample)
+
+      console.log(typeof(spec.expression))
       const sample_points = (await herbiejs.getSample(
         fpcorejs.makeFPCore2({
           vars: fpcorejs.getVarnamesMathJS(spec.expression),
@@ -312,15 +315,19 @@ function HerbieUIInner() {
   }
 
   // when the selected point changes, update the selected point local error
-  useEffect(updateFPTaylorAnalysis, [serverUrl, expressions])
+  useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions])
   function updateFPTaylorAnalysis() {
     async function getFPTaylorAnalysis() {
       const localErrors = []
       for (const expression of expressions) {
         if (expression) {
-          // HACK to make sampling work on Herbie side
-          const vars = fpcorejs.getVarnamesMathJS(expression.text)
-          const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
+          const index = expressions.indexOf(expression);
+
+          const formula = fpcorejs.makeFPCore2({
+            vars: fpcorejs.getVarnamesMathJS(expression.text),
+            pre: fpcorejs.FPCorePreconditionFromRanges([["x", [0,1]]]),
+            body: fpcorejs.FPCoreBody(expression.text)
+          })
 
           localErrors.push(
             new Types.FPTaylorAnalysis(

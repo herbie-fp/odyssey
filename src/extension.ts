@@ -12,7 +12,7 @@ const url = require('url');
 
 /**
  * Downloads a file from a URL to a specified directory.
- * 
+ *
  * @param {string} downloadUrl - The URL of the file to download.
  * @param {string} dest - The path to the directory where the file should be saved.
  * @param {function} callback - A callback function to execute once download is complete.
@@ -146,7 +146,7 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 					})
 				}
-				
+
 				// // try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
 				// const symlink = odysseyDir + '/bin/herbie'
 				// const bin = odysseyDir + '/bin'
@@ -189,7 +189,7 @@ export function activate(context: vscode.ExtensionContext) {
 			fs.createReadStream(dest).pipe(extract)
 		})
 	}
-	
+
 	const runHerbieServer = async () => {
 		try {
 			//spawn(symlink, ['web', '--quiet']);
@@ -258,7 +258,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
-		
+
 		await runHerbieServer()
 
 		// Create and show a new webview
@@ -316,7 +316,7 @@ export function activate(context: vscode.ExtensionContext) {
 	})
 
 	// spawn(require('os').homedir() + '/.local/share/odyssey/bin/herbie', ['web', '--quiet']);
-	
+
 	context.subscriptions.push(disposable)
 }
 
@@ -324,17 +324,17 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 	const jsFile = "webview.bundle.js";
 	// const cssFile = "webview.css";
 	// this is the webpack dev server; in theory, this could be used for hot module reloading, but it doesn't work right now.
-	const localServerUrl = "http://localhost:3000";  
+	const localServerUrl = "http://localhost:3000";
 	const isProduction = context.extensionMode === vscode.ExtensionMode.Production;
 
 	let scriptUrl = isProduction
 		? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString()
 		: `${localServerUrl}/${jsFile}`
-	
+
 	// let cssUrl = isProduction
 	// 	? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', cssFile))).toString()
 	// 	: `${localServerUrl}/${cssFile}`
-	
+
 	scriptUrl = webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString();
 
 	return `<!DOCTYPE html>
@@ -350,7 +350,7 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		<link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Ruda">
 		<style>
-		
+
 		</style>
 	</head>
 	<body>

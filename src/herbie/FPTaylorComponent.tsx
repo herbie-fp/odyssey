@@ -33,7 +33,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
     setFPTaylorRanges(updatedFPTaylorRanges);
   }, [variableRanges, expressionId]);
 
-  const analysisResult = FPTaylorAnalyses[0]?.analysis[0];
+  const analysisResult = FPTaylorAnalyses.find((item) => item.expressionId === expressionId)?.analysis[0];
   const bounds = analysisResult?.bounds ?? "FPTaylor returned no error bounds.";
   const absoluteError = analysisResult?.absoluteError ?? "FPTaylor returned no absolute error.";
 

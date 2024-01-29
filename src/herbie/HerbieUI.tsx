@@ -314,22 +314,27 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
-  // when the selected point changes, update the selected point local error
   useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions])
   function updateFPTaylorAnalysis() {
     async function getFPTaylorAnalysis() {
-      const localErrors = []
+      const FPTaylorAnalyses = []
       for (const expression of expressions) {
         if (expression) {
+          // Get the expression itself
           const index = expressions.indexOf(expression);
+
+          // Get the ranges
+          const ranges: [string, [number, number]][] = FPTaylorRanges[index].map(
+            ({ variable, lowerBound, upperBound }) => [variable, [lowerBound, upperBound]]
+          );
 
           const formula = fpcorejs.makeFPCore2({
             vars: fpcorejs.getVarnamesMathJS(expression.text),
-            pre: fpcorejs.FPCorePreconditionFromRanges([["x", [0,1]]]),
+            pre: fpcorejs.FPCorePreconditionFromRanges(ranges),
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
-          localErrors.push(
+          FPTaylorAnalyses.push(
             new Types.FPTaylorAnalysis(
               expression.id,
               await (
@@ -353,7 +358,7 @@ function HerbieUIInner() {
           )
         }
       }
-      setFPTaylorAnalysis(localErrors)
+      setFPTaylorAnalysis(FPTaylorAnalyses)
     }
 
     setTimeout(getFPTaylorAnalysis)

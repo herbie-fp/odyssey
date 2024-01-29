@@ -13,7 +13,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
     const result = getVarnamesMathJS(expression.text);
     variablesSet = new Set([...variablesSet, ...result]);
   });
-  const variables = Array.from(variablesSet);
+  const [variables, _] = useState(Array.from(variablesSet));
 
   const initialVariableRanges: { [key: string]: { min: number; max: number } } = {};
   variables.forEach(variable => {
@@ -21,19 +21,17 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   });
 
   const [variableRanges, setVariableRanges] = useState(initialVariableRanges);
-
+  console.log(FPTaylorRanges)
   React.useEffect(() => {
-    const specRanges = Object.entries(variableRanges).map(([variable, range]) =>
-      new SpecRange(variable, range.min, range.max)
+    const specRanges = variables.map(
+      variable => new SpecRange(variable, variableRanges[variable].min, variableRanges[variable].max)
     );
 
     let updatedFPTaylorRanges = [...FPTaylorRanges];
-    updatedFPTaylorRanges[expressionId] = specRanges[0];
+    updatedFPTaylorRanges[expressionId] = specRanges;
 
     setFPTaylorRanges(updatedFPTaylorRanges);
   }, [variableRanges, expressionId]);
-
-  console.log(FPTaylorRanges);
 
   const analysisResult = FPTaylorAnalyses[0]?.analysis[0];
   const bounds = analysisResult?.bounds ?? "FPTaylor returned no error bounds.";

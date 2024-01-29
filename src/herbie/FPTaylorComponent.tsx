@@ -8,7 +8,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   const [FPTaylorAnalyses, setFPTaylorAnalyses] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
 
-  let variablesSet = new Set();
+  let variablesSet = new Set<string>();
   expressions.forEach(expression => {
     const result = getVarnamesMathJS(expression.text);
     variablesSet = new Set([...variablesSet, ...result]);

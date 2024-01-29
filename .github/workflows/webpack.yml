@@ -31,4 +31,4 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3  # TODO maybe change to official later
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist  # The folder where your bundled files are
+        publish_dir: .  # The folder where your bundled files are

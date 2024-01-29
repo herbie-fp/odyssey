@@ -319,14 +319,20 @@ function HerbieUIInner() {
     async function getFPTaylorAnalysis() {
       const FPTaylorAnalyses = []
       for (const expression of expressions) {
-        if (expression) {
+        if (expression && FPTaylorRanges) {
           // Get the expression itself
           const index = expressions.indexOf(expression);
 
           // Get the ranges
-          const ranges: [string, [number, number]][] = FPTaylorRanges[index].map(
+          const ranges: [string, [number, number]][] = FPTaylorRanges[index]?.map(
             ({ variable, lowerBound, upperBound }) => [variable, [lowerBound, upperBound]]
           );
+
+          if(!ranges) {
+            continue
+          }
+
+          console.log(FPTaylorAnalysis)
 
           const formula = fpcorejs.makeFPCore2({
             vars: fpcorejs.getVarnamesMathJS(expression.text),

@@ -1,0 +1,54 @@
+.input-ranges-editor input {
+  font-size: 10px;
+  width: 70px;
+}
+.input-ranges-editor {
+  display: inline-block;
+}
+
+.error-plot svg text {
+  font-size: 22px;
+  fill: var(--foreground-deemphasize-color);
+}
+
+.error-plot svg {
+  margin-top: 5px;
+  margin-right: 10px;
+}
+
+g[aria-label="x-axis tick label"] text {
+  /* font-size: large; */
+  /* transform: translate(10px, 10px); */
+  text-anchor: middle;
+}
+
+g[aria-label="x-axis tick label"] {
+ transform: translate(0px, 17px);
+}
+
+g[aria-label="x-axis label"] {
+  transform: translate(-20px, 60px);
+}
+
+g[aria-label="y-axis label"] {
+  transform: translate(-24px, -40px);
+}
+
+.resample {
+  font-size: 10px;
+}
+
+.error-plot circle:hover {
+  r: 15px;
+  fill-opacity: 1;
+  transition: r 0s ease-in-out;
+  z-index: 100;
+}
+.error-plot circle {
+  border: 10px solid transparent;
+  transition: all 0.2s ease-out;
+
+  stroke: transparent;
+  stroke-width: 15px;
+  fill-opacity: .5;
+}

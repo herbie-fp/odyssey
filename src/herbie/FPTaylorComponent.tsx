@@ -21,7 +21,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   });
 
   const [variableRanges, setVariableRanges] = useState(initialVariableRanges);
-  console.log(FPTaylorRanges)
+
   React.useEffect(() => {
     const specRanges = variables.map(
       variable => new SpecRange(variable, variableRanges[variable].min, variableRanges[variable].max)

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import * as Contexts from './HerbieContext';
-import { SpecRange } from './HerbieTypes';
+import { FPTaylorRange, SpecRange } from './HerbieTypes';
 import { getVarnamesMathJS } from './lib/fpcore';
 
 const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
@@ -28,14 +28,17 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
     );
 
     let updatedFPTaylorRanges = [...FPTaylorRanges];
-    updatedFPTaylorRanges[expressionId] = specRanges;
+    updatedFPTaylorRanges[expressionId] = new FPTaylorRange(expressionId, specRanges);
 
     setFPTaylorRanges(updatedFPTaylorRanges);
   }, [variableRanges, expressionId]);
 
+  console.log("Finding " + expressionId)
   const analysisResult = FPTaylorAnalyses.find((item) => item.expressionId === expressionId)?.analysis[0];
   const bounds = analysisResult?.bounds ?? "FPTaylor returned no error bounds.";
   const absoluteError = analysisResult?.absoluteError ?? "FPTaylor returned no absolute error.";
+
+  console.log(FPTaylorAnalyses)
 
   return (
     <div>

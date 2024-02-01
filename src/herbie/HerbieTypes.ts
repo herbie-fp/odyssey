@@ -120,6 +120,13 @@ export class FPTaylorAnalysis {
   }
 }
 
+export class FPTaylorRange {
+  constructor(public readonly expressionId: number, public readonly ranges: SpecRange[]) {
+    this.expressionId = expressionId;
+    this.ranges = ranges;
+  }
+}
+
 export class InputRanges {
   constructor(public readonly ranges: SpecRange[], public readonly specId: number, public readonly id: number) {
     this.ranges = ranges;

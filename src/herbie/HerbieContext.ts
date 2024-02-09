@@ -73,7 +73,7 @@ export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocal
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
 export const FPTaylorAnalysisContext = makeGlobal([] as types.FPTaylorAnalysis[])
 export const FPTaylorRangeContext = makeGlobal([] as types.FPTaylorRange[])
-export const InputRangesTableContext = makeGlobal([] as types.InputRanges[])
+export const InputRangesTableContext = makeGlobal([] as types.InputRanges | types.RangeInSpecFPCore []) // TODO: Option type of array
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
 

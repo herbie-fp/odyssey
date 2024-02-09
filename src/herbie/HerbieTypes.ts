@@ -135,6 +135,13 @@ export class InputRanges {
   }
 }
 
+export class RangeInSpecFPCore {
+  constructor(public readonly specId: number, public readonly id: number) {
+    this.specId = specId;
+    this.id = id;
+  }
+}
+
 export class Spec {
   constructor(public readonly expression: string, public readonly id: number) {
     this.expression = expression;

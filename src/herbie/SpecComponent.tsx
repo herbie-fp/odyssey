@@ -15,6 +15,16 @@ import './SpecComponent.css';
 const math11 = require('mathjs11');
 
 import * as fpcorejs from './lib/fpcore';
+import { fPCoreToMathJS } from './lib/herbiejs';
+
+async function ensureMathJS(expression: string): Promise<string> {
+  const host = "localhost:8000";
+  if (expression.includes("FPCore")) {
+    return await fPCoreToMathJS(expression, host);
+  }
+
+  return expression
+}
 
 function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void }) {
   // const { spec: value, setSpec: setValue } = useContext(SpecContext);
@@ -35,13 +45,15 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
       const functionVariableString = functionNamedVariables.join(", ");
       const errorMessage =
         "The added expression is not valid. The expression you tried to add has the following variables that have the same name as FPCore functions: " +
-        functionVariableString;    
+        functionVariableString;
       return [errorMessage];
     }
     return [];
   }
 
-  const validateSpecExpression = (expression: string) => {
+  const validateSpecExpression = async (expression: string) => {
+    expression = await ensureMathJS(expression)
+
     const errors = specExpressionErrors(expression);
     if (errors.length !== 0) {
       throw new Error(errors[0])
@@ -59,25 +71,27 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   // Wait until submit click to set the spec
-  const handleSubmitClick = () => {
+  const handleSubmitClick = async () => {
     const specId = value.id + 1;
     const inputRangeId = utils.nextId(inputRangesTable)
     const variables = getVariables(spec)
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
 
+    const expression = await ensureMathJS(spec.expression);
+
     const inputRanges = new HerbieTypes.InputRanges(
       mySpecRanges.filter((range) => variables.includes(range.variable)),
-      specId, 
+      specId,
       inputRangeId)
     console.debug('Adding to inputRangesTable: ', inputRanges)
     setInputRangesTable([...inputRangesTable, inputRanges])
-    const mySpec = new Spec(spec.expression, specId);
+    const mySpec = new Spec(expression, specId);
     console.debug('Added, now setting spec', mySpec)
 
     // Add to derivations
     setValue(mySpec);
-    
+
     setShowOverlay(false);
   }
 
@@ -116,31 +130,31 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   //   // The returned function will be able to reference this due to closure.
   //   // Each call to the returned function will share this common timer.
   //   var timeout: NodeJS.Timeout | null;
-  
+
   //   // Calling debounce returns a new anonymous function
   //   return function() {
   //     // reference the context and args for the setTimeout function
   //     // @ts-ignore
   //     var context = this,
   //       args = arguments;
-  
+
   //     // Should the function be called now? If immediate is true
   //     //   and not already in a timeout then the answer is: Yes
   //     var callNow = immediate && !timeout;
-  
+
   //     // This is the basic debounce behaviour where you can call this
   //     //   function several times, but it will only execute once
   //     //   (before or after imposing a delay).
   //     //   Each time the returned function is called, the timer starts over.
   //     clearTimeout(timeout!);
-  
+
   //     // Set the new timeout
   //     timeout = setTimeout(function() {
-  
+
   //       // Inside the timeout function, clear the timeout variable
   //       // which will let the next execution run when in 'immediate' mode
   //       timeout = null;
-  
+
   //       // Check if the function already ran with the immediate flag
   //       if (!immediate) {
   //         // Call the original function with apply
@@ -149,7 +163,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   //         func.apply(context, args);
   //       }
   //     }, wait);
-  
+
   //     // Immediate mode and no wait timer? Execute the function...
   //     if (callNow) { func.apply(context, args); }
   //   }
@@ -211,8 +225,8 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                 <InputRangeEditor1 value={{
                 lower: range.lowerBound.toString(),
                 upper: range.upperBound.toString()
-              }} setValue={ 
-                (value: { lower: string, upper: string }) => { 
+              }} setValue={
+                (value: { lower: string, upper: string }) => {
                   console.debug('set input range', v, value)
                   if (mySpecRanges.map(r => r.variable).includes(v)) {
                     setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
@@ -227,9 +241,9 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             })}
             </div>
             {/* <div className='spec-input-range-editor'>
-              <InputRangesEditor 
-              value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }} 
-              setValue={handleRangesUpdate} 
+              <InputRangesEditor
+              value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }}
+              setValue={handleRangesUpdate}
               />
             </div> */}
             <div className="submit">

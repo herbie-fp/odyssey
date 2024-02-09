@@ -1,4 +1,4 @@
-import React, { useCallback, ChangeEvent, useContext, useState } from 'react';
+import React, { useCallback, ChangeEvent, useContext, useState, useEffect } from 'react';
 import { InputRange, InputRangesEditor, InputRangeEditor1 } from './InputRangesEditor';
 import { InputRangesTableContext, SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
@@ -17,10 +17,9 @@ const math11 = require('mathjs11');
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
 
-async function ensureMathJS(expression: string): Promise<string> {
-  const host = "localhost:8000";
+async function ensureMathJS(expression: string, serverUrl: string): Promise<string> {
   if (expression.includes("FPCore")) {
-    return await fPCoreToMathJS(expression, host);
+    return await fPCoreToMathJS(expression, serverUrl);
   }
 
   return expression
@@ -36,6 +35,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
   const [mySpecRanges, setMySpecRanges] = useState(inputRangesTable.findLast(r => r.specId === spec.id)?.ranges || [])
   const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
 
   const specExpressionErrors = (expression: string) =>  {
     const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
@@ -52,7 +52,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   const validateSpecExpression = async (expression: string) => {
-    expression = await ensureMathJS(expression)
+    expression = await ensureMathJS(expression, serverUrl)
 
     const errors = specExpressionErrors(expression);
     if (errors.length !== 0) {
@@ -78,7 +78,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
 
-    const expression = await ensureMathJS(spec.expression);
+    const expression = await ensureMathJS(spec.expression, serverUrl);
 
     const inputRanges = new HerbieTypes.InputRanges(
       mySpecRanges.filter((range) => variables.includes(range.variable)),
@@ -170,7 +170,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   // }
 
   // Create a new Spec when the spec is submitted by clicking the done button
-  const handleSpecTextUpdate : React.ChangeEventHandler<HTMLInputElement> = (event) => {
+  const handleSpecTextUpdate : React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     setSpec(new Spec(event.target.value.trim(), spec.id));
   }
 
@@ -178,6 +178,30 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))))
     // setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
   }
+
+  const [htmlContent, setHtmlContent] = useState('')
+  useEffect(() => {
+    async function getResult() {
+      const result = await (async () => {
+        try {
+          // Check if there are no variables
+          const expr = await ensureMathJS(spec.expression, serverUrl)
+
+          if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
+            throw new Error("No variables detected.")
+          }
+          validateSpecExpression(expr);
+          return KaTeX.renderToString(math11.parse(expr).toTex(), { throwOnError: false })
+        } catch (e) {
+          //throw e;
+          return (e as Error).toString()
+        }
+      })()
+      setHtmlContent(result)
+    }
+    getResult()
+  }, [spec])
+
 
   return (
     <div className="spec-container">
@@ -201,19 +225,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             <DebounceInput element="textarea" debounceTimeout={300} className="spec-textarea" value={spec.expression} onChange={handleSpecTextUpdate} />
             {/* Render the expression into HTML with KaTeX */}
             <div className="spec-tex" dangerouslySetInnerHTML={{
-              __html: (() => {
-                try {
-                  // Check if there are no variables
-                  if (fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
-                    throw new Error("No variables detected.")
-                  }
-                  validateSpecExpression(spec.expression);
-                  return KaTeX.renderToString(math11.parse(spec.expression).toTex(), { throwOnError: false })
-                } catch (e) {
-                  //throw e;
-                  return (e as Error).toString()
-                }
-              })()
+              __html: htmlContent
             }} />
             <div className="spec-range-inputs">
             {getVariables(spec).map((v, i) => {

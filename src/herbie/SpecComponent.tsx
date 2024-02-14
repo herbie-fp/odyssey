@@ -95,25 +95,27 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     setShowOverlay(false);
   }
 
-  const specValid = () => {
+  const specValid = async () => {
+    const expr = await ensureMathJS(spec.expression, serverUrl)
+
     try {
-      fpcorejs.mathjsToFPCore(spec.expression);
+      fpcorejs.mathjsToFPCore(expr);
 
       // Check to make sure there is at least one variable
-      if (fpcorejs.getVarnamesMathJS(spec.expression).length === 0) {
+      if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
         return false
       }
     } catch (e) {
       return false
     }
-    if (specExpressionErrors(spec.expression).length !== 0) {
+    if (specExpressionErrors(expr).length !== 0) {
       return false
     }
     return true
   }
 
-  function getVariables(spec: Spec): string[] {
-    return specValid() ? fpcorejs.getVarnamesMathJS(spec.expression) : []
+  async function getVariables(spec: Spec): Promise<string[]> {
+    return await specValid() ? fpcorejs.getVarnamesMathJS(spec.expression) : []
   }
 
   // function debounce(func: any, timeout = 300){

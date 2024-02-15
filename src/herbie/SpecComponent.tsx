@@ -81,7 +81,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     const expression = await ensureMathJS(spec.expression, serverUrl);
 
     const inputRanges = new HerbieTypes.InputRanges(
-      mySpecRanges.filter((range) => variables.includes(range.variable)),
+      mySpecRanges.filter(async (range) => (await variables).includes(range.variable)),
       specId,
       inputRangeId)
     console.debug('Adding to inputRangesTable: ', inputRanges)
@@ -204,6 +204,14 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     getResult()
   }, [spec])
 
+  const [variables, setVariables] = useState([''])
+  useEffect(() => {
+    async function getResult() {
+      const vars = await getVariables(spec);
+      setVariables(vars);
+    }
+    getResult();
+  }, [spec]);
 
   return (
     <div className="spec-container">
@@ -230,7 +238,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
               __html: htmlContent
             }} />
             <div className="spec-range-inputs">
-            {getVariables(spec).map((v, i) => {
+            {variables.map((v, i) => {
               const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
               return <div className="spec-range-input" key={v}>
                 <div className="varname">
@@ -246,8 +254,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                     setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
                   } else {
                     const newSpecRanges = [...mySpecRanges, new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper))]
-                    const specVariables = getVariables(spec)
-                    setMySpecRanges(newSpecRanges.filter(r => specVariables.includes(r.variable)))
+                    setMySpecRanges(newSpecRanges.filter(r => variables.includes(r.variable)))
                   }
                 }
               } />

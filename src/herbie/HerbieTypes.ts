@@ -143,10 +143,11 @@ export class RangeInSpecFPCore {
 }
 
 export class Spec {
-  constructor(public readonly expression: string, public readonly id: number) {
+  constructor(public readonly expression: string, public readonly id: number, public readonly fpcore?: string | undefined) {
     this.expression = expression;
     // this.expressionIds = expressionIds;
     // this.ranges = ranges;
     this.id = id;
+    this.fpcore = fpcore;
   }
 }

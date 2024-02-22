@@ -80,7 +80,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
         : acc.push(v.y), acc)
       , [] as number[])
     return runningSum.reduce((acc, v, i) => {
-      const length = 
+      const length =
           (i - half) < 0 ? half + i
           : (i + half) >= runningSum.length ? (runningSum.length - (i - half))
           : size
@@ -158,7 +158,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       ...zip(data, styles).map(([data, style]: [any, any]) => lineAndDotGraphs({ data, style, width })).flat()]
   })
   out.setAttribute('viewBox', `0 0 ${width} ${height + 30}`)
-  
+
   return out as SVGElement
 }
 
@@ -181,11 +181,11 @@ function ErrorPlot() {
   const inputRanges = sample ? inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges : undefined
   const [myInputRanges, setMyInputRanges] = useState(inputRanges)
   const [archivedExpressions, ] = contexts.useGlobal(HerbieContext.ArchivedExpressionsContext)
-  
+
   // Update myInputRanges when the sample changes
   useEffect(() => {setMyInputRanges(inputRanges)}, [sample])
 
-  const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id)) 
+  const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id))
   // console.log('selectedExprId', selectedExprId)
 
   // get the expression
@@ -197,7 +197,7 @@ function ErrorPlot() {
   // get the variables from the expression
   const varnames = fpcorejs.getVarnamesMathJS(spec.expression)
   // we will iterate over indices
-  
+
   if (!sample) {
     return <div>Could not find sample with id {selectedSampleId}</div>
   }
@@ -211,7 +211,7 @@ function ErrorPlot() {
   if (compareExpressions.length === 0) {
     return <div>No selected expressions with analyses to compare yet.</div>
   }
-  
+
   /* We want to get the data for each expression and put it into an array. */
   const keyFn = <T,>(fn: (u: T) => number) => (a: T, b: T) => fn(a) - fn(b)
   const exprData = compareExpressions
@@ -238,7 +238,7 @@ function ErrorPlot() {
         }, [] as OrdinalErrorPoint[]).sort(keyFn(p => p.x))
       })
     })
-  
+
   const defaultData = analysisData(selectedExpr) as HerbieTypes.ErrorAnalysisData
 
   if (!defaultData) {
@@ -276,17 +276,17 @@ function ErrorPlot() {
   if (styles.length !== compareExpressions.length) {
     throw new Error(`Missing a style for one of the expressions`)
   }
-  
+
   // create state for the input ranges
   // just use a list that looks like input ranges
- 
+
 
   // resample the data using the updated input ranges on click
   function resample() {
     // Add a new inputRangesTable entry
     const inputRangesId = nextId(inputRangesTable)
     // HACK need to think through cases when myInputRanges isn't defined
-    if (!myInputRanges) { 
+    if (!myInputRanges) {
       console.log('Doing nothing because myInputRanges is undefined')
       return }
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
@@ -305,7 +305,7 @@ function ErrorPlot() {
         <InputRangeEditor1 value={{
           lower: range.lowerBound.toString(),
           upper: range.upperBound.toString()
-        }} setValue={ 
+        }} setValue={
           (value: { lower: string, upper: string }) => {
             if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
             console.debug('set input range', v, value)
@@ -354,7 +354,7 @@ function ErrorPlot() {
       </div>
     })}
   </div>
-  
+
 }
 
 export { ErrorPlot }

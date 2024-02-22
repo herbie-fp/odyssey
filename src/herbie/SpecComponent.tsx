@@ -33,7 +33,11 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', 0));
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
-  const [mySpecRanges, setMySpecRanges] = useState(inputRangesTable.findLast(r => r.specId === spec.id)?.ranges || [])
+  const [mySpecRanges, setMySpecRanges] = useState(() => {
+    const foundRange = inputRangesTable.findLast(r => r.specId === spec.id);
+    if (foundRange && 'ranges' in foundRange) { return foundRange.ranges || []; }
+    else { return []; }
+  });
   const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
 
@@ -173,7 +177,11 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
 
   // Create a new Spec when the spec is submitted by clicking the done button
   const handleSpecTextUpdate : React.ChangeEventHandler<HTMLInputElement> = async (event) => {
-    setSpec(new Spec(event.target.value.trim(), spec.id));
+    if (event.target.value.trim().includes('fpcore')) {
+      setSpec(new Spec(event.target.value.trim(), spec.id, event.target.value.trim()));
+    } else {
+      setSpec(new Spec(event.target.value.trim(), spec.id));
+    }
   }
 
   const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {

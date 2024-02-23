@@ -221,14 +221,20 @@ function HerbieUIInner() {
 
       console.log(typeof(spec.expression))
 
-      const fpCore = (inputRanges instanceof Types.InputRanges) ?
-        fpcorejs.makeFPCore2({
-          vars: fpcorejs.getVarnamesMathJS(spec.expression),
-          pre: fpcorejs.FPCorePreconditionFromRanges(
-            inputRanges.ranges.map(r => [r.variable, [r.lowerBound, r.upperBound]])
-          ),
-          body: fpcorejs.FPCoreBody(spec.expression)
-        }) : spec.fpcore ? (spec.fpcore) : ("") // Collapse Optional type down to just fpCore
+      const fpCore =
+        (inputRanges instanceof Types.InputRanges) ?
+          fpcorejs.makeFPCore2({
+            vars: fpcorejs.getVarnamesMathJS(spec.expression),
+            pre: fpcorejs.FPCorePreconditionFromRanges(
+              inputRanges.ranges.map(r => [r.variable, [r.lowerBound, r.upperBound]])
+            ),
+            body: fpcorejs.FPCoreBody(spec.expression)
+          })
+        : spec.fpcore
+
+      if (!fpCore) {
+        return  // should never get here
+      }
 
       const sample_points = (await herbiejs.getSample(fpCore, serverUrl)).points;
       // always create a new sample with this spec and these input ranges

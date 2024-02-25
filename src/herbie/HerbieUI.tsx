@@ -219,8 +219,6 @@ function HerbieUIInner() {
       console.debug(`Sampling spec ${spec.id} for input ranges ${inputRanges.id}...`)
       console.debug(herbiejs.getSample)
 
-      console.log(typeof(spec.expression))
-
       const fpCore =
         (inputRanges instanceof Types.InputRanges) ?
           fpcorejs.makeFPCore2({

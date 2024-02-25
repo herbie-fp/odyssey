@@ -82,18 +82,30 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
 
-    const expression = await ensureMathJS(spec.expression, serverUrl);
+    const mathJSExpression = await ensureMathJS(spec.expression, serverUrl);
 
-    const inputRanges = new HerbieTypes.InputRanges(
-      mySpecRanges.filter(async (range) => (await variables).includes(range.variable)),
-      specId,
-      inputRangeId)
+    let inputRanges, mySpec;
+    if (spec.expression.includes("FPCore")) {
+      inputRanges = new HerbieTypes.RangeInSpecFPCore(
+        specId,
+        inputRangeId
+      )
+
+      mySpec = new Spec(mathJSExpression, specId, spec.expression);
+    } else {
+      inputRanges = new HerbieTypes.InputRanges(
+        mySpecRanges.filter(async (range) => (await variables).includes(range.variable)),
+        specId,
+        inputRangeId
+      )
+
+      mySpec = new Spec(mathJSExpression, specId)
+    }
+
     console.debug('Adding to inputRangesTable: ', inputRanges)
     setInputRangesTable([...inputRangesTable, inputRanges])
-    const mySpec = new Spec(expression, specId);
-    console.debug('Added, now setting spec', mySpec)
 
-    // Add to derivations
+    console.debug('Added, now setting spec', mySpec)
     setValue(mySpec);
 
     setShowOverlay(false);

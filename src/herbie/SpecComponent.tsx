@@ -246,30 +246,37 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             <div className="spec-tex" dangerouslySetInnerHTML={{
               __html: htmlContent
             }} />
-            <div className="spec-range-inputs">
-            {variables.map((v, i) => {
-              const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
-              return <div className="spec-range-input" key={v}>
-                <div className="varname">
-                  {v}:
-                </div>
-                <InputRangeEditor1 value={{
-                lower: range.lowerBound.toString(),
-                upper: range.upperBound.toString()
-              }} setValue={
-                (value: { lower: string, upper: string }) => {
-                  console.debug('set input range', v, value)
-                  if (mySpecRanges.map(r => r.variable).includes(v)) {
-                    setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
-                  } else {
-                    const newSpecRanges = [...mySpecRanges, new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper))]
-                    setMySpecRanges(newSpecRanges.filter(r => variables.includes(r.variable)))
-                  }
-                }
-              } />
+
+            {spec.expression.indexOf('FPCore') === -1 && (
+              <div className="spec-range-inputs">
+                {variables.map((v, i) => {
+                  const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
+                  return (
+                    <div className="spec-range-input" key={v}>
+                      <div className="varname">
+                        {v}:
+                      </div>
+                      <InputRangeEditor1
+                        value={{
+                          lower: range.lowerBound.toString(),
+                          upper: range.upperBound.toString()
+                        }}
+                        setValue={(value: { lower: string, upper: string }) => {
+                          console.debug('set input range', v, value);
+                          if (mySpecRanges.map(r => r.variable).includes(v)) {
+                            setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r));
+                          } else {
+                            const newSpecRanges = [...mySpecRanges, new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper))];
+                            setMySpecRanges(newSpecRanges.filter(r => variables.includes(r.variable)));
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
-            })}
-            </div>
+            )}
+
             {/* <div className='spec-input-range-editor'>
               <InputRangesEditor
               value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }}

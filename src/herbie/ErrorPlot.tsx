@@ -178,7 +178,19 @@ function ErrorPlot() {
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
   const sample = samples.find(s => s.id === selectedSampleId)
-  const inputRanges = sample ? inputRangesTable.find(r => sample.inputRangesId === r.id)?.ranges : undefined
+
+  let inputRanges : HerbieTypes.SpecRange[] | undefined;
+  if (sample) {
+    const foundRange = inputRangesTable.find(r => sample.inputRangesId === r.id);
+    if (foundRange instanceof HerbieTypes.InputRanges) {
+      inputRanges = foundRange ? foundRange.ranges : undefined;
+    } else {
+      inputRanges = undefined;
+    }
+  } else {
+    inputRanges = undefined;
+  }
+
   const [myInputRanges, setMyInputRanges] = useState(inputRanges)
   const [archivedExpressions, ] = contexts.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
@@ -296,7 +308,7 @@ function ErrorPlot() {
     {/* Plot all vars */}
     <button className="resample" onClick={ resample }>Resample</button>
     {vars.map((v, i) => {
-      const range = inputRanges.find(r => r.variable === v)
+      const range = inputRanges?.find(r => r.variable === v)
       if (!range ) {
         return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
       }

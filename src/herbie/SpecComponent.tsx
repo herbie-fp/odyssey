@@ -119,7 +119,8 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   async function getVariables(spec: Spec): Promise<string[]> {
-    return await specValid() ? fpcorejs.getVarnamesMathJS(spec.expression) : []
+    const expr = await ensureMathJS(spec.expression, serverUrl)
+    return await specValid() ? fpcorejs.getVarnamesMathJS(expr) : []
   }
 
   // function debounce(func: any, timeout = 300){

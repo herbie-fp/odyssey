@@ -213,9 +213,9 @@ function ErrorPlot() {
   if (!sample) {
     return <div>Could not find sample with id {selectedSampleId}</div>
   }
-  if (!inputRanges) {
-    return <div>Could not find input ranges with id {sample.inputRangesId}</div>
-  }
+  // if (!inputRanges) {
+  //   return <div>Could not find input ranges with id {sample.inputRangesId}</div>
+  // }
 
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
@@ -309,21 +309,23 @@ function ErrorPlot() {
     <button className="resample" onClick={ resample }>Resample</button>
     {vars.map((v, i) => {
       const range = inputRanges?.find(r => r.variable === v)
-      if (!range ) {
-        return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
-      }
+      // if (!range) {
+      //   return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
+      // }
       return <div key={i}>
         <span>{v}: </span>
-        <InputRangeEditor1 value={{
-          lower: range.lowerBound.toString(),
-          upper: range.upperBound.toString()
-        }} setValue={
-          (value: { lower: string, upper: string }) => {
-            if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
-            console.debug('set input range', v, value)
-            setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
-          }
-        } />
+        {range && ( // Do not display if range is undefined, which occurs when there is no InputRanges (expr is FPCore)
+          <InputRangeEditor1 value={{
+            lower: range.lowerBound.toString(),
+            upper: range.upperBound.toString()
+          }} setValue={
+            (value: { lower: string, upper: string }) => {
+              if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
+              console.debug('set input range', v, value)
+              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
+            }
+          } />
+        )}
         <svg viewBox="0 -25 840 360" ref={async (svg) => {
           if (!svg) {
             return

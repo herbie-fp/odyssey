@@ -92,6 +92,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
       )
 
       mySpec = new Spec(mathJSExpression, specId, spec.expression);
+
     } else {
       inputRanges = new HerbieTypes.InputRanges(
         mySpecRanges.filter(async (range) => (await variables).includes(range.variable)),
@@ -190,7 +191,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
 
   // Create a new Spec when the spec is submitted by clicking the done button
   const handleSpecTextUpdate : React.ChangeEventHandler<HTMLInputElement> = async (event) => {
-    if (event.target.value.trim().includes('fpcore')) {
+    if (event.target.value.trim().includes('FPCore')) {
       setSpec(new Spec(event.target.value.trim(), spec.id, event.target.value.trim()));
     } else {
       setSpec(new Spec(event.target.value.trim(), spec.id));

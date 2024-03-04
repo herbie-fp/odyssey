@@ -198,6 +198,7 @@ function ErrorPlot() {
   useEffect(() => {setMyInputRanges(inputRanges)}, [sample])
 
   const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id))
+
   // console.log('selectedExprId', selectedExprId)
 
   // get the expression

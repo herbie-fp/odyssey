@@ -52,7 +52,8 @@ export const ExpressionsContext = makeGlobal([] as types.Expression[]);//[new ty
 export const DerivationsContext = makeGlobal([] as types.Derivation[])
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
 export const SpecContext = makeGlobal(new types.Spec('sqrt(x + 1) - sqrt(x)', 0) as types.Spec)
-export const ServerContext = makeGlobal(window.vscode ? 'http://127.0.0.1:8000' : 'https://herbie.uwplse.org/demo')
+//@ts-ignore
+export const ServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://127.0.0.1:8000' : 'https://herbie.uwplse.org/demo')
 export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(undefined as number | undefined);// undefined as number | undefined)
 export const SamplesContext = makeGlobal([] as types.Sample[])

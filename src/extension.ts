@@ -108,85 +108,84 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showInformationMessage('Herbie downloaded successfully. Please wait while it is installed...')
 			}
 			// unzip to home local share odyssey
-			const unzip = require('unzipper')
-			const extract = unzip.Extract({ path: odysseyDir + '/dist' })
-			extract.on('error', async (err: any) => {
+			const AdmZip = require("adm-zip");
+			
+			try {
+				const zip = new AdmZip(dest);
+				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
+			} catch (e) {
 				vscode.window.showErrorMessage('Error installing Herbie (extraction): ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
 						vscode.env.clipboard.writeText(err)
 					}
 				})
-			})
-			// wait for close event
-			extract.on('close', async () => {
-				// delete zip file
-				try {
-					fs.unlinkSync(dest)
+			}
 
-					// // the binary path varies depending on platform
-					// let binaryPath = ''
-					// switch (process.platform) {
-					// 	case 'win32':
-					// 		binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
-					// 		break
-					// 	case 'linux':
-					// 		binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
-					// 		break
-					// 	case 'darwin':
-					// 		binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
-					// 		break
-					// }
+			try {
+				fs.unlinkSync(dest)
 
-					// make binary executable
-					fs.chmodSync(binaryPath, '755')
-				} catch (err: any) {
-					vscode.window.showErrorMessage('Error installing Herbie: ' + err, 'Copy to clipboard').then((action) => {
-						if (action === 'Copy to clipboard') {
-							vscode.env.clipboard.writeText(err)
-						}
-					})
-				}
-
-				// // try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
-				// const symlink = odysseyDir + '/bin/herbie'
-				// const bin = odysseyDir + '/bin'
-				// try {
-				// 	lnk.sync(binaryPath, bin, { force: true, type: 'symbolic' }) // fs.symlinkSync(binaryPath, symlink)
-				// } catch (err: any) {
-				// 	// if symlink already exists, delete it and try again
-				// 	// if (err.code === 'EEXIST') {
-				// 	// 	fs.unlinkSync(symlink)
-				// 	// 	fs.symlinkSync(binaryPath, symlink)
-				// 	// } else {
-				// 	vscode.window.showErrorMessage('Error creating link: ' + err, 'Copy to clipboard').then((action) => {
-				// 		if (action === 'Copy to clipboard') {
-				// 			vscode.env.clipboard.writeText(err)
-				// 		}
-				// 	})
+				// // the binary path varies depending on platform
+				// let binaryPath = ''
+				// switch (process.platform) {
+				// 	case 'win32':
+				// 		binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
+				// 		break
+				// 	case 'linux':
+				// 		binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
+				// 		break
+				// 	case 'darwin':
+				// 		binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
+				// 		break
 				// }
 
-				// show information message
-				vscode.window.showInformationMessage('Herbie installed successfully. Starting server...')
-				try {
-					//spawn(symlink, ['web', '--quiet']);
-					// run the command in the VSCode terminal
-					// get a filesystem-safe path to the executable
-					//const terminal = vscode.window.createTerminal('Herbie')
-					// show the terminal
-					terminal = getTerminal()
-					terminal.show()
+				// make binary executable
+				fs.chmodSync(binaryPath, '755')
+			} catch (err: any) {
+				vscode.window.showErrorMessage('Error installing Herbie: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
 
-					terminal.sendText(binaryPath + ' web --quiet')
-					console.log('started herbie server')
-				} catch (err: any) {
-					vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
-						if (action === 'Copy to clipboard') {
-							vscode.env.clipboard.writeText(err)
-						}
-					})
-				}
-			})
-			fs.createReadStream(dest).pipe(extract)
+			// // try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
+			// const symlink = odysseyDir + '/bin/herbie'
+			// const bin = odysseyDir + '/bin'
+			// try {
+			// 	lnk.sync(binaryPath, bin, { force: true, type: 'symbolic' }) // fs.symlinkSync(binaryPath, symlink)
+			// } catch (err: any) {
+			// 	// if symlink already exists, delete it and try again
+			// 	// if (err.code === 'EEXIST') {
+			// 	// 	fs.unlinkSync(symlink)
+			// 	// 	fs.symlinkSync(binaryPath, symlink)
+			// 	// } else {
+			// 	vscode.window.showErrorMessage('Error creating link: ' + err, 'Copy to clipboard').then((action) => {
+			// 		if (action === 'Copy to clipboard') {
+			// 			vscode.env.clipboard.writeText(err)
+			// 		}
+			// 	})
+			// }
+
+			// show information message
+			vscode.window.showInformationMessage('Herbie installed successfully. Starting server...')
+			try {
+				//spawn(symlink, ['web', '--quiet']);
+				// run the command in the VSCode terminal
+				// get a filesystem-safe path to the executable
+				//const terminal = vscode.window.createTerminal('Herbie')
+				// show the terminal
+				terminal = getTerminal()
+				terminal.show()
+
+				terminal.sendText(binaryPath + ' web --quiet')
+				console.log('started herbie server')
+			} catch (err: any) {
+				vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
 		})
 	}
 

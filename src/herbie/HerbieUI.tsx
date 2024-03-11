@@ -314,7 +314,7 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
-  useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions])
+  // useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions])
   function updateFPTaylorAnalysis() {
     async function getFPTaylorAnalysis() {
       const FPTaylorAnalyses: Types.FPTaylorAnalysis[] = []

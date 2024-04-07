@@ -45,13 +45,24 @@ export const useReducerGlobal = <T>(reducerGlobal: ReducerGlobal<T>): [T, reduce
   return React.useContext(reducerGlobal.context)
 }
 
+let defaultExpression = 'sqrt(x + 1) - sqrt(x)';
+
+// If this is running on the web, allow URL to pass in default expression
+if (typeof window !== 'undefined') {
+  const queryParams = new URLSearchParams(window.location.search);
+  const expr = queryParams.get('expr');
+
+  console.log('Argument 1:', expr);
+  defaultExpression = expr ? expr : defaultExpression;
+}
+
 export const hoveredExpressionId = makeGlobal(0)
 export const SelectedExprIdContext = makeGlobal(-1)
 export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
 export const ExpressionsContext = makeGlobal([] as types.Expression[]);//[new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[])
 export const DerivationsContext = makeGlobal([] as types.Derivation[])
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
-export const SpecContext = makeGlobal(new types.Spec('sqrt(x + 1) - sqrt(x)', 0) as types.Spec)
+export const SpecContext = makeGlobal(new types.Spec(defaultExpression, 0) as types.Spec)
 //@ts-ignore
 export const ServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://127.0.0.1:8000' : 'https://herbie.uwplse.org/demo')
 export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])

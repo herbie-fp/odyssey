@@ -178,9 +178,9 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
         onRequestClose={() => setShowOverlay(false)}
         ariaHideApp={false}
       >
-        <div className="spec-overlay" onClick={handleOverlayClick}>
+        {/* <div className="spec-overlay" onClick={handleOverlayClick}> */}
           {/* Show a dialogue for editing the spec with a "done" button. */}
-          <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}>
+          {/* <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}> */}
             <div className="spec-overlay-header">
               <div>Spec</div>
             </div>
@@ -235,8 +235,8 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             <div className="submit">
               <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
             </div>
-          </div>
-        </div>
+          {/* </div> */}
+        {/* </div> */}
       </Modal>
     </div>
   );

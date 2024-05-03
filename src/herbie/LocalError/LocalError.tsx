@@ -61,7 +61,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
   // get the current point selection and selected point local error
   const [selectedPoint, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext);
   const [selectedPointsLocalError, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointsLocalErrorContext);
-
+  const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   // get the current sample and expression so we can pick the right local error from the averagelocalerrors table
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext);
   const [selectedExprId,] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
@@ -85,7 +85,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
   }
 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
-  const varnames = fpcore.getVarnamesMathJS(expressions.find(e => e.id === expressionId)?.text as string)
+  const varnames = fpcore.getVarnamesMathJS(spec.expression)
 
   const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
 

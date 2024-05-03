@@ -3,6 +3,7 @@ import React, { useState, ChangeEvent, useEffect } from 'react';
 interface InputRange {
   lower: string;
   upper: string;
+  minAbsVal?: string;
 }
 
 /**
@@ -76,25 +77,31 @@ interface InputRangeEditor1Props {
 export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, setValue }) => {
   const [lowerBound, setLowerBound] = useState(value.lower || '-1e308');
   const [upperBound, setUpperBound] = useState(value.upper || '1e308');
+  const [minAbsVal, setMinAbsVal] = useState(value.minAbsVal || '0');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (rangesValid()) {
-      setValue({ lower: lowerBound, upper: upperBound });
+      setValue({ lower: lowerBound, upper: upperBound, minAbsVal: minAbsVal });
     }
-  }, [lowerBound, upperBound]);
+  }, [lowerBound, upperBound, minAbsVal]);
 
   const rangesValid = () => {
-    if (lowerBound === '' || upperBound === '') {
+    if (lowerBound === '' || upperBound === '' || minAbsVal === '') {
       setError('All ranges must be filled.');
       return false;
     } else if (Number(lowerBound) >= Number(upperBound)) {
       setError('Lower bound must be less than upper bound for all ranges.');
       return false;
+    } else if (Math.abs(Number(minAbsVal)) >= Number(lowerBound) || Math.abs(Number(minAbsVal)) >= Number(upperBound)) {
+      setError('Minimum absolute value must be less than magnitude of lower and upper bounds.');
+      return false;
     }
     setError('');
     return true
   };
+
+  const boundsCrossesZero = (Number(lowerBound) <= 0) && (Number(upperBound) >= 0);
 
   return (
     <div className="input-ranges-editor">
@@ -115,6 +122,20 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           onChange={e => setUpperBound(e.target.value)}
         />
       </span>
+      { 
+        boundsCrossesZero &&
+        <div>
+          <span className="separator"> with a minimum absolute value of </span>
+          <span className="min">
+          <input
+            type="number"
+            placeholder="Minimum absolute value"
+            value={minAbsVal}
+            onChange={e => setMinAbsVal(e.target.value)}
+          />
+          </span>
+        </div>
+      }
       {error && <div style={{ color: 'red' }} className="error">{error}</div>}
     </div>
   );

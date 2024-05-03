@@ -3,6 +3,7 @@ import React, { useState, ChangeEvent, useEffect } from 'react';
 interface InputRange {
   lower: string;
   upper: string;
+
   minAbsVal?: string;
 }
 
@@ -93,7 +94,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
     } else if (Number(lowerBound) >= Number(upperBound)) {
       setError('Lower bound must be less than upper bound for all ranges.');
       return false;
-    } else if (Math.abs(Number(minAbsVal)) >= Number(lowerBound) || Math.abs(Number(minAbsVal)) >= Number(upperBound)) {
+    } else if (Math.abs(Number(minAbsVal)) <= Number(lowerBound) || Math.abs(Number(minAbsVal)) >= Number(upperBound)) {
       setError('Minimum absolute value must be less than magnitude of lower and upper bounds.');
       return false;
     }

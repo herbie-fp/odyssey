@@ -124,20 +124,6 @@ export function activate(context: vscode.ExtensionContext) {
 			try {
 				fs.unlinkSync(dest)
 
-				// // the binary path varies depending on platform
-				// let binaryPath = ''
-				// switch (process.platform) {
-				// 	case 'win32':
-				// 		binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
-				// 		break
-				// 	case 'linux':
-				// 		binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
-				// 		break
-				// 	case 'darwin':
-				// 		binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
-				// 		break
-				// }
-
 				// make binary executable
 				fs.chmodSync(binaryPath, '755')
 			} catch (err: any) {
@@ -148,31 +134,10 @@ export function activate(context: vscode.ExtensionContext) {
 				})
 			}
 
-			// // try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
-			// const symlink = odysseyDir + '/bin/herbie'
-			// const bin = odysseyDir + '/bin'
-			// try {
-			// 	lnk.sync(binaryPath, bin, { force: true, type: 'symbolic' }) // fs.symlinkSync(binaryPath, symlink)
-			// } catch (err: any) {
-			// 	// if symlink already exists, delete it and try again
-			// 	// if (err.code === 'EEXIST') {
-			// 	// 	fs.unlinkSync(symlink)
-			// 	// 	fs.symlinkSync(binaryPath, symlink)
-			// 	// } else {
-			// 	vscode.window.showErrorMessage('Error creating link: ' + err, 'Copy to clipboard').then((action) => {
-			// 		if (action === 'Copy to clipboard') {
-			// 			vscode.env.clipboard.writeText(err)
-			// 		}
-			// 	})
-			// }
-
 			// show information message
 			vscode.window.showInformationMessage('Herbie installed successfully. Starting server...')
 			try {
-				//spawn(symlink, ['web', '--quiet']);
 				// run the command in the VSCode terminal
-				// get a filesystem-safe path to the executable
-				//const terminal = vscode.window.createTerminal('Herbie')
 				// show the terminal
 				terminal = getTerminal()
 				terminal.show()
@@ -191,10 +156,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const runHerbieServer = async () => {
 		try {
-			//spawn(symlink, ['web', '--quiet']);
-			// run the command in the VSCode terminal
-			// get a filesystem-safe path to the executable
-			// const symlink = require('os').homedir() + '/.local/share/odyssey/bin/herbie'
 			const port = 8000
 
 			const isPortFree = (port:number) =>
@@ -294,34 +255,18 @@ export function activate(context: vscode.ExtensionContext) {
 								await vscode.env.clipboard.writeText(message.error)
 							}
 							break
-						// case 'openNewTab':
-						// 	const { mathjs, ranges } = message
-						// 	const title = 'Odyssey: Herbie'//mathjs.length > 12 ? mathjs.slice(0, 9) + '...' : mathjs
-						// 	const panel2 = vscode.window.createWebviewPanel(
-						// 		'herbieIndex', // Identifies the type of the webview. Used internally
-						// 		title, // Title of the panel displayed to the user
-						// 		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-						// 		{
-						// 			// Enable scripts in the webview
-						// 			enableScripts: true,
-						// 			// Only allow the webview to access resources in these directories
-						// 			localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
-						// 			retainContextWhenHidden: true
-						// 		})
 						}
 				})
 		}
 		addMessageHandler(panel)
 	})
 
-	// spawn(require('os').homedir() + '/.local/share/odyssey/bin/herbie', ['web', '--quiet']);
-
 	context.subscriptions.push(disposable)
 }
 
 const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionContext) => {
 	const jsFile = "webview.bundle.js";
-	// const cssFile = "webview.css";
+	
 	// this is the webpack dev server; in theory, this could be used for hot module reloading, but it doesn't work right now.
 	const localServerUrl = "http://localhost:3000";
 	const isProduction = context.extensionMode === vscode.ExtensionMode.Production;
@@ -329,10 +274,6 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 	let scriptUrl = isProduction
 		? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString()
 		: `${localServerUrl}/${jsFile}`
-
-	// let cssUrl = isProduction
-	// 	? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', cssFile))).toString()
-	// 	: `${localServerUrl}/${cssFile}`
 
 	scriptUrl = webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', jsFile))).toString();
 

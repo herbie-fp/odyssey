@@ -10,6 +10,9 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 
+// TODO Remove this:
+const LOCAL_TEST_PORT = 7777;
+
 /**
  * Downloads a file from a URL to a specified directory.
  *
@@ -168,7 +171,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Downloading FPTaylor...')
 		// spawn the download process
 		// get zip file from site
-		const url = "http://localhost:8000/fptaylor"
+		const url = "http://localhost:" + LOCAL_TEST_PORT + "/fptaylor-compiled.zip"
 		// download with curl to home local share odyssey
 		const home = require('os').homedir()
 		// TODO path.join instead of string concat
@@ -198,7 +201,7 @@ export function activate(context: vscode.ExtensionContext) {
 			
 			try {
 				const zip = new AdmZip(dest);
-				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
+				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ false);
 			} catch (e) {
 				vscode.window.showErrorMessage('Error installing FPTaylor (extraction): ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {

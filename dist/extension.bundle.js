@@ -39,6 +39,8 @@ const lnk = __webpack_require__(4);
 const http = __webpack_require__(30);
 const https = __webpack_require__(31);
 const url = __webpack_require__(32);
+// TODO Remove this:
+const LOCAL_TEST_PORT = 7777;
 /**
  * Downloads a file from a URL to a specified directory.
  *
@@ -66,16 +68,24 @@ function downloadFile(downloadUrl, dest, callback) {
 // Your extension is activated the very first time the command is executed
 function activate(context) {
     const odysseyDir = (__webpack_require__(33).homedir)() + '/.local/share/odyssey';
-    let binaryPath = '';
+    let herbiePath = '';
+    let fpbenchPath = '';
+    let fptaylorPath = '';
     switch (process.platform) {
         case 'win32':
-            binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe';
+            herbiePath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe';
+            fpbenchPath = odysseyDir + '/dist/windows/fpbench-compiled/fpbench.exe';
+            fptaylorPath = odysseyDir + '/dist/windows/fptaylor-compiled/fptaylor.exe';
             break;
         case 'linux':
-            binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie';
+            herbiePath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie';
+            fpbenchPath = odysseyDir + '/dist/linux/fpbench-compiled/bin/fpbench';
+            fptaylorPath = odysseyDir + '/dist/linux/fptaylor-compiled/bin/fptaylor';
             break;
         case 'darwin':
-            binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie';
+            herbiePath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie';
+            fpbenchPath = odysseyDir + '/dist/macos/fpbench-compiled/bin/fpbench';
+            fptaylorPath = odysseyDir + '/dist/macos/fptaylor-compiled/bin/fptaylor';
             break;
     }
     const showError = (message) => {
@@ -148,21 +158,8 @@ function activate(context) {
             }
             try {
                 fs.unlinkSync(dest);
-                // // the binary path varies depending on platform
-                // let binaryPath = ''
-                // switch (process.platform) {
-                // 	case 'win32':
-                // 		binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
-                // 		break
-                // 	case 'linux':
-                // 		binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
-                // 		break
-                // 	case 'darwin':
-                // 		binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
-                // 		break
-                // }
                 // make binary executable
-                fs.chmodSync(binaryPath, '755');
+                fs.chmodSync(herbiePath, '755');
             }
             catch (err) {
                 vscode.window.showErrorMessage('Error installing Herbie: ' + err, 'Copy to clipboard').then((action) => {
@@ -171,34 +168,14 @@ function activate(context) {
                     }
                 });
             }
-            // // try to create symlink from home local share odyssey herbie-compiled bin to home local share odyssey bin
-            // const symlink = odysseyDir + '/bin/herbie'
-            // const bin = odysseyDir + '/bin'
-            // try {
-            // 	lnk.sync(binaryPath, bin, { force: true, type: 'symbolic' }) // fs.symlinkSync(binaryPath, symlink)
-            // } catch (err: any) {
-            // 	// if symlink already exists, delete it and try again
-            // 	// if (err.code === 'EEXIST') {
-            // 	// 	fs.unlinkSync(symlink)
-            // 	// 	fs.symlinkSync(binaryPath, symlink)
-            // 	// } else {
-            // 	vscode.window.showErrorMessage('Error creating link: ' + err, 'Copy to clipboard').then((action) => {
-            // 		if (action === 'Copy to clipboard') {
-            // 			vscode.env.clipboard.writeText(err)
-            // 		}
-            // 	})
-            // }
             // show information message
             vscode.window.showInformationMessage('Herbie installed successfully. Starting server...');
             try {
-                //spawn(symlink, ['web', '--quiet']);
                 // run the command in the VSCode terminal
-                // get a filesystem-safe path to the executable
-                //const terminal = vscode.window.createTerminal('Herbie')
                 // show the terminal
                 terminal = getTerminal();
                 terminal.show();
-                terminal.sendText(binaryPath + ' web --quiet');
+                terminal.sendText(herbiePath + ' web --quiet');
                 console.log('started herbie server');
             }
             catch (err) {
@@ -210,12 +187,82 @@ function activate(context) {
             }
         });
     };
+    const downloadAndRunFPTaylor = async () => {
+        // show information message
+        vscode.window.showInformationMessage('Downloading FPTaylor...');
+        // spawn the download process
+        // get zip file from site
+        const url = "http://localhost:" + LOCAL_TEST_PORT + "/fptaylor-compiled.zip";
+        // download with curl to home local share odyssey
+        const home = (__webpack_require__(33).homedir)();
+        // TODO path.join instead of string concat
+        const odysseyDir = home + '/.local/share/odyssey';
+        if (!fs.existsSync(odysseyDir)) {
+            fs.mkdirSync(odysseyDir, { recursive: true });
+        }
+        if (!fs.existsSync(odysseyDir + '/bin')) {
+            fs.mkdirSync(odysseyDir + '/bin');
+        }
+        if (!fs.existsSync(odysseyDir + '/dist')) {
+            fs.mkdirSync(odysseyDir + '/dist');
+        }
+        const dest = home + '/.local/share/odyssey/fptaylor-compiled.zip';
+        downloadFile(url, dest, (err) => {
+            if (err) {
+                vscode.window.showErrorMessage('Error downloading FPTaylor: ' + err, 'Copy to clipboard').then((action) => {
+                    if (action === 'Copy to clipboard') {
+                        vscode.env.clipboard.writeText(err);
+                    }
+                });
+            }
+            else {
+                vscode.window.showInformationMessage('FPTaylor downloaded successfully. Please wait while it is installed...');
+            }
+            // unzip to home local share odyssey
+            const AdmZip = __webpack_require__(34);
+            try {
+                const zip = new AdmZip(dest);
+                zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ false);
+            }
+            catch (e) {
+                vscode.window.showErrorMessage('Error installing FPTaylor (extraction): ' + err, 'Copy to clipboard').then((action) => {
+                    if (action === 'Copy to clipboard') {
+                        vscode.env.clipboard.writeText(err);
+                    }
+                });
+            }
+            try {
+                fs.unlinkSync(dest);
+                // make binary executable
+                fs.chmodSync(herbiePath, '755');
+            }
+            catch (err) {
+                vscode.window.showErrorMessage('Error installing FPTaylor: ' + err, 'Copy to clipboard').then((action) => {
+                    if (action === 'Copy to clipboard') {
+                        vscode.env.clipboard.writeText(err);
+                    }
+                });
+            }
+            // show information message
+            vscode.window.showInformationMessage('FPTaylor installed successfully. Starting server...');
+            try {
+                // run the command in the VSCode terminal
+                // show the terminal
+                terminal = getTerminal();
+                terminal.show();
+                terminal.sendText(fptaylorPath + ' web --quiet');
+            }
+            catch (err) {
+                vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
+                    if (action === 'Copy to clipboard') {
+                        vscode.env.clipboard.writeText(err);
+                    }
+                });
+            }
+        });
+    };
     const runHerbieServer = async () => {
         try {
-            //spawn(symlink, ['web', '--quiet']);
-            // run the command in the VSCode terminal
-            // get a filesystem-safe path to the executable
-            // const symlink = require('os').homedir() + '/.local/share/odyssey/bin/herbie'
             const port = 8000;
             const isPortFree = (port) => new Promise(resolve => {
                 const server = (__webpack_require__(30).createServer)()
@@ -241,7 +288,7 @@ function activate(context) {
                 }
             }
             // check if symlink exists
-            if (!fs.existsSync(binaryPath)) {
+            if (!fs.existsSync(herbiePath)) {
                 // wait for user to download herbie
                 vscode.window.showErrorMessage("Herbie doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
                     if (action === 'Download') {
@@ -256,12 +303,59 @@ function activate(context) {
             else {
                 terminal = getTerminal();
                 terminal.show();
-                terminal.sendText(binaryPath + ' web --quiet');
+                terminal.sendText(herbiePath + ' web --quiet');
                 console.log('started herbie server');
             }
         }
         catch (err) {
             vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
+                if (action === 'Copy to clipboard') {
+                    vscode.env.clipboard.writeText(err);
+                }
+            });
+        }
+    };
+    const runFPTaylorServer = async () => {
+        try {
+            const port = 8001;
+            const isPortFree = (port) => new Promise(resolve => {
+                const server = (__webpack_require__(30).createServer)()
+                    .listen(port, () => {
+                    server.close();
+                    resolve(true);
+                })
+                    .on('error', () => {
+                    resolve(false);
+                    return false;
+                });
+            });
+            // check if port is in use
+            let somethingOnPort = !(await isPortFree(port));
+            if (somethingOnPort) { // yes
+                // is it FPTaylor?
+                // TODO: Figure out how to check if it's FPTaylor
+            }
+            // check if symlink exists
+            if (!fs.existsSync(fptaylorPath)) {
+                // wait for user to download herbie
+                vscode.window.showErrorMessage("FPTaylor doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
+                    if (action === 'Download') {
+                        downloadAndRunFPTaylor();
+                    }
+                });
+            }
+            else if (somethingOnPort) {
+                showInfo("Using existing FPTaylor server on port " + port + ".");
+                return;
+            }
+            else {
+                terminal = getTerminal();
+                terminal.show();
+                terminal.sendText(fptaylorPath + ' web --quiet');
+            }
+        }
+        catch (err) {
+            vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
                 if (action === 'Copy to clipboard') {
                     vscode.env.clipboard.writeText(err);
                 }
@@ -276,6 +370,7 @@ function activate(context) {
     // The commandId parameter must match the command field in package.json
     let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
         await runHerbieServer();
+        await runFPTaylorServer();
         // Create and show a new webview
         const panel = vscode.window.createWebviewPanel('herbieIndex', // Identifies the type of the webview. Used internally
         'Odyssey: Herbie', // Title of the panel displayed to the user
@@ -308,41 +403,22 @@ function activate(context) {
                             await vscode.env.clipboard.writeText(message.error);
                         }
                         break;
-                    // case 'openNewTab':
-                    // 	const { mathjs, ranges } = message
-                    // 	const title = 'Odyssey: Herbie'//mathjs.length > 12 ? mathjs.slice(0, 9) + '...' : mathjs
-                    // 	const panel2 = vscode.window.createWebviewPanel(
-                    // 		'herbieIndex', // Identifies the type of the webview. Used internally
-                    // 		title, // Title of the panel displayed to the user
-                    // 		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-                    // 		{
-                    // 			// Enable scripts in the webview
-                    // 			enableScripts: true,
-                    // 			// Only allow the webview to access resources in these directories
-                    // 			localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
-                    // 			retainContextWhenHidden: true
-                    // 		})
                 }
             });
         };
         addMessageHandler(panel);
     });
-    // spawn(require('os').homedir() + '/.local/share/odyssey/bin/herbie', ['web', '--quiet']);
     context.subscriptions.push(disposable);
 }
 exports.activate = activate;
 const getWebviewContent = (webView, context) => {
     const jsFile = "webview.bundle.js";
-    // const cssFile = "webview.css";
     // this is the webpack dev server; in theory, this could be used for hot module reloading, but it doesn't work right now.
     const localServerUrl = "http://localhost:3000";
     const isProduction = context.extensionMode === vscode.ExtensionMode.Production;
     let scriptUrl = isProduction
         ? webView.asWebviewUri(vscode.Uri.file((0, path_1.join)(context.extensionPath, 'dist', jsFile))).toString()
         : `${localServerUrl}/${jsFile}`;
-    // let cssUrl = isProduction
-    // 	? webView.asWebviewUri(vscode.Uri.file(join(context.extensionPath, 'dist', cssFile))).toString()
-    // 	: `${localServerUrl}/${cssFile}`
     scriptUrl = webView.asWebviewUri(vscode.Uri.file((0, path_1.join)(context.extensionPath, 'dist', jsFile))).toString();
     return `<!DOCTYPE html>
 	<html lang="en">

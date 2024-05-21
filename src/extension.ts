@@ -38,16 +38,25 @@ function downloadFile(downloadUrl: string, dest: string, callback: (err: any) =>
 export function activate(context: vscode.ExtensionContext) {
 
 	const odysseyDir = require('os').homedir() + '/.local/share/odyssey'
-	let binaryPath = ''
+	let herbiePath = ''
+	let fpbenchPath = ''
+	let fptaylorPath = ''
+
 	switch (process.platform) {
 		case 'win32':
-			binaryPath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
+			herbiePath = odysseyDir + '/dist/windows/herbie-compiled/herbie.exe'
+			fpbenchPath = odysseyDir + '/dist/windows/fpbench-compiled/fpbench.exe'
+			fptaylorPath = odysseyDir + '/dist/windows/fptaylor-compiled/fptaylor.exe'
 			break
 		case 'linux':
-			binaryPath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
+			herbiePath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
+			fpbenchPath = odysseyDir + '/dist/linux/fpbench-compiled/bin/fpbench'
+			fptaylorPath = odysseyDir + '/dist/linux/fptaylor-compiled/bin/fptaylor'
 			break
 		case 'darwin':
-			binaryPath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
+			herbiePath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
+			fpbenchPath = odysseyDir + '/dist/macos/fpbench-compiled/bin/fpbench'
+			fptaylorPath = odysseyDir + '/dist/macos/fptaylor-compiled/bin/fptaylor'
 			break
 	}
 
@@ -125,7 +134,7 @@ export function activate(context: vscode.ExtensionContext) {
 				fs.unlinkSync(dest)
 
 				// make binary executable
-				fs.chmodSync(binaryPath, '755')
+				fs.chmodSync(herbiePath, '755')
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error installing Herbie: ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
@@ -142,7 +151,7 @@ export function activate(context: vscode.ExtensionContext) {
 				terminal = getTerminal()
 				terminal.show()
 
-				terminal.sendText(binaryPath + ' web --quiet')
+				terminal.sendText(herbiePath + ' web --quiet')
 				console.log('started herbie server')
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
@@ -153,6 +162,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	}
+
 
 	const runHerbieServer = async () => {
 		try {
@@ -185,7 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// check if symlink exists
-			if (!fs.existsSync(binaryPath)) {
+			if (!fs.existsSync(herbiePath)) {
 				// wait for user to download herbie
 				vscode.window.showErrorMessage("Herbie doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
 					if (action === 'Download') {
@@ -198,7 +208,7 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				terminal = getTerminal()
 				terminal.show()
-				terminal.sendText(binaryPath + ' web --quiet')
+				terminal.sendText(herbiePath + ' web --quiet')
 				console.log('started herbie server')
 			}
 		} catch (err: any) {

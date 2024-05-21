@@ -163,6 +163,81 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	}
 
+	const downloadAndRunFPTaylor = async () => {
+		// show information message
+		vscode.window.showInformationMessage('Downloading FPTaylor...')
+		// spawn the download process
+		// get zip file from site
+		const url = "http://localhost:8000/fptaylor"
+		// download with curl to home local share odyssey
+		const home = require('os').homedir()
+		// TODO path.join instead of string concat
+		const odysseyDir = home + '/.local/share/odyssey'
+		if (!fs.existsSync(odysseyDir)) {
+			fs.mkdirSync(odysseyDir, { recursive: true })
+		}
+		if (!fs.existsSync(odysseyDir + '/bin')) {
+			fs.mkdirSync(odysseyDir + '/bin')
+		}
+		if (!fs.existsSync(odysseyDir + '/dist')) {
+			fs.mkdirSync(odysseyDir + '/dist')
+		}
+		const dest = home + '/.local/share/odyssey/fptaylor-compiled.zip'
+		downloadFile(url, dest, (err: any) => {
+			if (err) {
+				vscode.window.showErrorMessage('Error downloading FPTaylor: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			} else {
+				vscode.window.showInformationMessage('FPTaylor downloaded successfully. Please wait while it is installed...')
+			}
+			// unzip to home local share odyssey
+			const AdmZip = require("adm-zip");
+			
+			try {
+				const zip = new AdmZip(dest);
+				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
+			} catch (e) {
+				vscode.window.showErrorMessage('Error installing FPTaylor (extraction): ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
+
+			try {
+				fs.unlinkSync(dest)
+
+				// make binary executable
+				fs.chmodSync(herbiePath, '755')
+			} catch (err: any) {
+				vscode.window.showErrorMessage('Error installing FPTaylor: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
+
+			// show information message
+			vscode.window.showInformationMessage('FPTaylor installed successfully. Starting server...')
+			try {
+				// run the command in the VSCode terminal
+				// show the terminal
+				terminal = getTerminal()
+				terminal.show()
+
+				terminal.sendText(fptaylorPath + ' web --quiet')
+			} catch (err: any) {
+				vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
+		})
+	}
 
 	const runHerbieServer = async () => {
 		try {
@@ -220,6 +295,56 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
+	const runFPTaylorServer = async () => {
+		try {
+			const port = 8001
+
+			const isPortFree = (port:number) =>
+				new Promise(resolve => {
+					const server = require('http')
+						.createServer()
+						.listen(port, () => {
+							server.close()
+							resolve(true)
+						})
+						.on('error', () => {
+							resolve(false)
+							return false
+						})
+				})
+			// check if port is in use
+			let somethingOnPort = !(await isPortFree(port))
+
+			if (somethingOnPort) { // yes
+				// is it FPTaylor?
+				// TODO: Figure out how to check if it's FPTaylor
+			}
+
+			// check if symlink exists
+			if (!fs.existsSync(fptaylorPath)) {
+				// wait for user to download herbie
+				vscode.window.showErrorMessage("FPTaylor doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
+					if (action === 'Download') {
+						downloadAndRunFPTaylor()
+					}
+				})
+			} else if (somethingOnPort) {
+				showInfo("Using existing FPTaylor server on port " + port + ".")
+				return
+			} else {
+				terminal = getTerminal()
+				terminal.show()
+				terminal.sendText(fptaylorPath + ' web --quiet')
+			}
+		} catch (err: any) {
+			vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
+				if (action === 'Copy to clipboard') {
+					vscode.env.clipboard.writeText(err)
+				}
+			})
+		}
+	}
+
 	// read name from package.json
 	const packageJson = require('../package.json')
 	const extensionName = packageJson.name
@@ -230,6 +355,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
 
 		await runHerbieServer()
+		await runFPTaylorServer()
 
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(

@@ -189,6 +189,10 @@ input[type="text"]:focus, select:focus {
   border-right: 2px solid #5e5e5f1a;
 }
 
+.grid-container > .visualization > select {
+  margin-bottom: 10px;
+}
+
 /* .split {
   display: flex;
   flex-direction: row;

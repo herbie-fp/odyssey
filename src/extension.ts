@@ -53,13 +53,13 @@ export function activate(context: vscode.ExtensionContext) {
 			break
 		case 'linux':
 			herbiePath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
-			fpbenchPath = odysseyDir + '/dist/linux/fpbench-compiled/bin/fpbench'
-			fptaylorPath = odysseyDir + '/dist/linux/fptaylor-compiled/bin/fptaylor'
+			fpbenchPath = odysseyDir + '/dist/linux/fpbench-compiled/fpbench'
+			fptaylorPath = odysseyDir + '/dist/linux/fptaylor-compiled/fptaylor'
 			break
 		case 'darwin':
 			herbiePath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
-			fpbenchPath = odysseyDir + '/dist/macos/fpbench-compiled/bin/fpbench'
-			fptaylorPath = odysseyDir + '/dist/macos/fptaylor-compiled/bin/fptaylor'
+			fpbenchPath = odysseyDir + '/dist/macos/fpbench-compiled/fpbench'
+			fptaylorPath = odysseyDir + '/dist/macos/fptaylor-compiled/fptaylor'
 			break
 	}
 
@@ -201,7 +201,7 @@ export function activate(context: vscode.ExtensionContext) {
 			
 			try {
 				const zip = new AdmZip(dest);
-				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ false);
+				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
 			} catch (e) {
 				vscode.window.showErrorMessage('Error installing FPTaylor (extraction): ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
@@ -277,7 +277,7 @@ export function activate(context: vscode.ExtensionContext) {
 			
 			try {
 				const zip = new AdmZip(dest);
-				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ false);
+				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
 			} catch (e) {
 				vscode.window.showErrorMessage('Error installing FPBench (extraction): ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
@@ -300,7 +300,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// show information message
-			vscode.window.showInformationMessage('FPTaylor installed successfully. Starting server...')
+			vscode.window.showInformationMessage('FPBench installed successfully. Starting server...')
 			try {
 				// run the command in the VSCode terminal
 				// show the terminal
@@ -309,7 +309,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				terminal.sendText(fpbenchPath + ' web --quiet')
 			} catch (err: any) {
-				vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
+				vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
 						vscode.env.clipboard.writeText(err)
 					}
@@ -454,7 +454,7 @@ export function activate(context: vscode.ExtensionContext) {
 				// wait for user to download herbie
 				vscode.window.showErrorMessage("FPBench doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
 					if (action === 'Download') {
-						downloadAndRunFPTaylor()
+						downloadAndRunFPBench()
 					}
 				})
 			} else if (somethingOnPort) {
@@ -484,8 +484,8 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
 
 		await runHerbieServer()
-		await runFPTaylorServer()
 		await runFPBenchServer()
+		await runFPTaylorServer()
 
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(

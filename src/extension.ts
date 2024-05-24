@@ -171,7 +171,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Downloading FPTaylor...')
 		// spawn the download process
 		// get zip file from site
-		const url = "http://localhost:" + LOCAL_TEST_PORT + "/fptaylor-compiled.zip"
+		const url = "http://localhost:" + LOCAL_TEST_PORT + "/fptaylor-dist.zip"
 		// download with curl to home local share odyssey
 		const home = require('os').homedir()
 		// TODO path.join instead of string concat
@@ -214,7 +214,7 @@ export function activate(context: vscode.ExtensionContext) {
 				fs.unlinkSync(dest)
 
 				// make binary executable
-				fs.chmodSync(herbiePath, '755')
+				fs.chmodSync(fptaylorPath, '755')
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error installing FPTaylor: ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
@@ -232,6 +232,82 @@ export function activate(context: vscode.ExtensionContext) {
 				terminal.show()
 
 				terminal.sendText(fptaylorPath + ' web --quiet')
+			} catch (err: any) {
+				vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
+		})
+	}
+
+	const downloadAndRunFPBench = async () => {
+		// show information message
+		vscode.window.showInformationMessage('Downloading FPBench...')
+		// spawn the download process
+		// get zip file from site
+		const url = "http://localhost:" + LOCAL_TEST_PORT + "/fpbench-dist.zip"
+		// download with curl to home local share odyssey
+		const home = require('os').homedir()
+		// TODO path.join instead of string concat
+		const odysseyDir = home + '/.local/share/odyssey'
+		if (!fs.existsSync(odysseyDir)) {
+			fs.mkdirSync(odysseyDir, { recursive: true })
+		}
+		if (!fs.existsSync(odysseyDir + '/bin')) {
+			fs.mkdirSync(odysseyDir + '/bin')
+		}
+		if (!fs.existsSync(odysseyDir + '/dist')) {
+			fs.mkdirSync(odysseyDir + '/dist')
+		}
+		const dest = home + '/.local/share/odyssey/fpbench-compiled.zip'
+		downloadFile(url, dest, (err: any) => {
+			if (err) {
+				vscode.window.showErrorMessage('Error downloading FPBench: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			} else {
+				vscode.window.showInformationMessage('FPBench downloaded successfully. Please wait while it is installed...')
+			}
+			// unzip to home local share odyssey
+			const AdmZip = require("adm-zip");
+			
+			try {
+				const zip = new AdmZip(dest);
+				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ false);
+			} catch (e) {
+				vscode.window.showErrorMessage('Error installing FPBench (extraction): ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
+
+			try {
+				fs.unlinkSync(dest)
+
+				// make binary executable
+				fs.chmodSync(fpbenchPath, '755')
+			} catch (err: any) {
+				vscode.window.showErrorMessage('Error installing FPBench: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
+
+			// show information message
+			vscode.window.showInformationMessage('FPTaylor installed successfully. Starting server...')
+			try {
+				// run the command in the VSCode terminal
+				// show the terminal
+				terminal = getTerminal()
+				terminal.show()
+
+				terminal.sendText(fpbenchPath + ' web --quiet')
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
@@ -348,6 +424,56 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
+	const runFPBenchServer = async () => {
+		try {
+			const port = 8002
+
+			const isPortFree = (port:number) =>
+				new Promise(resolve => {
+					const server = require('http')
+						.createServer()
+						.listen(port, () => {
+							server.close()
+							resolve(true)
+						})
+						.on('error', () => {
+							resolve(false)
+							return false
+						})
+				})
+			// check if port is in use
+			let somethingOnPort = !(await isPortFree(port))
+
+			if (somethingOnPort) { // yes
+				// is it FPBench?
+				// TODO: Figure out how to check if it's FPBench
+			}
+
+			// check if symlink exists
+			if (!fs.existsSync(fpbenchPath)) {
+				// wait for user to download herbie
+				vscode.window.showErrorMessage("FPBench doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
+					if (action === 'Download') {
+						downloadAndRunFPTaylor()
+					}
+				})
+			} else if (somethingOnPort) {
+				showInfo("Using existing FPBench server on port " + port + ".")
+				return
+			} else {
+				terminal = getTerminal()
+				terminal.show()
+				terminal.sendText(fptaylorPath + ' web --quiet')
+			}
+		} catch (err: any) {
+			vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {
+				if (action === 'Copy to clipboard') {
+					vscode.env.clipboard.writeText(err)
+				}
+			})
+		}
+	}
+
 	// read name from package.json
 	const packageJson = require('../package.json')
 	const extensionName = packageJson.name
@@ -359,6 +485,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		await runHerbieServer()
 		await runFPTaylorServer()
+		await runFPBenchServer()
 
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(

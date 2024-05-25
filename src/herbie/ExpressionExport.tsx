@@ -46,27 +46,6 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
     }
     React.useEffect(callTranslate, [expressionText, language])
     setTimeout(callTranslate, 300)
-    // React.useEffect(() => {
-    //     // Make server call to get translation
-    //     fetch("http://127.0.0.1:8000/api/translate", {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify({
-    //             expression: expressionText,
-    //             language: language,
-    //         }),
-    //     })
-    //         .then((response) => response.json())
-    //         .then((data) => {
-    //             setExportCode(data.code);
-    //         })
-    //         .catch((error) => {
-    //             console.error("Error:", error);
-    //         });
-    // }, [expressionText, language]);
-    
 
     return (
         <div>

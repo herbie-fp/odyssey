@@ -307,7 +307,10 @@ function ExpressionTable() {
                   <div className="delete">
                     <button onClick={() =>{ 
                       setArchivedExpressions([...archivedExpressions, expression.id]);
-                      setSelectedExprId(-1);
+                      const activeExp = activeExpressions.filter(id => id !== expression.id);
+                      if (activeExp.length > 0) {
+                        setSelectedExprId(activeExp[0]);
+                      } 
                       }}>
                     ╳
                     </button>

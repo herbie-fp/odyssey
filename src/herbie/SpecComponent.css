@@ -9,13 +9,12 @@
   min-height: 4em;
 }
 
-.spec {
-  margin-right: 10px; /* Add some space between the Spec component and the Server Status component */
-}
-
 .spec-title {
   margin-left: 5px;
   cursor: pointer;
+}
+.spec-container {
+  width:60%;
 }
 .spec-container .rewriting {
   font-size: 10px;
@@ -52,24 +51,21 @@
 }
 
 .spec-title {
-  /* show the items side by side, with spacing */
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  /* center items horizontally */
+  justify-content: center;
 
-}
-
-.spec-field {
-  margin-right: 5px;
-  /*bold*/
-  font-weight: bold;
-  display: none;
 }
 
 .spec-text {
   font-family: 'Ruda', serif;
   font-size: 20px;
   padding-top:2px;
+  /* overflow should be ... */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .spec-textarea {

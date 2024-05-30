@@ -135,13 +135,15 @@ function ExpressionTable() {
       throw new Error(errors[0])
     }
   }
-
+  if (selectedSampleId === undefined) {
+    return <div className="expression-table">Waiting for sampling...</div>
+  }
   const sample = samples.find((sample) => sample.id === selectedSampleId)
   if (!sample) {
-    // show error message on page
-    return <div>Sample id {selectedSampleId} not found</div>
+    // should never get here
+    return <div className="expression-table">Couldn't find sample id { selectedSampleId }</div>
   }
-
+  
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">

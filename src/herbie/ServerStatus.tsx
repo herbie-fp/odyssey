@@ -39,6 +39,9 @@ function ServerStatusComponent() {
     setUpdatedServerUrl(event.target.value);
   };
   const customStyles = {
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)'
+    },
     content: {
       top: '50%',
       left: '50%',
@@ -46,6 +49,7 @@ function ServerStatusComponent() {
       bottom: 'auto',
       marginRight: '-50%',
       transform: 'translate(-50%, -50%)',
+      backgroundColor: 'var(--background-color)'
     },
     };
 

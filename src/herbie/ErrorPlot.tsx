@@ -200,7 +200,7 @@ function ErrorPlot() {
   const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id))
 
   // console.log('selectedExprId', selectedExprId)
-
+  
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)
   if (!selectedExpr) {

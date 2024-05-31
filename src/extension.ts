@@ -2,16 +2,20 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { join } from 'path';
-import { spawn } from 'child_process';
+import { exec, spawn } from 'child_process';
 
 import * as fs from 'fs';
 const lnk = require('lnk');
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const express = require('express');
 
 // TODO Remove this:
 const LOCAL_TEST_PORT = 7777;
+
+// Port for plugins
+const pluginPort = 8888;
 
 /**
  * Downloads a file from a URL to a specified directory.
@@ -166,7 +170,26 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	}
 
-	const downloadAndRunFPTaylor = async () => {
+	var plugin: any;
+	
+	const pluginExpress = express();
+	pluginExpress.listen(pluginPort, () => {
+		console.log(`Example app listening on port ${pluginPort}`)
+	})
+
+	pluginExpress.post('/fptaylor', async (req: any, res: any) => {
+		const request = req.body;
+		try {
+			const { stdout, stderr } = await exec(
+				`./fpbench export --lang fptaylor <(printf "(FPCore (x) :pre (>= 1 x 0) (- x 1))") -`
+			);
+			return stdout;
+		} catch (e) {
+			console.error(e);
+		}
+	}) 
+
+	const downloadAndRunFPTaylor = async () => {3
 		// show information message
 		vscode.window.showInformationMessage('Downloading FPTaylor...')
 		// spawn the download process
@@ -413,7 +436,9 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				terminal = getTerminal()
 				terminal.show()
-				terminal.sendText(fptaylorPath + ' web --quiet')
+
+				// Set up FPTaylor server here
+				// TODO (rc2002)
 			}
 		} catch (err: any) {
 			vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
@@ -423,6 +448,8 @@ export function activate(context: vscode.ExtensionContext) {
 			})
 		}
 	}
+
+	
 
 	const runFPBenchServer = async () => {
 		try {
@@ -463,7 +490,6 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				terminal = getTerminal()
 				terminal.show()
-				terminal.sendText(fptaylorPath + ' web --quiet')
 			}
 		} catch (err: any) {
 			vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {

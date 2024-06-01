@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { join } from 'path';
-import { exec, spawn } from 'child_process';
+import { spawn } from 'child_process';
 
 import * as fs from 'fs';
 const lnk = require('lnk');
@@ -10,6 +10,9 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const express = require('express');
+const cors = require('cors');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
 // TODO Remove this:
 const LOCAL_TEST_PORT = 7777;
@@ -169,25 +172,28 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	}
-
-	var plugin: any;
 	
 	const pluginExpress = express();
+
+	pluginExpress.post('/fpbench', async (req: any, res: any) => {
+		const input = req.body;
+		console.log(req)
+		try {
+		  console.log(fpbenchPath);
+		  const { stdout, stderr } = await exec(
+			`cd / && .${fpbenchPath} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`,
+			{shell: '/bin/bash'}
+		);
+		  console.log(stdout);
+		  res.send(stdout);
+		} catch (e) {
+		  console.error(e);
+		}
+	}) 
+
 	pluginExpress.listen(pluginPort, () => {
 		console.log(`Example app listening on port ${pluginPort}`)
 	})
-
-	pluginExpress.post('/fptaylor', async (req: any, res: any) => {
-		const request = req.body;
-		try {
-			const { stdout, stderr } = await exec(
-				`./fpbench export --lang fptaylor <(printf "(FPCore (x) :pre (>= 1 x 0) (- x 1))") -`
-			);
-			return stdout;
-		} catch (e) {
-			console.error(e);
-		}
-	}) 
 
 	const downloadAndRunFPTaylor = async () => {3
 		// show information message

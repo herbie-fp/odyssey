@@ -199,12 +199,19 @@ function activate(context) {
     const urlencodedParser = bodyParser.urlencoded({ extended: false });
     pluginExpress.post('/fpbench', jsonParser, async (req, res) => {
         const input = req.body;
-        console.log(req);
         try {
-            console.log(fpbenchPath);
-            const { stdout, stderr } = await exec(`cd / && .${fpbenchPath} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`, { shell: '/bin/bash' });
-            console.log(stdout);
+            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`, { shell: '/bin/bash' });
             res.send(stdout);
+        }
+        catch (e) {
+            console.error(e);
+        }
+    });
+    pluginExpress.post('/fptaylor', jsonParser, async (req, res) => {
+        const input = req.body;
+        try {
+            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} ${input.fptaylorInput}`, { shell: '/bin/bash' });
+            res.send(`<(printf "${stdout}")`);
         }
         catch (e) {
             console.error(e);

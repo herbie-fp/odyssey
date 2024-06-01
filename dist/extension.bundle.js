@@ -210,7 +210,7 @@ function activate(context) {
     pluginExpress.post('/fptaylor', jsonParser, async (req, res) => {
         const input = req.body;
         try {
-            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} ${input.fptaylorInput}`, { shell: '/bin/bash' });
+            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} <(printf "${input.fptaylorInput}")`, { shell: '/bin/bash' });
             res.send(`<(printf "${stdout}")`);
         }
         catch (e) {

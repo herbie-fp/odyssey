@@ -40,6 +40,7 @@ const http = __webpack_require__(30);
 const https = __webpack_require__(31);
 const url = __webpack_require__(32);
 const express = __webpack_require__(33);
+const bodyParser = __webpack_require__(35);
 const cors = __webpack_require__(203);
 const util = __webpack_require__(16);
 const exec = util.promisify((__webpack_require__(205).exec));
@@ -194,7 +195,9 @@ function activate(context) {
         });
     };
     const pluginExpress = express();
-    pluginExpress.post('/fpbench', async (req, res) => {
+    const jsonParser = bodyParser.json();
+    const urlencodedParser = bodyParser.urlencoded({ extended: false });
+    pluginExpress.post('/fpbench', jsonParser, async (req, res) => {
         const input = req.body;
         console.log(req);
         try {

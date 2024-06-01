@@ -33,14 +33,14 @@ function downloadFile(downloadUrl: string, dest: string, callback: (err: any) =>
 	const protocol = parsedUrl.protocol === 'https:' ? https : http;
 
 	const file = fs.createWriteStream(dest);
-	const request = protocol.get(downloadUrl, function(response: any) {
-			response.pipe(file);
-			file.on('finish', function() {
-					file.close(callback); // Call the callback once the file is written to disk.
-			});
-	}).on('error', function(err: any) {
+	const request = protocol.get(downloadUrl, function (response: any) {
+		response.pipe(file);
+		file.on('finish', function () {
+			file.close(callback); // Call the callback once the file is written to disk.
+		});
+	}).on('error', function (err: any) {
 		fs.unlink(dest, () => { }); // Delete the file if there's an error.
-			if (callback) { callback(err.message); }
+		if (callback) { callback(err.message); }
 	});
 }
 
@@ -129,7 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			// unzip to home local share odyssey
 			const AdmZip = require("adm-zip");
-			
+
 			try {
 				const zip = new AdmZip(dest);
 				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
@@ -173,32 +173,43 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	}
-	
+
 	const pluginExpress = express();
 	const jsonParser = bodyParser.json();
 	const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 	pluginExpress.post('/fpbench', jsonParser, async (req: any, res: any) => {
 		const input = req.body;
-		console.log(req)
 		try {
-		  console.log(fpbenchPath);
-		  const { stdout, stderr } = await exec(
-			`cd / && .${fpbenchPath} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`,
-			{shell: '/bin/bash'}
-		);
-		  console.log(stdout);
-		  res.send(stdout);
+			const { stdout, stderr } = await exec(
+				`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`,
+				{ shell: '/bin/bash' }
+			);
+			res.send(stdout);
 		} catch (e) {
-		  console.error(e);
+			console.error(e);
 		}
-	}) 
+	})
+
+	pluginExpress.post('/fptaylor', jsonParser, async (req: any, res: any) => {
+		const input = req.body;
+		try {
+			const { stdout, stderr } = await exec(
+				`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} ${input.fptaylorInput}`,
+				{ shell: '/bin/bash' }
+			);
+			res.send(`<(printf "${stdout}")`);
+		} catch (e) {
+			console.error(e);
+		}
+	})
 
 	pluginExpress.listen(pluginPort, () => {
 		console.log(`Example app listening on port ${pluginPort}`)
 	})
 
-	const downloadAndRunFPTaylor = async () => {3
+	const downloadAndRunFPTaylor = async () => {
+		3
 		// show information message
 		vscode.window.showInformationMessage('Downloading FPTaylor...')
 		// spawn the download process
@@ -230,7 +241,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			// unzip to home local share odyssey
 			const AdmZip = require("adm-zip");
-			
+
 			try {
 				const zip = new AdmZip(dest);
 				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
@@ -306,7 +317,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			// unzip to home local share odyssey
 			const AdmZip = require("adm-zip");
-			
+
 			try {
 				const zip = new AdmZip(dest);
 				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
@@ -354,7 +365,7 @@ export function activate(context: vscode.ExtensionContext) {
 		try {
 			const port = 8000
 
-			const isPortFree = (port:number) =>
+			const isPortFree = (port: number) =>
 				new Promise(resolve => {
 					const server = require('http')
 						.createServer()
@@ -410,7 +421,7 @@ export function activate(context: vscode.ExtensionContext) {
 		try {
 			const port = 8001
 
-			const isPortFree = (port:number) =>
+			const isPortFree = (port: number) =>
 				new Promise(resolve => {
 					const server = require('http')
 						.createServer()
@@ -458,13 +469,13 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-	
+
 
 	const runFPBenchServer = async () => {
 		try {
 			const port = 8002
 
-			const isPortFree = (port:number) =>
+			const isPortFree = (port: number) =>
 				new Promise(resolve => {
 					const server = require('http')
 						.createServer()
@@ -556,7 +567,7 @@ export function activate(context: vscode.ExtensionContext) {
 								await vscode.env.clipboard.writeText(message.error)
 							}
 							break
-						}
+					}
 				})
 		}
 		addMessageHandler(panel)
@@ -567,7 +578,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionContext) => {
 	const jsFile = "webview.bundle.js";
-	
+
 	// this is the webpack dev server; in theory, this could be used for hot module reloading, but it doesn't work right now.
 	const localServerUrl = "http://localhost:3000";
 	const isProduction = context.extensionMode === vscode.ExtensionMode.Production;

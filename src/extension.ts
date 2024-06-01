@@ -10,6 +10,7 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const express = require('express');
+const bodyParser = require('body-parser')
 const cors = require('cors');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -174,8 +175,10 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 	
 	const pluginExpress = express();
+	const jsonParser = bodyParser.json();
+	const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
-	pluginExpress.post('/fpbench', async (req: any, res: any) => {
+	pluginExpress.post('/fpbench', jsonParser, async (req: any, res: any) => {
 		const input = req.body;
 		console.log(req)
 		try {

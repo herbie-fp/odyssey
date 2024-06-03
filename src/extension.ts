@@ -186,11 +186,26 @@ export function activate(context: vscode.ExtensionContext) {
 				`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`,
 				{ shell: '/bin/bash' }
 			);
-			res.send(stdout);
+			res.json({ stdout });
 		} catch (e) {
 			console.error(e);
 		}
 	})
+
+	const parseOutput = async (text: string, input: any) => {
+		const response = [];
+		try {
+			const bounds = [...text.matchAll(/Bounds \(without rounding\): (.*)$/gm)];
+			const abserror = [...text.matchAll(/Absolute error \(exact\): (.*)\(/gm)];
+			for (let i = 0; i < bounds.length; i++) {
+				response.push({ bounds: bounds[i][1], absoluteError: abserror[i][1] });
+			}
+		} catch (e) {
+			console.error(e);
+		}
+
+		return response;
+	};
 
 	pluginExpress.post('/fptaylor', jsonParser, async (req: any, res: any) => {
 		const input = req.body;
@@ -199,7 +214,7 @@ export function activate(context: vscode.ExtensionContext) {
 				`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} <(printf "${input.fptaylorInput}")`,
 				{ shell: '/bin/bash' }
 			);
-			res.send(`<(printf "${stdout}")`);
+			res.json({ output: `<(printf "${stdout}")` });
 		} catch (e) {
 			console.error(e);
 		}

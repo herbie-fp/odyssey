@@ -348,7 +348,7 @@ function HerbieUIInner() {
 
           console.log(formula)
 
-          const fptaylorInput = await fetch(
+          const fptaylorInputResponse = await (await fetch(
             "http://localhost:8888/fpbench",
             {
               method: 'POST', // *GET, POST, PUT, DELETE, etc.
@@ -362,7 +362,9 @@ function HerbieUIInner() {
               referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
               body: JSON.stringify({ 'formulas': [formula] }) // body data type must match "Content-Type" header
             }
-          )
+          )).json();
+
+          const fptaylorInput = fptaylorInputResponse.stdout;
 
           FPTaylorAnalyses.splice(index, 0,
             new Types.FPTaylorAnalysis(
@@ -388,6 +390,8 @@ function HerbieUIInner() {
           )
         }
       }
+
+      console.log(FPTaylorAnalyses)
       setFPTaylorAnalysis(FPTaylorAnalyses)
     }
 

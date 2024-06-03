@@ -346,12 +346,28 @@ function HerbieUIInner() {
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
+          const fptaylorInput = await fetch(
+            "http://localhost:8888/fpbench",
+            {
+              method: 'POST', // *GET, POST, PUT, DELETE, etc.
+              mode: 'cors', // no-cors, *cors, same-origin
+              cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+              credentials: 'same-origin', // include, *same-origin, omit
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              redirect: 'follow', // manual, *follow, error
+              referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+              body: JSON.stringify({ formulas: [formula] }) // body data type must match "Content-Type" header
+            }
+          )
+
           FPTaylorAnalyses.splice(index, 0,
             new Types.FPTaylorAnalysis(
               index,
               await (
                 await fetch(
-                  "http://localhost:3000",
+                  "http://localhost:8888/fptaylor",
                   {
                     method: 'POST', // *GET, POST, PUT, DELETE, etc.
                     mode: 'cors', // no-cors, *cors, same-origin
@@ -362,7 +378,7 @@ function HerbieUIInner() {
                     },
                     redirect: 'follow', // manual, *follow, error
                     referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                    body: JSON.stringify({ formulas: [formula] }) // body data type must match "Content-Type" header
+                    body: JSON.stringify({ fptaylorInput: [fptaylorInput] }) // body data type must match "Content-Type" header
                   }
                 )
               ).json()

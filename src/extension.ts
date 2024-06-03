@@ -209,7 +209,6 @@ export function activate(context: vscode.ExtensionContext) {
 	})
 
 	const downloadAndRunFPTaylor = async () => {
-		3
 		// show information message
 		vscode.window.showInformationMessage('Downloading FPTaylor...')
 		// spawn the download process

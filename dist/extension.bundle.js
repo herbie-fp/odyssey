@@ -195,6 +195,7 @@ function activate(context) {
         });
     };
     const pluginExpress = express();
+    pluginExpress.use(cors());
     const jsonParser = bodyParser.json();
     const urlencodedParser = bodyParser.urlencoded({ extended: false });
     pluginExpress.post('/fpbench', jsonParser, async (req, res) => {

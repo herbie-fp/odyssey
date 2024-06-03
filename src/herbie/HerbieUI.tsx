@@ -346,6 +346,8 @@ function HerbieUIInner() {
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
+          console.log(formula)
+
           const fptaylorInput = await fetch(
             "http://localhost:8888/fpbench",
             {
@@ -358,7 +360,7 @@ function HerbieUIInner() {
               },
               redirect: 'follow', // manual, *follow, error
               referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-              body: JSON.stringify({ formulas: [formula] }) // body data type must match "Content-Type" header
+              body: JSON.stringify({ 'formulas': [formula] }) // body data type must match "Content-Type" header
             }
           )
 
@@ -378,7 +380,7 @@ function HerbieUIInner() {
                     },
                     redirect: 'follow', // manual, *follow, error
                     referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                    body: JSON.stringify({ fptaylorInput: [fptaylorInput] }) // body data type must match "Content-Type" header
+                    body: JSON.stringify({ 'fptaylorInput': fptaylorInput }) // body data type must match "Content-Type" header
                   }
                 )
               ).json()

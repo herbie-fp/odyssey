@@ -175,6 +175,7 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	const pluginExpress = express();
+	pluginExpress.use(cors());
 	const jsonParser = bodyParser.json();
 	const urlencodedParser = bodyParser.urlencoded({ extended: false });
 

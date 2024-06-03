@@ -221,7 +221,6 @@ function activate(context) {
         console.log(`Example app listening on port ${pluginPort}`);
     });
     const downloadAndRunFPTaylor = async () => {
-        3;
         // show information message
         vscode.window.showInformationMessage('Downloading FPTaylor...');
         // spawn the download process

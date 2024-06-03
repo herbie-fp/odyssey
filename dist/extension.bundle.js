@@ -202,17 +202,31 @@ function activate(context) {
         const input = req.body;
         try {
             const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`, { shell: '/bin/bash' });
-            res.send(stdout);
+            res.json({ stdout });
         }
         catch (e) {
             console.error(e);
         }
     });
+    const parseOutput = async (text, input) => {
+        const response = [];
+        try {
+            const bounds = [...text.matchAll(/Bounds \(without rounding\): (.*)$/gm)];
+            const abserror = [...text.matchAll(/Absolute error \(exact\): (.*)\(/gm)];
+            for (let i = 0; i < bounds.length; i++) {
+                response.push({ bounds: bounds[i][1], absoluteError: abserror[i][1] });
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
+        return response;
+    };
     pluginExpress.post('/fptaylor', jsonParser, async (req, res) => {
         const input = req.body;
         try {
             const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} <(printf "${input.fptaylorInput}")`, { shell: '/bin/bash' });
-            res.send(`<(printf "${stdout}")`);
+            res.json({ output: `<(printf "${stdout}")` });
         }
         catch (e) {
             console.error(e);

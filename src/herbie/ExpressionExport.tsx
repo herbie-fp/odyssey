@@ -7,6 +7,9 @@ interface ExpressionExportProps {
 }
 
 const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
+
+    const supportedLanguages = ["python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
+    
     // Export the expression to a language of the user's choice
     // (e.g. Python, C, etc.)
     const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
@@ -15,25 +18,17 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
     const expressionText = expressions[props.expressionId].text;
 
     // Get user choice
-    const [language, setLanguage] = React.useState("python");
+    const [language, setLanguage] = React.useState(supportedLanguages[0]);
 
     const [exportCode, setExportCode] = React.useState("");
 
     // Make server call to get translation when user submits
-
-    /*Example call:
-    
-    let translatedExpression = (await (await fetch('http://127.0.0.1:8000/api/translate', { method: 'POST', body: JSON.stringify({ formula: '(FPCore (x) (- (sqrt (+ x 1)) (sqrt x)))', lang: "asdf" }) })).json())
-    */
-    console.log(expressionText, language)
-    console.log(fpcorejs.mathjsToFPCore(expressionText))
-    console.log("Before fetch")
     const callTranslate = () => {
         fetch('http://127.0.0.1:8000/api/translate', {
             method: 'POST',
             body: JSON.stringify({
                 formula: fpcorejs.mathjsToFPCore(expressionText),
-                lang: language
+                language: language
             })
         })
         .then(response => response.json())
@@ -45,23 +40,21 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
         });
     }
     React.useEffect(callTranslate, [expressionText, language])
-    setTimeout(callTranslate, 300)
 
     return (
         <div>
             {/* Choose language */}
             <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-                <option value="python">Python</option>
-                <option value="c">C</option>
-                <option value="java">Java</option>
+                {supportedLanguages.map(lang => (
+                    <option key={lang} value={lang}>{lang}</option>
+                ))}
             </select>
 
             {/* Display the export code */}
             <pre>{exportCode}</pre>
 
             {/* Export button */}
-            
-
+        
         </div>
     );
 };

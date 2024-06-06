@@ -126,7 +126,7 @@ function HerbieUIInner() {
 
   const herbiejs = addJobRecorder(herbiejsImport)
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   // Data relationships
   // Reactively update analyses whenever expressions change

@@ -222,7 +222,7 @@ function ExpressionTable() {
                 { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
-                { value: 'expressionExport', label: 'ExpressionExport', component: <ExpressionExport expressionId={expression.id}/> },
+                { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>

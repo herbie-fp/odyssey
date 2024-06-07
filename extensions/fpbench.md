@@ -1,3 +1,3 @@
 # FPBench
 
-## Installation
+## Building the binary

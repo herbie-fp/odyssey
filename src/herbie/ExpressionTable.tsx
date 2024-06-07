@@ -9,11 +9,11 @@ import * as fpcore from './lib/fpcore'
 import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
+import ExpressionExport from './ExpressionExport';
 import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';
 
 import { addJobRecorder } from './HerbieUI';
-
 const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
@@ -224,6 +224,7 @@ function ExpressionTable() {
                 { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
+                { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>

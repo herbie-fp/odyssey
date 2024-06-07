@@ -1,4 +1,4 @@
-# @Ben Document how to add components here!
+# Adding Component To Odyssey Documentation
 
 This documents my personal experience with adding a React component to Odyssey. 
 

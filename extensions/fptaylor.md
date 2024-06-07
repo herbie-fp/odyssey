@@ -1,3 +1,3 @@
 # FPTaylor
 
-## Installation
+## Building the binary

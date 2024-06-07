@@ -24,3 +24,10 @@ This documents my personal experience with adding a React component to Odyssey.
 - **Frontend TODOS:**
   - Do not hard code “python” in the `useState` or the languages, create a list of all the languages ✅
   - Check line 48, try to remove it, we might not need to `setTimeout`. Try also reverting the `callTranslate` variable, might not need it since the error was in the naming and not the API call. ✅
+
+Expression translated into python:
+![image](https://github.com/herbie-fp/odyssey/assets/112049313/a4996235-21cc-48fc-83e6-3210bfade97b)
+
+Dropdown with language options:
+![image](https://github.com/herbie-fp/odyssey/assets/112049313/1dff45fe-1956-457b-a76a-f2109830bfce)
+

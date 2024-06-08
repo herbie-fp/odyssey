@@ -7,3 +7,5 @@ FPBench requires Racket 8.0+, which can be set up at https://download.racket-lan
 To build FPBench from source, clone the repository at https://github.com/FPBench/FPBench.
 
 Then, run ``make setup`` to build the tools.
+
+The FPBench binary (and important related files) will be in the ``fpbench-compiled`` folder.

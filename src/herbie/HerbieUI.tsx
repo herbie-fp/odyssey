@@ -14,6 +14,7 @@ import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
+import AccuracyVersusSpeed from './AccuracyVersusSpeed';
 
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
@@ -381,6 +382,7 @@ function HerbieUIInner() {
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId}/> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
+    { value: 'AccuracyVersusSpeed', label: 'Accuracy Versus Speed', component: <AccuracyVersusSpeed />},
   ];
 
   return (

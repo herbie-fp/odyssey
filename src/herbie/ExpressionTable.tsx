@@ -161,6 +161,9 @@ function ExpressionTable() {
         </div>
         <div className="compare-header">
         </div>
+        <div className="cost-header">
+          Cost
+        </div>
         <div className="error-header">
           Error
         </div>

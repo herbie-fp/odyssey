@@ -191,6 +191,9 @@
   margin-right: auto;
   margin-left: 6px;
 }
+.cost-header {
+  margin-right: 45px;
+}
 .error-header {
   margin-right: 87px;
 }

@@ -88,14 +88,16 @@ function LocalError({ expressionId }: { expressionId: number }) {
   const varnames = fpcore.getVarnamesMathJS(spec.expression)
 
   const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
-
+  const handleNodeClick = (event: any) => {
+    console.log('Node clicked!', event.target);
+  };
   return (
     <div className="local-error">
       <div className="selected-point">
         <div className="selected-point-title">Selected Point:</div>
         <Point values={selectedPointValue}/>
       </div>
-      <div className="local-error-graph">
+      <div className="local-error-graph" onClick={handleNodeClick}>
         <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)}  />
       </div>
     </div>

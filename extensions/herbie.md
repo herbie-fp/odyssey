@@ -3,11 +3,12 @@
 ## Building the binary
 * Clone `herbie-fp/herbie`
 * Next, for Windows, see below.
-* For other platforms, follow the instructions to Install from Source. You may need to update Rust or Racket, and it may be necessary to remove certain old Racket packages like `rival` or `egg-herbie` for the install to succeed. Work out any installation issues with the Herbie team. Confirm that the installation works by running `racket src/herbie.rkt web`. You should see a browser open with the Herbie demo.
+* Follow the instructions in the Herbie documentation to Install from Source. You may need to update Rust or Racket, and it may be necessary to remove certain old Racket packages like `rival` or `egg-herbie` for the install to succeed. Work out any installation issues with the Herbie team. Confirm that the installation works by running `racket src/herbie.rkt web`. You should see a browser open with the Herbie demo.
 * Run `make minimal-distribution`. This should create a `herbie-compiled/` directory with the binaries in the proper directory structure for that platform.
 
 Windows
 * Windows doesn’t have make by default. To use make on windows, we use a [git-bash](https://git-scm.com/download/win) shell.
+* Follow the instructions in the Herbie documentation to Install from Source. See the above notes on troubleshooting and confirming success.
 * Run `make minimal-distribution` as described above.
 * After building the binary directory, try running herbie with `herbie-compiled/herbie.exe web` to confirm that the build was successful. Note this is different from other platforms!
 

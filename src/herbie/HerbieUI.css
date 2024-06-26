@@ -16,6 +16,40 @@
     --background-extreme: #ffffff;
   }
 }
+
+@media (prefers-color-scheme: light)  {
+  :root {
+    --ui-color: #eeeeee;
+    --ui-hover-color: #dddddd;
+    --ui-focus-color: #dededebd;
+    --ui-pressed-color: #656565;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+  --ui-color: #313131;
+  --ui-hover-color: #4b4b4b;
+  --ui-focus-color: #1f1f1f;
+  --ui-pressed-color: #a2a2a2;
+  }
+}
+
+:root:has(.vscode-light) {
+  --ui-color: #eeeeee;
+    --ui-hover-color: #dddddd;
+    --ui-focus-color: #dededebd;
+    --ui-pressed-color: #656565;
+    --foreground-deemphasize-color: gray;
+  }
+:root:has(.vscode-dark) {
+  /* invert the above colors */
+  --ui-color: #313131;
+  --ui-hover-color: #4b4b4b;
+  --ui-focus-color: #1f1f1f;
+  --ui-pressed-color: #a2a2a2;
+  --foreground-deemphasize-color: gray;
+  }
+
 body {
   color: var(--foreground-color);
   fill: var(--foreground-color);
@@ -57,41 +91,6 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-
-@media (prefers-color-scheme: light)  {
-  :root {
-    --ui-color: #eeeeee;
-    --ui-hover-color: #dddddd;
-    --ui-focus-color: #dededebd;
-    --ui-pressed-color: #656565;
-  }
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-  /* invert the above colors */
-  --ui-color: #313131;
-  --ui-hover-color: #4b4b4b;
-  --ui-focus-color: #1f1f1f;
-  --ui-pressed-color: #a2a2a2;
-  }
-}
-
-:root:has(.vscode-light) {
-  --ui-color: #eeeeee;
-    --ui-hover-color: #dddddd;
-    --ui-focus-color: #dededebd;
-    --ui-pressed-color: #656565;
-    --foreground-deemphasize-color: gray;
-  }
-:root:has(.vscode-dark) {
-  /* invert the above colors */
-  --ui-color: #313131;
-  --ui-hover-color: #4b4b4b;
-  --ui-focus-color: #1f1f1f;
-  --ui-pressed-color: #a2a2a2;
-  --foreground-deemphasize-color: gray;
-  }
-
 button, select {
   background: var(--ui-color);
   /* color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 90%), var(--background-color) 50%); */
@@ -124,11 +123,11 @@ input[type="text"]:focus, select:focus {
 .grid-container {
   display: grid;
   grid-template-areas:
-    "header expressions"
+    "header header"
     "visualization expressions"
     "help-buttons expressions";
   height: 100vh; 
-  grid-template-rows: 63px 1fr 3em;
+  grid-template-rows: 30px 1fr 3em;
   grid-template-columns: 4fr 6fr; /*min(70%, 600px);*/
 }
 
@@ -141,22 +140,39 @@ input[type="text"]:focus, select:focus {
 }
 
 .header {
+  display:flex;
   grid-area: header; /*Place the header in the "header" grid area */
-  /* display: flex; Use flexbox to position the components */
-  justify-content: space-around; /* Align the components at the start and end of the header */
-  display: flex;
-  flex-direction: column;
-  /* border-bottom: 2px solid #5e5e5f1a; */
-  border-right: 2px solid #5e5e5f1a;
-  box-shadow: 0px 2px 2px 0px #ccc;
-    clip-path: inset(0px 0px -4px 0px);
-  /* padding-left: 5px; */
+  justify-content: space-between; /* Align the components at the start and end of the header */
+  border-bottom: 4px solid #5e5e5f1a;
   .app-name {
+    display: flex;
+    align-items: center;
     font-size: 1em;
     font-family: 'Ruda';
     font-weight: 500;
     margin: 3px;
   }
+
+  .serverStatus {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 0.8em;
+    margin: 3px;  
+  }
+}
+
+.spec {
+  grid-area: spec; /*Place the header in the "header" grid area */
+  display: flex;
+  flex-direction: column;
+  /* border-bottom: 2px solid #5e5e5f1a; */
+  /* probably will need to replace this border with a div */
+  border-right: 2px solid #5e5e5f1a; 
+  box-shadow: 0px 2px 2px 0px #ccc;
+    clip-path: inset(0px 0px -4px 0px);
+  /* padding-left: 5px; */
+  
 }
 .table {
   flex-grow: 7;
@@ -187,6 +203,10 @@ input[type="text"]:focus, select:focus {
   grid-area: visualization; /* Place the visualization section in the "visualization" grid area */
   margin-left: 10px;
   border-right: 2px solid #5e5e5f1a;
+}
+
+.grid-container > .visualization > select {
+  margin-bottom: 10px;
 }
 
 /* .split {

@@ -238,15 +238,22 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   return (
     <div className="spec-container">
       <div className="spec-title">
-        <div className="spec-field">
-          Spec:
-        </div>
         <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
       </div>
       <Modal
         isOpen={showOverlay}
         onRequestClose={() => setShowOverlay(false)}
         ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          },
+          content: {
+            backgroundColor: 'var(--background-color)'
+          }
+        
+        }
+        }
       >
         {/* <div className="spec-overlay" onClick={handleOverlayClick}> */}
           {/* Show a dialogue for editing the spec with a "done" button. */}

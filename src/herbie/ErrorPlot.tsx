@@ -200,7 +200,7 @@ function ErrorPlot() {
   const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id))
 
   // console.log('selectedExprId', selectedExprId)
-
+  
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)
   if (!selectedExpr) {
@@ -314,7 +314,7 @@ function ErrorPlot() {
       //   return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
       // }
       return <div key={i}>
-        <span>{v}: </span>
+        <span className="variable-name">{v}: </span>
         {range && ( // Do not display if range is undefined, which occurs when there is no InputRanges (expr is FPCore)
           <InputRangeEditor1 value={{
             lower: range.lowerBound.toString(),

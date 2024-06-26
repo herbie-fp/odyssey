@@ -9,11 +9,11 @@ import * as fpcore from './lib/fpcore'
 import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
+import ExpressionExport from './ExpressionExport';
 import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';
 
 import { addJobRecorder } from './HerbieUI';
-
 const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
@@ -135,13 +135,15 @@ function ExpressionTable() {
       throw new Error(errors[0])
     }
   }
-
+  if (selectedSampleId === undefined) {
+    return <div className="expression-table">Waiting for sampling...</div>
+  }
   const sample = samples.find((sample) => sample.id === selectedSampleId)
   if (!sample) {
-    // show error message on page
-    return <div>Sample id {selectedSampleId} not found</div>
+    // should never get here
+    return <div className="expression-table">Couldn't find sample id { selectedSampleId }</div>
   }
-
+  
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -222,6 +224,7 @@ function ExpressionTable() {
                 { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
+                { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
@@ -303,7 +306,13 @@ function ExpressionTable() {
 
 
                   <div className="delete">
-                    <button onClick={() => setArchivedExpressions([...archivedExpressions, expression.id])}>
+                    <button onClick={() =>{ 
+                      setArchivedExpressions([...archivedExpressions, expression.id]);
+                      const activeExp = activeExpressions.filter(id => id !== expression.id);
+                      if (activeExp.length > 0) {
+                        setSelectedExprId(activeExp[0]);
+                      } 
+                      }}>
                     ╳
                     </button>
                   </div>

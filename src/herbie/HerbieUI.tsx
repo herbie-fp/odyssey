@@ -126,7 +126,7 @@ function HerbieUIInner() {
 
   const herbiejs = addJobRecorder(herbiejsImport)
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   // Data relationships
   // Reactively update analyses whenever expressions change
@@ -427,21 +427,32 @@ function HerbieUIInner() {
   ];
 
   return (
-    <div className="grid-container">
-      <div className="header">
+    <div>
+    
+      <div className="grid-container">
+        <div className="header">
+          {/* removed header-top */}
+          <div className="app-name">Odyssey</div>
+          <SpecComponent {...{showOverlay, setShowOverlay}} />
+          <ServerStatusComponent />
+        </div>
+      {/* <div className="spec">
         <div className="header-top">
           <div className="app-name">Odyssey</div>
           <ServerStatusComponent />
         </div>
-        <SpecComponent {...{ showOverlay, setShowOverlay }} />
-      </div>
+        
+      </div> */}
       <ExpressionTable />
       <SelectableVisualization components={components} />
       <div className="help-buttons" >
         <DocumentationButton />
         <GitHubIssueButton />
+        </div>
+
       </div>
-    </div>
+      
+      </div>
   );
 }
 

@@ -20,7 +20,7 @@ The FPTaylor binary will be in the repository after make compiles everything fro
 
 To ensure installation worked correctly, run ``./fptaylor`` and make sure it displays its current version with no errors. FPTaylor requires a configuration file, but by default there should be one provided in the FPTaylor repo ``default.cfg``. Make sure this configuration file is located in the same place as the binary, and that ``./fptaylor`` also displays that this default configuration file is being used.
 
-Furthermore, you can do additional tests for FPTaylor by first building FPBench (instructions at ``/herbie-fp/odyssey/blob/main/extensions/fpbench.md``). Once FPBench is built, in the FPBench repo's compiled directory you should be able to run ``./fpbench export --lang fptaylor``, passing in ``/benchmarks/fptaylor-tests.fpcore`` and an arbitrary output file name to compile the fptaylor-tests from FPCore to FPTaylor input.
+Furthermore, you can do additional tests for FPTaylor by first building FPBench (instructions at [``/herbie-fp/odyssey/blob/main/extensions/fpbench.md``](https://github.com/herbie-fp/odyssey/blob/main/extensions/fpbench.md)). Once FPBench is built, in the FPBench repo's compiled directory you should be able to run ``./fpbench export --lang fptaylor``, passing in ``/benchmarks/fptaylor-tests.fpcore`` and an arbitrary output file name to compile the fptaylor-tests from FPCore to FPTaylor input.
 
 Once that is done, move the compiled result file to the same location as the FPTaylor binary, and run ``./fptaylor`` with the compiled result file as an argument. The result should start with something like the following:
 

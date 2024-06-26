@@ -233,14 +233,16 @@ function activate(context) {
             }
         });
     };
-    const pluginExpress = express();
-    pluginExpress.use(cors());
-    const jsonParser = bodyParser.json();
-    const urlencodedParser = bodyParser.urlencoded({ extended: false });
-    pluginExpress.post('/fpbench', jsonParser, async (req, res) => {
+    const app = express();
+    app.use(cors());
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.json());
+    app.post('/fpbench', async (req, res) => {
         const input = req.body;
+        const formulas = input.formulas.join("\n");
+        const safe_formulas = formulas.replace(/'/g, "\\'");
         try {
-            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`, { shell: '/bin/bash' });
+            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf '${safe_formulas}') -`, { shell: '/bin/bash' });
             res.json({ stdout });
         }
         catch (e) {
@@ -252,17 +254,18 @@ function activate(context) {
             console.error(e);
         }
     });
-    pluginExpress.post('/fptaylor', jsonParser, async (req, res) => {
+    app.post('/fptaylor', async (req, res) => {
         const input = req.body;
+        const safe_input = input.fptaylorInput.replace(/'/g, "\\'");
         try {
-            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} <(printf "${input.fptaylorInput}")`, { shell: '/bin/bash' });
+            const { stdout, stderr } = await exec(`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} <(printf '${safe_input}')`, { shell: '/bin/bash' });
             res.json({ output: `<(printf "${stdout}")` });
         }
         catch (e) {
             console.error(e);
         }
     });
-    pluginExpress.listen(pluginPort, () => {
+    app.listen(pluginPort, () => {
         console.log(`Example app listening on port ${pluginPort}`);
     });
     const downloadFPTaylor = async () => {

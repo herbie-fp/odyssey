@@ -1,9 +1,11 @@
 # FPBench
 
-## Building the binary
-FPBench should build correctly on both MacOS and Linux (with the build process being the same). It might build on Windows, but this is untested as the FPTaylor build process is incompatible for Windows (and so building FPBench on Windows may only be useful in the future if there is additional functionality it provides outside of FPTaylor). If it is possible to build on Windows, you will need ``make``, which can be acquired through MinGW (https://nerdyelectronics.com/install-mingw-on-windows-for-make/).
+### Platforms
+FPBench should build correctly on both MacOS and Linux (with the build process being the same). It might build on Windows, but this is untested as the FPTaylor build process is incompatible for Windows (and so building FPBench on Windows may only be useful in the future if there is additional functionality it provides outside of FPTaylor). If it is possible to build on Windows, you will need ``make``, which can be acquired through [Git for Windows](https://git-scm.com/download/win).
 
-Building FPBench FPBench requires Racket 8.0+, which can be set up at https://download.racket-lang.org/.
+### Building FPBench
+
+FPBench requires Racket 8.0+, which can be set up at https://download.racket-lang.org/.
 
 To build FPBench from source, clone the repository at https://github.com/FPBench/FPBench.
 

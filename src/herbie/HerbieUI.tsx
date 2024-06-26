@@ -24,7 +24,7 @@ interface ContextProviderProps {
   children: React.ReactNode;
 }
 
-function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element {
+function GlobalContextProvider({ children }: ContextProviderProps): JSX.Element {
   const globals = utils.getGlobals().map((g) => {
     return ({ context: g.context, value: useState(g.init) })
   })
@@ -36,7 +36,7 @@ function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element
     <>
       {[...globals, ...reducerGlobals].reduceRight((children, { context, value }) =>
         React.createElement(context.Provider, { value }, children)
-      , children)}
+        , children)}
     </>
   );
 }
@@ -54,12 +54,12 @@ function GlobalContextProvider ({ children }: ContextProviderProps): JSX.Element
  */
 function hslToRgb(h: number, s: number, l: number) {
   const { round } = Math;
-  function hueToRgb(p:number, q:number, t:number) {
-    if (t < 0) {t += 1;}
-    if (t > 1) {t -= 1;}
-    if (t < 1/6) {return p + (q - p) * 6 * t;}
-    if (t < 1/2) {return q;}
-    if (t < 2/3) {return p + (q - p) * (2/3 - t) * 6;}
+  function hueToRgb(p: number, q: number, t: number) {
+    if (t < 0) { t += 1; }
+    if (t > 1) { t -= 1; }
+    if (t < 1 / 6) { return p + (q - p) * 6 * t; }
+    if (t < 1 / 2) { return q; }
+    if (t < 2 / 3) { return p + (q - p) * (2 / 3 - t) * 6; }
     return p;
   }
   let r, g, b;
@@ -69,17 +69,17 @@ function hslToRgb(h: number, s: number, l: number) {
   } else {
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
-    r = hueToRgb(p, q, h + 1/3);
+    r = hueToRgb(p, q, h + 1 / 3);
     g = hueToRgb(p, q, h);
-    b = hueToRgb(p, q, h - 1/3);
+    b = hueToRgb(p, q, h - 1 / 3);
   }
 
-  function componentToHex(c :number) {
+  function componentToHex(c: number) {
     var hex = c.toString(16);
     return hex.length === 1 ? "0" + hex : hex;
   }
 
-  function rgbToHex(r:number, g:number, b:number) {
+  function rgbToHex(r: number, g: number, b: number) {
     return componentToHex(r) + componentToHex(g) + componentToHex(b);
   }
 
@@ -109,9 +109,9 @@ function HerbieUIInner() {
   const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext)
   const [derivations, setDerivations] = Contexts.useGlobal(Contexts.DerivationsContext)
   const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
-  const [serverUrl, ] = Contexts.useGlobal(Contexts.ServerContext)
+  const [serverUrl,] = Contexts.useGlobal(Contexts.ServerContext)
   const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext)
-  const [spec, ] = Contexts.useGlobal(Contexts.SpecContext)
+  const [spec,] = Contexts.useGlobal(Contexts.SpecContext)
   const [compareExprIds, setCompareExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext)
   const [styles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext)
   const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext)
@@ -121,7 +121,7 @@ function HerbieUIInner() {
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
-  const [inputRangesTable, ] = Contexts.useGlobal(Contexts.InputRangesTableContext)
+  const [inputRangesTable,] = Contexts.useGlobal(Contexts.InputRangesTableContext)
   const [archivedExpressions,] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
 
   const herbiejs = addJobRecorder(herbiejsImport)
@@ -132,7 +132,7 @@ function HerbieUIInner() {
   // Reactively update analyses whenever expressions change
   useEffect(updateAnalyses, [spec, expressions, samples]);
   function updateAnalyses() {
-    async function updateAnalysesAsync () {
+    async function updateAnalysesAsync() {
       // When a new expression is added, add a new analysis
       // An analysis is obtained by taking the most recent sample and checking the error of the expression on that sample
       if (samples.length === 0) {
@@ -155,7 +155,7 @@ function HerbieUIInner() {
         try {
           // HACK to make sampling work on Herbie side
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text,spec.expression, specVars), sample, serverUrl)
+          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), sample, serverUrl)
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
@@ -209,7 +209,7 @@ function HerbieUIInner() {
     async function sample() {
       const inputRanges = inputRangesTable.findLast(r => r.specId === spec.id)
       if (inputRanges === undefined) {
-        console.debug(`No input ranges found for spec ${spec.id}. Input ranges and spec must be defined for sampling to occur.` )
+        console.debug(`No input ranges found for spec ${spec.id}. Input ranges and spec must be defined for sampling to occur.`)
         return;
       }
       if (samples.find(s => s.inputRangesId === inputRanges.id)) {
@@ -228,7 +228,7 @@ function HerbieUIInner() {
             ),
             body: fpcorejs.FPCoreBody(spec.expression)
           })
-        : spec.fpcore
+          : spec.fpcore
 
       if (!fpCore) {
         return  // should never get here
@@ -311,7 +311,7 @@ function HerbieUIInner() {
               await herbiejs.analyzeLocalError(
                 fpcorejs.mathjsToFPCore(expression.text),
                 { points: [[modSelectedPoint, 1e308]] } as Sample,
-                 serverUrl
+                serverUrl
               )
             )
           )
@@ -329,6 +329,8 @@ function HerbieUIInner() {
       const FPTaylorAnalyses: Types.FPTaylorAnalysis[] = []
       for (const expression of expressions) {
         if (expression && FPTaylorRanges) {
+          
+          // TODO this should not use the expression id as an index
           // Get the expression itself
           const index = expression.id;
 
@@ -336,40 +338,82 @@ function HerbieUIInner() {
           const ranges: [string, [number, number]][] = FPTaylorRanges.find((item) => item?.expressionId === index)?.ranges.map(
             ({ variable, lowerBound, upperBound }) => [variable, [lowerBound, upperBound]]
           ) || [];
-          if(!ranges) {
+          if (ranges.length === 0) {
             continue
           }
-
           const formula = fpcorejs.makeFPCore2({
             vars: fpcorejs.getVarnamesMathJS(expression.text),
             pre: fpcorejs.FPCorePreconditionFromRanges(ranges),
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
+          console.log(formula)
+
+          const fptaylorInputResponse = await (await fetch(
+            "http://localhost:8888/fpbench",
+            {
+              method: 'POST', // *GET, POST, PUT, DELETE, etc.
+              mode: 'cors', // no-cors, *cors, same-origin
+              cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+              credentials: 'same-origin', // include, *same-origin, omit
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              redirect: 'follow', // manual, *follow, error
+              referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+              body: JSON.stringify({ 'formulas': [formula] }) // body data type must match "Content-Type" header
+            }
+          )).json();
+
+          const fptaylorInput = fptaylorInputResponse.stdout;
+
+          const parseFPTaylorOutput = async (text: string) => {
+            const response = [];
+            try {
+                const bounds = [...text.matchAll(/Bounds \(without rounding\): (.*)$/gm)];
+                const abserror = [...text.matchAll(/Absolute error \(exact\): (.*)\(/gm)];
+                for (let i = 0; i < bounds.length || i < abserror.length; i++) {
+                    const boundsValue = bounds[i] ? bounds[i][1] : null;
+                    const abserrorValue = abserror[i] ? abserror[i][1] : null;
+                    response.push({ bounds: boundsValue, absoluteError: abserrorValue });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        
+            return response;
+        };        
+
+          const fptaylorResult = await parseFPTaylorOutput((
+            await (
+              await fetch(
+                "http://localhost:8888/fptaylor",
+                {
+                  method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                  mode: 'cors', // no-cors, *cors, same-origin
+                  cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                  credentials: 'same-origin', // include, *same-origin, omit
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  redirect: 'follow', // manual, *follow, error
+                  referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                  body: JSON.stringify({ 'fptaylorInput': fptaylorInput }) // body data type must match "Content-Type" header
+                }
+              )
+            ).json()
+          ).output)
+
           FPTaylorAnalyses.splice(index, 0,
             new Types.FPTaylorAnalysis(
               index,
-              await (
-                await fetch(
-                  "http://localhost:3000",
-                  {
-                    method: 'POST', // *GET, POST, PUT, DELETE, etc.
-                    mode: 'cors', // no-cors, *cors, same-origin
-                    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-                    credentials: 'same-origin', // include, *same-origin, omit
-                    headers: {
-                      'Content-Type': 'application/json'
-                    },
-                    redirect: 'follow', // manual, *follow, error
-                    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                    body: JSON.stringify({ formulas: [formula] }) // body data type must match "Content-Type" header
-                  }
-                )
-              ).json()
+              fptaylorResult
             )
           )
         }
       }
+
+      console.log(FPTaylorAnalyses)
       setFPTaylorAnalysis(FPTaylorAnalyses)
     }
 
@@ -379,7 +423,7 @@ function HerbieUIInner() {
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
-    { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId}/> },
+    { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
   ];
 
@@ -401,7 +445,7 @@ function HerbieUIInner() {
         
       </div> */}
       <ExpressionTable />
-      <SelectableVisualization components={ components } />
+      <SelectableVisualization components={components} />
       <div className="help-buttons" >
         <DocumentationButton />
         <GitHubIssueButton />

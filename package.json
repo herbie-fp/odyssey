@@ -61,6 +61,8 @@
     "@observablehq/plot": "^0.6.9",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "adm-zip": "^0.5.10",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
     "katex": "^0.16.7",
     "lnk": "^1.1.0",
     "mathjs1": "npm:mathjs@^1.6.0",
@@ -74,6 +76,7 @@
     "react-split": "^2.0.14",
     "react-split-grid": "^1.0.4",
     "react-tooltip": "^5.18.1",
-    "simplebar-react": "^3.2.4"
+    "simplebar-react": "^3.2.4",
+    "util": "^0.12.5"
   }
 }

@@ -16,3 +16,17 @@ The FPBench binary (and important related files) will be in the ``fpbench-compil
 To test FPBench, you can run ``./fpbench``, which should prompt you for either an export or a transform feature. 
 
 To test that the export feature works, you can run ``./fpbench export --lang <LANGUAGE> <INPUT_FILE> <OUTPUT_FILE>``, specifying a specific language on any of the benchmarks inside the ``/benchmarks`` folder, and following it up with the input file (in ``.fpcore`` format) and an output file (format dependent on the export language). Extensive documentation on how to use fpbench is available at https://fpbench.org/tools.html, including lists of all arguments and the languages that FPBench is compatible with.
+
+### One click package structure
+
+The one-click installer expects a zipped directory named fpbench-dist.zip with this structure:
+
+```
+fpbench-dist/
+  linux/
+    fpbench-compiled/…
+  windows/
+    fpbench-compiled/…
+  macos/
+    fpbench-compiled/…
+```

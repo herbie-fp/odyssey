@@ -214,3 +214,17 @@ Processing: test01_sum3
 etc.
 
 If you run into any issues with the INTERVAL library (such as ``interval.cmi is not a compiled interface for this version of OCaml``), it shouldn't be too significant for our purposes in Odyssey. This error refers to the fact that the INTERVAL library has compatibility issues with your particular OS and architecture, and you could try compiling with the simple-interval library mentioned earlier instead.
+
+### One click package structure
+
+The one-click installer expects a zipped directory named fptaylor-dist.zip with this structure:
+
+```
+fptaylor-dist/
+  linux/
+    fptaylor-compiled/…
+  windows/
+    fptaylor-compiled/…
+  macos/
+    fptaylor-compiled/…
+```

@@ -213,16 +213,18 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	}
 
-	const pluginExpress = express();
-	pluginExpress.use(cors());
-	const jsonParser = bodyParser.json();
-	const urlencodedParser = bodyParser.urlencoded({ extended: false });
+	const app = express();
+	app.use(cors());
+	app.use(bodyParser.urlencoded({ extended: true }));
+	app.use(bodyParser.json());
 
-	pluginExpress.post('/fpbench', jsonParser, async (req: any, res: any) => {
+	app.post('/fpbench', async (req: any, res: any) => {
 		const input = req.body;
+		const formulas = input.formulas.join("\n");
+		const safe_formulas = formulas.replace(/'/g, "\\'");
 		try {
 			const { stdout, stderr } = await exec(
-				`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf "${input.formulas.join("\n")}") -`,
+				`cd ${odysseyDir} && .${fpbenchPath.replace(odysseyDir, '')} export --lang fptaylor <(printf '${safe_formulas}') -`,
 				{ shell: '/bin/bash' }
 			);
 			res.json({ stdout });
@@ -237,11 +239,12 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	})
 
-	pluginExpress.post('/fptaylor', jsonParser, async (req: any, res: any) => {
+	app.post('/fptaylor', async (req: any, res: any) => {
 		const input = req.body;
+		const safe_input = input.fptaylorInput.replace(/'/g, "\\'");
 		try {
 			const { stdout, stderr } = await exec(
-				`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} <(printf "${input.fptaylorInput}")`,
+				`cd ${odysseyDir} && .${fptaylorPath.replace(odysseyDir, '')} <(printf '${safe_input}')`,
 				{ shell: '/bin/bash' }
 			);
 
@@ -251,7 +254,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	})
 
-	pluginExpress.listen(pluginPort, () => {
+	app.listen(pluginPort, () => {
 		console.log(`Example app listening on port ${pluginPort}`)
 	})
 

@@ -62,12 +62,12 @@ export function activate(context: vscode.ExtensionContext) {
 			break
 		case 'linux':
 			herbiePath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
-			fpbenchPath = odysseyDir + '/dist/linux/fpbench-compiled/fpbench'
+			fpbenchPath = odysseyDir + '/dist/linux/fpbench-compiled/bin/fpbench'
 			fptaylorPath = odysseyDir + '/dist/linux/fptaylor-compiled/fptaylor'
 			break
 		case 'darwin':
 			herbiePath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
-			fpbenchPath = odysseyDir + '/dist/macos/fpbench-compiled/fpbench'
+			fpbenchPath = odysseyDir + '/dist/macos/fpbench-compiled/bin/fpbench'
 			fptaylorPath = odysseyDir + '/dist/macos/fptaylor-compiled/fptaylor'
 			break
 	}
@@ -83,18 +83,56 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage(message)
 	}
 
-	let terminal: vscode.Terminal | null = null
+	let herbieTerminal: vscode.Terminal | null = null
 	const getTerminal = () => {
-		if (terminal === null) {
-			terminal = vscode.window.createTerminal('Herbie')
+		if (herbieTerminal === null) {
+			herbieTerminal = vscode.window.createTerminal('Herbie')
 			vscode.window.onDidCloseTerminal((closedTerminal: vscode.Terminal) => {
 				// Handle the closed terminal event here
-				if (terminal === closedTerminal) {
-					terminal = null
+				if (herbieTerminal === closedTerminal) {
+					herbieTerminal = null
 				}
 			});
 		}
-		return terminal
+		return herbieTerminal
+	}
+	const getHerbieTerminal = () => {
+		if (herbieTerminal === null) {
+			herbieTerminal = vscode.window.createTerminal('Herbie')
+			vscode.window.onDidCloseTerminal((closedTerminal: vscode.Terminal) => {
+				// Handle the closed terminal event here
+				if (herbieTerminal === closedTerminal) {
+					herbieTerminal = null
+				}
+			});
+		}
+		return herbieTerminal
+	}
+	let fpbenchTerminal: vscode.Terminal | null = null
+	const getFPBenchTerminal = () => {
+		if (fpbenchTerminal === null) {
+			fpbenchTerminal = vscode.window.createTerminal('FPBench')
+			vscode.window.onDidCloseTerminal((closedTerminal: vscode.Terminal) => {
+				// Handle the closed terminal event here
+				if (fpbenchTerminal === closedTerminal) {
+					fpbenchTerminal = null
+				}
+			});
+		}
+		return fpbenchTerminal
+	}
+	let fptaylorTerminal: vscode.Terminal | null = null
+	const getFPTaylorTerminal = () => {
+		if (fptaylorTerminal === null) {
+			fptaylorTerminal = vscode.window.createTerminal('FPTaylor')
+			vscode.window.onDidCloseTerminal((closedTerminal: vscode.Terminal) => {
+				// Handle the closed terminal event here
+				if (fptaylorTerminal === closedTerminal) {
+					fptaylorTerminal = null
+				}
+			});
+		}
+		return fptaylorTerminal
 	}
 
 	const downloadAndRunHerbie = async () => {
@@ -160,10 +198,10 @@ export function activate(context: vscode.ExtensionContext) {
 			try {
 				// run the command in the VSCode terminal
 				// show the terminal
-				terminal = getTerminal()
-				terminal.show()
+				herbieTerminal = getHerbieTerminal()
+				herbieTerminal.show()
 
-				terminal.sendText(herbiePath + ' web --quiet')
+				herbieTerminal.sendText(herbiePath + ' web --quiet')
 				console.log('started herbie server')
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
@@ -189,6 +227,12 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 			res.json({ stdout });
 		} catch (e) {
+			vscode.window.showErrorMessage('Error running FPBench: ' + e, 'Copy to clipboard').then((action) => {
+				if (action === 'Copy to clipboard') {
+					vscode.env.clipboard.writeText(e as string)
+				}
+			}
+			);
 			console.error(e);
 		}
 	})
@@ -211,7 +255,7 @@ export function activate(context: vscode.ExtensionContext) {
 		console.log(`Example app listening on port ${pluginPort}`)
 	})
 
-	const downloadAndRunFPTaylor = async () => {
+	const downloadFPTaylor = async () => {
 		// show information message
 		vscode.window.showInformationMessage('Downloading FPTaylor...')
 		// spawn the download process
@@ -259,7 +303,7 @@ export function activate(context: vscode.ExtensionContext) {
 				fs.unlinkSync(dest)
 
 				// make binary executable
-				fs.chmodSync(fptaylorPath, '755')
+				fs.chmodSync(fptaylorPath, 0o755)
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error installing FPTaylor: ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
@@ -268,26 +312,27 @@ export function activate(context: vscode.ExtensionContext) {
 				})
 			}
 
-			// show information message
-			vscode.window.showInformationMessage('FPTaylor installed successfully. Starting server...')
-			try {
-				// run the command in the VSCode terminal
-				// show the terminal
-				terminal = getTerminal()
-				terminal.show()
+			// TODO We don't need this code, why is it here?
+			// // show information message
+			// vscode.window.showInformationMessage('FPTaylor installed successfully. Starting server...')
+			// try {
+			// 	// run the command in the VSCode terminal
+			// 	// show the terminal
+			// 	herbieTerminal = getTerminal()
+			// 	herbieTerminal.show()
 
-				terminal.sendText(fptaylorPath + ' web --quiet')
-			} catch (err: any) {
-				vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
-					if (action === 'Copy to clipboard') {
-						vscode.env.clipboard.writeText(err)
-					}
-				})
-			}
+			// 	herbieTerminal.sendText(fptaylorPath + ' web --quiet')
+			// } catch (err: any) {
+			// 	vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
+			// 		if (action === 'Copy to clipboard') {
+			// 			vscode.env.clipboard.writeText(err)
+			// 		}
+			// 	})
+			// }
 		})
 	}
 
-	const downloadAndRunFPBench = async () => {
+	const downloadFPBench = async () => {
 		// show information message
 		vscode.window.showInformationMessage('Downloading FPBench...')
 		// spawn the download process
@@ -335,7 +380,7 @@ export function activate(context: vscode.ExtensionContext) {
 				fs.unlinkSync(dest)
 
 				// make binary executable
-				fs.chmodSync(fpbenchPath, '755')
+				fs.chmodSync(fpbenchPath, 0o755)
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error installing FPBench: ' + err, 'Copy to clipboard').then((action) => {
 					if (action === 'Copy to clipboard') {
@@ -344,22 +389,23 @@ export function activate(context: vscode.ExtensionContext) {
 				})
 			}
 
-			// show information message
-			vscode.window.showInformationMessage('FPBench installed successfully. Starting server...')
-			try {
-				// run the command in the VSCode terminal
-				// show the terminal
-				terminal = getTerminal()
-				terminal.show()
+			// TODO We don't need this code, why is it here?
+			// // show information message
+			// vscode.window.showInformationMessage('FPBench installed successfully. Starting server...')
+			// try {
+			// 	// run the command in the VSCode terminal
+			// 	// show the terminal
+			// 	herbieTerminal = getTerminal()
+			// 	herbieTerminal.show()
 
-				terminal.sendText(fpbenchPath + ' web --quiet')
-			} catch (err: any) {
-				vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {
-					if (action === 'Copy to clipboard') {
-						vscode.env.clipboard.writeText(err)
-					}
-				})
-			}
+			// 	herbieTerminal.sendText(fpbenchPath + ' web --quiet')
+			// } catch (err: any) {
+			// 	vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {
+			// 		if (action === 'Copy to clipboard') {
+			// 			vscode.env.clipboard.writeText(err)
+			// 		}
+			// 	})
+			// }
 		})
 	}
 
@@ -405,9 +451,9 @@ export function activate(context: vscode.ExtensionContext) {
 				showInfo("Using existing Herbie server on port " + port + ".")
 				return
 			} else {
-				terminal = getTerminal()
-				terminal.show()
-				terminal.sendText(herbiePath + ' web --quiet')
+				herbieTerminal = getTerminal()
+				herbieTerminal.show()
+				herbieTerminal.sendText(herbiePath + ' web --quiet')
 				console.log('started herbie server')
 			}
 		} catch (err: any) {
@@ -419,6 +465,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
+	// TODO maybe get rid of this?
 	const runFPTaylorServer = async () => {
 		try {
 			const port = 8001
@@ -449,15 +496,15 @@ export function activate(context: vscode.ExtensionContext) {
 				// wait for user to download herbie
 				vscode.window.showErrorMessage("FPTaylor doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
 					if (action === 'Download') {
-						downloadAndRunFPTaylor()
+						downloadFPTaylor()
 					}
 				})
 			} else if (somethingOnPort) {
 				showInfo("Using existing FPTaylor server on port " + port + ".")
 				return
 			} else {
-				terminal = getTerminal()
-				terminal.show()
+				herbieTerminal = getTerminal()
+				herbieTerminal.show()
 
 				// Set up FPTaylor server here
 				// TODO (rc2002)
@@ -471,8 +518,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-
-
+	// TODO maybe get rid of this?
 	const runFPBenchServer = async () => {
 		try {
 			const port = 8002
@@ -503,15 +549,15 @@ export function activate(context: vscode.ExtensionContext) {
 				// wait for user to download herbie
 				vscode.window.showErrorMessage("FPBench doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
 					if (action === 'Download') {
-						downloadAndRunFPBench()
+						downloadFPBench()
 					}
 				})
 			} else if (somethingOnPort) {
 				showInfo("Using existing FPBench server on port " + port + ".")
 				return
 			} else {
-				terminal = getTerminal()
-				terminal.show()
+				herbieTerminal = getTerminal()
+				herbieTerminal.show()
 			}
 		} catch (err: any) {
 			vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {
@@ -532,8 +578,24 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
 
 		await runHerbieServer()
-		await runFPBenchServer()
-		await runFPTaylorServer()
+		// await runFPBenchServer()
+		if (!fs.existsSync(fpbenchPath)) {
+			// wait for user to download herbie
+			vscode.window.showErrorMessage("FPBench doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
+				if (action === 'Download') {
+					downloadFPBench()
+				}
+			})
+		}
+		// await runFPTaylorServer()
+		if (!fs.existsSync(fptaylorPath)) {
+			// wait for user to download herbie
+			vscode.window.showErrorMessage("FPTaylor doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
+				if (action === 'Download') {
+					downloadFPTaylor()
+				}
+			})
+		}
 
 		// Create and show a new webview
 		const panel = vscode.window.createWebviewPanel(

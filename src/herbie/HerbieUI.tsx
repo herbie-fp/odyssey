@@ -329,6 +329,8 @@ function HerbieUIInner() {
       const FPTaylorAnalyses: Types.FPTaylorAnalysis[] = []
       for (const expression of expressions) {
         if (expression && FPTaylorRanges) {
+          
+          // TODO this should not use the expression id as an index
           // Get the expression itself
           const index = expression.id;
 
@@ -336,10 +338,9 @@ function HerbieUIInner() {
           const ranges: [string, [number, number]][] = FPTaylorRanges.find((item) => item?.expressionId === index)?.ranges.map(
             ({ variable, lowerBound, upperBound }) => [variable, [lowerBound, upperBound]]
           ) || [];
-          if (!ranges) {
+          if (ranges.length === 0) {
             continue
           }
-
           const formula = fpcorejs.makeFPCore2({
             vars: fpcorejs.getVarnamesMathJS(expression.text),
             pre: fpcorejs.FPCorePreconditionFromRanges(ranges),

@@ -109,13 +109,16 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
     const compressedSlidingWindow = compress(
       slidingWindow(data, binSize), width, average)
     //console.log(compressedSlidingWindow)
+    console.log("tempData",compressedSlidingWindow)
+    const percentageCompressedSlidingWindow = compressedSlidingWindow.map(({x,y}:{x:any,y:any})=>({x,y:(100-(y/64*100))}))
+    const percentageData = compress(data,width).map(({x,y,orig}:{x:any,y:any,orig:any})=>({x,y:(100-(y/64*100)),orig}))
     return [
-        Plot.line(compressedSlidingWindow, {
+        Plot.line(percentageCompressedSlidingWindow, {
             x: "x",
             y: "y",
             strokeWidth: selected ? 4 : 2, ...line,
         }),
-      Plot.dot(compress(data, width), {
+      Plot.dot(percentageData, {
         x: "x", y: "y", r: 3,
           // HACK pass stuff out in the title attribute, we will update titles afterward
         title: (d: {orig: any} ) => JSON.stringify({ o: d.orig, id }),//.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
@@ -137,9 +140,9 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
     },
     y: {
         line: true,
-        label: "Bits of Error", domain: [0, bits],
-        ticks: new Array(bits / 4 + 1).fill(0).map((_, i) => i * 4),
-        tickFormat: (d: number) => d % 16 !== 0 ? '' : d
+        label: "% Accuracy", domain: [0, 100],
+        ticks: new Array(100 / 5 + 1).fill(0).map((_, i) => i * 5),
+        tickFormat: (d: number) => d % 25 !== 0 ? '' : d
     },
     // y: {
     //     line: true,

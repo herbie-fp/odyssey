@@ -6,7 +6,7 @@ import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { ExpressionTable } from './ExpressionTable';
 import * as Contexts from './HerbieContext';
-import { Derivation, Expression, ErrorAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
+import { Derivation, Expression, ErrorAnalysis, CostAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
 import * as Types from './HerbieTypes'
 import { nextId } from './lib/utils';
 import * as utils from './lib/utils';
@@ -14,7 +14,7 @@ import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
-import AccuracyVersusSpeed from './AccuracyVersusSpeed';
+import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
 
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
@@ -112,6 +112,7 @@ function HerbieUIInner() {
   const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
   const [serverUrl, ] = Contexts.useGlobal(Contexts.ServerContext)
   const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext)
+  const [cost, setCosts] = Contexts.useGlobal(Contexts.CostContext)
   const [spec, ] = Contexts.useGlobal(Contexts.SpecContext)
   const [compareExprIds, setCompareExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext)
   const [styles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext)
@@ -175,6 +176,55 @@ function HerbieUIInner() {
     }
     updateAnalysesAsync();
   }
+
+  //create useEffect to update Cost whenever expressions/samples change
+  useEffect(updateCost, [expressions, samples]);
+  function updateCost() {
+    async function updateCostAsync() {
+      if (samples.length === 0) {
+        return
+      }
+      setCosts((await Promise.all(expressions.map(async expression => {
+        const sample = samples[samples.length - 1]
+
+        let result = cost.find(a => a.expressionId === expression.id)
+        if (result) {
+          return result as CostAnalysis
+        }
+
+        // Only get analyses for the current spec
+        if (sample.specId !== spec.id) {
+          return;
+        }
+        console.debug('Getting new cost for expression', expression, 'and sample', sample, '...')
+
+        try {
+          const specVars = fpcorejs.getVarnamesMathJS(spec.expression);
+          // const formula = fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars);
+          const formula = fpcorejs.mathjsToFPCore(expression.text);
+
+
+          // console.log("Expression is " + formula);
+          // console.log("sample is " + sample);
+
+          const costData = await herbiejs.getCost(formula, sample, serverUrl);
+
+          console.log("hooray the cost data is: ", costData);
+
+          return new CostAnalysis(expression.id, costData);
+        } catch (e) {
+          const throwError = (e: any) => () => {
+            throw Error(`Cost analysis failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
+          }
+          setTimeout(throwError(e))
+          return;
+        }
+      }))).filter(e => e) as CostAnalysis[]);
+    }
+    updateCostAsync();
+  }
+
+
 
   // Reactively update expression styles whenever expressions change
 
@@ -382,7 +432,7 @@ function HerbieUIInner() {
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId}/> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
-    { value: 'AccuracyVersusSpeed', label: 'Accuracy Versus Speed', component: <AccuracyVersusSpeed />},
+    { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
   ];
 
   return (

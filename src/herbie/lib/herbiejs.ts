@@ -87,12 +87,24 @@ interface LocalErrorResponse {
   tree: types.LocalErrorTree;
 }
 
+interface CostResponse {
+  cost: number;
+}
+
 export const analyzeLocalError = async (
   fpcore: string,
   sample: Sample,
   host: string
 ): Promise<types.LocalErrorTree> => {
   return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as LocalErrorResponse).tree;
+};
+
+export const getCost = async (
+  fpcore: string,
+  sample: Sample,
+  host: string
+): Promise<number> => {
+  return (await getHerbieApi(host, 'cost', { formula: fpcore, sample: sample.points}, true) as CostResponse).cost;
 };
 
 type point = ordinal[]

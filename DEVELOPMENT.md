@@ -1,7 +1,7 @@
 ## Release checklist
 * [ ] Update Herbie server to most recent stable commit on `main`
 * [ ] Clone the Odyssey repo to the server and make sure `node` is installed
-* [ ] Run npm i to install dependencies.
+* [ ] Run `npm install` to install dependencies.
 * [ ] In the Odyssey repo, run `node fptaylor-server.js 8001` where 8001 is the desired port (this could be configured to run as a service with systemd)
 * [ ] In the Odyssey repo, run `node fpbench-server.js 8002` (this could be configured to run as a service with systemd)
 * [ ] Ensure `https://herbie.uwplse.org/fptaylor` points to port 8001 and `https://herbie.uwplse.org/fpbench` points to port 8002

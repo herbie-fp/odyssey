@@ -16,5 +16,5 @@ to be running at "https://herbie.uwplse.org/fptaylor", and an FPBench server (al
 * Before each release, the Herbie demo server should be updated to match the version Odyssey was developed against (usually just main).
 
 * The FPTaylor server is a simple Node server that uses Express to handle requests. **Its only argument is the port it should run on.** 
-Upon request, it runs FPTaylor in a shell. Care was taken to prevent command injection. 
+Upon request, it executes FPTaylor in a shell. Care was taken to prevent command injection. 
 The FPBench server has the same structure as the FPTaylor server.

@@ -162,7 +162,7 @@ function ExpressionTable() {
         <div className="compare-header">
         </div>
         <div className="error-header">
-          Error
+          Accuracy
         </div>
         <div className="buttons-header">
 
@@ -215,7 +215,7 @@ function ExpressionTable() {
             const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
             const analysisResult =
               !analysisData
-                ? '...'
+                ? undefined
                 : (analysisData.errors.reduce((acc: number, v: any) => {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
@@ -265,7 +265,8 @@ function ExpressionTable() {
                       </div>
                     </div>
                   <div className="analysis">
-                    {analysisResult}
+                    {/* TODO: Not To hardcode number of bits*/}
+                    {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) : "..."}
                   </div>
                   <div className="herbie">
                     <button onClick={async () => {

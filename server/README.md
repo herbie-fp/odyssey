@@ -2,11 +2,9 @@
 * [ ] Update Herbie server to most recent stable commit on `main`
 * [ ] Clone the Odyssey repo to the server and make sure `node` and `npm` are installed
 * [ ] `cd server` to this directory, then run `npm install` to install dependencies.
-* [ ] Run `node download-and-unzip.js https://github.com/herbie-fp/odyssey/releases/download/fptayl
-or-component/fptaylor-dist.zip fptaylor` to download and unzip the FPTaylor distribution
+* [ ] Run `node download-and-unzip.js https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip fptaylor` to download and unzip the FPTaylor distribution
 * [ ] Run `chmod +x fptaylor/linux/fptaylor-compiled/fptaylor` to make the FPTaylor binary executable
-* [ ] Run `node download-and-unzip.js https://github.com/herbie-fp/odyssey/releases/download/fptayl
-or-component/fpbench-dist.zip fpbench` to download and unzip the FPBench distribution
+* [ ] Run `node download-and-unzip.js https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip fpbench` to download and unzip the FPBench distribution
 * [ ] Run `chmod +x fpbench/linux/fpbench-compiled/bin/fpbench` to make the FPBench binary executable (NOTE this path is a little different from the FPTaylor path!)
 * [ ] Run `node fptaylor-server.js 8001 fptaylor/linux/fptaylor-compiled/fptaylor` where 8001 is the desired port (this could be configured to run as a service with systemd). See below for CURL requests to test the server.
 * [ ] Run `node fpbench-server.js 8002 fpbench/linux/fpbench-compiled/bin/fpbench` (this could be configured to run as a service with systemd). See below for CURL requests to test the server.

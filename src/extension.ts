@@ -248,7 +248,7 @@ export function activate(context: vscode.ExtensionContext) {
 				{ shell: '/bin/bash' }
 			);
 
-			res.json({ output: `<(printf "${stdout}")` });
+			res.json({ stdout: `<(printf "${stdout}")` });
 		} catch (e) {
 			console.error(e);
 		}

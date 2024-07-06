@@ -1,4 +1,5 @@
-## Release checklist for maintainers (server deployment)
+# Server Deployment
+## Release checklist for maintainers
 * [ ] Update the Herbie server to the most recent stable commit on `main`
 * [ ] Clone the Odyssey repo to the server and make sure `node` and `npm` are installed
 * [ ] `cd server` to this directory, then run `npm install` to install dependencies.

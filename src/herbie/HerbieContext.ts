@@ -69,9 +69,9 @@ export const SpecContext = makeGlobal(new types.Spec(defaultExpression, 0) as ty
 //@ts-ignore
 export const ServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://127.0.0.1:8000' : 'https://herbie.uwplse.org/demo')
 //@ts-ignore
-export const FPTaylorServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://127.0.0.1:8001' : 'https://herbie.uwplse.org/fptaylor')
+export const FPTaylorServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:8888/fptaylor' : 'https://herbie.uwplse.org/fptaylor')
 //@ts-ignore
-export const FPBenchServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://127.0.0.1:8002' : 'https://herbie.uwplse.org/fpbench')
+export const FPBenchServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:8888/fpbench' : 'https://herbie.uwplse.org/fpbench')
 export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(undefined as number | undefined);// undefined as number | undefined)
 export const SamplesContext = makeGlobal([] as types.Sample[])

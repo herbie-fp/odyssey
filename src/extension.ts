@@ -19,6 +19,7 @@ const exec = util.promisify(require('child_process').exec);
 const LOCAL_TEST_PORT = 7777;
 const SERVER_ADDRESS = "http://104.200.24.142:8000";
 
+// TODO remove this server code/server and use the server code from server/tool-server.js
 // Port for plugins
 const pluginPort = 8888;
 
@@ -218,7 +219,8 @@ export function activate(context: vscode.ExtensionContext) {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
 
-	app.post('/fpbench', async (req: any, res: any) => {
+	app.post('/fpbench/exec', async (req: any, res: any) => {
+		console.log('hit fpbench', req)
 		const input = req.body;
 		const formulas = input.formulas.join("\n");
 		const safe_formulas = formulas.replace(/'/g, "\\'");
@@ -239,7 +241,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	})
 
-	app.post('/fptaylor', async (req: any, res: any) => {
+	app.post('/fptaylor/exec', async (req: any, res: any) => {
 		const input = req.body;
 		const safe_input = input.fptaylorInput.replace(/'/g, "\\'");
 		try {

@@ -57,12 +57,12 @@ if (typeof window !== 'undefined') {
   defaultExpression = expr ? expr : defaultExpression;
 }
 
-const defaultRanges = new types.InputRanges([new types.SpecRange('x', -1e308, 1e308)], 0, 0)
+// const defaultRanges = new types.InputRanges([new types.SpecRange('x', -1e308, 1e308)], 0, 0)
 
 export const hoveredExpressionId = makeGlobal(0)
 export const SelectedExprIdContext = makeGlobal(-1)
-export const CompareExprIdsContext = makeGlobal([0, 1] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
-export const ExpressionsContext = makeGlobal([new types.Expression(defaultExpression2, 1, 0)] as types.Expression[]);//[new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[])
+export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
+export const ExpressionsContext = makeGlobal([] as types.Expression[])//new types.Expression(defaultExpression2, 1, 0)] as types.Expression[]);//[new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[])
 export const DerivationsContext = makeGlobal([] as types.Derivation[])
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
 export const SpecContext = makeGlobal(new types.Spec(defaultExpression, 0) as types.Spec)
@@ -80,7 +80,7 @@ export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocal
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
 export const FPTaylorAnalysisContext = makeGlobal([] as types.FPTaylorAnalysis[])
 export const FPTaylorRangeContext = makeGlobal([] as types.FPTaylorRange[])
-export const InputRangesTableContext = makeGlobal([defaultRanges] as (types.InputRanges | types.RangeInSpecFPCore) [])
+export const InputRangesTableContext = makeGlobal([] as (types.InputRanges | types.RangeInSpecFPCore) [])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
 

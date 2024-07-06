@@ -110,6 +110,8 @@ function HerbieUIInner() {
   const [derivations, setDerivations] = Contexts.useGlobal(Contexts.DerivationsContext)
   const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
   const [serverUrl,] = Contexts.useGlobal(Contexts.ServerContext)
+  const [fptaylorServerUrl,] = Contexts.useGlobal(Contexts.FPTaylorServerContext)
+  const [fpbenchServerUrl,] = Contexts.useGlobal(Contexts.FPBenchServerContext)
   const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext)
   const [spec,] = Contexts.useGlobal(Contexts.SpecContext)
   const [compareExprIds, setCompareExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext)
@@ -347,10 +349,8 @@ function HerbieUIInner() {
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
-          console.log(formula)
-
           const fptaylorInputResponse = await (await fetch(
-            "http://localhost:8888/fpbench",
+             fpbenchServerUrl + "/exec",
             {
               method: 'POST', // *GET, POST, PUT, DELETE, etc.
               mode: 'cors', // no-cors, *cors, same-origin
@@ -367,15 +367,17 @@ function HerbieUIInner() {
 
           const fptaylorInput = fptaylorInputResponse.stdout;
 
+          // TODO this type needs refactoring, should not be an array
           const parseFPTaylorOutput = async (text: string) => {
             const response = [];
             try {
+                // TODO we only expect to find one -- why are we matching all?
                 const bounds = [...text.matchAll(/Bounds \(without rounding\): (.*)$/gm)];
                 const abserror = [...text.matchAll(/Absolute error \(exact\): (.*)\(/gm)];
                 for (let i = 0; i < bounds.length || i < abserror.length; i++) {
                     const boundsValue = bounds[i] ? bounds[i][1] : null;
                     const abserrorValue = abserror[i] ? abserror[i][1] : null;
-                    response.push({ bounds: boundsValue, absoluteError: abserrorValue });
+                    response.push({ bounds: boundsValue, absoluteError: abserrorValue, text });
                 }
             } catch (e) {
                 console.error(e);
@@ -387,7 +389,7 @@ function HerbieUIInner() {
           const fptaylorResult = await parseFPTaylorOutput((
             await (
               await fetch(
-                "http://localhost:8888/fptaylor",
+                fptaylorServerUrl + "/exec",
                 {
                   method: 'POST', // *GET, POST, PUT, DELETE, etc.
                   mode: 'cors', // no-cors, *cors, same-origin
@@ -402,7 +404,7 @@ function HerbieUIInner() {
                 }
               )
             ).json()
-          ).output)
+          ).stdout)
 
           FPTaylorAnalyses.splice(index, 0,
             new Types.FPTaylorAnalysis(
@@ -412,8 +414,6 @@ function HerbieUIInner() {
           )
         }
       }
-
-      console.log(FPTaylorAnalyses)
       setFPTaylorAnalysis(FPTaylorAnalyses)
     }
 

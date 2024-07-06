@@ -10,9 +10,13 @@ const timeBetweenChecks = 3000; // Time between checking for the status, in mill
 function ServerStatusComponent() {
   // const { serverUrl, setServerUrl } = useContext(ServerContext);
   const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
+  const [fptaylorServerUrl, setFPTaylorServerUrl] = HerbieContext.useGlobal(HerbieContext.FPTaylorServerContext)
+  const [fpbenchServerUrl, setFPBenchServerUrl] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext)
   const [status, setStatus] = useState<number | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [updatedServerUrl, setUpdatedServerUrl] = useState<string>(serverUrl || '');
+  const [updatedFPTaylorServerUrl, setUpdatedFPTaylorServerUrl] = useState<string>(fptaylorServerUrl || '');
+  const [updatedFPBenchServerUrl, setUpdatedFPBenchServerUrl] = useState<string>(fpbenchServerUrl || '');
   const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
 
   useEffect(() => {
@@ -38,6 +42,15 @@ function ServerStatusComponent() {
   const handleIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUpdatedServerUrl(event.target.value);
   };
+
+  const handleFPTaylorIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdatedFPTaylorServerUrl(event.target.value);
+  }
+
+  const handleFPBenchIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdatedFPBenchServerUrl(event.target.value);
+  }
+
   const customStyles = {
     overlay: {
       backgroundColor: 'rgba(0, 0, 0, 0.5)'
@@ -62,6 +75,18 @@ function ServerStatusComponent() {
     setServerUrl(updatedServerUrl);
     setIsDropdownOpen(false);
   };
+
+  const handleSubmitFPTaylor = (event: React.FormEvent) => {
+    event.preventDefault();
+    setFPTaylorServerUrl(updatedFPTaylorServerUrl);
+    setIsDropdownOpen(false);
+  }
+
+  const handleSubmitFPBench = (event: React.FormEvent) => {
+    event.preventDefault();
+    setFPBenchServerUrl(updatedFPBenchServerUrl);
+    setIsDropdownOpen(false);
+  }
 
   const statusClass = !status ? 'no-server' : jobCount > 0 ? 'pending' : 'connected'
   
@@ -108,6 +133,19 @@ function ServerStatusComponent() {
           <input type='text' value={updatedServerUrl} onChange={handleIPChange} />
           <button type="submit">Submit</button>
         </form>
+
+        <form onSubmit={handleSubmitFPTaylor}>
+          <label>FPTaylor Server URL (including port): </label>
+          <input type='text' value={updatedFPTaylorServerUrl} onChange={handleFPTaylorIPChange} />
+          <button type="submit">Submit</button>
+        </form>
+
+        <form onSubmit={handleSubmitFPBench}>
+          <label>FPBench Server URL (including port): </label>
+          <input type='text' value={updatedFPBenchServerUrl} onChange={handleFPBenchIPChange} />
+          <button type="submit">Submit</button>
+        </form>
+        
         {/* <button onClick={this.handleCloseModal}>Close Modal</button> */}
       </Modal>
       {/* {isDropdownOpen && (

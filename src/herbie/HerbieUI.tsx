@@ -110,6 +110,8 @@ function HerbieUIInner() {
   const [derivations, setDerivations] = Contexts.useGlobal(Contexts.DerivationsContext)
   const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
   const [serverUrl,] = Contexts.useGlobal(Contexts.ServerContext)
+  const [fptaylorServerUrl,] = Contexts.useGlobal(Contexts.FPTaylorServerContext)
+  const [fpbenchServerUrl,] = Contexts.useGlobal(Contexts.FPBenchServerContext)
   const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext)
   const [spec,] = Contexts.useGlobal(Contexts.SpecContext)
   const [compareExprIds, setCompareExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext)
@@ -347,10 +349,8 @@ function HerbieUIInner() {
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
-          console.log(formula)
-
           const fptaylorInputResponse = await (await fetch(
-            "http://localhost:8002/exec",
+             fpbenchServerUrl + "/exec",
             {
               method: 'POST', // *GET, POST, PUT, DELETE, etc.
               mode: 'cors', // no-cors, *cors, same-origin
@@ -389,7 +389,7 @@ function HerbieUIInner() {
           const fptaylorResult = await parseFPTaylorOutput((
             await (
               await fetch(
-                "http://localhost:8001/exec",
+                fptaylorServerUrl + "/exec",
                 {
                   method: 'POST', // *GET, POST, PUT, DELETE, etc.
                   mode: 'cors', // no-cors, *cors, same-origin
@@ -414,8 +414,6 @@ function HerbieUIInner() {
           )
         }
       }
-
-      console.log(FPTaylorAnalyses)
       setFPTaylorAnalysis(FPTaylorAnalyses)
     }
 

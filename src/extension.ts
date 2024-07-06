@@ -15,36 +15,84 @@ const cors = require('cors');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
-// TODO Remove this:
-const LOCAL_TEST_PORT = 7777;
-const SERVER_ADDRESS = "http://104.200.24.142:8000";
+const HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/v1.1.0-bin/herbie-dist.zip"
+const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
+const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
 
 // TODO remove this server code/server and use the server code from server/tool-server.js
 // Port for plugins
 const pluginPort = 8888;
 
-/**
- * Downloads a file from a URL to a specified directory.
- *
- * @param {string} downloadUrl - The URL of the file to download.
- * @param {string} dest - The path to the directory where the file should be saved.
- * @param {function} callback - A callback function to execute once download is complete.
- */
-function downloadFile(downloadUrl: string, dest: string, callback: (err: any) => void) {
-	const parsedUrl = url.parse(downloadUrl);
-	const protocol = parsedUrl.protocol === 'https:' ? https : http;
+// /**
+//  * Downloads a file from a URL to a specified directory.
+//  *
+//  * @param {string} downloadUrl - The URL of the file to download.
+//  * @param {string} dest - The path to the directory where the file should be saved.
+//  * @param {function} callback - A callback function to execute once download is complete.
+//  */
+// function downloadFile(downloadUrl: string, dest: string, callback: (err: any) => void) {
+// 	const parsedUrl = url.parse(downloadUrl);
+// 	const protocol = parsedUrl.protocol === 'https:' ? https : http;
 
-	const file = fs.createWriteStream(dest);
-	const request = protocol.get(downloadUrl, function (response: any) {
-		response.pipe(file);
-		file.on('finish', function () {
-			file.close(callback); // Call the callback once the file is written to disk.
-		});
-	}).on('error', function (err: any) {
-		fs.unlink(dest, () => { }); // Delete the file if there's an error.
-		if (callback) { callback(err.message); }
-	});
-}
+// 	const file = fs.createWriteStream(dest);
+// 	const request = protocol.get(downloadUrl, function (response: any) {
+// 		response.pipe(file);
+// 		file.on('finish', function () {
+// 			file.close(callback); // Call the callback once the file is written to disk.
+// 		});
+// 	}).on('error', function (err: any) {
+// 		fs.unlink(dest, () => { }); // Delete the file if there's an error.
+// 		if (callback) { callback(err.message); }
+// 	});
+// }
+
+const downloadFile = async (uri: string, dest: string, callback: (err: any) => void, maxRedirects = 10) => {
+  const parsedUrl = new URL(uri);
+  const protocol = parsedUrl.protocol === 'https:' ? https : http;
+
+  const handleRedirects = async (res: any, redirectsLeft: number) => {
+    if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+      if (redirectsLeft > 0) {
+        const newUrl = new URL(res.headers.location, uri).href;
+        console.log(`Redirecting to ${newUrl}`);
+        return await downloadFile(newUrl, dest, callback, redirectsLeft - 1);
+      } else {
+				callback('Too many redirects');
+				return
+      }
+    } else if (res.statusCode === 200) {
+      const file = fs.createWriteStream(dest);
+      return new Promise((resolve, reject) => {
+        res.pipe(file);
+        file.on('finish', () => {
+          file.close((err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(0);
+            }
+          });
+        });
+      });
+    } else {
+			callback(`Failed to get '${uri}' (${res.statusCode})`);
+			return
+    }
+  };
+
+  return await (new Promise((resolve, reject) => {
+    const request = protocol.get(uri, async (response: any) => {
+      try {
+        await handleRedirects(response, maxRedirects);
+        resolve(0);
+      } catch (err) {
+        reject(err);
+      }
+    }).on('error', (err: any) => {
+      fs.unlink(dest, () => reject(err));
+    });
+  }));
+};
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -142,7 +190,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Downloading Herbie...')
 		// spawn the download process
 		// get zip file from site
-		const url = SERVER_ADDRESS + "/herbie-dist.zip"
+		const url = HERBIE_SERVER_ADDRESS
 		// download with curl to home local share odyssey
 		const home = require('os').homedir()
 		// TODO path.join instead of string concat
@@ -265,7 +313,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Downloading FPTaylor...')
 		// spawn the download process
 		// get zip file from site
-		const url = SERVER_ADDRESS + "/fptaylor-dist.zip"
+		const url = FPTAYLOR_SERVER_ADDRESS
 		// download with curl to home local share odyssey
 		const home = require('os').homedir()
 		// TODO path.join instead of string concat
@@ -342,7 +390,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Downloading FPBench...')
 		// spawn the download process
 		// get zip file from site
-		const url = SERVER_ADDRESS + "/fpbench-dist.zip"
+		const url = FPBENCH_SERVER_ADDRESS
 		// download with curl to home local share odyssey
 		const home = require('os').homedir()
 		// TODO path.join instead of string concat

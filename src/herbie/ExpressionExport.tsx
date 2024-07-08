@@ -1,6 +1,8 @@
 import React from 'react';
 import * as Contexts from './HerbieContext';
 import * as fpcorejs from './lib/fpcore';
+import { analyzeExpressionExport } from './lib/herbiejs';
+
 
 interface ExpressionExportProps {
     expressionId: number;
@@ -13,7 +15,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
     // Export the expression to a language of the user's choice
     // (e.g. Python, C, etc.)
     const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
-
+    const [serverUrl, ] = Contexts.useGlobal(Contexts.ServerContext)
     // Get the expression text
     const expressionText = expressions[props.expressionId].text;
 
@@ -22,24 +24,18 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
 
     const [exportCode, setExportCode] = React.useState("");
 
-    // Make server call to get translation when user submits
-    const callTranslate = () => {
-        fetch('http://127.0.0.1:8000/api/translate', {
-            method: 'POST',
-            body: JSON.stringify({
-                formula: fpcorejs.mathjsToFPCore(expressionText),
-                language: language
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            setExportCode(data.result);
-        })
-        .catch(error => {
+     // Make server call to get translation when user submits
+     const translateExpression = async () => {
+        try {
+            const host = serverUrl;
+            const response = await analyzeExpressionExport(fpcorejs.mathjsToFPCore(expressionText), language, host);
+            
+            setExportCode(response);
+        } catch (error) {
             console.error('Error:', error);
-        });
-    }
-    React.useEffect(callTranslate, [expressionText, language])
+        }
+    };
+
 
     return (
         <div>
@@ -51,10 +47,10 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
             </select>
 
             {/* Display the export code */}
-            <pre>{exportCode}</pre>
+            <pre>Hi {exportCode}</pre>
 
             {/* Export button */}
-        
+            <button onClick={translateExpression}>Submit</button>
         </div>
     );
 };

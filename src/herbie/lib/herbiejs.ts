@@ -95,6 +95,19 @@ export const analyzeLocalError = async (
   return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as LocalErrorResponse).tree;
 };
 
+interface ExpressionExportResponse {
+  language: string;
+}
+
+export const analyzeExpressionExport = async (
+  fpcore: string,
+  language: string,
+  host: string
+): Promise<string> => {
+  return (await getHerbieApi(host, 'translate', { formula: fpcore, language: language}, true));
+};
+
+
 type point = ordinal[]
 type error = string
 

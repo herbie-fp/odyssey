@@ -88,14 +88,32 @@ function LocalError({ expressionId }: { expressionId: number }) {
   const varnames = fpcore.getVarnamesMathJS(spec.expression)
 
   const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
+  const handleNodeClick = (event: any) => {
+    // Check if the clicked element or its closest ancestor is a .node
+    const closestNode = event.target.closest(".node");
+    if (closestNode === null) {
+      return;
+    }
 
+    // Check if the clicked element is not of class 'nodeLocalError'
+    if (!event.target.classList.contains('nodeLocalError')) {
+      // Check if the closest .node element has any children with class 'nodeLocalError'
+      const errorNode = closestNode.querySelector('.nodeLocalError');
+      if (errorNode) {
+        console.log('Node clicked!', errorNode);
+      }
+      return
+    }
+
+    console.log('Node clicked!', event.target);
+  };
   return (
     <div className="local-error">
       <div className="selected-point">
         <div className="selected-point-title">Selected Point:</div>
         <Point values={selectedPointValue}/>
       </div>
-      <div className="local-error-graph">
+      <div className="local-error-graph" onClick={handleNodeClick}>
         <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)}  />
       </div>
     </div>

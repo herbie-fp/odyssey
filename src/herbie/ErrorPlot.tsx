@@ -109,7 +109,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
     const compressedSlidingWindow = compress(
       slidingWindow(data, binSize), width, average)
     //console.log(compressedSlidingWindow)
-    console.log("tempData",compressedSlidingWindow)
+    
     const percentageCompressedSlidingWindow = compressedSlidingWindow.map(({x,y}:{x:any,y:any})=>({x,y:(100-(y/64*100))}))
     const percentageData = compress(data,width).map(({x,y,orig}:{x:any,y:any,orig:any})=>({x,y:(100-(y/64*100)),orig}))
     return [

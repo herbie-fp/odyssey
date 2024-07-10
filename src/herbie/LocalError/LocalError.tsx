@@ -86,7 +86,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
   const varnames = fpcore.getVarnamesMathJS(spec.expression)
-
+  
   const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
   const handleNodeClick = (event: any) => {
     // Check if the clicked element or its closest ancestor is a .node

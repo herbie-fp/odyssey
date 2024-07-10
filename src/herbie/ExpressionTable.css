@@ -68,11 +68,11 @@
 .expression {
   display: flex;
   flex-direction: row;
-  justify-content: right;
+  justify-content: space-between;
   gap: 6px;
   font-size: 14px;
   padding: 4px;
-  align-items: start;
+  align-items: center;
 }
 
 /** center buttons in the rows with no stretch */
@@ -99,12 +99,19 @@
 .cost {
   font-family: 'Ruda', serif;
   text-align: right;
-  width: 50px;
+  width: 80px; /* Fixed width to prevent resizing */
+  display: flex;
+  align-items: center; /* Center content vertically */
+  justify-content: flex-end; /* Align text to the right */
 }
 
 .analysis {
   font-family: 'Ruda', serif;
-  /* align-self: center; */
+  text-align: right;
+  width: 80px; /* Fixed width to prevent resizing */
+  display: flex;
+  align-items: center; /* Center content vertically */
+  justify-content: flex-end; /* Align text to the right */
 }
 
 .expression-container.selected {

@@ -14,19 +14,21 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
     // - We filter to the actual pareto frontier, in case points moved
     // - We make a broken line to show the real Pareto frontier
     let line: Point[] = [];
-    let last = null;
 
-    // create a new array with rest_pts sorted by cost
-    const sorted_pts = rest_pts.slice().sort((a, b) => b[0] - a[0]);
+    // create a new array with rest_pts reverse sorted from lowest to highest cost
+    const sorted_pts = rest_pts.slice().sort((a, b) => a[0] - b[0]);  // note: should be b - a, changed to a - b to revert to old working version
+    console.log("sorted points: ", sorted_pts);
+    debugger;
+
+    let mostAccurateSoFar: Point | null = null;  // not needed, since we have mostAccurateSoFar. Reverted to old working version
     
     for (let pt of sorted_pts) {
-        if (!last || pt[1] > last[1]) {
-            if (last) line.push([pt[0], last[1]]);
+        if (!mostAccurateSoFar || pt[1] < mostAccurateSoFar[1]) {
+            if (mostAccurateSoFar) line.push([pt[0], mostAccurateSoFar[1]]);
             line.push([pt[0], pt[1]]);
-            last = pt;
+            mostAccurateSoFar = pt;
         }
     }
-    console.debug('plotPareto', sorted_pts, line)
 
     const out = Plot.plot({
         marks: [
@@ -40,16 +42,6 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
                 y: (d: Point) => 1 - d[1]/bits,
                 fill: "#00a", r: 9,
             }),
-            // Plot.dot([initial_pt], {
-            //     x: d => initial_pt[0]/d[0],
-            //     y: d => 1 - d[1]/bits,
-            //     stroke: "#d00", symbol: "square", strokeWidth: 2
-            // }),
-            // target_pts && Plot.dot(target_pts, {
-            //     x: d => initial_pt[0]/d[0],
-            //     y: d => 1 - d[1]/bits,
-            //     stroke: "#080", symbol: "circle", strokeWidth: 2
-            // }),
         ].filter(x=>x),
         marginBottom: 0,
         marginRight: 0,
@@ -77,6 +69,7 @@ async function makeExampleSVG(color: string) {
 }
 
 import * as Contexts from './HerbieContext';
+import { debug } from 'console';
 
 const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (props) => {
     const [color, setColor] = React.useState('red');
@@ -136,4 +129,3 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
 };
 
 export default SpeedVersusAccuracyPareto;
-

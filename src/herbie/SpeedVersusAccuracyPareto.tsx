@@ -1,9 +1,6 @@
 import React from 'react';
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
-import { Expression, ordinal, expressionError } from './HerbieTypes';
-import * as HerbieTypes from './HerbieTypes';
-
 
 interface SpeedVersusAccuracyParetoProps {
     // Define your component props here
@@ -43,7 +40,7 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
             Plot.dot(rest_pts, {
                 x: (d: Point) => initial_pt[0]/d[0],
                 y: (d: Point) => 1 - d[1]/bits,
-                fill: "#00b", r: 9,
+                fill: "#00a", r: 9,
             }),
         ].filter(x=>x),
         marginBottom: 0,
@@ -78,16 +75,11 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     const [color, setColor] = React.useState('red');
     // Access the global expressions field
     const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
-    const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext)
-    const [selectedSampleId, ] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
-
-
     // get the spec
     const [spec, setSpec] = Contexts.useGlobal(Contexts.SpecContext);
     // get the costs and errors for each expression
     const [costs, setCosts] = Contexts.useGlobal(Contexts.CostContext);
     const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext);
-    const [expressionStyles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext);
     // convert error to percent accuracy
     const errorToAccuracy = (error: number) => error// 1 - error / 64;
     // get the spec's expression
@@ -120,42 +112,6 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
         return [cost, accuracy] as Point;
     });
 
-    // const styles = selectedExprIds.map(id => {
-    //     const style = expressionStyles.find(e => e.expressionId === id)?.style;
-    //     return style || {dot: { stroke: '#000' } };
-    // });
-    const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
-
-    const compareExpressions = expressions.filter(e => selectedExprIds.includes(e.id) && analysisData(e))
-
-    const selectedExpr = expressions.find(e => e.id === selectedExprId)
-    if (!selectedExpr) {
-        return <div>Could not find expression with id {selectedExprId}</div>
-    // throw new Error(`Could not find expression with id ${selectedExprId}`)
-    }
-
-    const styles = compareExpressions.map(e => {
-        const style = (expressionStyles.find(e1 => e1.expressionId === e.id) as HerbieTypes.ExpressionStyle).style
-        const selected = selectedExpr.id === e.id
-        const dotAlpha = selected ? 'b5' : '25'
-        const color = style.dot.stroke
-        return {
-          ...style,
-          dot: {
-            stroke: color + dotAlpha,
-            fill: color,
-            fillOpacity: 0
-          },
-          // LATER check why these are necessary
-          selected,
-          id: e.id
-        }
-      })
-    
-      if (styles.length !== compareExpressions.length) {
-        throw new Error(`Missing a style for one of the expressions`)
-      }
-
     return (
         <div>
             {/* Use a ref to update the svg*/}
@@ -166,30 +122,6 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
                   svg.innerHTML = ''
                   const plot = await plotParetoPoints(64, [naiveCost, naiveAccuracy], points);
                   ([...plot.children]).map(c => svg.appendChild(c))
-
-                // plot a hovering dot when the mouse is over the svg, similar to this example in ErrorPlot:
-                // plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
-                //     const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
-        
-                //     t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
-        
-                //     const c = t.parentNode
-                //     const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
-                //     t.parentNode.onclick = async () => {
-                //       console.log('Setting selected point to', o)
-                //       setSelectedPoint(point)
-                //       setSelectedExprId(id)
-                //     }
-                //     if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
-                //       c.setAttribute('r', '15')
-                //       c.setAttribute('opacity', '1')
-                //       c.setAttribute('stroke', 'black')
-                //       c.setAttribute('data-selected', 'true')
-                //     }
-                //   });
-                //   [...plot.children].map(c => svg.appendChild(c))
-                
-
             }
         }></svg>
         </div>

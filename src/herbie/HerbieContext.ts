@@ -67,7 +67,7 @@ export const DerivationsContext = makeGlobal([] as types.Derivation[])
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
 export const SpecContext = makeGlobal(new types.Spec(defaultExpression, 0) as types.Spec)
 //@ts-ignore
-export const ServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://127.0.0.1:8000' : 'https://herbie.uwplse.org/demo')
+export const ServerContext = makeGlobal('http://127.0.0.1:8000')
 //@ts-ignore
 export const FPTaylorServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:8888/fptaylor' : 'https://herbie.uwplse.org/fptaylor')
 //@ts-ignore

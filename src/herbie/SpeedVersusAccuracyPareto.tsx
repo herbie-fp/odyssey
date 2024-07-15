@@ -5,42 +5,60 @@ const Plot = require('@observablehq/plot')  // have to do this for ES modules fo
 interface SpeedVersusAccuracyParetoProps {
     // Define your component props here
 }
-type Point = [number, number]
+// type Point = [number, number]
+type Point = {
+    cost: number
+    accuracy: number
+    id: number
+}
 
-async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Point[]) {
+async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Point[], clickedExpressionId: number) {
     // const bits = benchmark["bits"];
 
     // The line differs from rest_pts in two ways:
     // - We filter to the actual pareto frontier, in case points moved
     // - We make a broken line to show the real Pareto frontier
+    // let line: Point[] = [];
+    // initialize line as empty object
     let line: Point[] = [];
 
     // create a new array with rest_pts reverse sorted from lowest to highest cost
-    const sorted_pts = rest_pts.slice().sort((a, b) => a[0] - b[0]);  // note: should be b - a, changed to a - b to revert to old working version
+    const sorted_pts = rest_pts.slice().sort((a, b) => a.cost - b.cost);
     console.log("sorted points: ", sorted_pts);
-    debugger;
+    // debugger;
 
-    let mostAccurateSoFar: Point | null = null;  // not needed, since we have mostAccurateSoFar. Reverted to old working version
+    let mostAccurateSoFar: Point | null = null; 
     
     for (let pt of sorted_pts) {
-        if (!mostAccurateSoFar || pt[1] < mostAccurateSoFar[1]) {
-            if (mostAccurateSoFar) line.push([pt[0], mostAccurateSoFar[1]]);
-            line.push([pt[0], pt[1]]);
+        if (!mostAccurateSoFar || pt.accuracy < mostAccurateSoFar.accuracy) {
+            if (mostAccurateSoFar) {
+                line.push({ cost: pt.cost, accuracy: mostAccurateSoFar.accuracy, id: pt.id});
+            }
+            line.push({ cost: pt.cost, accuracy: pt.accuracy, id: pt.id });
             mostAccurateSoFar = pt;
         }
     }
 
+    console.log("clicked expression id: ", clickedExpressionId);
+    console.log("rest points: ", rest_pts)
+    rest_pts = rest_pts.map(d => ({...d, Volume: d.id === clickedExpressionId ? 15 : 9}));
     const out = Plot.plot({
         marks: [
             Plot.line(line, {
-                x: (d: Point) => initial_pt[0]/d[0],
-                y: (d: Point) => 1 - d[1]/bits,
+                x: (d: Point) => initial_pt.cost/d.cost,
+                y: (d: Point) => 1 - d.accuracy/bits,
                 stroke: "#00a", strokeWidth: 3, strokeOpacity: .6,
             }),
             Plot.dot(rest_pts, {
-                x: (d: Point) => initial_pt[0]/d[0],
-                y: (d: Point) => 1 - d[1]/bits,
-                fill: "#00a", r: 9,
+                x: (d: Point) => initial_pt.cost/d.cost,
+                y: (d: Point) => 1 - d.accuracy/bits,
+                // if the id of the selected expression is equal to the id of the current point, set the radius to 15, otherwise set it to 9
+                fill: "#00a", 
+                r: "Volume",//d.id === clickedExpressionId ? 18 : 9,
+                
+                // fill: "#00a", r: (d: Point) => initial_pt.id === 1 ? 50 : 15, 
+                // TODO: Fix this ^^^
+                // fill: "#00a", r: 9,
             }),
         ].filter(x=>x),
         marginBottom: 0,
@@ -96,20 +114,26 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     const naiveAccuracy = errorToAccuracy(naiveError);
     // get the ids of the selected expressions
     const [selectedExprIds, setSelectedExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext);
+    // get the selected expression id
+    // const naiveExpressionId = naiveExpression?.id || 0;
+    const naiveExpressionId = selectedExprIds.find(id => id === naiveExpression.id) || 0;
+
+    // get the clicked on expression
+    const [clickedExpressionId, setClickedExpressionId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
 
     // iterate through each expression to find its cost and accuracy and store them in an array as as [cost, accuracy] tuple
     const points = selectedExprIds.map(id => {
         const expression = expressions.find(e => e.id === id);
         if (expression === undefined) {
-            return [0, 0] as Point;
+            return { cost: 0, accuracy: 0, id: 0 } as Point;
         }
         const cost = costs.find(c => c.expressionId === expression.id)?.cost;
         const error = analyses.find(a => a.expressionId === expression.id)?.data.meanBitsError;
         if (cost === undefined || error === undefined) {
-            return [0, 0] as Point;
+            return { cost: 0, accuracy: 0, id: 0 } as Point;
         }
         const accuracy = errorToAccuracy(error);
-        return [cost, accuracy] as Point;
+        return { cost: cost, accuracy: accuracy, id: id } as Point;
     });
 
     return (
@@ -120,7 +144,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
                     return
                   }
                   svg.innerHTML = ''
-                  const plot = await plotParetoPoints(64, [naiveCost, naiveAccuracy], points);
+                const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, clickedExpressionId);
                   ([...plot.children]).map(c => svg.appendChild(c))
             }
         }></svg>

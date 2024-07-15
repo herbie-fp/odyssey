@@ -39,10 +39,8 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
         }
     }
 
-    console.log("clicked expression id: ", clickedExpressionId);
-    console.log("rest points: ", rest_pts)
-    rest_pts = rest_pts.map(d => ({...d, Volume: d.id === clickedExpressionId ? 15 : 9}));
     const out = Plot.plot({
+        r: {range: [0, 10]},
         marks: [
             Plot.line(line, {
                 x: (d: Point) => initial_pt.cost/d.cost,
@@ -54,7 +52,7 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
                 y: (d: Point) => 1 - d.accuracy/bits,
                 // if the id of the selected expression is equal to the id of the current point, set the radius to 15, otherwise set it to 9
                 fill: "#00a", 
-                r: "Volume",//d.id === clickedExpressionId ? 18 : 9,
+                r: (d: Point) => d.id === clickedExpressionId ? 8 : 2,
                 
                 // fill: "#00a", r: (d: Point) => initial_pt.id === 1 ? 50 : 15, 
                 // TODO: Fix this ^^^

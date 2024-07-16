@@ -98,7 +98,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
     
     // These errors can only be triggered if the user selects bounds that cross zero, 
     // and therefore might have a minimum absolute value 
-    else if ((Number(lowerBound) <= 0) && (Number(upperBound) >= 0)) {
+    else if ((Number(lowerBound) < 0) && (Number(upperBound) >= 0)) {
       if (Number(minAbsVal) < 0) {
         setError('Minimum absolute value must be positive.');
         return false;

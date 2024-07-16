@@ -46,6 +46,7 @@ const pluginPort = 8888;
 // 	});
 // }
 
+// TODO change callback to just return values that the caller can handle
 const downloadFile = async (uri: string, dest: string, callback: (err: any) => void, maxRedirects = 10) => {
   const parsedUrl = new URL(uri);
   const protocol = parsedUrl.protocol === 'https:' ? https : http;
@@ -67,9 +68,9 @@ const downloadFile = async (uri: string, dest: string, callback: (err: any) => v
         file.on('finish', () => {
           file.close((err) => {
             if (err) {
-              reject(err);
+              callback(err);
             } else {
-              resolve(0);
+              callback(undefined);
             }
           });
         });
@@ -84,12 +85,12 @@ const downloadFile = async (uri: string, dest: string, callback: (err: any) => v
     const request = protocol.get(uri, async (response: any) => {
       try {
         await handleRedirects(response, maxRedirects);
-        resolve(0);
+        callback(undefined);
       } catch (err) {
-        reject(err);
+        callback(err);
       }
     }).on('error', (err: any) => {
-      fs.unlink(dest, () => reject(err));
+      fs.unlink(dest, () => callback(err));
     });
   }));
 };

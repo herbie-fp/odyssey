@@ -65,6 +65,7 @@ export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext(
 export const ExpressionsContext = makeGlobal([] as types.Expression[])//new types.Expression(defaultExpression2, 1, 0)] as types.Expression[]);//[new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[])
 export const DerivationsContext = makeGlobal([] as types.Derivation[])
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
+export const CostContext = makeGlobal([] as types.CostAnalysis[])
 export const SpecContext = makeGlobal(new types.Spec(defaultExpression, 0) as types.Spec)
 //@ts-ignore
 export const ServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://127.0.0.1:8000' : 'https://herbie.uwplse.org/demo')

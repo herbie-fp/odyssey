@@ -24,6 +24,7 @@ function ExpressionTable() {
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
   const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
+  const [cost, ] = HerbieContext.useGlobal(HerbieContext.CostContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
   const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
   const [expressionStyles, ] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
@@ -161,6 +162,9 @@ function ExpressionTable() {
         </div>
         <div className="compare-header">
         </div>
+        <div className="cost-header">
+          Cost
+        </div>
         <div className="error-header">
           Accuracy
         </div>
@@ -212,13 +216,20 @@ function ExpressionTable() {
           {activeExpressions.map((id) => {
             const expression = expressions.find((expression) => expression.id === id) as Expression;
             const isChecked = compareExprIds.includes(expression.id);
-            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
+            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;  
             const analysisResult =
               !analysisData
                 ? undefined
                 : (analysisData.errors.reduce((acc: number, v: any) => {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
+            const costData = cost.find((cost) => cost.expressionId === expression.id)?.cost;
+            // const costResult = costData ? costData[0].toFixed(2) : '...';
+            const costResult = !costData ? '...' : costData;
+
+
+            // console.log("cost data is " + costData + " and cost result is " + costResult);
+
             const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
             const components = [
                 { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
@@ -264,6 +275,9 @@ function ExpressionTable() {
                         <a className="copy-anchor">⧉</a>
                       </div>
                     </div>
+                  <div className="cost">
+                    {costResult}
+                  </div>
                   <div className="analysis">
                     {/* TODO: Not To hardcode number of bits*/}
                     {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) : "..."}

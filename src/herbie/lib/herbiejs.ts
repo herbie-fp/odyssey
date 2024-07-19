@@ -5,7 +5,8 @@ import * as types from '../HerbieTypes';
 
 
 interface HerbieResponse {
-  id?: string;
+  commit?: string;
+  job?: string;
   error?: string;
   mathjs?: string;
   points: any[];
@@ -63,9 +64,6 @@ export const getTimelineFor = async (
   const url = `${host}/timeline/${job_id}`;
   console.debug(url);
   const response = await fetch(url, {
-    headers: {
-        "Access-Control-Allow-Origin": "*",
-    },
     method: "GET" });
   console.debug(response);
   const responseData = await response.json();

@@ -288,7 +288,10 @@ function HerbieUIInner() {
       }
       const data = await herbiejs.getSample(fpCore, serverUrl)
       console.debug("ZANE WAS HERE")
-      const timeline = await herbiejs.getTimelineFor(data.id!, serverUrl)
+      let url = `${serverUrl}/${data.job}.${data.commit}/graph.html`
+      console.debug(url)
+      const timeline = await herbiejs.getTimelineFor(data.job!, serverUrl)
+      console.debug("TIMELINE")
       console.debug(timeline)
       console.debug("ZANE WAS HERE")
       const sample_points = data.points;

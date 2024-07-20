@@ -5,7 +5,7 @@ import * as types from '../HerbieTypes';
 
 
 interface HerbieResponse {
-  commit?: string;
+  path?: string;
   job?: string;
   error?: string;
   mathjs?: string;

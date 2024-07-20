@@ -5,6 +5,8 @@ import * as types from '../HerbieTypes';
 
 
 interface HerbieResponse {
+  path?: string;
+  job?: string;
   error?: string;
   mathjs?: string;
   points: any[];
@@ -51,6 +53,27 @@ export const getSample = async (
 ): Promise<HerbieResponse> => {
   return getHerbieApi(host, 'sample', { formula: fpcore, seed: 5 }, true);
 };
+
+export const getTimelineFor = async (
+  job_id: string,
+  host: string
+): Promise<any> => {
+  /*
+  Getting Cross-Origin Request Blocked: error
+  */
+  const url = `${host}/timeline/${job_id}`;
+  console.debug(url);
+  const response = await fetch(url, {
+    method: "GET" });
+  console.debug(response);
+  const responseData = await response.json();
+  if (responseData.error) {
+    throw new Error('Herbie server: ' + responseData.error);
+  }
+  console.debug('got data', responseData);
+  return responseData;
+};
+
 
 export type FPCore = string;
 export type HTMLHistory = string;

@@ -286,8 +286,15 @@ function HerbieUIInner() {
       if (!fpCore) {
         return  // should never get here
       }
-
-      const sample_points = (await herbiejs.getSample(fpCore, serverUrl)).points;
+      const data = await herbiejs.getSample(fpCore, serverUrl)
+      console.log("ZANE WAS HERE")
+      let url = `${serverUrl}/${data.path}/graph.html`
+      console.log(url)
+      const timeline = await herbiejs.getTimelineFor(data.job!, serverUrl)
+      console.log("TIMELINE")
+      console.log(timeline)
+      console.log("ZANE WAS HERE")
+      const sample_points = data.points;
       // always create a new sample with this spec and these input ranges
       const sample = new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))
       setSamples([...samples, sample]);

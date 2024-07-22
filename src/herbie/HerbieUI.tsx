@@ -479,6 +479,15 @@ function HerbieUIInner() {
     { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
   ];
 
+  const components2 = [
+    { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
+    { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
+    // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
+    { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
+    // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
+    
+  ];
+
   return (
     <div>
     
@@ -500,7 +509,7 @@ function HerbieUIInner() {
       <ExpressionTable />
       <div className="visualization">
         <SelectableVisualization components={components} />
-        <SelectableVisualization components={components} />
+        <SelectableVisualization components={components2} />
       </div>
 
       <div className="help-buttons" >

@@ -12,7 +12,7 @@ type Point = {
     id: number
 }
 
-async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Point[], clickedExpressionId: number) {
+async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Point[], clickedExpressionId: number, expressionStyles: ExpressionStyle[]) {
     // const bits = benchmark["bits"];
 
     // The line differs from rest_pts in two ways:
@@ -51,7 +51,12 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
                 x: (d: Point) => initial_pt.cost/d.cost,
                 y: (d: Point) => 1 - d.accuracy/bits,
                 // if the id of the selected expression is equal to the id of the current point, set the radius to 15, otherwise set it to 9
-                fill: "#00a", 
+                // fill: "#00a",
+                // fill the point with its respective color in ExpressionsStyleContext
+                fill: (d: Point) => {
+                    const style = expressionStyles.find(s => s.expressionId === d.id);
+                    return style?.color || 'black';
+                },
                 r: (d: Point) => d.id === clickedExpressionId ? 8 : 2,
                 
                 // fill: "#00a", r: (d: Point) => initial_pt.id === 1 ? 50 : 15, 
@@ -86,8 +91,11 @@ async function makeExampleSVG(color: string) {
 
 import * as Contexts from './HerbieContext';
 import { debug } from 'console';
+import { ExpressionStyle } from './HerbieTypes';
 
 const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (props) => {
+    // Access ExpressionStylesContext
+    const [expressionStyles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext);
     const [color, setColor] = React.useState('red');
     // Access the global expressions field
     const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
@@ -142,7 +150,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
                     return
                   }
                   svg.innerHTML = ''
-                const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, clickedExpressionId);
+                const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, clickedExpressionId, expressionStyles);
                   ([...plot.children]).map(c => svg.appendChild(c))
             }
         }></svg>

@@ -496,11 +496,13 @@ function HerbieUIInner() {
         </div>
         
       </div> */}
-        <ExpressionTable />
+        
+      <ExpressionTable />
       <div className="visualization">
         <SelectableVisualization components={components} />
         <SelectableVisualization components={components} />
       </div>
+
       <div className="help-buttons" >
         <DocumentationButton />
         <GitHubIssueButton />

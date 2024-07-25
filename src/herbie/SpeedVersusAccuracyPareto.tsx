@@ -1,5 +1,7 @@
 import React from 'react';
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
+import * as ordinals from './lib/ordinals'
+import { ordinal } from './HerbieTypes'
 
 
 interface SpeedVersusAccuracyParetoProps {
@@ -151,7 +153,42 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
                   }
                   svg.innerHTML = ''
                 const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, clickedExpressionId, expressionStyles);
-                  ([...plot.children]).map(c => svg.appendChild(c))
+
+                plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+                    // if a point if clicked (onclick), set its clickedExpressionID
+                    t.onclick = async() => {
+                        console.log('Setting selected point')
+                        setClickedExpressionId(t)
+                    }
+                });
+
+
+    // // Add event listener to update clickedExpressionId when a point is clicked
+    // out.querySelectorAll('[aria-label="dot"] circle').forEach((circle: any) => {
+    //     circle.addEventListener('click', (event: MouseEvent) => {
+    //         const title = circle.querySelector('title');
+    //         if (title) {
+    //             const data = JSON.parse(title.textContent);
+    //             setClickedExpressionId(data.id);
+    //         }
+    //     });
+    // });
+
+                // plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+                //     const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
+        
+                //     t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
+        
+                //     const c = t.parentNode
+                //     const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
+                //     t.parentNode.onclick = async () => {
+                //       console.log('Setting selected point to', o)
+                //       setSelectedPoint(point)
+                //       setSelectedExprId(id)
+                //     }
+                
+
+                ([...plot.children]).map(c => svg.appendChild(c))
             }
         }></svg>
         </div>

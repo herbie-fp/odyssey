@@ -158,7 +158,7 @@ function ExpressionTable() {
         </div>
         <div className="expressions-header">
           Expression
-          (Show TeX<input type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>)
+          (Show TeX<input id="showTexCheckbox" type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>)
         </div>
         <div className="compare-header">
         </div>

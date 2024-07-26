@@ -205,10 +205,10 @@
   margin-left: 6px;
 }
 .cost-header {
-  margin-right: 45px;
+  margin-right: 42px;
 }
 .error-header {
-  margin-right: 87px;
+  margin-right: 70px;
 }
 
 .add-expression-top {
@@ -365,4 +365,10 @@
 
 .expression-name-container {
   flex: 1;
+}
+
+#showTexCheckbox {
+  margin: 0;
+  vertical-align: bottom;
+  margin-left: 1px;
 }

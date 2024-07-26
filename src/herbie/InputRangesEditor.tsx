@@ -135,8 +135,8 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
       </span>
       { 
         boundsCrossesZero &&
-        <div>
-          <span className="separator"> with a minimum absolute value of </span>
+        <>
+          <span className="separator"> with |v| &gt;= </span>
           <span className="min">
           <input
             type="number"
@@ -145,7 +145,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
             onChange={e => setMinAbsVal(e.target.value)}
           />
           </span>
-        </div>
+          </> 
       }
       {error && <div style={{ color: 'red' }} className="error">{error}</div>}
     </div>

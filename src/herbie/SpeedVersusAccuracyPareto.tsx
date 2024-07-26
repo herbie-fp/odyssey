@@ -145,7 +145,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     return (
         <div>
             {/* Use a ref to update the svg*/}
-            <svg viewBox="0 -25 840 360" ref={async (svg) => {
+            <svg viewBox="-10 -25 840 360" ref={async (svg) => {
                 if (!svg) {
                     return
                   }

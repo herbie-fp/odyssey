@@ -310,7 +310,7 @@ function ErrorPlot() {
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
-    <button className="resample" onClick={ resample }>Resample</button>
+    
     {vars.map((v, i) => {
       const range = inputRanges?.find(r => r.variable === v)
       // if (!range) {
@@ -330,7 +330,10 @@ function ErrorPlot() {
             }
           } />
         )}
-        <svg viewBox="0 -25 840 360" ref={async (svg) => {
+        <div>
+        <button className="resample" onClick={ resample }>Resample</button>
+        </div>
+        <svg viewBox="-5 -25 840 360" ref={async (svg) => {
           if (!svg) {
             return
           }

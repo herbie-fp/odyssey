@@ -40,6 +40,7 @@ g[aria-label="y-axis label"] {
 
 .resample {
   font-size: 10px;
+  margin-left: calc(1rem + 1px);
 }
 
 .error-plot circle:hover {

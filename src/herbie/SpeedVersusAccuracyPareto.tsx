@@ -2,7 +2,7 @@ import React from 'react';
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 import * as ordinals from './lib/ordinals'
 import { ordinal } from './HerbieTypes'
-
+import './SpeedVersusAccuracyPareto.css';
 
 interface SpeedVersusAccuracyParetoProps {
     // Define your component props here
@@ -73,8 +73,17 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
         x: { line: true, nice: true, tickFormat: (c : string) => c + "×" },
         y: { nice: true, line: true, domain: [0, 1], tickFormat: "%" },
     })
+    out.querySelectorAll('[aria-label="dot"] circle').forEach((dot: any, i: number) => {
+        // for each circle, set the data-id attribute to the id of the expression of that point
+        dot.setAttribute("data-id", rest_pts[i].id);
+    });
     return out
 }
+
+// const dots = plot.querySelectorAll("circle");
+// dots.forEach((dot, i) => {
+//   dot.setAttribute("data-id", data[i].id);
+// });
 
 async function makeExampleSVG(color: string) {
     // make a simple svg
@@ -127,7 +136,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     const naiveExpressionId = selectedExprIds.find(id => id === naiveExpression.id) || 0;
 
     // get the clicked on expression
-    const [clickedExpressionId, setClickedExpressionId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
+    const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
 
     // iterate through each expression to find its cost and accuracy and store them in an array as as [cost, accuracy] tuple
     const points = selectedExprIds.map(id => {
@@ -145,20 +154,22 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     });
 
     return (
-        <div>
+        <div className="speedVersusAccuracyPareto">
             {/* Use a ref to update the svg*/}
             <svg viewBox="-10 -25 840 360" ref={async (svg) => {
                 if (!svg) {
                     return
                   }
                   svg.innerHTML = ''
-                const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, clickedExpressionId, expressionStyles);
+                const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, selectedExprId, expressionStyles);
+                
 
-                plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+
+                plot.querySelectorAll('[aria-label="dot"] circle').forEach((t: any) => {
                     // if a point if clicked (onclick), set its clickedExpressionID
                     t.onclick = async() => {
                         console.log('Setting selected point')
-                        setClickedExpressionId(t)
+                        setSelectedExprId(parseInt(t.getAttribute("data-id")));
                     }
                 });
 

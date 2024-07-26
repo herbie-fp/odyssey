@@ -1,8 +1,24 @@
+/* ::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+} */
+
 .expressions {
   display: flex;
   flex-direction: column;
   /* put 10px space between items */
   gap: 2px;
+}
+
+.expressions-actual::-webkit-scrollbar {
+  width: 11px !important;
+  /* display: block; */
+  scrollbar-color: var(--vscode-scrollbarSlider-background) var(--vscode-editor-background);
+}
+
+.expressions-actual {
+  scrollbar-width: 11px !important;
 }
 
 .tex-toggle {
@@ -205,10 +221,10 @@
   margin-left: 6px;
 }
 .cost-header {
-  margin-right: 42px;
+  margin-right: 41px;
 }
 .error-header {
-  margin-right: 70px;
+  margin-right: 82px;
 }
 
 .add-expression-top {

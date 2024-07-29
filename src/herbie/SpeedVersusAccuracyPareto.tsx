@@ -120,6 +120,8 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     //filter expressions such that we only have the ones that are not archived
     const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
     
+    console.log('Expressions:', expressions);
+
     const naiveExpression = expressions.find(e => e.text === spec.expression);
     if (naiveExpression === undefined) {
         return <div>Naive expression not found</div>

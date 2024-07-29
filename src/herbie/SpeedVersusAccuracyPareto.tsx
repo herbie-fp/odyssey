@@ -80,11 +80,6 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
     return out
 }
 
-// const dots = plot.querySelectorAll("circle");
-// dots.forEach((dot, i) => {
-//   dot.setAttribute("data-id", data[i].id);
-// });
-
 async function makeExampleSVG(color: string) {
     // make a simple svg
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -109,7 +104,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     const [expressionStyles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext);
     const [color, setColor] = React.useState('red');
     // Access the global expressions field
-    const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
+    const [allExpressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
     // get the spec
     const [spec, setSpec] = Contexts.useGlobal(Contexts.SpecContext);
     // get the costs and errors for each expression
@@ -118,6 +113,13 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     // convert error to percent accuracy
     const errorToAccuracy = (error: number) => error// 1 - error / 64;
     // get the spec's expression
+
+    
+    //get archived expressions
+    const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext);
+    //filter expressions such that we only have the ones that are not archived
+    const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
+    
     const naiveExpression = expressions.find(e => e.text === spec.expression);
     if (naiveExpression === undefined) {
         return <div>Naive expression not found</div>

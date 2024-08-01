@@ -248,8 +248,13 @@ function HerbieUIInner() {
   useEffect(selectFirstExpression, [expressions])
   function selectFirstExpression() {
     if (expressions.length > 0) {
-      setSelectedExprId(expressions[0].id);
-      setCompareExprIds([expressions[0].id]);
+      if (selectedExprId === -1 || archivedExpressions.includes(selectedExprId)) {
+        setSelectedExprId(expressions[0].id)
+      }
+      // setSelectedExprId(expressions[0].id);
+      if (compareExprIds.length === 0) {
+        setCompareExprIds([expressions[0].id]);
+      }
     }
   }
 

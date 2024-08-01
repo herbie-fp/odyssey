@@ -724,6 +724,11 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		</style>
 	</head>
 	<body>
+	  <style>
+	  	html {
+			scrollbar-color: unset;
+		}
+	  </style>
 	  <script type="module">
 		console.log('getting vscodeapi')
 		window.vscode = await window.acquireVsCodeApi();

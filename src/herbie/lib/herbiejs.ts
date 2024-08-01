@@ -142,7 +142,12 @@ export const analyzeExpression = async (
 
 
   const pointsAndErrors = ((await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)) as AnalyzeResponse).points;
-  const ordinalSample = sample.points.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
+  const ordinalSample = pointsAndErrors.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
+
+  // console.log('first 10 pointsAndErrors', pointsAndErrors.map(([point, error]) => point).slice(0, 10));
+  // console.log('first 10 sample points', sample.points.map(p => p[0]).slice(0, 10));
+  // console.log('first 10 pointsAndErrors points (from /analyze) after sorting', pointsAndErrors.map(([point, error]) => point).sort().slice(0, 10));
+  // console.log('first 10 sample points (from /sample) after sorting', sample.points.map(p => p[0]).sort().slice(0, 10));
 
   const vars = fpcorejs.getVarnamesFPCore(fpcore);
   const ticksByVarIdx : [string, number][][]= vars.map((v, i) => {

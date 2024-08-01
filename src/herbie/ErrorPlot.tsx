@@ -207,15 +207,15 @@ function ErrorPlot() {
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)
   if (!selectedExpr) {
-    return <div>Could not find expression with id {selectedExprId}</div>
-    // throw new Error(`Could not find expression with id ${selectedExprId}`)
+    return <div className="empty-error-plot">Could not find expression with id {selectedExprId}</div>
+    // TODO Instead, we want to return an empty graph in this case -- still render the SVG, just with no data
   }
   // get the variables from the expression
   const varnames = fpcorejs.getVarnamesMathJS(spec.expression)
   // we will iterate over indices
 
   if (!sample) {
-    return <div>Could not find sample with id {selectedSampleId}</div>
+    return <div className="empty-error-plot">Could not find sample with id {selectedSampleId}</div>
   }
   // if (!inputRanges) {
   //   return <div>Could not find input ranges with id {sample.inputRangesId}</div>
@@ -225,7 +225,7 @@ function ErrorPlot() {
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
 
   if (compareExpressions.length === 0) {
-    return <div>No selected expressions with analyses to compare yet.</div>
+    return <div className="empty-error-plot">No selected expressions with analyses to compare yet.</div>
   }
 
   /* We want to get the data for each expression and put it into an array. */
@@ -255,10 +255,15 @@ function ErrorPlot() {
       })
     })
 
-  const defaultData = analysisData(selectedExpr) as HerbieTypes.ErrorAnalysisData
+  let defaultData = analysisData(selectedExpr) as HerbieTypes.ErrorAnalysisData
 
   if (!defaultData) {
-    return <div>No analysis data for selected expression yet.</div>
+    // Look through the expressions to find the first one with analysis data
+    const firstExpr = expressions.find(e => analysisData(e))
+    if (!firstExpr) {
+      return <div className="empty-error-plot">No analysis data for any expressions yet.</div>
+    }
+    defaultData = analysisData(firstExpr) as HerbieTypes.ErrorAnalysisData
   }
 
   const {

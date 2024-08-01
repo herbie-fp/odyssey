@@ -181,8 +181,9 @@ function ExpressionTable() {
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
                 onClick={() => {
                   validateExpression(addExpression);
+                  const selectedId = nextId(expressions);
                   const newExpressions = [
-                    new Expression(addExpression, nextId(expressions), spec.id),
+                    new Expression(addExpression, selectedId, spec.id),
                     ...expressions,
                   ]
                   setExpressions(newExpressions);
@@ -190,6 +191,7 @@ function ExpressionTable() {
                     new Derivation("<p>User Input Expression</p>", nextId(expressions), undefined),
                     ...derivations,
                   ]);
+                  setSelectedExprId(selectedId)
                   setAddExpression('')
                 }}
               >

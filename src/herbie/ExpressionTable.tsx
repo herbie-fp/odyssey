@@ -17,6 +17,7 @@ import { addJobRecorder } from './HerbieUI';
 const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
+import ErrorExplanation from './ErrorExplanation';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -238,6 +239,7 @@ function ExpressionTable() {
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
+                { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
@@ -336,6 +338,7 @@ function ExpressionTable() {
                 </div>
                 {expandedExpressions.includes(expression.id) && (
                   <div className="dropdown" onClick={() => handleExpressionClick(expression.id)}>
+                    
                     <SelectableVisualization components={components} />
                   </div>
                 )}

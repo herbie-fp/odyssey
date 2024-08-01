@@ -1,45 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import * as Contexts from './HerbieContext';
 import * as fpcorejs from './lib/fpcore';
+import { analyzeExpressionExport, ExpressionExportResponse } from './lib/herbiejs';
 
 interface ExpressionExportProps {
     expressionId: number;
 }
 
-const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
-
+const ExpressionExport: React.FC<ExpressionExportProps> = ({ expressionId }) => {
     const supportedLanguages = ["python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
-    
+
     // Export the expression to a language of the user's choice
-    // (e.g. Python, C, etc.)
-    const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
+    const [expressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
+    const [serverUrl] = Contexts.useGlobal(Contexts.ServerContext);
 
     // Get the expression text
-    const expressionText = expressions[props.expressionId].text;
+    const expressionText = expressions[expressionId].text;
 
     // Get user choice
-    const [language, setLanguage] = React.useState(supportedLanguages[0]);
-
-    const [exportCode, setExportCode] = React.useState("");
+    const [language, setLanguage] = useState(supportedLanguages[0]);
+    const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     // Make server call to get translation when user submits
-    const callTranslate = () => {
-        fetch('http://127.0.0.1:8000/api/translate', {
-            method: 'POST',
-            body: JSON.stringify({
-                formula: fpcorejs.mathjsToFPCore(expressionText),
-                language: language
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            setExportCode(data.result);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-    React.useEffect(callTranslate, [expressionText, language])
+    const translateExpression = async () => {
+        try {
+            const response = await analyzeExpressionExport(
+                fpcorejs.mathjsToFPCore(expressionText),
+                language,
+                serverUrl
+            );
+            console.log(response)
+            setExportCode(response);
+            setError(null);
+        } catch (err: any) {
+            setError('Error: ' + (err.message || err));
+            setExportCode(null);
+        }
+    };
 
     return (
         <div>
@@ -50,11 +48,16 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
                 ))}
             </select>
 
-            {/* Display the export code */}
-            <pre>{exportCode}</pre>
+            {/* Display the export code or error message */}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {exportCode ? (
+                <pre>{`Language: ${exportCode.language}\n${exportCode.result}`}</pre>
+            ) : (
+                <p>No export code available.</p>
+            )}
 
             {/* Export button */}
-        
+            <button onClick={translateExpression}>Submit</button>
         </div>
     );
 };

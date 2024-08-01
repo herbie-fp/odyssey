@@ -192,7 +192,15 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
       </div>
       <Modal
         isOpen={showOverlay}
-        onRequestClose={() => setShowOverlay(false)}
+        onRequestClose={async () => {
+          // submit the spec if the user closes the overlay
+          // don't allow close if the spec is invalid
+          const valid = await specValid()
+          if (valid) {
+            await handleSubmitClick()
+            setShowOverlay(false)
+          }
+        }}
         ariaHideApp={false}
         style={{
           overlay: {

@@ -225,7 +225,7 @@ function ErrorPlot() {
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
 
   if (compareExpressions.length === 0) {
-    return <div>No selected expressions with analyses to compare yet.</div>
+    return <div className="empty-error-plot">No selected expressions with analyses to compare yet.</div>
   }
 
   /* We want to get the data for each expression and put it into an array. */

@@ -30,7 +30,7 @@ const ErrorExplanation: React.FC<ErrorExplanationProps> = (props) => {
             
             // Make server call to get translation when user submits
             try {
-                const host = "http://localhost:8000";
+                const host = serverUrl;
                 const response = await analyzeErrorExpression(
                     fpcorejs.mathjsToFPCore(expressionText),
                     { points: [[modSelectedPoint, 1e308]] } as Sample,

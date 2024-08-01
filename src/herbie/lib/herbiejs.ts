@@ -87,6 +87,10 @@ interface LocalErrorResponse {
   tree: types.LocalErrorTree;
 }
 
+interface CostResponse {
+  cost: number;
+}
+
 export const analyzeLocalError = async (
   fpcore: string,
   sample: Sample,
@@ -94,6 +98,7 @@ export const analyzeLocalError = async (
 ): Promise<types.LocalErrorTree> => {
   return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as LocalErrorResponse).tree;
 };
+
 
 export interface ExpressionExportResponse {
   language: string;
@@ -128,6 +133,14 @@ export const analyzeErrorExpression = async (
   return (await getHerbieApi(host, 'explanations', { formula: fpcore, sample: sample.points, seed: 5 }, true));
 };
 
+
+export const getCost = async (
+  fpcore: string,
+  sample: Sample,
+  host: string
+): Promise<number> => {
+  return (await getHerbieApi(host, 'cost', { formula: fpcore, sample: sample.points}, true) as CostResponse).cost;
+};
 
 type point = ordinal[]
 type error = string
@@ -164,7 +177,12 @@ export const analyzeExpression = async (
 
 
   const pointsAndErrors = ((await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)) as AnalyzeResponse).points;
-  const ordinalSample = sample.points.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
+  const ordinalSample = pointsAndErrors.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
+
+  // console.log('first 10 pointsAndErrors', pointsAndErrors.map(([point, error]) => point).slice(0, 10));
+  // console.log('first 10 sample points', sample.points.map(p => p[0]).slice(0, 10));
+  // console.log('first 10 pointsAndErrors points (from /analyze) after sorting', pointsAndErrors.map(([point, error]) => point).sort().slice(0, 10));
+  // console.log('first 10 sample points (from /sample) after sorting', sample.points.map(p => p[0]).sort().slice(0, 10));
 
   const vars = fpcorejs.getVarnamesFPCore(fpcore);
   const ticksByVarIdx : [string, number][][]= vars.map((v, i) => {

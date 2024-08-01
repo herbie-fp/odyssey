@@ -60,8 +60,8 @@
 
 .spec-text {
   font-family: 'Ruda', serif;
-  font-size: 20px;
-  padding-top:2px;
+  font-size: 1em;
+  padding-top:4px;
   /* overflow should be ... */
   white-space: nowrap;
   overflow: hidden;

@@ -1,8 +1,24 @@
+/* ::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+} */
+
 .expressions {
   display: flex;
   flex-direction: column;
   /* put 10px space between items */
   gap: 2px;
+}
+
+.expressions-actual::-webkit-scrollbar {
+  width: 11px !important;
+  /* display: block; */
+  scrollbar-color: var(--vscode-scrollbarSlider-background) var(--vscode-editor-background);
+}
+
+.expressions-actual {
+  scrollbar-width: 11px !important;
 }
 
 .tex-toggle {
@@ -68,11 +84,11 @@
 .expression {
   display: flex;
   flex-direction: row;
-  justify-content: right;
+  justify-content: space-between;
   gap: 6px;
   font-size: 14px;
   padding: 4px;
-  align-items: start;
+  align-items: center;
 }
 
 /** center buttons in the rows with no stretch */
@@ -96,9 +112,22 @@
   font-size: 10px;
 }
 
+.cost {
+  font-family: 'Ruda', serif;
+  text-align: right;
+  width: 80px; /* Fixed width to prevent resizing */
+  display: flex;
+  align-items: center; /* Center content vertically */
+  justify-content: flex-end; /* Align text to the right */
+}
+
 .analysis {
   font-family: 'Ruda', serif;
-  /* align-self: center; */
+  text-align: right;
+  width: 80px; /* Fixed width to prevent resizing */
+  display: flex;
+  align-items: center; /* Center content vertically */
+  justify-content: flex-end; /* Align text to the right */
 }
 
 .expression-container.selected {
@@ -191,8 +220,11 @@
   margin-right: auto;
   margin-left: 6px;
 }
+.cost-header {
+  margin-right: 41px;
+}
 .error-header {
-  margin-right: 87px;
+  margin-right: 82px;
 }
 
 .add-expression-top {
@@ -349,4 +381,10 @@
 
 .expression-name-container {
   flex: 1;
+}
+
+#showTexCheckbox {
+  margin: 0;
+  vertical-align: bottom;
+  margin-left: 1px;
 }

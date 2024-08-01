@@ -63,6 +63,13 @@ export class ErrorAnalysis {
   }
 }
 
+export class CostAnalysis {
+  constructor(public readonly expressionId: number, public readonly cost: number) {
+    this.expressionId = expressionId;
+    this.cost = cost;
+  }
+}
+
 export class SpecRange {
   constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number) {
     this.variable = variable;

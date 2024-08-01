@@ -1,0 +1,5 @@
+.speedVersusAccuracyPareto [aria-label="dot"] circle:hover {
+  stroke: black;
+  stroke-width: 10;
+  r: 5;
+} 

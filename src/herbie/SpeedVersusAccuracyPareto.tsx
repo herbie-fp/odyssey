@@ -1,6 +1,8 @@
 import React from 'react';
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
-
+import * as ordinals from './lib/ordinals'
+import { ordinal } from './HerbieTypes'
+import './SpeedVersusAccuracyPareto.css';
 
 interface SpeedVersusAccuracyParetoProps {
     // Define your component props here
@@ -71,6 +73,10 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
         x: { line: true, nice: true, tickFormat: (c : string) => c + "×" },
         y: { nice: true, line: true, domain: [0, 1], tickFormat: "%" },
     })
+    out.querySelectorAll('[aria-label="dot"] circle').forEach((dot: any, i: number) => {
+        // for each circle, set the data-id attribute to the id of the expression of that point
+        dot.setAttribute("data-id", rest_pts[i].id);
+    });
     return out
 }
 
@@ -98,7 +104,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     const [expressionStyles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext);
     const [color, setColor] = React.useState('red');
     // Access the global expressions field
-    const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
+    const [allExpressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
     // get the spec
     const [spec, setSpec] = Contexts.useGlobal(Contexts.SpecContext);
     // get the costs and errors for each expression
@@ -107,6 +113,15 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     // convert error to percent accuracy
     const errorToAccuracy = (error: number) => error// 1 - error / 64;
     // get the spec's expression
+
+    
+    //get archived expressions
+    const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext);
+    //filter expressions such that we only have the ones that are not archived
+    const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
+    
+    console.log('Expressions:', expressions);
+
     const naiveExpression = expressions.find(e => e.text === spec.expression);
     if (naiveExpression === undefined) {
         return <div>Naive expression not found</div>
@@ -125,7 +140,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     const naiveExpressionId = selectedExprIds.find(id => id === naiveExpression.id) || 0;
 
     // get the clicked on expression
-    const [clickedExpressionId, setClickedExpressionId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
+    const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
 
     // iterate through each expression to find its cost and accuracy and store them in an array as as [cost, accuracy] tuple
     const points = selectedExprIds.map(id => {
@@ -143,15 +158,52 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     });
 
     return (
-        <div>
+        <div className="speedVersusAccuracyPareto">
             {/* Use a ref to update the svg*/}
             <svg viewBox="-10 -25 840 360" ref={async (svg) => {
                 if (!svg) {
                     return
                   }
                   svg.innerHTML = ''
-                const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, clickedExpressionId, expressionStyles);
-                  ([...plot.children]).map(c => svg.appendChild(c))
+                const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, selectedExprId, expressionStyles);
+                
+
+
+                plot.querySelectorAll('[aria-label="dot"] circle').forEach((t: any) => {
+                    // if a point if clicked (onclick), set its clickedExpressionID
+                    t.onclick = async() => {
+                        console.log('Setting selected point')
+                        setSelectedExprId(parseInt(t.getAttribute("data-id")));
+                    }
+                });
+
+
+    // // Add event listener to update clickedExpressionId when a point is clicked
+    // out.querySelectorAll('[aria-label="dot"] circle').forEach((circle: any) => {
+    //     circle.addEventListener('click', (event: MouseEvent) => {
+    //         const title = circle.querySelector('title');
+    //         if (title) {
+    //             const data = JSON.parse(title.textContent);
+    //             setClickedExpressionId(data.id);
+    //         }
+    //     });
+    // });
+
+                // plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+                //     const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
+        
+                //     t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
+        
+                //     const c = t.parentNode
+                //     const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
+                //     t.parentNode.onclick = async () => {
+                //       console.log('Setting selected point to', o)
+                //       setSelectedPoint(point)
+                //       setSelectedExprId(id)
+                //     }
+                
+
+                ([...plot.children]).map(c => svg.appendChild(c))
             }
         }></svg>
         </div>

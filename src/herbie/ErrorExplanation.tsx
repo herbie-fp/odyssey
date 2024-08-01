@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect} from 'react';
 import * as Contexts from './HerbieContext';
 import * as fpcorejs from './lib/fpcore';
 import { Sample } from './HerbieTypes';
@@ -30,7 +30,7 @@ const ErrorExplanation: React.FC<ErrorExplanationProps> = (props) => {
             
             // Make server call to get translation when user submits
             try {
-                const host = serverUrl;
+                const host = "http://localhost:8000";
                 const response = await analyzeErrorExpression(
                     fpcorejs.mathjsToFPCore(expressionText),
                     { points: [[modSelectedPoint, 1e308]] } as Sample,
@@ -43,6 +43,10 @@ const ErrorExplanation: React.FC<ErrorExplanationProps> = (props) => {
             }
         }
     };
+
+    useEffect(() => {
+        translateExpression();
+    }, [expressionText, selectedPoint]);
 
     return (<div>
         {/* Display the export code */}
@@ -59,8 +63,6 @@ const ErrorExplanation: React.FC<ErrorExplanationProps> = (props) => {
             <p>No explanation available.</p>
         )}
 
-        {/* Export button */}
-        <button onClick={translateExpression}>Submit</button>
     </div>
     );
 };

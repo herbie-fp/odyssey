@@ -676,6 +676,7 @@ export function activate(context: vscode.ExtensionContext) {
 							break
 						case 'openLink':
 							vscode.env.openExternal(vscode.Uri.parse(message.link))
+							break;
 						case 'error':
 							// Show a button for copying the error message to the clipboard
 							const copy = 'Copy to clipboard'

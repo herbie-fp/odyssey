@@ -140,7 +140,7 @@ function ExpressionTable() {
   // if (selectedSampleId === undefined) {
   //   return <div className="expression-table">Waiting for sampling...</div>
   // }
-  // const sample = samples.find((sample) => sample.id === selectedSampleId)
+  const sample = samples.find((sample) => sample.id === selectedSampleId)
   // if (!sample) {
   //   // should never get here
   //   return <div className="expression-table">Couldn't find sample id { selectedSampleId }</div>

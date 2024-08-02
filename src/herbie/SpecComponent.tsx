@@ -207,7 +207,11 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             backgroundColor: 'rgba(0, 0, 0, 0.5)'
           },
           content: {
-            backgroundColor: 'var(--background-color)'
+            backgroundColor: 'var(--background-color)',
+            top: '2px',
+            left: '2px',
+            right: '2px',
+            bottom: '2px',
           }
         
         }
@@ -217,9 +221,9 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
           {/* Show a dialogue for editing the spec with a "done" button. */}
           {/* <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}> */}
             <div className="spec-overlay-header">
-              <div>Spec</div>
+              Specify the expression to rewrite
             </div>
-            <DebounceInput element="textarea" debounceTimeout={300} className="spec-textarea" value={specTextInput} onChange={handleSpecTextUpdate} />
+            <DebounceInput element="textarea" debounceTimeout={300} className="spec-textarea" placeholder="e.g. sqrt(x+1) - sqrt(x)" value={specTextInput} onChange={handleSpecTextUpdate} />
             {/* Render the expression into HTML with KaTeX */}
             <div className="spec-tex" dangerouslySetInnerHTML={{
               __html: htmlContent

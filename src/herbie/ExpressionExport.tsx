@@ -15,9 +15,6 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
     const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
 
     // Get the expression text
-
-    // const expressionText = expressions[props.expressionId].text;
-    // Removed ^^^
     const expression = expressions.find(expr => expr.id === props.expressionId);
 
     // Get user choice
@@ -42,9 +39,6 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (props) => {
             console.error('Error:', error);
         });
     }
-
-    // React.useEffect(callTranslate, [expressionText, language])
-    // Removed ^^^
     React.useEffect(() => {
         if (expression) {
             callTranslate(expression.text);

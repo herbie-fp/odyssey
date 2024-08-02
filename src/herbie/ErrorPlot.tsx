@@ -376,10 +376,7 @@ function ErrorPlot() {
               setSelectedExprId(id)
             }
             if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
-              c.setAttribute('r', '15')
-              c.setAttribute('opacity', '1')
-              c.setAttribute('stroke', 'black')
-              c.setAttribute('data-selected', 'true')
+              c.setAttribute('class', 'circle-selected');
             }
           });
           [...plot.children].map(c => svg.appendChild(c))

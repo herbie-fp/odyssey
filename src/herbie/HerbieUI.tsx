@@ -513,7 +513,7 @@ function HerbieUIInner() {
       </div> */}
         
       <ExpressionTable />
-      <div className="visualization">
+      <div className="visualizations">
         <SelectableVisualization components={components} />
         <SelectableVisualization components={components2} />
       </div>

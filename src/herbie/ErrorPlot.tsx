@@ -382,6 +382,30 @@ function ErrorPlot() {
             }
             if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
               c.setAttribute('class', 'circle-selected');
+
+              // Add label for selected point
+              const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+              text.setAttribute("class", "selected-label");
+
+              // Position text adjacent selected point on plot
+              const x = Number(c.getAttribute("cx")) + 30;
+              const y = c.getAttribute("cy");
+
+              // TODO: currently displaying only x, ideal to generating <tspan>s in a loop per attribute
+              const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+              tspan.textContent = "Selected Point:";
+              tspan.setAttribute("x", x + "");
+              tspan.setAttribute("y", y);
+              text.appendChild(tspan);
+
+              const tspan2 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+              // Label text, in "displayNumber" format (selectedPoint should never be undefined here)
+              tspan2.textContent = "x: " + (selectedPoint ? herbiejs.displayNumber(selectedPoint[0]) : "");
+              tspan2.setAttribute("x", x + "");
+              tspan2.setAttribute("dy", "22px");
+              text.appendChild(tspan2);
+              
+              svg.appendChild(text);
             }
           });
           [...plot.children].map(c => svg.appendChild(c))

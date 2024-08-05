@@ -118,11 +118,10 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     //get archived expressions
     const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext);
     //filter expressions such that we only have the ones that are not archived
-    const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
-    
-    console.log('Expressions:', expressions);
 
-    const naiveExpression = expressions.find(e => e.text === spec.expression);
+    // const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
+    
+    const naiveExpression = allExpressions.find(e => e.text === spec.expression);
     if (naiveExpression === undefined) {
         return <div>Naive expression not found</div>
     }
@@ -142,16 +141,16 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     // get the clicked on expression
     const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
 
+    //filter selected expressions 
+    // const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
+    const filteredExpressionIds = selectedExprIds.filter(e => !archivedExpressions.includes(e));
+
     // iterate through each expression to find its cost and accuracy and store them in an array as as [cost, accuracy] tuple
-    const points = selectedExprIds.map(id => {
-        const expression = expressions.find(e => e.id === id);
-        if (expression === undefined) {
-            return { cost: 0, accuracy: 0, id: 0 } as Point;
-        }
-        const cost = costs.find(c => c.expressionId === expression.id)?.cost;
-        const error = analyses.find(a => a.expressionId === expression.id)?.data.meanBitsError;
+    const points = filteredExpressionIds.map(id => {
+        const cost = costs.find(c => c.expressionId === id)?.cost;
+        const error = analyses.find(a => a.expressionId === id)?.data.meanBitsError;
         if (cost === undefined || error === undefined) {
-            return { cost: 0, accuracy: 0, id: 0 } as Point;
+            throw new Error(`Cost or error not found for expression ${id}`);
         }
         const accuracy = errorToAccuracy(error);
         return { cost: cost, accuracy: accuracy, id: id } as Point;

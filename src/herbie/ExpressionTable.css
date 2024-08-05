@@ -163,12 +163,11 @@
 }
 
 .dropdown {
-  margin-left: 7px;
   padding: 5px;
   padding-left: 9px;
   padding-top: 0px;
   /* large thick square dots on left border */
-  border-left: 4px dotted #888;
+  /* border-left: 4px dotted #888; */
   margin-bottom: 5px;
   font-size: 10px;
 }
@@ -287,7 +286,7 @@
 }
 
 .dropdown {
-  margin-left: 13px;
+  margin-left: 17px;
   transition: all 1s ease-in;
 }
 .dropdown:hover {

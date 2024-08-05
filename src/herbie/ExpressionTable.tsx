@@ -17,6 +17,7 @@ import { addJobRecorder } from './HerbieUI';
 const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
+import ErrorExplanation from './ErrorExplanation';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -136,14 +137,10 @@ function ExpressionTable() {
       throw new Error(errors[0])
     }
   }
-  if (selectedSampleId === undefined) {
-    return <div className="expression-table">Waiting for sampling...</div>
-  }
+  // if (selectedSampleId === undefined) {
+  //   return <div className="expression-table">Waiting for sampling...</div>
+  // }
   const sample = samples.find((sample) => sample.id === selectedSampleId)
-  if (!sample) {
-    // should never get here
-    return <div className="expression-table">Couldn't find sample id { selectedSampleId }</div>
-  }
   
   return (
     <div className="expression-table">
@@ -238,6 +235,7 @@ function ExpressionTable() {
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
+                { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
@@ -286,6 +284,9 @@ function ExpressionTable() {
                   </div>
                   <div className="herbie">
                     <button onClick={async () => {
+                      if (!sample) {
+                        return
+                      }
                       // get suggested expressions with Herbie and put them in the expressions table
                       const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
 
@@ -317,7 +318,7 @@ function ExpressionTable() {
                       setExpressions([...newExpressions, ...expressions]);
                       setDerivations([...newDerivations, ...derivations]);
                     }}>
-                      Herbie
+                      Improve
                     </button>
                   </div>
 
@@ -336,6 +337,7 @@ function ExpressionTable() {
                 </div>
                 {expandedExpressions.includes(expression.id) && (
                   <div className="dropdown" onClick={() => handleExpressionClick(expression.id)}>
+                    
                     <SelectableVisualization components={components} />
                   </div>
                 )}

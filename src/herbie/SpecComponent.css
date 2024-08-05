@@ -45,9 +45,14 @@
 }
 
 .spec-overlay-header {
-  display: flex; /* Use flexbox to position the components */
+  /* display: flex; /* Use flexbox to position the components */
+  text-align:center;
   justify-content: space-between; /* Align the components at the start and end of the header */
   margin-bottom: 10px; /* Add some space between the header and the content */
+}
+
+.spec-textarea-container {
+  text-align: center ;
 }
 
 .spec-title {
@@ -68,14 +73,27 @@
   text-overflow: ellipsis;
 }
 
+.spec-tex {
+  text-align: center ;
+}
+
 .spec-textarea {
   width: 50%;
-  height: 5em;
+  /* height: 5em; */
 }
 
 .spec-range-input {
   display: flex;
+  justify-content: center;
   gap: 5px;
+}
+
+.spec-range-inputs {
+  text-align: center;
+}
+
+.submit {
+  text-align: center;
 }
 
 .spec-overlay-content {

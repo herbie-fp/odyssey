@@ -485,6 +485,7 @@ function HerbieUIInner() {
   ];
 
   const components2 = [
+    { value: 'None', label: 'None', component: <div />},
     { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },

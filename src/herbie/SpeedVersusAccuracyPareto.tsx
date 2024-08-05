@@ -123,13 +123,13 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     
     const naiveExpression = allExpressions.find(e => e.text === spec.expression);
     if (naiveExpression === undefined) {
-        return <div>Naive expression not found</div>
+        return <div></div>//Naive expression not found</div>
     }
     // get the cost and accuracy for the naiveExpression
     const naiveCost = costs.find(c => c.expressionId === naiveExpression.id)?.cost;
     const naiveError = analyses.find(a => a.expressionId === naiveExpression.id)?.data.meanBitsError;
     if (naiveCost === undefined || naiveError === undefined) {
-        return <div>Naive cost or error not found</div>
+        return <div></div>//Naive cost or error not found</div>
     }
     const naiveAccuracy = errorToAccuracy(naiveError);
     // get the ids of the selected expressions

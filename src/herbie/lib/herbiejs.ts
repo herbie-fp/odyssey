@@ -99,6 +99,41 @@ export const analyzeLocalError = async (
   return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as LocalErrorResponse).tree;
 };
 
+
+export interface ExpressionExportResponse {
+  language: string;
+  result: string;
+}
+
+export const analyzeExpressionExport = async (
+  fpcore: string,
+  language: string,
+  host: string
+): Promise<ExpressionExportResponse> => {
+  return (await getHerbieApi(host, 'translate', { formula: fpcore, language: language}, true));
+};
+type Explanation = [
+  string,  // operator
+  string,  // expression
+  string,  // type
+  number,  // occurrences
+  number,  // errors
+  any[]    // details
+];
+
+export interface ErrorExpressionResponse {
+  explanation: Explanation[];
+}
+
+export const analyzeErrorExpression = async (
+  fpcore: string,
+  sample: Sample,
+  host: string
+): Promise<ErrorExpressionResponse> => {
+  return (await getHerbieApi(host, 'explanations', { formula: fpcore, sample: sample.points, seed: 5 }, true));
+};
+
+
 export const getCost = async (
   fpcore: string,
   sample: Sample,

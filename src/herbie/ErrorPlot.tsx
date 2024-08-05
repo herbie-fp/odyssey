@@ -109,7 +109,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
     const compressedSlidingWindow = compress(
       slidingWindow(data, binSize), width, average)
     //console.log(compressedSlidingWindow)
-    console.log("tempData",compressedSlidingWindow)
+    
     const percentageCompressedSlidingWindow = compressedSlidingWindow.map(({x,y}:{x:any,y:any})=>({x,y:(100-(y/64*100))}))
     const percentageData = compress(data,width).map(({x,y,orig}:{x:any,y:any,orig:any})=>({x,y:(100-(y/64*100)),orig}))
     return [
@@ -206,6 +206,10 @@ function ErrorPlot() {
   
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)
+  // if there are no expressions yet, return an empty div
+  if (selectedExprId === -1) {
+    return <div className="empty-error-plot"></div>
+  }
   if (!selectedExpr) {
     return <div className="empty-error-plot">Could not find expression with id {selectedExprId}</div>
     // TODO Instead, we want to return an empty graph in this case -- still render the SVG, just with no data
@@ -214,6 +218,9 @@ function ErrorPlot() {
   const varnames = fpcorejs.getVarnamesMathJS(spec.expression)
   // we will iterate over indices
 
+  if (selectedSampleId === undefined) {
+    return <div className="empty-error-plot"></div>
+  }
   if (!sample) {
     return <div className="empty-error-plot">Could not find sample with id {selectedSampleId}</div>
   }
@@ -225,7 +232,7 @@ function ErrorPlot() {
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
 
   if (compareExpressions.length === 0) {
-    return <div className="empty-error-plot">No selected expressions with analyses to compare yet.</div>
+    return <div className="empty-error-plot"></div>
   }
 
   /* We want to get the data for each expression and put it into an array. */
@@ -312,6 +319,10 @@ function ErrorPlot() {
       return }
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
   }
+
+  // Only want to show resample button if the range has changed
+  const showResample = JSON.stringify(inputRanges) !== JSON.stringify(myInputRanges)
+
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
@@ -336,7 +347,7 @@ function ErrorPlot() {
           } />
         )}
         <div>
-        <button className="resample" onClick={ resample }>Resample</button>
+        {showResample && <button className="resample" onClick={ resample }>Resample</button>}
         </div>
         <svg viewBox="-5 -25 840 360" ref={async (svg) => {
           if (!svg) {
@@ -369,10 +380,7 @@ function ErrorPlot() {
               setSelectedExprId(id)
             }
             if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
-              c.setAttribute('r', '15')
-              c.setAttribute('opacity', '1')
-              c.setAttribute('stroke', 'black')
-              c.setAttribute('data-selected', 'true')
+              c.setAttribute('class', 'circle-selected');
             }
           });
           [...plot.children].map(c => svg.appendChild(c))

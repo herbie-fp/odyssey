@@ -7,7 +7,7 @@ interface ExpressionExportProps {
     expressionId: number;
 }
 
-const ExpressionExport: React.FC<ExpressionExportProps> = ({ expressionId }) => {
+const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     const supportedLanguages = ["python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
 
     // Export the expression to a language of the user's choice
@@ -15,8 +15,10 @@ const ExpressionExport: React.FC<ExpressionExportProps> = ({ expressionId }) => 
     const [serverUrl] = Contexts.useGlobal(Contexts.ServerContext);
 
     // Get the expression text
-    const expressionText = expressions[expressionId].text;
-
+    const expressionText = expressions.find(expr => expr.id === expressionId.expressionId);
+    if (expressionText == null) {
+        return <div>Expression not found</div>
+    }
     // Get user choice
     const [language, setLanguage] = useState(supportedLanguages[0]);
     const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);
@@ -26,7 +28,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = ({ expressionId }) => 
     const translateExpression = async () => {
         try {
             const response = await analyzeExpressionExport(
-                fpcorejs.mathjsToFPCore(expressionText),
+                fpcorejs.mathjsToFPCore(expressionText?.text),
                 language,
                 serverUrl
             );
@@ -38,6 +40,10 @@ const ExpressionExport: React.FC<ExpressionExportProps> = ({ expressionId }) => 
             setExportCode(null);
         }
     };
+    // Update the expressionText
+    React.useEffect(() => {
+        translateExpression();
+    }, [expressionText, language]);
 
     return (
         <div>
@@ -55,9 +61,6 @@ const ExpressionExport: React.FC<ExpressionExportProps> = ({ expressionId }) => 
             ) : (
                 <p>No export code available.</p>
             )}
-
-            {/* Export button */}
-            <button onClick={translateExpression}>Submit</button>
         </div>
     );
 };

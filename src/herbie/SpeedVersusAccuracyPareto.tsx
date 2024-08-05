@@ -117,9 +117,6 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     
     //get archived expressions
     const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext);
-    //filter expressions such that we only have the ones that are not archived
-
-    // const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
     
     const naiveExpression = allExpressions.find(e => e.text === spec.expression);
     if (naiveExpression === undefined) {
@@ -142,7 +139,6 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
 
     //filter selected expressions 
-    // const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id));
     const filteredExpressionIds = selectedExprIds.filter(e => !archivedExpressions.includes(e));
 
     // iterate through each expression to find its cost and accuracy and store them in an array as as [cost, accuracy] tuple

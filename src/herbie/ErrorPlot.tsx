@@ -319,6 +319,10 @@ function ErrorPlot() {
       return }
     setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
   }
+
+  // Only want to show resample button if the range has changed
+  const showResample = JSON.stringify(inputRanges) !== JSON.stringify(myInputRanges)
+
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
@@ -343,7 +347,7 @@ function ErrorPlot() {
           } />
         )}
         <div>
-        <button className="resample" onClick={ resample }>Resample</button>
+        {showResample && <button className="resample" onClick={ resample }>Resample</button>}
         </div>
         <svg viewBox="-5 -25 840 360" ref={async (svg) => {
           if (!svg) {

@@ -318,7 +318,7 @@ function ExpressionTable() {
                       setExpressions([...newExpressions, ...expressions]);
                       setDerivations([...newDerivations, ...derivations]);
                     }}>
-                      Herbie
+                      Improve
                     </button>
                   </div>
 

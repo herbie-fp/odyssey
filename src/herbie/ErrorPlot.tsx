@@ -10,7 +10,7 @@ import * as herbiejs from './lib/herbiejs'
 import { Expression, ordinal, expressionError } from './HerbieTypes'
 import * as HerbieTypes from './HerbieTypes'
 import * as contexts from './HerbieContext'
-import { InputRangeEditor1, InputRangesEditor } from "./InputRangesEditor";
+import { InputRangeEditor1 } from "./InputRangesEditor";
 
 import './ErrorPlot.css'
 import { nextId } from "./lib/utils";
@@ -336,6 +336,7 @@ function ErrorPlot() {
         <span className="variable-name">{v}: </span>
         {range && ( // Do not display if range is undefined, which occurs when there is no InputRanges (expr is FPCore)
           <InputRangeEditor1 value={{
+            varname: v,
             lower: range.lowerBound.toString(),
             upper: range.upperBound.toString()
           }} setValue={

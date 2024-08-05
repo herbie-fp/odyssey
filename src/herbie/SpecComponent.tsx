@@ -1,5 +1,5 @@
 import React, { useCallback, ChangeEvent, useContext, useState, useEffect } from 'react';
-import { InputRange, InputRangesEditor, InputRangeEditor1 } from './InputRangesEditor';
+import { InputRange, InputRangeEditor1 } from './InputRangesEditor';
 import { InputRangesTableContext, SpecContext } from './HerbieContext';
 import { SpecRange, Spec } from './HerbieTypes';
 import * as HerbieTypes from './HerbieTypes';
@@ -242,6 +242,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
                       </div>
                       <InputRangeEditor1
                         value={{
+                          varname: v,
                           lower: range.lowerBound.toString(),
                           upper: range.upperBound.toString()
                         }}

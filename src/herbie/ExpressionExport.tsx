@@ -19,7 +19,6 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     if (expressionText == null) {
         return <div>Expression not found</div>
     }
-  
     // Get user choice
     const [language, setLanguage] = useState(supportedLanguages[0]);
     const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);

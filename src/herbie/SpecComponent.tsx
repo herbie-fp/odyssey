@@ -268,7 +268,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
               />
             </div> */}
             <div className="submit">
-              <button onClick={handleSubmitClick} disabled={!specValid()}>Submit</button>
+              <button onClick={handleSubmitClick} disabled={!specValid()}>Explore</button>
             </div>
           {/* </div> */}
         {/* </div> */}

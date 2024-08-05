@@ -224,7 +224,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
               Specify the expression to rewrite
         </div>
         <div className="spec-textarea-container">
-          <DebounceInput element="textarea" debounceTimeout={300} className="spec-textarea" placeholder="e.g. sqrt(x+1) - sqrt(x)" value={specTextInput} onChange={handleSpecTextUpdate} />
+          <DebounceInput element="textarea" debounceTimeout={300} rows={1} className="spec-textarea" placeholder="e.g. sqrt(x+1) - sqrt(x)" value={specTextInput} onChange={handleSpecTextUpdate} />
           </div>
             {/* Render the expression into HTML with KaTeX */}
             <div className="spec-tex" dangerouslySetInnerHTML={{

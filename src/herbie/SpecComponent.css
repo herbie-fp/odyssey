@@ -79,7 +79,7 @@
 
 .spec-textarea {
   width: 50%;
-  height: 5em;
+  /* height: 5em; */
 }
 
 .spec-range-input {

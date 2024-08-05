@@ -633,7 +633,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		await runHerbieServer()
 		// await runFPBenchServer()
-		if (!fs.existsSync(fpbenchPath)) {
+		const systemSupportsFPTaylor = process.platform === 'linux'
+		const systemSupportsFPBench = process.platform === 'linux'
+
+		if (!fs.existsSync(fpbenchPath) && systemSupportsFPBench) {
 			// wait for user to download herbie
 			vscode.window.showErrorMessage("FPBench doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
 				if (action === 'Download') {
@@ -642,7 +645,7 @@ export function activate(context: vscode.ExtensionContext) {
 			})
 		}
 		// await runFPTaylorServer()
-		if (!fs.existsSync(fptaylorPath)) {
+		if (!fs.existsSync(fptaylorPath) && systemSupportsFPTaylor) {
 			// wait for user to download herbie
 			vscode.window.showErrorMessage("FPTaylor doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
 				if (action === 'Download') {
@@ -676,6 +679,7 @@ export function activate(context: vscode.ExtensionContext) {
 							break
 						case 'openLink':
 							vscode.env.openExternal(vscode.Uri.parse(message.link))
+							break;
 						case 'error':
 							// Show a button for copying the error message to the clipboard
 							const copy = 'Copy to clipboard'

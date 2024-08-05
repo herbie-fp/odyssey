@@ -206,6 +206,10 @@ function ErrorPlot() {
   
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)
+  // if there are no expressions yet, return an empty div
+  if (selectedExprId === -1) {
+    return <div className="empty-error-plot"></div>
+  }
   if (!selectedExpr) {
     return <div className="empty-error-plot">Could not find expression with id {selectedExprId}</div>
     // TODO Instead, we want to return an empty graph in this case -- still render the SVG, just with no data
@@ -214,6 +218,9 @@ function ErrorPlot() {
   const varnames = fpcorejs.getVarnamesMathJS(spec.expression)
   // we will iterate over indices
 
+  if (selectedSampleId === undefined) {
+    return <div className="empty-error-plot"></div>
+  }
   if (!sample) {
     return <div className="empty-error-plot">Could not find sample with id {selectedSampleId}</div>
   }
@@ -225,7 +232,7 @@ function ErrorPlot() {
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
 
   if (compareExpressions.length === 0) {
-    return <div className="empty-error-plot">No selected expressions with analyses to compare yet.</div>
+    return <div className="empty-error-plot"></div>
   }
 
   /* We want to get the data for each expression and put it into an array. */
@@ -369,10 +376,7 @@ function ErrorPlot() {
               setSelectedExprId(id)
             }
             if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
-              c.setAttribute('r', '15')
-              c.setAttribute('opacity', '1')
-              c.setAttribute('stroke', 'black')
-              c.setAttribute('data-selected', 'true')
+              c.setAttribute('class', 'circle-selected');
             }
           });
           [...plot.children].map(c => svg.appendChild(c))

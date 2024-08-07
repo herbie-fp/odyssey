@@ -26,7 +26,7 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
 
     // create a new array with rest_pts reverse sorted from lowest to highest cost
     const sorted_pts = rest_pts.slice().sort((a, b) => a.cost - b.cost);
-    console.log("sorted points: ", sorted_pts);
+    // console.log("sorted points: ", sorted_pts);
     // debugger;
 
     let mostAccurateSoFar: Point | null = null; 
@@ -59,10 +59,7 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
                     const style = expressionStyles.find(s => s.expressionId === d.id);
                     return style?.color || 'black';
                 },
-                r: (d: Point) => d.id === clickedExpressionId ? 8 : 2,
-                
-                // fill: "#00a", r: (d: Point) => initial_pt.id === 1 ? 50 : 15, 
-                // TODO: Fix this ^^^
+                r: (d: Point) => d.id === clickedExpressionId ? 10 : 4,
                 // fill: "#00a", r: 9,
             }),
         ].filter(x=>x),
@@ -167,36 +164,11 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
                 plot.querySelectorAll('[aria-label="dot"] circle').forEach((t: any) => {
                     // if a point if clicked (onclick), set its clickedExpressionID
                     t.onclick = async() => {
-                        console.log('Setting selected point')
+                        console.log('Clicked point -> Setting selected point', t.getAttribute("data-id"));
                         setSelectedExprId(parseInt(t.getAttribute("data-id")));
+                        console.log('New selected point', selectedExprId);
                     }
-                });
-
-
-    // // Add event listener to update clickedExpressionId when a point is clicked
-    // out.querySelectorAll('[aria-label="dot"] circle').forEach((circle: any) => {
-    //     circle.addEventListener('click', (event: MouseEvent) => {
-    //         const title = circle.querySelector('title');
-    //         if (title) {
-    //             const data = JSON.parse(title.textContent);
-    //             setClickedExpressionId(data.id);
-    //         }
-    //     });
-    // });
-
-                // plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
-                //     const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
-        
-                //     t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
-        
-                //     const c = t.parentNode
-                //     const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
-                //     t.parentNode.onclick = async () => {
-                //       console.log('Setting selected point to', o)
-                //       setSelectedPoint(point)
-                //       setSelectedExprId(id)
-                //     }
-                
+                });    
 
                 ([...plot.children]).map(c => svg.appendChild(c))
             }

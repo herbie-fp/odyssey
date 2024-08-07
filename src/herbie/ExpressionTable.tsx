@@ -18,6 +18,8 @@ const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
 import ErrorExplanation from './ErrorExplanation';
+import LinkToReports from './LinkToReports';
+import { reporters } from 'mocha';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -236,6 +238,7 @@ function ExpressionTable() {
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
                 { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
+                {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>

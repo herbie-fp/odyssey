@@ -368,6 +368,10 @@ function ErrorPlot() {
             width: 800,
             height: 300
           });
+
+          // Prepping variables to layer label on top of graph
+          let label, text = undefined;
+
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
 
@@ -383,32 +387,40 @@ function ErrorPlot() {
             if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
               c.setAttribute('class', 'circle-selected');
 
-              // Add label for selected point
-              const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-              text.setAttribute("class", "selected-label");
+              // Get point position, to position label adjacent
+              let x = Number(c.getAttribute("cx"));
+              if (x > 670) x -= 220;
+              const y = Number(c.getAttribute("cy"));
+              
+              // Rectangle label positioned behind text
+              label = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+              label.setAttribute("class", "selected-label");    
+              label.setAttribute("x", x + 30 + "");
+              label.setAttribute("y", y - 25 + "");
 
-              // Position text adjacent selected point on plot
-              const x = Number(c.getAttribute("cx")) + 30;
-              const y = c.getAttribute("cy");
-
-              // TODO: currently displaying only x, ideal to generating <tspan>s in a loop per attribute
+              // Text describing selected point on top of label
+              text = document.createElementNS("http://www.w3.org/2000/svg", "text");
               const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
               tspan.textContent = "Selected Point:";
-              tspan.setAttribute("x", x + "");
-              tspan.setAttribute("y", y);
+              tspan.setAttribute("x", x + 35 + "");
+              tspan.setAttribute("y", y - 3 + "");
               text.appendChild(tspan);
 
-              const tspan2 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
               // Label text, in "displayNumber" format (selectedPoint should never be undefined here)
-              tspan2.textContent = "x: " + (selectedPoint ? herbiejs.displayNumber(selectedPoint[0]) : "");
-              tspan2.setAttribute("x", x + "");
+              const tspan2 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+              tspan2.textContent = v + ": " + (selectedPoint ? herbiejs.displayNumber(selectedPoint[0]) : "");
+              tspan2.setAttribute("x", x + 35 + "");
               tspan2.setAttribute("dy", "22px");
               text.appendChild(tspan2);
-              
-              svg.appendChild(text);
             }
           });
-          [...plot.children].map(c => svg.appendChild(c))
+          [...plot.children].map(c => svg.appendChild(c));
+
+          // If a point is selected, append point label to plot
+          if (label && text) {
+            svg.appendChild(label);
+            svg.appendChild(text);
+          }
         }} />
       </div>
     })}

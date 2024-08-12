@@ -240,7 +240,7 @@ function SpecConfigComponent() {
     <br></br>
     
     {/* TODO this nesting p > dl is bad apparently, shows console error */}
-    <p id="mathjs-instructions" style={{ "display": "block" }}>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html">standard functions</a> like:
+    <p id="mathjs-instructions" style={{ "display": "block" }}>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">standard functions</a> like:
     <dl className="function-list"><dt><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>abs</code></dt><dd>The usual arithmetic functions</dd><dt><code>and</code>, <code>or</code></dt><dd>Logical connectives (for preconditions)</dd><dt><code>pow</code></dt><dd>Raising a value to a power</dd><dt><code>exp</code>, <code>log</code></dt><dd>Natural exponent and natural log</dd><dt><code>sin</code>, <code>cos</code>, <code>tan</code></dt><dd>The trigonometric functions</dd><dt><code>asin</code>, <code>acos</code>, <code>atan</code></dt><dd>The inverse trigonometric functions</dd><dt><code>sqrt</code>, <code>cbrt</code></dt><dd>Square and cube roots</dd><dt><code>PI</code>, <code>E</code></dt><dd>The mathematical constants</dd></dl>
     </p>
   </>

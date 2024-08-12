@@ -142,7 +142,8 @@ function HerbieUIInner() {
       if (samples.length === 0) {
         return
       }
-      setAnalyses((await Promise.all(expressions.map(async expression => {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      setAnalyses((await Promise.all(activeExpressions.map(async expression => {
         const sample = samples[samples.length - 1]
 
         let result = analyses.find(a => a.expressionId === expression.id && a.sampleId === sample.id)
@@ -186,7 +187,8 @@ function HerbieUIInner() {
       if (samples.length === 0) {
         return
       }
-      setCosts((await Promise.all(expressions.map(async expression => {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      setCosts((await Promise.all(activeExpressions.map(async expression => {
         const sample = samples[samples.length - 1]
 
         let result = cost.find(a => a.expressionId === expression.id)
@@ -247,13 +249,17 @@ function HerbieUIInner() {
   // HACK immediately select the first available expression if none is selected
   useEffect(selectFirstExpression, [expressions])
   function selectFirstExpression() {
+    const activeExpressionIds = expressions.filter(e => !archivedExpressions.includes(e.id)).map(e => e.id)
+    if (activeExpressionIds.length === 0) {
+      return
+    }
     if (expressions.length > 0) {
       if (selectedExprId === -1 || archivedExpressions.includes(selectedExprId)) {
-        setSelectedExprId(expressions[0].id)
+        setSelectedExprId(activeExpressionIds[0])
       }
       // setSelectedExprId(expressions[0].id);
       if (compareExprIds.length === 0) {
-        setCompareExprIds([expressions[0].id]);
+        setCompareExprIds(activeExpressionIds.slice(0, 2));
       }
     }
   }
@@ -356,7 +362,8 @@ function HerbieUIInner() {
   function updateSelectedPointLocalError() {
     async function getPointLocalError() {
       const localErrors = []
-      for (const expression of expressions) {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      for (const expression of activeExpressions) {
         if (selectedPoint && expression) {
           // HACK to make sampling work on Herbie side
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
@@ -385,7 +392,8 @@ function HerbieUIInner() {
   function updateFPTaylorAnalysis() {
     async function getFPTaylorAnalysis() {
       const FPTaylorAnalyses: Types.FPTaylorAnalysis[] = []
-      for (const expression of expressions) {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      for (const expression of activeExpressions) {
         if (expression && FPTaylorRanges) {
           
           // TODO this should not use the expression id as an index

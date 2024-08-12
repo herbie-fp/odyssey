@@ -124,7 +124,7 @@ input[type="text"]:focus, select:focus {
   display: grid;
   grid-template-areas:
     "header header"
-    "visualization expressions"
+    "visualizations expressions"
     "help-buttons expressions";
   height: 100vh; 
   grid-template-rows: 30px 1fr 3em;
@@ -199,8 +199,8 @@ input[type="text"]:focus, select:focus {
   scrollbar-width: thin; */
 }
 
-.grid-container > .visualization {
-  grid-area: visualization; /* Place the visualization section in the "visualization" grid area */
+.grid-container > .visualizations {
+  grid-area: visualizations; /* Place the visualization section in the "visualizations" grid area */
   margin-left: 10px;
   border-right: 2px solid #5e5e5f1a;
 }

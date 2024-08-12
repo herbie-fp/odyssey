@@ -2,7 +2,7 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 
 import './HerbieUI.css';
 
-import { SpecComponent } from './SpecComponent';
+import { SpecComponent, SpecConfigComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { ExpressionTable } from './ExpressionTable';
 import * as Contexts from './HerbieContext';
@@ -126,15 +126,41 @@ function HerbieUIInner() {
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
   const [inputRangesTable,] = Contexts.useGlobal(Contexts.InputRangesTableContext)
-  const [archivedExpressions,] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
+  const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
 
   const herbiejs = addJobRecorder(herbiejsImport)
 
   const [showOverlay, setShowOverlay] = useState(true);
 
+  // // When the spec changes, we need to re-add any expressions that were related to it.
+  // useEffect(removeSpecFromArchivedExpressions, [spec, archivedExpressions])
+  // function removeSpecFromArchivedExpressions() {
+  //   if (archivedExpressions.includes(spec.id)) {
+  //     setArchivedExpressions(archivedExpressions.filter(e => e !== spec.id))
+  //   }
+  // }
+
   // Data relationships
+  // HACK immediately select the first available expression if none is selected
+  useEffect(selectFirstExpression, [expressions, archivedExpressions])
+  function selectFirstExpression() {
+    const activeExpressionIds = expressions.filter(e => !archivedExpressions.includes(e.id)).map(e => e.id)
+    if (activeExpressionIds.length === 0) {
+      return
+    }
+    if (expressions.length > 0) {
+      if (selectedExprId === -1 || archivedExpressions.includes(selectedExprId)) {
+        setSelectedExprId(activeExpressionIds[0])
+      }
+      // setSelectedExprId(expressions[0].id);
+      if (compareExprIds.length === 0) {
+        setCompareExprIds(activeExpressionIds.slice(0, 2));
+      }
+    }
+  }
+
   // Reactively update analyses whenever expressions change
-  useEffect(updateAnalyses, [spec, expressions, samples]);
+  useEffect(updateAnalyses, [spec, expressions, samples, archivedExpressions]);
   function updateAnalyses() {
     async function updateAnalysesAsync() {
       // When a new expression is added, add a new analysis
@@ -142,7 +168,8 @@ function HerbieUIInner() {
       if (samples.length === 0) {
         return
       }
-      setAnalyses((await Promise.all(expressions.map(async expression => {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      setAnalyses((await Promise.all(activeExpressions.map(async expression => {
         const sample = samples[samples.length - 1]
 
         let result = analyses.find(a => a.expressionId === expression.id && a.sampleId === sample.id)
@@ -180,13 +207,14 @@ function HerbieUIInner() {
   }
 
   //create useEffect to update Cost whenever expressions/samples change
-  useEffect(updateCost, [expressions, samples]);
+  useEffect(updateCost, [expressions, samples, archivedExpressions]);
   function updateCost() {
     async function updateCostAsync() {
       if (samples.length === 0) {
         return
       }
-      setCosts((await Promise.all(expressions.map(async expression => {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      setCosts((await Promise.all(activeExpressions.map(async expression => {
         const sample = samples[samples.length - 1]
 
         let result = cost.find(a => a.expressionId === expression.id)
@@ -244,20 +272,6 @@ function HerbieUIInner() {
     }))
   }
 
-  // HACK immediately select the first available expression if none is selected
-  useEffect(selectFirstExpression, [expressions])
-  function selectFirstExpression() {
-    if (expressions.length > 0) {
-      if (selectedExprId === -1 || archivedExpressions.includes(selectedExprId)) {
-        setSelectedExprId(expressions[0].id)
-      }
-      // setSelectedExprId(expressions[0].id);
-      if (compareExprIds.length === 0) {
-        setCompareExprIds([expressions[0].id]);
-      }
-    }
-  }
-
   // Example of calling the server:
   // whenever a new input range is defined,
   // * reset expressions to just the naive expression(the spec)
@@ -304,7 +318,8 @@ function HerbieUIInner() {
   // Add spec to expressions if it doesn't exist
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
-    if (expressions.find(e => e.text === spec.expression)) { return }
+    if (expressions.find(e =>
+      e.specId === spec.id)) { return }
     const expressionId = nextId(expressions)
     console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
     setExpressions([new Expression(spec.expression, expressionId, spec.id), ...expressions])
@@ -312,6 +327,12 @@ function HerbieUIInner() {
       new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
       ...derivations,
     ]);
+  }
+
+  // Archive all expressions that are not related to the current spec
+  useEffect(archiveExpressions, [spec, expressions])
+  function archiveExpressions() {
+    setArchivedExpressions(expressions.filter(e => e.specId !== spec.id).map(e => e.id))
   }
 
   // // Select and show the sample whenever one is added
@@ -352,11 +373,12 @@ function HerbieUIInner() {
   }
 
   // when the selected point changes, update the selected point local error
-  useEffect(updateSelectedPointLocalError, [selectedPoint, serverUrl, expressions])
+  useEffect(updateSelectedPointLocalError, [selectedPoint, serverUrl, expressions, archivedExpressions])
   function updateSelectedPointLocalError() {
     async function getPointLocalError() {
       const localErrors = []
-      for (const expression of expressions) {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      for (const expression of activeExpressions) {
         if (selectedPoint && expression) {
           // HACK to make sampling work on Herbie side
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
@@ -381,11 +403,12 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
-  useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions])
+  useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions, archivedExpressions])
   function updateFPTaylorAnalysis() {
     async function getFPTaylorAnalysis() {
       const FPTaylorAnalyses: Types.FPTaylorAnalysis[] = []
-      for (const expression of expressions) {
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      for (const expression of activeExpressions) {
         if (expression && FPTaylorRanges) {
           
           // TODO this should not use the expression id as an index
@@ -496,35 +519,41 @@ function HerbieUIInner() {
 
   return (
     <div>
-    
-      <div className="grid-container">
-        <div className="header">
+      {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
+        <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
+          <div className="header">
           {/* removed header-top */}
           <div className="app-name">Odyssey</div>
           <SpecComponent {...{showOverlay, setShowOverlay}} />
           <ServerStatusComponent />
         </div>
-      {/* <div className="spec">
-        <div className="header-top">
-          <div className="app-name">Odyssey</div>
-          <ServerStatusComponent />
-        </div>
+          <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '400px', gap: '5px'} }>
+            <SpecConfigComponent />
+          </div>
+          </div>
+      }
+      {!showOverlay &&
+        <div className="grid-container">
+          <div className="header">
+            {/* removed header-top */}
+            <div className="app-name">Odyssey</div>
+            <SpecComponent {...{ showOverlay, setShowOverlay }} />
+            <ServerStatusComponent />
+          </div>
         
-      </div> */}
-        
-      <ExpressionTable />
-      <div className="visualization">
-        <SelectableVisualization components={components} />
-        <SelectableVisualization components={components2} />
-      </div>
+          <ExpressionTable />
+          <div className="visualizations">
+            <SelectableVisualization components={components} />
+            <SelectableVisualization components={components2} />
+          </div>
 
-      <div className="help-buttons" >
-        <DocumentationButton />
-        <GitHubIssueButton />
+          <div className="help-buttons" >
+            <DocumentationButton />
+            <GitHubIssueButton />
+          </div>
+
         </div>
-
-      </div>
-      
+      }
       </div>
   );
 }

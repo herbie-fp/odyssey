@@ -1,7 +1,7 @@
 .spec-tex {
   /* color: black; */
   /* add space */
-  margin: 10px;
+  margin: 10px 0;
   min-height: 2em;
 }
 
@@ -46,13 +46,19 @@
 
 .spec-overlay-header {
   /* display: flex; /* Use flexbox to position the components */
-  text-align:center;
   justify-content: space-between; /* Align the components at the start and end of the header */
-  margin-bottom: 10px; /* Add some space between the header and the content */
+}
+
+.function-list dt {
+  /* font-weight: bold; */
+  float: left;
+  width: 200px;
+  clear: left;
+  margin: 0 1em .5em 1em;
 }
 
 .spec-textarea-container {
-  text-align: center ;
+  width: 100%; /* Make the textarea as wide as the container */
 }
 
 .spec-title {
@@ -73,12 +79,8 @@
   text-overflow: ellipsis;
 }
 
-.spec-tex {
-  text-align: center ;
-}
-
 .spec-textarea {
-  width: 50%;
+  width: 100%; /* Make the textarea as wide as the container */
   /* height: 5em; */
 }
 

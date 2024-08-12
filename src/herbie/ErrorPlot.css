@@ -65,3 +65,17 @@ g[aria-label="y-axis label"] {
   stroke-width: 15px;
   fill-opacity: .5;
 }
+
+.selected-label {
+  display: block;
+  height: 52px;
+  width: 158px;
+  
+  stroke: #3B3B3B;
+  stroke-width: 1px;
+  rx: 2;
+  ry: 2;
+
+  fill: #dbdbdb;
+  /* fill-opacity: 1; */
+}

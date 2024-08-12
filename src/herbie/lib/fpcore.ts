@@ -31,7 +31,7 @@ FUNCTIONS["fma"] = [["real", "real", "real"], "real"];
 });
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const SECRETFUNCTIONS : {[key: string]: string} = { "^": "pow", "**": "pow", "abs": "fabs", "min": "fmin", "max": "fmax", "mod": "fmod" }
+const SECRETFUNCTIONS : {[key: string]: string} = { "^": "pow", "**": "pow", "abs": "fabs", "min": "fmin", "max": "fmax", "mod": "fmod", "ln": "log" }
 
 function tree_errors(tree: any, expected: string) /* tree -> list */ {
   var messages = [];

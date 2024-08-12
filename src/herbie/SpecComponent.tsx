@@ -25,6 +25,227 @@ async function ensureMathJS(expression: string, serverUrl: string): Promise<stri
   return expression
 }
 
+function SpecConfigComponent() {
+  const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
+  const [spec, setSpec] = useState(new Spec('', 0));
+  const [specTextInput, setSpecTextInput] = useState(spec.expression);
+  const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [mySpecRanges, setMySpecRanges] = useState(() => {
+    const foundRange = inputRangesTable.findLast(r => r.specId === spec.id);
+    if (foundRange && 'ranges' in foundRange) { return foundRange.ranges || []; }
+    else { return []; }
+  });
+  const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [serverUrl, ] = HerbieContext.useGlobal(HerbieContext.ServerContext)
+
+  const specExpressionErrors = (expression: string) => {
+    const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
+    const expressionVariables = fpcorejs.getVarnamesMathJS(expression);
+    const functionNamedVariables = expressionVariables.filter((symbol) => functionNames.includes(symbol));
+    if (functionNamedVariables.length !== 0) {
+      const functionVariableString = functionNamedVariables.join(", ");
+      const errorMessage =
+        "The added expression is not valid. The expression you tried to add has the following variables that have the same name as FPCore functions: " +
+        functionVariableString;
+      return [errorMessage];
+    }
+    return [];
+  }
+
+  const validateSpecExpression = async (expression: string) => {
+    expression = await ensureMathJS(expression, serverUrl)
+
+    const errors = specExpressionErrors(expression);
+    if (errors.length !== 0) {
+      throw new Error(errors[0])
+    }
+  }
+
+  // Wait until submit click to set the spec
+  const handleSubmitClick = async () => {
+    const specId = value.id + 1;
+    const inputRangeId = utils.nextId(inputRangesTable)
+    const variables = await getVariables(spec)
+    // Reset the expressions list if we are truly switching specs
+    if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
+
+    const mathJSExpression = await ensureMathJS(spec.expression, serverUrl);
+
+    let inputRanges, mySpec;
+    if (spec.expression.includes("FPCore")) {
+      inputRanges = new HerbieTypes.RangeInSpecFPCore(
+        specId,
+        inputRangeId
+      )
+
+      mySpec = new Spec(mathJSExpression, specId, spec.expression);
+
+    } else {
+      inputRanges = new HerbieTypes.InputRanges(
+        mySpecRanges.filter((range) => variables.includes(range.variable)),
+        specId,
+        inputRangeId
+      )
+      console.debug('inputRanges', inputRanges)
+
+      mySpec = new Spec(mathJSExpression, specId)
+    }
+
+    console.debug('Adding to inputRangesTable: ', inputRanges)
+    setInputRangesTable([...inputRangesTable, inputRanges])
+
+    console.debug('Added, now setting spec', mySpec)
+    setValue(mySpec);
+  }
+
+  const specValid = async () => {
+    if (spec.expression.length === 0) {
+      return false
+    }
+    const expr = await ensureMathJS(spec.expression, serverUrl)
+
+    try {
+      fpcorejs.mathjsToFPCore(expr);
+
+      // Check to make sure there is at least one variable
+      if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
+        return false
+      }
+    } catch (e) {
+      return false
+    }
+    if (specExpressionErrors(expr).length !== 0) {
+      return false
+    }
+    return true
+  }
+
+  async function getVariables(spec: Spec): Promise<string[]> {
+    const expr = await ensureMathJS(spec.expression, serverUrl)
+    return await specValid() ? fpcorejs.getVarnamesMathJS(expr) : []
+  }
+
+  const handleSpecTextUpdate: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
+    const v = event.target.value.trim()
+    if (v.includes('FPCore')) {
+      setSpec(new Spec(v, spec.id, v));
+    } else {
+      setSpec(new Spec(v, spec.id));
+    }
+    setSpecTextInput(event.target.value);
+  }
+
+  const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
+    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))))
+    // setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
+  }
+
+  const [htmlContent, setHtmlContent] = useState('')
+  useEffect(() => {
+    async function getResult() {
+      const result = await (async () => {
+        try {
+          // Check if there are no variables
+          const expr = await ensureMathJS(spec.expression, serverUrl)
+
+          if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
+            throw new Error("No variables detected.")
+          }
+          await (validateSpecExpression(expr));
+          return KaTeX.renderToString(math11.parse(expr).toTex(), { throwOnError: false })
+        } catch (e) {
+          //throw e;
+          return (e as Error).toString()
+        }
+      })()
+      setHtmlContent(result)
+    }
+    getResult()
+  }, [spec])
+
+  const [variables, setVariables] = useState([''])
+  useEffect(() => {
+    async function getResult() {
+      const vars = await getVariables(spec);
+      setVariables(vars);
+    }
+    getResult();
+  }, [spec]);
+
+  const handleShowExample = () => {
+    setSpec(new Spec('sqrt(x + 1) - sqrt(x)', spec.id));
+    setSpecTextInput('sqrt(x + 1) - sqrt(x)');
+  }
+
+  const [disabled, setDisabled] = useState(true)
+  useEffect(() => {
+    async function getResult() {
+      const valid = await specValid()
+      setDisabled(!valid)
+    }
+    setDisabled(true)
+    getResult()
+  }, [spec])
+
+  return <>
+    <div className="spec-overlay-header">
+      Write a formula below to explore it with Odyssey. Enter approximate ranges for inputs.
+    </div>
+    <a className="showExample" onClick={handleShowExample}>Show an example</a>
+    <div className="spec-textarea-container">
+      <DebounceInput element="textarea" debounceTimeout={300} rows={1} className="spec-textarea" placeholder="e.g. sqrt(x+1) - sqrt(x)" value={specTextInput} onChange={handleSpecTextUpdate} />
+    </div>
+
+    {spec.expression.length === 0 && <div className="spec-initial">Please enter a formula.</div> }
+
+    {/* Render the expression into HTML with KaTeX */}
+    {spec.expression.length > 0 && <div className="spec-tex" dangerouslySetInnerHTML={{
+      __html: htmlContent
+    }} />}
+
+    {spec.expression.indexOf('FPCore') === -1 && (
+      <div className="spec-range-inputs">
+        {variables.map((v, i) => {
+          const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
+          return (
+            <div className="spec-range-input" key={v}>
+              <div className="varname">
+                {v}:
+              </div>
+              <InputRangeEditor1
+                value={{
+                  varname: v,
+                  lower: range.lowerBound.toString(),
+                  upper: range.upperBound.toString()
+                }}
+                setValue={(value: { lower: string, upper: string }) => {
+                  console.debug('set input range', v, value);
+                  if (mySpecRanges.map(r => r.variable).includes(v)) {
+                    setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r));
+                  } else {
+                    const newSpecRanges = [...mySpecRanges, new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper))];
+                    setMySpecRanges(newSpecRanges.filter(r => variables.includes(r.variable)));
+                  }
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {!disabled && <button onClick={handleSubmitClick}>Explore</button>}
+
+    <br></br>
+    
+    {/* TODO this nesting p > dl is bad apparently, shows console error */}
+    <p id="mathjs-instructions" style={{ "display": "block" }}>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html">standard functions</a> like:
+    <dl className="function-list"><dt><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>abs</code></dt><dd>The usual arithmetic functions</dd><dt><code>and</code>, <code>or</code></dt><dd>Logical connectives (for preconditions)</dd><dt><code>pow</code></dt><dd>Raising a value to a power</dd><dt><code>exp</code>, <code>log</code></dt><dd>Natural exponent and natural log</dd><dt><code>sin</code>, <code>cos</code>, <code>tan</code></dt><dd>The trigonometric functions</dd><dt><code>asin</code>, <code>acos</code>, <code>atan</code></dt><dd>The inverse trigonometric functions</dd><dt><code>sqrt</code>, <code>cbrt</code></dt><dd>Square and cube roots</dd><dt><code>PI</code>, <code>E</code></dt><dd>The mathematical constants</dd></dl>
+    </p>
+  </>
+}
+
 function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void }) {
   // const { spec: value, setSpec: setValue } = useContext(SpecContext);
   // const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
@@ -185,13 +406,22 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     getResult();
   }, [spec]);
 
+  const [initialized, setInitialized] = useState(false)
+  useEffect(() => {
+    if (initialized) {
+      // when the spec changes, close the overlay
+      setShowOverlay(false)
+    }
+    setInitialized(true)
+  }, [value])
+
   return (
     <div className="spec-container">
       <div className="spec-title">
         <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
       </div>
       <Modal
-        isOpen={showOverlay}
+        isOpen={false}
         onRequestClose={async () => {
           // submit the spec if the user closes the overlay
           // don't allow close if the spec is invalid
@@ -217,65 +447,10 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
         }
         }
       >
-        {/* <div className="spec-overlay" onClick={handleOverlayClick}> */}
-          {/* Show a dialogue for editing the spec with a "done" button. */}
-          {/* <div className="spec-overlay-content" onClick={(event) => event.stopPropagation()}> */}
-            <div className="spec-overlay-header">
-              Specify the expression to rewrite
-        </div>
-        <div className="spec-textarea-container">
-          <DebounceInput element="textarea" debounceTimeout={300} rows={1} className="spec-textarea" placeholder="e.g. sqrt(x+1) - sqrt(x)" value={specTextInput} onChange={handleSpecTextUpdate} />
-          </div>
-            {/* Render the expression into HTML with KaTeX */}
-            <div className="spec-tex" dangerouslySetInnerHTML={{
-              __html: htmlContent
-            }} />
-
-            {spec.expression.indexOf('FPCore') === -1 && (
-              <div className="spec-range-inputs">
-                {variables.map((v, i) => {
-                  const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
-                  return (
-                    <div className="spec-range-input" key={v}>
-                      <div className="varname">
-                        {v}:
-                      </div>
-                      <InputRangeEditor1
-                        value={{
-                          varname: v,
-                          lower: range.lowerBound.toString(),
-                          upper: range.upperBound.toString()
-                        }}
-                        setValue={(value: { lower: string, upper: string }) => {
-                          console.debug('set input range', v, value);
-                          if (mySpecRanges.map(r => r.variable).includes(v)) {
-                            setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r));
-                          } else {
-                            const newSpecRanges = [...mySpecRanges, new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper))];
-                            setMySpecRanges(newSpecRanges.filter(r => variables.includes(r.variable)));
-                          }
-                        }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* <div className='spec-input-range-editor'>
-              <InputRangesEditor
-              value={{ ranges: Object.fromEntries(getVariables(spec).map(v => [v, { lower: '0', upper: '1' }])) }}
-              setValue={handleRangesUpdate}
-              />
-            </div> */}
-            <div className="submit">
-              <button onClick={handleSubmitClick} disabled={!specValid()}>Explore</button>
-            </div>
-          {/* </div> */}
-        {/* </div> */}
+        <SpecConfigComponent />
       </Modal>
     </div>
   );
 }
 
-export { SpecComponent };
+export { SpecComponent, SpecConfigComponent };

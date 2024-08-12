@@ -17,4 +17,8 @@ herbie-dist/
   macos/
     herbie-compiled/…
 ```
-This directory is then zipped using `zip` and becomes `herbie-dist.zip`, which is used by the one-click installer.
+This directory's contents are then zipped using `zip` and become `herbie-dist.zip`, which is used by the one-click installer.
+```
+# from the herbie-dist directory:
+zip -r herbie-dist.zip *
+```

@@ -30,14 +30,14 @@ function SpecConfigComponent() {
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [spec, setSpec] = useState(new Spec('', 0));
   const [specTextInput, setSpecTextInput] = useState(spec.expression);
-  const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [expressions,] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [mySpecRanges, setMySpecRanges] = useState(() => {
     const foundRange = inputRangesTable.findLast(r => r.specId === spec.id);
     if (foundRange && 'ranges' in foundRange) { return foundRange.ranges || []; }
     else { return []; }
   });
   const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
-  const [serverUrl, ] = HerbieContext.useGlobal(HerbieContext.ServerContext)
+  const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
 
   const specExpressionErrors = (expression: string) => {
     const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
@@ -197,7 +197,7 @@ function SpecConfigComponent() {
       <DebounceInput element="textarea" debounceTimeout={300} rows={1} className="spec-textarea" placeholder="e.g. sqrt(x+1) - sqrt(x)" value={specTextInput} onChange={handleSpecTextUpdate} />
     </div>
 
-    {spec.expression.length === 0 && <div className="spec-initial">Please enter a formula.</div> }
+    {spec.expression.length === 0 && <div className="spec-initial">Please enter a formula.</div>}
 
     {/* Render the expression into HTML with KaTeX */}
     {spec.expression.length > 0 && <div className="spec-tex" dangerouslySetInnerHTML={{
@@ -238,10 +238,10 @@ function SpecConfigComponent() {
     {!disabled && <button onClick={handleSubmitClick}>Explore</button>}
 
     <br></br>
-    
+
     {/* TODO this nesting p > dl is bad apparently, shows console error */}
     <p id="mathjs-instructions" style={{ "display": "block" }}>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">standard functions</a> like:
-    <dl className="function-list"><dt><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>abs</code></dt><dd>The usual arithmetic functions</dd><dt><code>and</code>, <code>or</code></dt><dd>Logical connectives (for preconditions)</dd><dt><code>pow</code></dt><dd>Raising a value to a power</dd><dt><code>exp</code>, <code>log</code></dt><dd>Natural exponent and natural log</dd><dt><code>sin</code>, <code>cos</code>, <code>tan</code></dt><dd>The trigonometric functions</dd><dt><code>asin</code>, <code>acos</code>, <code>atan</code></dt><dd>The inverse trigonometric functions</dd><dt><code>sqrt</code>, <code>cbrt</code></dt><dd>Square and cube roots</dd><dt><code>PI</code>, <code>E</code></dt><dd>The mathematical constants</dd></dl>
+      <dl className="function-list"><dt><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>abs</code></dt><dd>The usual arithmetic functions</dd><dt><code>and</code>, <code>or</code></dt><dd>Logical connectives (for preconditions)</dd><dt><code>pow</code></dt><dd>Raising a value to a power</dd><dt><code>exp</code>, <code>log</code></dt><dd>Natural exponent and natural log</dd><dt><code>sin</code>, <code>cos</code>, <code>tan</code></dt><dd>The trigonometric functions</dd><dt><code>asin</code>, <code>acos</code>, <code>atan</code></dt><dd>The inverse trigonometric functions</dd><dt><code>sqrt</code>, <code>cbrt</code></dt><dd>Square and cube roots</dd><dt><code>PI</code>, <code>E</code></dt><dd>The mathematical constants</dd></dl>
     </p>
   </>
 }
@@ -263,7 +263,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
 
-  const specExpressionErrors = (expression: string) =>  {
+  const specExpressionErrors = (expression: string) => {
     const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
     const expressionVariables = fpcorejs.getVarnamesMathJS(expression);
     const functionNamedVariables = expressionVariables.filter((symbol) => functionNames.includes(symbol));
@@ -359,7 +359,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     return await specValid() ? fpcorejs.getVarnamesMathJS(expr) : []
   }
 
-  const handleSpecTextUpdate : React.ChangeEventHandler<HTMLInputElement> = async (event) => {
+  const handleSpecTextUpdate: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     const v = event.target.value.trim()
     if (v.includes('FPCore')) {
       setSpec(new Spec(v, spec.id, v));
@@ -443,7 +443,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
             right: '2px',
             bottom: '2px',
           }
-        
+
         }
         }
       >

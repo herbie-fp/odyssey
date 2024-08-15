@@ -329,7 +329,7 @@ function HerbieUIInner() {
   // Archive all expressions that are not related to the current spec
   useEffect(archiveExpressions, [spec, expressions])
   function archiveExpressions() {
-    setArchivedExpressions(expressions.filter(e => e.specId !== spec.id).map(e => e.id))
+    setArchivedExpressions([...archivedExpressions, ...expressions.filter(e => e.specId !== spec.id).map(e => e.id).filter(id => !archivedExpressions.includes(id))])
   }
 
   // // Select and show the sample whenever one is added

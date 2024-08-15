@@ -408,7 +408,7 @@ function ErrorPlot() {
 
               // Label text, in "displayNumber" format (selectedPoint should never be undefined here)
               const tspan2 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-              tspan2.textContent = v + ": " + (selectedPoint ? herbiejs.displayNumber(selectedPoint[0]) : "");
+              tspan2.textContent = v + ": " + (selectedPoint ? herbiejs.displayNumber(selectedPoint[i]) : "");
               tspan2.setAttribute("x", x + 35 + "");
               tspan2.setAttribute("dy", "22px");
               text.appendChild(tspan2);

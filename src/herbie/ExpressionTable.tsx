@@ -280,7 +280,7 @@ function ExpressionTable() {
                   </div>
                   <div className="analysis">
                     {/* TODO: Not To hardcode number of bits*/}
-                    {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) : "..."}
+                    {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
                   </div>
                   <div className="herbie">
                     <button onClick={async () => {

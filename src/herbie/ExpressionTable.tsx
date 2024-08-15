@@ -142,6 +142,68 @@ function ExpressionTable() {
   // }
   const sample = samples.find((sample) => sample.id === selectedSampleId)
   
+  const handleAddExpression = () => {
+    validateExpression(addExpression);
+    const selectedId = nextId(expressions);
+    const newExpressions = [
+      new Expression(addExpression, selectedId, spec.id),
+      ...expressions,
+    ]
+    setExpressions(newExpressions);
+    setDerivations([
+      new Derivation("<p>User Input Expression</p>", nextId(expressions), undefined),
+      ...derivations,
+    ]);
+    setSelectedExprId(selectedId)
+    setAddExpression('')
+  }
+
+  const renderAddExpressionAsTex = () => {
+    try {
+      validateExpression(addExpression);
+      return addExpression.trim() === '' ? '' : KaTeX.renderToString(math11.parse(addExpression).toTex(), { throwOnError: false })
+    } catch (e) {
+      //throw e;
+      return (e as Error).toString()
+    }
+  }
+
+  const handleImprove = async (expression: Expression) => {
+    if (!sample) {
+      return
+    }
+    // get suggested expressions with Herbie and put them in the expressions table
+    const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
+
+
+    const histories = suggested.histories;
+    const alternatives = suggested.alternatives;
+
+    const newExpressions = [];
+    const newDerivations = [];
+
+    // Add the suggested expressions to the expressions table,
+    // and add the suggested derivations to the derivations table
+    for (let i = 0; i < alternatives.length; i++) {
+      // Generate a new ID
+      const newId = nextId(expressions) + i;
+
+      const s = alternatives[i];
+      const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
+      const newExpression = new Expression(fPCoreToMathJS, newId, spec.id);
+      newExpressions.push(newExpression);
+
+      // The following code assumes the HTMLHistory[] returend by Herbie
+      // is mapped to the alternatives array 1:1
+      const d = histories[i];
+      const newDerivation = new Derivation(d, newId, expression.id);
+      newDerivations.push(newDerivation);
+    }
+
+    setExpressions([...newExpressions, ...expressions]);
+    setDerivations([...newDerivations, ...derivations]);
+  }
+
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -176,21 +238,7 @@ function ExpressionTable() {
             <div className="add-expression-button">
               <button
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
-                onClick={() => {
-                  validateExpression(addExpression);
-                  const selectedId = nextId(expressions);
-                  const newExpressions = [
-                    new Expression(addExpression, selectedId, spec.id),
-                    ...expressions,
-                  ]
-                  setExpressions(newExpressions);
-                  setDerivations([
-                    new Derivation("<p>User Input Expression</p>", nextId(expressions), undefined),
-                    ...derivations,
-                  ]);
-                  setSelectedExprId(selectedId)
-                  setAddExpression('')
-                }}
+                onClick={handleAddExpression}
               >
                 Add
               </button>
@@ -198,15 +246,7 @@ function ExpressionTable() {
           </div>
           <div className="add-expression-dropdown">
             <div className="add-expression-tex" dangerouslySetInnerHTML={{
-                __html: (() => {
-                  try {
-                    validateExpression(addExpression);
-                    return addExpression.trim() === '' ? '' : KaTeX.renderToString(math11.parse(addExpression).toTex(), { throwOnError: false })
-                  } catch (e) {
-                    //throw e;
-                    return (e as Error).toString()
-                  }
-                })()
+                __html: renderAddExpressionAsTex()
               }} />
           </div>
         </div>
@@ -283,41 +323,7 @@ function ExpressionTable() {
                     {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
                   </div>
                   <div className="herbie">
-                    <button onClick={async () => {
-                      if (!sample) {
-                        return
-                      }
-                      // get suggested expressions with Herbie and put them in the expressions table
-                      const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
-
-
-                      const histories = suggested.histories;
-                      const alternatives = suggested.alternatives;
-
-                      const newExpressions = [];
-                      const newDerivations = [];
-
-                      // Add the suggested expressions to the expressions table,
-                      // and add the suggested derivations to the derivations table
-                      for (let i = 0; i < alternatives.length; i++) {
-                        // Generate a new ID
-                        const newId = nextId(expressions) + i;
-
-                        const s = alternatives[i];
-                        const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-                        const newExpression = new Expression(fPCoreToMathJS, newId, spec.id);
-                        newExpressions.push(newExpression);
-
-                        // The following code assumes the HTMLHistory[] returend by Herbie
-                        // is mapped to the alternatives array 1:1
-                        const d = histories[i];
-                        const newDerivation = new Derivation(d, newId, expression.id);
-                        newDerivations.push(newDerivation);
-                      }
-
-                      setExpressions([...newExpressions, ...expressions]);
-                      setDerivations([...newDerivations, ...derivations]);
-                    }}>
+                    <button onClick={() => handleImprove(expression)}>
                       Improve
                     </button>
                   </div>

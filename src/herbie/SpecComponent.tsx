@@ -208,7 +208,7 @@ function SpecConfigComponent() {
       <DebounceInput element="textarea" debounceTimeout={300} rows={!usingFPCore ? 1 : 4} className="spec-textarea" placeholder={usingFPCore ? `e.g. (FPCore (x) :pre (>= x 0) (- (sqrt (+ x 1)) (sqrt x)))` : "e.g. sqrt(x+1) - sqrt(x)"} value={specTextInput} onChange={handleSpecTextUpdate} />
     </div>
 
-    {spec.expression.length === 0 && <div className="spec-initial">Please enter a formula.</div>}
+    {spec.expression.length === 0 && ''}
 
     {/* Render the expression into HTML with KaTeX */}
     {spec.expression.length > 0 && <div className="spec-tex" dangerouslySetInnerHTML={{
@@ -247,8 +247,6 @@ function SpecConfigComponent() {
     )}
 
     {!disabled && <button onClick={handleSubmitClick}>Explore</button>}
-
-    <br></br>
 
     {/* TODO this nesting p > dl is bad apparently, shows console error */}
     <p id="mathjs-instructions" style={{ "display": "block" }}>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">standard functions</a> like:

@@ -188,13 +188,23 @@ function SpecConfigComponent() {
     getResult()
   }, [spec])
 
+  const [usingFPCore, setUsingFPCore] = useState(false)
+  const handleClickUseFPCore = () => {
+    setUsingFPCore(!usingFPCore)
+    setSpecTextInput('');
+  }
+
   return <>
     <div className="spec-overlay-header">
       Write a formula below to explore it with Odyssey. Enter approximate ranges for inputs.
     </div>
-    <a className="showExample" onClick={handleShowExample}>Show an example</a>
+    <div>
+      <a className="showExample" onClick={handleShowExample}>Show an example</a>
+      &nbsp;|&nbsp;
+      <a className="useFPCoreOption" onClick={handleClickUseFPCore}>{usingFPCore ? `Use mathjs` : `Use FPCore`}</a>
+    </div>
     <div className="spec-textarea-container">
-      <DebounceInput element="textarea" debounceTimeout={300} rows={1} className="spec-textarea" placeholder="e.g. sqrt(x+1) - sqrt(x)" value={specTextInput} onChange={handleSpecTextUpdate} />
+      <DebounceInput element="textarea" debounceTimeout={300} rows={!usingFPCore ? 1 : 4} className="spec-textarea" placeholder={usingFPCore ? `e.g. (FPCore (x) :pre (>= x 0) (- (sqrt (+ x 1)) (sqrt x)))` : "e.g. sqrt(x+1) - sqrt(x)"} value={specTextInput} onChange={handleSpecTextUpdate} />
     </div>
 
     {spec.expression.length === 0 && <div className="spec-initial">Please enter a formula.</div>}

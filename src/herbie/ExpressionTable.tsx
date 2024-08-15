@@ -155,6 +155,7 @@ function ExpressionTable() {
       ...derivations,
     ]);
     setSelectedExprId(selectedId)
+    setCompareExprIds([...compareExprIds, selectedId])
     setAddExpression('')
   }
 
@@ -202,6 +203,7 @@ function ExpressionTable() {
 
     setExpressions([...newExpressions, ...expressions]);
     setDerivations([...newDerivations, ...derivations]);
+    setCompareExprIds([...compareExprIds, ...newExpressions.map(e => e.id)]);
   }
 
   return (

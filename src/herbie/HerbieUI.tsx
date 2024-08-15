@@ -190,9 +190,6 @@ function HerbieUIInner() {
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
-          // setCompareExprIds to include the new expression without duplicates
-          setCompareExprIds([...compareExprIds, expression.id].filter((v, i, a) => a.indexOf(v) === i))
-
           return new ErrorAnalysis(analysis, expression.id, sample.id)
         } catch (e) {
           const throwError = (e: any) => () => {
@@ -318,7 +315,7 @@ function HerbieUIInner() {
   // Add spec to expressions if it doesn't exist
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
-    if (expressions.find(e =>
+    if (spec.expression === '' || expressions.find(e =>
       e.specId === spec.id)) { return }
     const expressionId = nextId(expressions)
     console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)

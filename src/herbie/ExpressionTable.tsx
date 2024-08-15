@@ -19,13 +19,15 @@ const math11 = require('mathjs11');
 import './ExpressionTable.css';
 import ErrorExplanation from './ErrorExplanation';
 import LinkToReports from './LinkToReports';
-import { reporters } from 'mocha';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
   const [showMath, setShowMath] = useState(false);
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
+  // const [alternativesJobresponse,]
+  // const AlternativesJobResponse
+  const [alternativesJobResponse, setAlternativesJobResponse] = HerbieContext.useGlobal(HerbieContext.AlternativesJobResponseContext)
   const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [cost, ] = HerbieContext.useGlobal(HerbieContext.CostContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
@@ -292,11 +294,13 @@ function ExpressionTable() {
                       }
                       // get suggested expressions with Herbie and put them in the expressions table
                       const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
-
+                      console.log("Expression Table: Suggested expressions from alternatives call", suggested);
 
                       const histories = suggested.histories;
                       const alternatives = suggested.alternatives;
-
+                      //get path
+                      const path = suggested.path;
+                      console.log("ALTERNATIVES RESPONSE path", path);
                       const newExpressions = [];
                       const newDerivations = [];
 
@@ -320,6 +324,11 @@ function ExpressionTable() {
 
                       setExpressions([...newExpressions, ...expressions]);
                       setDerivations([...newDerivations, ...derivations]);
+                      // associate the path with each newExpression
+                      setAlternativesJobResponse({ expressionId: newExpressions.map(expression => expression.id), path: path });
+                      console.log("LOOK HERE!!! AlternativesJobResponse after setting path to new expression:", { expressionId: newExpressions.map(expression => expression.id), path: path });
+                      // setAlternativesJobResponse({ expressionId: newExpressions, path: path });
+
                     }}>
                       Improve
                     </button>

@@ -142,6 +142,7 @@ function HerbieUIInner() {
 
   // Data relationships
   // HACK immediately select the first available expression if none is selected
+  // NOTE this doesn't activate when the compareExprIds are set because it causes blinking
   useEffect(selectFirstExpression, [expressions, archivedExpressions])
   function selectFirstExpression() {
     const activeExpressionIds = expressions.filter(e => !archivedExpressions.includes(e.id)).map(e => e.id)
@@ -152,9 +153,8 @@ function HerbieUIInner() {
       if (selectedExprId === -1 || archivedExpressions.includes(selectedExprId)) {
         setSelectedExprId(activeExpressionIds[0])
       }
-      // setSelectedExprId(expressions[0].id);
       if (compareExprIds.length === 0) {
-        setCompareExprIds(activeExpressionIds.slice(0, 2));
+        setCompareExprIds(expressions.filter(e => e.specId === spec.id && e.text === spec.expression).map(e => e.id) || activeExpressionIds.slice(0, 1));
       }
     }
   }
@@ -330,6 +330,7 @@ function HerbieUIInner() {
   useEffect(archiveExpressions, [spec, expressions])
   function archiveExpressions() {
     setArchivedExpressions([...archivedExpressions, ...expressions.filter(e => e.specId !== spec.id).map(e => e.id).filter(id => !archivedExpressions.includes(id))])
+    setCompareExprIds(compareExprIds.filter(id => !archivedExpressions.includes(id)))
   }
 
   // // Select and show the sample whenever one is added

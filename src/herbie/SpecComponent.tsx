@@ -174,6 +174,7 @@ function SpecConfigComponent() {
   }, [spec]);
 
   const handleShowExample = () => {
+    setUsingFPCore(false);
     setSpec(new Spec('sqrt(x + 1) - sqrt(x)', spec.id));
     setSpecTextInput('sqrt(x + 1) - sqrt(x)');
   }

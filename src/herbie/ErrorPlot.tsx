@@ -389,7 +389,7 @@ function ErrorPlot() {
 
               // Get point position, to position label adjacent
               let x = Number(c.getAttribute("cx"));
-              if (x > 665) x -= 220;
+              if (x > 645) x -= 220;
               const y = Number(c.getAttribute("cy"));
               const accuracy = 0; // TODO jaela: get actual value!
 

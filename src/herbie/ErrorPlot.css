@@ -69,13 +69,11 @@ g[aria-label="y-axis label"] {
 .selected-label {
   display: block;
   width: 158px;
-  
-  stroke: #3B3B3B;
+  stroke: var(--foreground-color);
   stroke-width: 1px;
+  fill: var(--ui-color);
   rx: 2;
   ry: 2;
-
-  fill: #dbdbdb;
 }
 
 .label-container .copy {

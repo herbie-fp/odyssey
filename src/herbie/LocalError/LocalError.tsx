@@ -6,7 +6,7 @@ import { Point } from './Point'
 
 import './LocalError.css';
 
-function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
+export function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
   let colors = {} as Record<string, string>
@@ -76,6 +76,8 @@ function LocalError({ expressionId }: { expressionId: number }) {
     ? pointLocalError
     : averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === expressionId)?.errorTree
 
+  
+  
   if (!localError) {
     return (
       <div className="local-error not-computed">

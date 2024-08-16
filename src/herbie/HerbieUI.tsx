@@ -19,6 +19,7 @@ import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 import { DocumentationButton } from './DocumentationButton';
+import { getApi } from './lib/servercalls';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -346,6 +347,45 @@ function HerbieUIInner() {
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
+<<<<<<< Updated upstream
+=======
+          const fptaylorInputResponse = await (getApi(
+             fpbenchServerUrl + "/exec",
+            {'formulas': [formula] },
+            true
+          ));
+          console.log(fptaylorInputResponse);
+          const fptaylorInput = fptaylorInputResponse.stdout;
+
+          // TODO this type needs refactoring, should not be an array
+          const parseFPTaylorOutput = async (text: string) => {
+            const response = [];
+            try {
+                // TODO we only expect to find one -- why are we matching all?
+                const bounds = [...text.matchAll(/Bounds \(without rounding\): (.*)$/gm)];
+                const abserror = [...text.matchAll(/Absolute error \(exact\): (.*)\(/gm)];
+                for (let i = 0; i < bounds.length || i < abserror.length; i++) {
+                    const boundsValue = bounds[i] ? bounds[i][1] : null;
+                    const abserrorValue = abserror[i] ? abserror[i][1] : null;
+                    response.push({ bounds: boundsValue, absoluteError: abserrorValue, text });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        
+            return response;
+        };        
+
+          const fptaylorResult = await parseFPTaylorOutput((
+            await (
+              getApi(
+                fptaylorServerUrl + "/exec",
+                { 'fptaylorInput': fptaylorInput },
+                true
+            ))
+          ).stdout)
+
+>>>>>>> Stashed changes
           FPTaylorAnalyses.splice(index, 0,
             new Types.FPTaylorAnalysis(
               index,

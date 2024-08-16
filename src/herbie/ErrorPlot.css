@@ -80,6 +80,16 @@ g[aria-label="y-axis label"] {
   font-size: 22px;
   color: var(--vscode-textLink-foreground);
 }
-.label-container:hover .copy {
+.deselect {
+  /* Styling consistent with .copy */
+  cursor: pointer;
+  color: var(--foreground-color);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity .1s ease-in;
+}
+.label-container:hover .copy, 
+.label-container:hover .deselect {
+  /* On hover of selected point info box buttons appear */
   opacity: 1;
 }

@@ -14,6 +14,7 @@ import { InputRangeEditor1 } from "./InputRangesEditor";
 
 import './ErrorPlot.css'
 import { nextId } from "./lib/utils";
+import { Tooltip } from "react-tooltip";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
@@ -380,7 +381,6 @@ function ErrorPlot() {
             const c = t.parentNode
             const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
             t.parentNode.onclick = async () => {
-              console.log('Setting selected point to', o)
               setSelectedPoint(point)
               setSelectedExprId(id)
             }
@@ -415,19 +415,24 @@ function ErrorPlot() {
                   ${tspanText}
                   <tspan x=${x + 35 + ""} dy="26px">% Accuracy: ${accuracy}</tspan>
                 </text>
-                <foreignObject x=${x + 160 + ""} y=${y - 24 + ""} width="22px" height="22px">
-                  <xhtml:div class="copy" data-tooltip-id="copy-tooltip">
+                <foreignObject x=${x + 141 + ""} y=${y - 26 + ""} height="22px" width="22px">
+                  <xhtml:div class="copy">
                     <xhtml:a class="copy-anchor">⧉</xhtml:a>
                   </xhtml:div>
                 </foreignObject>
-                <Tooltip anchorSelect=".copy-anchor" place="top" >
-                  Copy to clipboard
-                </Tooltip>`;
+                <foreignObject x=${x + 171 + ""} y=${y - 22 + ""} height="20px" width="14px">
+                  <xhtml:a class="deselect">╳</xhtml:a>
+                </foreignObject>`;
 
-              // Add copy functionality on click of copy icon to get point values of all point variables
+              // Add copy functionality on click of '⧉' icon to get point values of all point variables
               labelContainer.querySelector(".copy")?.addEventListener("click", (e) => {
                 navigator.clipboard.writeText(copyText.slice(0, -2)); 
                 e.stopPropagation(); 
+              });
+
+              // Add deselect point functionality on click of 'X' icon
+              labelContainer.querySelector(".deselect")?.addEventListener("click", () => {
+                setSelectedPoint(undefined);
               });
             }
           });
@@ -436,6 +441,10 @@ function ErrorPlot() {
           // If a point is selected, append point label to plot
           if (labelContainer) svg.appendChild(labelContainer);
         }} />
+        {/* Tooltip for deselect 'X' on selected point label*/}
+        <Tooltip anchorSelect=".deselect" place="top" >
+          Deselect
+        </Tooltip>
       </div>
     })}
   </div>

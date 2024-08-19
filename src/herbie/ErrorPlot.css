@@ -10,6 +10,10 @@
   font-family: 'Ruda', sans-serif;
 }
 
+.input-ranges-editor input {
+  font-family: 'Ruda', sans-serif;
+}
+
 .error-plot svg text {
   font-size: 22px;
   fill: var(--foreground-deemphasize-color);

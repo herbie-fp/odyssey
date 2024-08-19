@@ -1,5 +1,5 @@
 // Also want to fix build -- maybe switch to vite, but most important is to move webview to subfolder
-import {useState, useContext, useRef, useEffect} from "react";
+import {useState, useEffect} from "react";
 import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
 import * as HerbieContext from './HerbieContext'
 
@@ -14,6 +14,7 @@ import { InputRangeEditor1 } from "./InputRangesEditor";
 
 import './ErrorPlot.css'
 import { nextId } from "./lib/utils";
+import { Tooltip } from "react-tooltip";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 
@@ -370,7 +371,7 @@ function ErrorPlot() {
           });
 
           // Prepping variables to layer label on top of graph
-          let label, text = undefined;
+          let labelContainer: undefined | SVGElement = undefined;
 
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
@@ -380,7 +381,6 @@ function ErrorPlot() {
             const c = t.parentNode
             const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
             t.parentNode.onclick = async () => {
-              console.log('Setting selected point to', o)
               setSelectedPoint(point)
               setSelectedExprId(id)
             }
@@ -389,39 +389,62 @@ function ErrorPlot() {
 
               // Get point position, to position label adjacent
               let x = Number(c.getAttribute("cx"));
-              if (x > 670) x -= 220;
+              if (x > 645) x -= 220;
               const y = Number(c.getAttribute("cy"));
+              const accuracy = 0; // TODO jaela: get actual value!
+
+              labelContainer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+              labelContainer.setAttribute("class", "label-container");
               
-              // Rectangle label positioned behind text
-              label = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-              label.setAttribute("class", "selected-label");    
-              label.setAttribute("x", x + 30 + "");
-              label.setAttribute("y", y - 25 + "");
+              // Compile text for copy and to render in label
+              let copyText = "";
+              let tspanText = "";
+              if (selectedPoint) {
+                for (const [key, val] of selectedPoint.entries()) {
+                  copyText += vars[key] + ": " + val + ", ";
+                  (key == 0)
+                    ? tspanText += `<tspan x=${x + 35 + ""} y=${y - 3 + ""}>${vars[key]}: ${herbiejs.displayNumber(val)}</tspan>`
+                    : tspanText += `<tspan x=${x + 35 + ""} dy="26px">${vars[key]}: ${herbiejs.displayNumber(val)}</tspan>`
+                }
+              }
 
-              // Text describing selected point on top of label
-              text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-              const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-              tspan.textContent = "Selected Point:";
-              tspan.setAttribute("x", x + 35 + "");
-              tspan.setAttribute("y", y - 3 + "");
-              text.appendChild(tspan);
+              // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach, will consider alternatives
+              labelContainer.innerHTML = `
+                <rect class="selected-label" x=${x + 30 + ""} y=${y - 25 + ""} height=${(26 * (vars.length + 1) + 4)+ "px"}></rect>
+                <text>
+                  ${tspanText}
+                  <tspan x=${x + 35 + ""} dy="26px">% Accuracy: ${accuracy}</tspan>
+                </text>
+                <foreignObject x=${x + 141 + ""} y=${y - 26 + ""} height="22px" width="22px">
+                  <xhtml:div class="copy">
+                    <xhtml:a class="copy-anchor">⧉</xhtml:a>
+                  </xhtml:div>
+                </foreignObject>
+                <foreignObject x=${x + 171 + ""} y=${y - 22 + ""} height="20px" width="14px">
+                  <xhtml:a class="deselect">╳</xhtml:a>
+                </foreignObject>`;
 
-              // Label text, in "displayNumber" format (selectedPoint should never be undefined here)
-              const tspan2 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-              tspan2.textContent = v + ": " + (selectedPoint ? herbiejs.displayNumber(selectedPoint[0]) : "");
-              tspan2.setAttribute("x", x + 35 + "");
-              tspan2.setAttribute("dy", "22px");
-              text.appendChild(tspan2);
+              // Add copy functionality on click of '⧉' icon to get point values of all point variables
+              labelContainer.querySelector(".copy")?.addEventListener("click", (e) => {
+                navigator.clipboard.writeText(copyText.slice(0, -2)); 
+                e.stopPropagation(); 
+              });
+
+              // Add deselect point functionality on click of 'X' icon
+              labelContainer.querySelector(".deselect")?.addEventListener("click", () => {
+                setSelectedPoint(undefined);
+              });
             }
           });
           [...plot.children].map(c => svg.appendChild(c));
 
           // If a point is selected, append point label to plot
-          if (label && text) {
-            svg.appendChild(label);
-            svg.appendChild(text);
-          }
+          if (labelContainer) svg.appendChild(labelContainer);
         }} />
+        {/* Tooltip for deselect 'X' on selected point label*/}
+        <Tooltip anchorSelect=".deselect" place="top" >
+          Deselect
+        </Tooltip>
       </div>
     })}
   </div>

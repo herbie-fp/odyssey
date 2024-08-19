@@ -4,8 +4,8 @@ import { FPTaylorRange, SpecRange } from './HerbieTypes';
 import { getVarnamesMathJS } from './lib/fpcore';
 
 const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
-  const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
-  const [FPTaylorAnalyses, setFPTaylorAnalyses] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
+  const [expressions, ] = Contexts.useGlobal(Contexts.ExpressionsContext);
+  const [FPTaylorAnalyses, ] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
 
   let variablesSet: Set<string> = new Set<string>();

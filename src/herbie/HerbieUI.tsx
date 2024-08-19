@@ -142,6 +142,7 @@ function HerbieUIInner() {
 
   // Data relationships
   // HACK immediately select the first available expression if none is selected
+  // NOTE this doesn't activate when the compareExprIds are set because it causes blinking
   useEffect(selectFirstExpression, [expressions, archivedExpressions])
   function selectFirstExpression() {
     const activeExpressionIds = expressions.filter(e => !archivedExpressions.includes(e.id)).map(e => e.id)
@@ -152,9 +153,8 @@ function HerbieUIInner() {
       if (selectedExprId === -1 || archivedExpressions.includes(selectedExprId)) {
         setSelectedExprId(activeExpressionIds[0])
       }
-      // setSelectedExprId(expressions[0].id);
       if (compareExprIds.length === 0) {
-        setCompareExprIds(activeExpressionIds.slice(0, 2));
+        setCompareExprIds(expressions.filter(e => e.specId === spec.id && e.text === spec.expression).map(e => e.id) || activeExpressionIds.slice(0, 1));
       }
     }
   }
@@ -189,9 +189,6 @@ function HerbieUIInner() {
           const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), sample, serverUrl)
           console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
-
-          // setCompareExprIds to include the new expression without duplicates
-          setCompareExprIds([...compareExprIds, expression.id].filter((v, i, a) => a.indexOf(v) === i))
 
           return new ErrorAnalysis(analysis, expression.id, sample.id)
         } catch (e) {
@@ -318,7 +315,7 @@ function HerbieUIInner() {
   // Add spec to expressions if it doesn't exist
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
-    if (expressions.find(e =>
+    if (spec.expression === '' || expressions.find(e =>
       e.specId === spec.id)) { return }
     const expressionId = nextId(expressions)
     console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
@@ -332,7 +329,8 @@ function HerbieUIInner() {
   // Archive all expressions that are not related to the current spec
   useEffect(archiveExpressions, [spec, expressions])
   function archiveExpressions() {
-    setArchivedExpressions(expressions.filter(e => e.specId !== spec.id).map(e => e.id))
+    setArchivedExpressions([...archivedExpressions, ...expressions.filter(e => e.specId !== spec.id).map(e => e.id).filter(id => !archivedExpressions.includes(id))])
+    setCompareExprIds(compareExprIds.filter(id => !archivedExpressions.includes(id)))
   }
 
   // // Select and show the sample whenever one is added
@@ -527,7 +525,7 @@ function HerbieUIInner() {
           <SpecComponent {...{showOverlay, setShowOverlay}} />
           <ServerStatusComponent />
         </div>
-          <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '400px', gap: '5px'} }>
+          <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '460px', gap: '5px'} }>
             <SpecConfigComponent />
           </div>
           </div>

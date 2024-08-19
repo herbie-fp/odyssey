@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Ruda:wght@400..900&display=swap');
+
 @media (prefers-color-scheme: light) {
   body {
     --background-color: var(--vscode-editor-background, #f5f5f5);
-    --foreground-color: var(--vscode-editor-foreground, #3c3b3b);
+    --foreground-color: var(--vscode-editor-foreground, #000000);/* #3c3b3b);*/
     --foreground-light: #a9a9a9;
     --highlight: #bcbcbc7d;
     --foreground-extreme: #000000;

@@ -525,7 +525,7 @@ function HerbieUIInner() {
           <SpecComponent {...{showOverlay, setShowOverlay}} />
           <ServerStatusComponent />
         </div>
-          <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '460px', gap: '5px'} }>
+          <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '650px', gap: '7.5px', fontSize: '1.4em'} }>
             <SpecConfigComponent />
           </div>
           </div>

@@ -197,6 +197,12 @@ function SpecConfigComponent() {
   }
 
   return <>
+    <div className="spec-overlay-logo" style={{alignSelf: 'center', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '1em', marginTop: '1em', marginBottom: '2em'}}>
+      <div>Odyssey: Explore Floating-Point Error</div>
+      <div>
+        <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" alt="Odyssey logo" style={{}} />
+      </div>
+    </div>
     <div className="spec-overlay-header">
       Write a formula below to explore it with Odyssey. Enter approximate ranges for inputs.
     </div>
@@ -250,7 +256,7 @@ function SpecConfigComponent() {
     {!disabled && <button className="explore-button" onClick={handleSubmitClick}>Explore</button>}
 
     {/* TODO this nesting p > dl is bad apparently, shows console error */}
-    <div id="mathjs-instructions" style={{ "display": "block" }}>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">standard functions</a> like:
+    <div className="mathjs-instructions" style={{ "display": "block" }}><div>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">standard functions</a> like:</div>
       <dl className="function-list"><dt>+, -, *, /, abs</dt><dd>The usual arithmetic functions</dd><dt>and, or</dt><dd>Logical connectives (for preconditions)</dd><dt>pow</dt><dd>Raising a value to a power</dd><dt>exp, log</dt><dd>Natural exponent and natural log</dd><dt>sin, cos, tan</dt><dd>The trigonometric functions</dd><dt>asin, acos, atan</dt><dd>The inverse trigonometric functions</dd><dt>sqrt, cbrt</dt><dd>Square and cube roots</dd><dt>PI, E</dt><dd>The mathematical constants</dd></dl>
     </div>
   </>

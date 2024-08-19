@@ -1,8 +1,8 @@
-.input-ranges-editor input {
+.error-plot .input-ranges-editor input {
   font-size: 10px;
   width: 70px;
 }
-.input-ranges-editor {
+.error-plot .input-ranges-editor {
   display: inline-block;
 }
 

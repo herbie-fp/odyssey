@@ -194,6 +194,7 @@
 }
 
 .expression-table-header-row {
+  height: 1.2em;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;

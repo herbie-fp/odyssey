@@ -98,6 +98,7 @@ button, select {
 
 select {
   font-family: 'IBM Plex Serif', serif;
+  font-size: 10px;
 }
 
 button {

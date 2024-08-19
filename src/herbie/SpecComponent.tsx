@@ -193,6 +193,7 @@ function SpecConfigComponent() {
   const handleClickUseFPCore = () => {
     setUsingFPCore(!usingFPCore)
     setSpecTextInput('');
+    setSpec(new Spec('', spec.id));
   }
 
   return <>

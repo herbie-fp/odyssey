@@ -237,7 +237,7 @@ function ExpressionTable() {
         <div className="add-expression">
           <div className="add-expression-top">
             <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
-            <div className="add-expression-button">
+            <div className="add-expression-button" style={{alignSelf: "center"} }>
               <button
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
                 onClick={handleAddExpression}

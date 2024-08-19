@@ -54,7 +54,7 @@ body {
   color: var(--foreground-color);
   fill: var(--foreground-color);
   background-color: var(--background-color);
-  font-family: Arial;
+  font-family: "IBM Plex Serif", serif;
   padding: 0px;
 }
 
@@ -94,6 +94,15 @@ input[type=number] {
 button, select {
   background: var(--ui-color);
   /* color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 90%), var(--background-color) 50%); */
+}
+
+select {
+  font-family: 'IBM Plex Serif', serif;
+}
+
+button {
+  font-family: 'Ruda', sans-serif;
+  font-size: 10px;
 }
 
 button:disabled {
@@ -158,7 +167,8 @@ input[type="text"]:focus, select:focus {
     justify-content: flex-end;
     align-items: center;
     font-size: 0.8em;
-    margin: 3px;  
+    margin: 3px;
+    font-family: 'Ruda';
   }
 }
 
@@ -228,4 +238,12 @@ input[type="text"]:focus, select:focus {
 
 a:hover {
   cursor: pointer;
+}
+
+.katex {
+  font: normal 1em 'Ruda' !important;
+}
+
+.katex .mathnormal {
+  font: normal 1em 'Ruda' !important;
 }

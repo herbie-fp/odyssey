@@ -121,7 +121,7 @@ function HerbieUIInner() {
   const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext)
   const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
-  const [selectedPoint,] = Contexts.useGlobal(Contexts.SelectedPointContext)
+  const [selectedPoint, setSelectedPoint] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
@@ -141,6 +141,13 @@ function HerbieUIInner() {
   // }
 
   // Data relationships
+
+  // when the spec changes, unset the selected point
+  useEffect(unsetSelectedPointAndExpression, [spec])
+  function unsetSelectedPointAndExpression() {
+    setSelectedPoint(undefined)
+  }
+
   // HACK immediately select the first available expression if none is selected
   // NOTE this doesn't activate when the compareExprIds are set because it causes blinking
   useEffect(selectFirstExpression, [expressions, archivedExpressions])

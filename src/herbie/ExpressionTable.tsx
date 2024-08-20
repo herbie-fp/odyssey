@@ -18,12 +18,16 @@ const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
 import ErrorExplanation from './ErrorExplanation';
+import LinkToReports from './LinkToReports';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
   const [showMath, setShowMath] = useState(false);
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
+  // const [alternativesJobresponse,]
+  // const AlternativesJobResponse
+  const [alternativesJobResponse, setAlternativesJobResponse] = HerbieContext.useGlobal(HerbieContext.AlternativesJobResponseContext)
   const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [cost, ] = HerbieContext.useGlobal(HerbieContext.CostContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
@@ -237,7 +241,7 @@ function ExpressionTable() {
         <div className="add-expression">
           <div className="add-expression-top">
             <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
-            <div className="add-expression-button">
+            <div className="add-expression-button" style={{alignSelf: "center", display: 'flex'} }>
               <button
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
                 onClick={handleAddExpression}
@@ -278,6 +282,7 @@ function ExpressionTable() {
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
                 { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
+                {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>

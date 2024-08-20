@@ -64,6 +64,7 @@ export const SelectedExprIdContext = makeGlobal(-1)
 export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
 export const ExpressionsContext = makeGlobal([] as types.Expression[])//new types.Expression(defaultExpression2, 1, 0)] as types.Expression[]);//[new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[])
 export const DerivationsContext = makeGlobal([] as types.Derivation[])
+export const AlternativesJobResponseContext = makeGlobal({} as types.AlternativesJobResponse)
 export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
 export const CostContext = makeGlobal([] as types.CostAnalysis[])
 export const SpecContext = makeGlobal(new types.Spec('', 0) as types.Spec)

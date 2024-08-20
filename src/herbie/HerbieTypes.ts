@@ -158,3 +158,38 @@ export class Spec {
     this.fpcore = fpcore;
   }
 }
+
+// What alternatives call returns to us
+/* JobResponse {
+//   jobId: ...
+  }
+
+/* HerbieJobResponse extends JobResponse {
+//   jobId: ...
+//   herbieJobId: ...
+//   commitHash: ...
+//   path: ...
+*/
+
+ // What we feed into the alternatives call
+// JobInfo {
+//   expressionId: ...
+//   jobId: ...
+//   jobType: 'alternatives'
+//   }
+
+// ^ ^ ^
+// | | |
+// save for later
+
+// AlternativesJobResponse extends HerbieJobResponse {
+//   expressionId: ...  // HACK use this instead for now
+//   path: ...
+//   
+
+export class AlternativesJobResponse {
+  constructor(public readonly expressionId: number[], public readonly path: string) {
+    this.expressionId = expressionId;
+    this.path = path;
+  }
+}

@@ -39,11 +39,13 @@
 }
 
 .function-list dt {
-  /* font-weight: bold; */
+  font-weight: bold;
   float: left;
-  width: 200px;
+  width: 220px;
   clear: left;
-  margin: 0 1em .5em 1em;
+  margin: 0 1em 0em 1em;
+  font-family: 'Ruda', sans-serif;
+  line-height: 1em;
 }
 
 .spec-textarea-container {
@@ -69,8 +71,37 @@
 }
 
 .spec-textarea {
-  width: 100%; /* Make the textarea as wide as the container */
+  width: 98%; /* Make the textarea as wide as the container */
+  font-family: 'Ruda', sans-serif;
+  font-size: 1em;
+  font-weight: bold;
   /* height: 5em; */
+}
+
+.varname {
+  font-family: 'Ruda', sans-serif;
+  font-size: 1em;
+  align-self: center;
+  
+}
+
+.min {
+  margin-left: 2px;
+}
+
+.spec-range-input input {
+  font-family: 'Ruda', sans-serif;
+  font-size: 1em;
+  width: 130px;
+  font-weight: bold;
+}
+
+.spec-overlay-logo {
+  font: bold 1.5em 'Ruda', sans-serif;
+}
+
+.separator-math {
+  font-family: 'Ruda', sans-serif;
 }
 
 .spec-range-input {
@@ -91,4 +122,24 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.explore-button{
+  margin-top: 6px;
+  font-size: 1em;
+}
+
+.mathjs-instructions {
+  margin-top: 3em;
+}
+
+.function-list {
+  margin-top: 7.5px;
+}
+
+.function-list dt {
+  margin-bottom: 7.5px;
+}
+.function-list dd {
+  margin-bottom: 7.5px;
 }

@@ -138,7 +138,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
       { 
         boundsCrossesZero &&
         <>
-          <span className="separator"> with |{varname}| &ge; </span>
+          <span className="separator"> with <span className="separator-math">|{varname}| &ge; </span></span>
           <span className="min">
           <input
             type="number"

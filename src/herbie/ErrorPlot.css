@@ -1,13 +1,17 @@
-.input-ranges-editor input {
+.error-plot .input-ranges-editor input {
   font-size: 10px;
   width: 70px;
 }
-.input-ranges-editor {
+.error-plot .input-ranges-editor {
   display: inline-block;
 }
 
 .variable-name {
-  font-size: larger;
+  font-family: 'Ruda', sans-serif;
+}
+
+.input-ranges-editor input {
+  font-family: 'Ruda', sans-serif;
 }
 
 .error-plot svg text {
@@ -68,14 +72,28 @@ g[aria-label="y-axis label"] {
 
 .selected-label {
   display: block;
-  height: 52px;
   width: 158px;
-  
-  stroke: #3B3B3B;
+  stroke: var(--foreground-color);
   stroke-width: 1px;
+  fill: var(--ui-color);
   rx: 2;
   ry: 2;
+}
 
-  fill: #dbdbdb;
-  /* fill-opacity: 1; */
+.label-container .copy {
+  font-size: 22px;
+  color: var(--vscode-textLink-foreground);
+}
+.deselect {
+  /* Styling consistent with .copy */
+  cursor: pointer;
+  color: var(--foreground-color);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity .1s ease-in;
+}
+.label-container:hover .copy, 
+.label-container:hover .deselect {
+  /* On hover of selected point info box buttons appear */
+  opacity: 1;
 }

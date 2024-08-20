@@ -194,6 +194,7 @@
 }
 
 .expression-table-header-row {
+  height: 1.5em;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -220,10 +221,10 @@
   margin-left: 6px;
 }
 .cost-header {
-  margin-right: 41px;
+  margin-right: 45px;
 }
 .error-header {
-  margin-right: 82px;
+  margin-right: 86px;
 }
 
 .add-expression-top {
@@ -274,7 +275,7 @@
 } */
 
 .add-expression button {
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .expand-header {

@@ -388,7 +388,7 @@ function ErrorPlot() {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression
-                c.setAttribute('fill-opacity', '1 !important');
+                c.setAttribute('class', 'selected-circle');
               }
 
               // Get point position, to position label above

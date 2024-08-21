@@ -112,7 +112,7 @@
   font-size: 10px;
 }
 
-.cost {
+.speedup {
   font-family: 'Ruda', serif;
   text-align: right;
   width: 80px; /* Fixed width to prevent resizing */
@@ -220,7 +220,7 @@
   margin-right: auto;
   margin-left: 6px;
 }
-.cost-header {
+.speedup-header {
   margin-right: 45px;
 }
 .error-header {

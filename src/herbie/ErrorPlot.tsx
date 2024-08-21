@@ -408,16 +408,19 @@ function ErrorPlot() {
               labelContainer = document.createElementNS("http://www.w3.org/2000/svg", "g");
               labelContainer.setAttribute("class", "label-container");
 
+              // Handle overlap around edge of plot
+              const xAdjusted = (x < 66) ? 66 : (x > 774) ? 774 : x;
+
               // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach, will consider alternatives
               labelContainer.innerHTML = `
-                <rect class="selected-label" x=${x - 70 + ""} y=${-27 + ""} height="22px"></rect>
-                <text x=${x - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
-                <foreignObject x=${x + 20 + ""} y=${-28 + ""} height="22px" width="22px">
+                <rect class="selected-label" x=${xAdjusted - 70 + ""} y=${-27 + ""} height="22px"></rect>
+                <text x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
+                <foreignObject x=${xAdjusted + 20 + ""} y=${-27 + ""} height="22px" width="22px">
                   <xhtml:div class="copy">
                     <xhtml:a class="copy-anchor">⧉</xhtml:a>
                   </xhtml:div>
                 </foreignObject>
-                <foreignObject x=${x + 45 + ""} y=${-26 + ""} height="20px" width="14px">
+                <foreignObject x=${xAdjusted + 45 + ""} y=${-26 + ""} height="20px" width="14px">
                   <xhtml:a class="deselect">╳</xhtml:a>
                 </foreignObject>`;
 

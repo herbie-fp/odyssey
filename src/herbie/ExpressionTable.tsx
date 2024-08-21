@@ -228,7 +228,7 @@ function ExpressionTable() {
         <div className="compare-header">
         </div>
         <div className="cost-header">
-          Cost
+          Speedup
         </div>
         <div className="error-header">
           Accuracy
@@ -268,12 +268,31 @@ function ExpressionTable() {
                 : (analysisData.errors.reduce((acc: number, v: any) => {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
-            const costData = cost.find((cost) => cost.expressionId === expression.id)?.cost;
-            // const costResult = costData ? costData[0].toFixed(2) : '...';
-            const costResult = !costData ? '...' : costData;
-
-
+            // const costData = cost.find((cost) => cost.expressionId === expression.id)?.cost;
+            // // const costResult = costData ? costData[0].toFixed(2) : '...';
+            // const costResult = !costData ? '...' : costData;
             // console.log("cost data is " + costData + " and cost result is " + costResult);
+            
+            // find naive spec expression
+            const naiveExpression = expressions.find(e => e.text === spec.expression);
+            // get cost of naiveExpression
+            const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
+            // Error check. Throwing an Error breaks Odyssey so return null instead
+            if (naiveCost === undefined) {
+              console.error("Naive cost not found");
+              return null;
+            }
+            
+            const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
+            // error check
+            if (costResult === undefined) {
+              console.error("Cost not found");
+              return null;
+            }
+
+            // speedup = naiveCost / costResult
+            // calculate speedup round to 1 decimal place
+            const speedup = (naiveCost / costResult).toFixed(1) + "x";
 
             const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
             const components = [
@@ -323,7 +342,7 @@ function ExpressionTable() {
                       </div>
                     </div>
                   <div className="cost">
-                    {costResult}
+                    {speedup}
                   </div>
                   <div className="analysis">
                     {/* TODO: Not To hardcode number of bits*/}

@@ -6,7 +6,7 @@ import { Point } from './Point'
 
 import './LocalError.css';
 
-function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
+export function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
   let colors = {} as Record<string, string>

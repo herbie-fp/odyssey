@@ -2,7 +2,7 @@ import * as fpcorejs from './fpcore';
 import * as ordinalsjs from './ordinals';
 import { Sample } from '../HerbieTypes';
 import * as types from '../HerbieTypes';
-
+import { getApi } from './servercalls';
 
 interface HerbieResponse {
   error?: string;
@@ -22,11 +22,7 @@ const getHerbieApi = async (
   // LATER add timeout?
   console.debug('calling', url, 'with data', data);
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-    const responseData = await response.json();
+    const responseData = await getApi(url,data,false);
     if (responseData.error) {
       throw new Error('Herbie server: ' + responseData.error);
     }

@@ -15,7 +15,7 @@ import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
 import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
-
+import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
@@ -426,21 +426,12 @@ function HerbieUIInner() {
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
-          const fptaylorInputResponse = await (await fetch(
-             fpbenchServerUrl + "/exec",
-            {
-              method: 'POST', // *GET, POST, PUT, DELETE, etc.
-              mode: 'cors', // no-cors, *cors, same-origin
-              cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-              credentials: 'same-origin', // include, *same-origin, omit
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              redirect: 'follow', // manual, *follow, error
-              referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-              body: JSON.stringify({ 'formulas': [formula] }) // body data type must match "Content-Type" header
-            }
-          )).json();
+          const fptaylorInputResponse = await (getApi(
+            fpbenchServerUrl + "/exec",
+           {'formulas': [formula] },
+           true
+         ));
+         console.log(fptaylorInputResponse);
 
           const fptaylorInput = fptaylorInputResponse.stdout;
 
@@ -463,25 +454,14 @@ function HerbieUIInner() {
             return response;
         };        
 
-          const fptaylorResult = await parseFPTaylorOutput((
-            await (
-              await fetch(
-                fptaylorServerUrl + "/exec",
-                {
-                  method: 'POST', // *GET, POST, PUT, DELETE, etc.
-                  mode: 'cors', // no-cors, *cors, same-origin
-                  cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-                  credentials: 'same-origin', // include, *same-origin, omit
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  redirect: 'follow', // manual, *follow, error
-                  referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                  body: JSON.stringify({ 'fptaylorInput': fptaylorInput }) // body data type must match "Content-Type" header
-                }
-              )
-            ).json()
-          ).stdout)
+        const fptaylorResult = await parseFPTaylorOutput((
+          await (
+            getApi(
+              fptaylorServerUrl + "/exec",
+              { 'fptaylorInput': fptaylorInput },
+              true
+          ))
+        ).stdout)
 
           FPTaylorAnalyses.splice(index, 0,
             new Types.FPTaylorAnalysis(

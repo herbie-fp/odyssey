@@ -114,7 +114,7 @@
 
 .analysis {
   font-family: 'Ruda', serif;
-  text-align: right;
+  margin-right: -15px;
   width: 80px; /* Fixed width to prevent resizing */
   display: flex;
   align-items: center; /* Center content vertically */
@@ -221,7 +221,7 @@
   margin-left: 6px;
 }
 .error-header {
-  margin-right: 45px;
+  margin-right: 35px;
 }
 .speedup-header {
   margin-right: 86px;

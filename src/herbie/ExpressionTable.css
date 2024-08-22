@@ -152,8 +152,10 @@
 
 .copy {
   cursor: pointer;
-  margin-left: 6px;
   font-size: .8em;
+}
+.expression-table .copy {
+  margin-left: 6px;
 }
 .copy:active {
   background-color: var(--highlight);

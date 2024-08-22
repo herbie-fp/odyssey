@@ -112,7 +112,7 @@
   font-size: 10px;
 }
 
-.speedup {
+.analysis {
   font-family: 'Ruda', serif;
   text-align: right;
   width: 80px; /* Fixed width to prevent resizing */
@@ -121,7 +121,7 @@
   justify-content: flex-end; /* Align text to the right */
 }
 
-.analysis {
+.speedup {
   font-family: 'Ruda', serif;
   text-align: right;
   width: 80px; /* Fixed width to prevent resizing */
@@ -220,10 +220,10 @@
   margin-right: auto;
   margin-left: 6px;
 }
-.speedup-header {
+.error-header {
   margin-right: 45px;
 }
-.error-header {
+.speedup-header {
   margin-right: 86px;
 }
 

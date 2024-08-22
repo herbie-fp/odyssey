@@ -230,11 +230,11 @@ function ExpressionTable() {
         </div>
         <div className="compare-header">
         </div>
-        <div className="speedup-header">
-          Speedup
-        </div>
         <div className="error-header">
           Accuracy
+        </div>
+        <div className="speedup-header">
+          Speedup
         </div>
         <div className="buttons-header">
 
@@ -322,12 +322,12 @@ function ExpressionTable() {
                         <a className="copy-anchor">⧉</a>
                       </div>
                     </div>
-                  <div className="speedup">
-                    {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
-                  </div>
                   <div className="analysis">
                     {/* TODO: Not To hardcode number of bits*/}
                     {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
+                  </div>
+                  <div className="speedup">
+                    {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
                   </div>
                   <div className="herbie">
                     <button onClick={() => handleImprove(expression)}>

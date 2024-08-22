@@ -351,7 +351,7 @@ function ErrorPlot() {
         <div>
         {showResample && <button className="resample" onClick={ resample }>Resample</button>}
         </div>
-        <svg viewBox="-5 -25 840 360" ref={async (svg) => {
+        <svg viewBox="-5 -30 840 365" ref={async (svg) => {
           if (!svg) {
             return
           }
@@ -371,7 +371,7 @@ function ErrorPlot() {
           });
 
           // Prepping variables to layer label on top of graph
-          let labelContainer: undefined | SVGElement = undefined;
+          let labelContainer, labelPoint, labelPointBorder: undefined | SVGElement = undefined;
 
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
@@ -384,49 +384,49 @@ function ErrorPlot() {
               setSelectedPoint(point)
               setSelectedExprId(id)
             }
-            if (point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
-              c.setAttribute('class', 'circle-selected');
+            if (selectedPoint && point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
+              // Increase size of selected point on all expressions,
+              c.setAttribute('r', '15px');
+              if (selectedExprId === id) { // only make opaque that of selected expression
+                c.setAttribute('class', 'selected-circle');
+              }
 
-              // Get point position, to position label adjacent
+              // Get point position, to position label above
               let x = Number(c.getAttribute("cx"));
-              if (x > 645) x -= 220;
-              const y = Number(c.getAttribute("cy"));
-              const accuracy = 0; // TODO jaela: get actual value!
 
+              // Create an extra tick at the selected point horizontal-axis value
+              const selectedTick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+              selectedTick.setAttribute("x1", `${x}`);
+              selectedTick.setAttribute("x2", `${x}`);
+              selectedTick.setAttribute("y1", `0`);
+              selectedTick.setAttribute("y2", `275`);
+              selectedTick.setAttribute("stroke", "currentColor");
+              selectedTick.setAttribute("stroke-opacity", "0.3");
+              svg.appendChild(selectedTick);
+
+              // Create label box
               labelContainer = document.createElementNS("http://www.w3.org/2000/svg", "g");
               labelContainer.setAttribute("class", "label-container");
-              
-              // Compile text for copy and to render in label
-              let copyText = "";
-              let tspanText = "";
-              if (selectedPoint) {
-                for (const [key, val] of selectedPoint.entries()) {
-                  copyText += vars[key] + ": " + val + ", ";
-                  (key == 0)
-                    ? tspanText += `<tspan x=${x + 35 + ""} y=${y - 3 + ""}>${vars[key]}: ${herbiejs.displayNumber(val)}</tspan>`
-                    : tspanText += `<tspan x=${x + 35 + ""} dy="26px">${vars[key]}: ${herbiejs.displayNumber(val)}</tspan>`
-                }
-              }
+
+              // Handle overlap around edge of plot
+              const xAdjusted = (x < 66) ? 66 : (x > 774) ? 774 : x;
 
               // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach, will consider alternatives
               labelContainer.innerHTML = `
-                <rect class="selected-label" x=${x + 30 + ""} y=${y - 25 + ""} height=${(26 * (vars.length + 1) + 4)+ "px"}></rect>
-                <text>
-                  ${tspanText}
-                  <tspan x=${x + 35 + ""} dy="26px">% Accuracy: ${accuracy}</tspan>
-                </text>
-                <foreignObject x=${x + 141 + ""} y=${y - 26 + ""} height="22px" width="22px">
+                <rect class="selected-label" x=${xAdjusted - 70 + ""} y=${-27 + ""} height="22px"></rect>
+                <text x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
+                <foreignObject x=${xAdjusted + 20 + ""} y=${-27 + ""} height="22px" width="22px">
                   <xhtml:div class="copy">
                     <xhtml:a class="copy-anchor">⧉</xhtml:a>
                   </xhtml:div>
                 </foreignObject>
-                <foreignObject x=${x + 171 + ""} y=${y - 22 + ""} height="20px" width="14px">
+                <foreignObject x=${xAdjusted + 45 + ""} y=${-26 + ""} height="20px" width="14px">
                   <xhtml:a class="deselect">╳</xhtml:a>
                 </foreignObject>`;
 
               // Add copy functionality on click of '⧉' icon to get point values of all point variables
               labelContainer.querySelector(".copy")?.addEventListener("click", (e) => {
-                navigator.clipboard.writeText(copyText.slice(0, -2)); 
+                navigator.clipboard.writeText(v + ": " + selectedPoint[i]); 
                 e.stopPropagation(); 
               });
 
@@ -434,12 +434,24 @@ function ErrorPlot() {
               labelContainer.querySelector(".deselect")?.addEventListener("click", () => {
                 setSelectedPoint(undefined);
               });
+
+              // Triangle point of the label box to create text bubble shape
+              labelPointBorder = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+              labelPointBorder.setAttribute("points", `${x-7},-8 ${x},5 ${x+7},-8`);
+              labelPointBorder.setAttribute("fill", "var(--foreground-color)");
+              labelPoint = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+              labelPoint.setAttribute("points", `${x-7},-9 ${x},2 ${x+7},-9`);
+              labelPoint.setAttribute("fill", "var(--ui-color)");
             }
           });
           [...plot.children].map(c => svg.appendChild(c));
 
           // If a point is selected, append point label to plot
-          if (labelContainer) svg.appendChild(labelContainer);
+          if (labelContainer && labelPoint && labelPointBorder) {
+            svg.appendChild(labelPointBorder);
+            svg.appendChild(labelContainer);
+            svg.appendChild(labelPoint);
+          }
         }} />
         {/* Tooltip for deselect 'X' on selected point label*/}
         <Tooltip anchorSelect=".deselect" place="top" >

@@ -57,8 +57,7 @@ g[aria-label="y-axis label"] {
   transition: r 0s ease-in-out;
   z-index: 100;
 }
-.circle-selected {
-  r: 15px;
+.selected-circle {
   fill-opacity: 1 !important;
 }
 .error-plot circle {
@@ -72,7 +71,7 @@ g[aria-label="y-axis label"] {
 
 .selected-label {
   display: block;
-  width: 158px;
+  width: 130px;
   stroke: var(--foreground-color);
   stroke-width: 1px;
   fill: var(--ui-color);
@@ -80,20 +79,20 @@ g[aria-label="y-axis label"] {
   ry: 2;
 }
 
+.label-container text {
+  font-size: 18px !important;
+}
+
 .label-container .copy {
-  font-size: 22px;
+  font-size: 18px;
   color: var(--vscode-textLink-foreground);
 }
 .deselect {
   /* Styling consistent with .copy */
   cursor: pointer;
   color: var(--foreground-color);
-  font-size: 12px;
-  opacity: 0;
-  transition: opacity .1s ease-in;
+  font-size: 10px;
 }
-.label-container:hover .copy, 
-.label-container:hover .deselect {
-  /* On hover of selected point info box buttons appear */
+.label-container:hover .copy {
   opacity: 1;
 }

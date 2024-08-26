@@ -208,6 +208,10 @@ function ExpressionTable() {
       newDerivations.push(newDerivation);
     }
 
+    
+    const path = suggested.path;
+    setAlternativesJobResponse({ expressionId: newExpressions.map(expression => expression.id), path: path });
+    
     setExpressions([...newExpressions, ...expressions]);
     setDerivations([...newDerivations, ...derivations]);
     setCompareExprIds([...compareExprIds, ...newExpressions.map(e => e.id)]);

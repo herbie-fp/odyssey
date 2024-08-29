@@ -328,7 +328,7 @@ function ErrorPlot() {
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
     
-    {vars.map((v, i) => {
+    {vars.map((v, i) => [v, i] as [string, number]).sort((a, b) => a[0].localeCompare(b[0])).map(([v, i]) => {
       const range = inputRanges?.find(r => r.variable === v)
       // if (!range) {
       //   return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>

@@ -397,21 +397,19 @@ function ErrorPlot() {
             }
 
             // Compare the selectedPoint's bucket to that of the given point
-            const compareBuckets = (pValue: number) => {
+            const compareBuckets = () => {
               if (selectedPoint) {
                 const expIdx = compareExpressions.map((e, i) => ([e,i] as [Expression, number])).filter(([e,i]) => e.id === id)[0][1];
 
-                const pIdx = dataPoints[expIdx].indexOf(pValue); 
-                // Problem here ^^: indexOf always returning -1 for second variable (e.g. y or x+y)
-                // - dataPoints[expIdx] IS defined, and it DOES contain pValue
+                const pIdx = dataPoints[expIdx].indexOf(point[i]);
                 const selectedIdx = dataPoints[expIdx].indexOf(selectedPoint[i]);
 
-                return Math.floor(pIdx * width / dataPoints.length) === Math.floor(selectedIdx * width / dataPoints.length);
+                return pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
               }
             }
 
             // See if the current point is selected, if not check if it belongs to the same bucket
-            if (selectedPoint && point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString() || compareBuckets(v))) {
+            if (selectedPoint && point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString() || compareBuckets())) {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression

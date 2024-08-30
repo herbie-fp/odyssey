@@ -61,6 +61,7 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
                 },
                 r: (d: Point) => d.id === clickedExpressionId ? 10 : 4,
                 // fill: "#00a", r: 9,
+                title: (d: Point) => d.id, // HACK to pass expression id 
             }),
         ].filter(x=>x),
         marginBottom: 0,
@@ -72,7 +73,9 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
     })
     out.querySelectorAll('[aria-label="dot"] circle').forEach((dot: any, i: number) => {
         // for each circle, set the data-id attribute to the id of the expression of that point
-        dot.setAttribute("data-id", rest_pts[i].id);
+        const title = dot.querySelector('title');
+        dot.setAttribute("data-id", title?.textContent);
+        dot.removeChild(title);
     });
     return out
 }
@@ -143,11 +146,12 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
         const cost = costs.find(c => c.expressionId === id)?.cost;
         const error = analyses.find(a => a.expressionId === id)?.data.meanBitsError;
         if (cost === undefined || error === undefined) {
-            throw new Error(`Cost or error not found for expression ${id}`);
+            // throw new Error(`Cost or error not found for expression ${id}`);
+            return undefined;
         }
         const accuracy = errorToAccuracy(error);
         return { cost: cost, accuracy: accuracy, id: id } as Point;
-    });
+    }).filter(p => p) as Point[];
 
     return (
         <div className="speedVersusAccuracyPareto">

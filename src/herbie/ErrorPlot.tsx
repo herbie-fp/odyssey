@@ -182,6 +182,7 @@ function ErrorPlot() {
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
   const sample = samples.find(s => s.id === selectedSampleId)
+  const width = 800;
 
   let inputRanges : HerbieTypes.SpecRange[] | undefined;
   if (sample) {
@@ -333,6 +334,16 @@ function ErrorPlot() {
       // if (!range) {
       //   return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
       // }
+
+      const data = exprData.map(varData => varData[i]);
+      const dataPoints: number[][] = [];
+      if (selectedPoint) {
+        // Picking out x-axis data (variable values) for each expression
+        data.forEach(e => {
+          dataPoints.push(e.map((d: OrdinalErrorPoint) => ordinals.ordinalToFloat(d.x)));
+        });      
+      }
+      
       return <div key={i}>
         <span className="variable-name">{v}: </span>
         {range && ( // Do not display if range is undefined, which occurs when there is no InputRanges (expr is FPCore)
@@ -363,14 +374,14 @@ function ErrorPlot() {
             splitpoints: splitpointsByVarIdx[i],
             // get the data for the current variable
             // data is stored as exprData -> varData -> Point[], so:
-            data: exprData.map(varData => varData[i]),
+            data,
             bits,
             styles,
-            width: 800,
+            width: width,
             height: 300
           });
 
-          // Prepping variables to layer label on top of graph
+          // Prepping variables to layer selected point label on top of graph
           let labelContainer, labelPoint, labelPointBorder: undefined | SVGElement = undefined;
 
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
@@ -384,7 +395,23 @@ function ErrorPlot() {
               setSelectedPoint(point)
               setSelectedExprId(id)
             }
-            if (selectedPoint && point.every((v, i) => v.toString() === selectedPoint?.[i].toString())) {
+
+            // Compare the selectedPoint's bucket to that of the given point
+            const compareBuckets = (pValue: number) => {
+              if (selectedPoint) {
+                const expIdx = compareExpressions.map((e, i) => ([e,i] as [Expression, number])).filter(([e,i]) => e.id === id)[0][1];
+
+                const pIdx = dataPoints[expIdx].indexOf(pValue); 
+                // Problem here ^^: indexOf always returning -1 for second variable (e.g. y or x+y)
+                // - dataPoints[expIdx] IS defined, and it DOES contain pValue
+                const selectedIdx = dataPoints[expIdx].indexOf(selectedPoint[i]);
+
+                return Math.floor(pIdx * width / dataPoints.length) === Math.floor(selectedIdx * width / dataPoints.length);
+              }
+            }
+
+            // See if the current point is selected, if not check if it belongs to the same bucket
+            if (selectedPoint && point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString() || compareBuckets(v))) {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression

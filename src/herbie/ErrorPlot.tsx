@@ -404,12 +404,15 @@ function ErrorPlot() {
                 const pIdx = dataPoints[expIdx].indexOf(point[i]);
                 const selectedIdx = dataPoints[expIdx].indexOf(selectedPoint[i]);
 
-                return pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
+                // Make sure selected value exists in this expression before comparing
+                return selectedIdx !== -1 && 
+                  // Compare idx of point to idx of head of bucket that would contain selected point
+                  pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
               }
             }
 
             // See if the current point is selected, if not check if it belongs to the same bucket
-            if (selectedPoint && point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString() || compareBuckets())) {
+            if (selectedPoint && point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString()) || compareBuckets()) {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression

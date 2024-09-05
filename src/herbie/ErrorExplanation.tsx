@@ -3,14 +3,73 @@ import * as Contexts from './HerbieContext';
 import * as fpcorejs from './lib/fpcore';
 import { Sample } from './HerbieTypes';
 import * as types from './HerbieTypes';
-import { analyzeErrorExpression, ErrorExpressionResponse } from './lib/herbiejs';
+import { analyzeErrorExpression, ErrorExpressionResponse  } from './lib/herbiejs';
 import Mermaid from './LocalError/Mermaid';
-import { localErrorTreeAsMermaidGraph } from './LocalError/LocalError';
 
-interface ErrorExplanationProps {
-    expressionId: number;
-}
+function localErrorTreeAsMermaidGraph(
+    tree: types.LocalErrorTree,
+    bits: number,
+    currentLocation: Array<number>,
+    targetLocation: Array<number>
+  ) {
+    let edges = [] as string[];
+    let colors = {} as Record<string, string>;
+    let counter = 0;
+  
+    const isLeaf = (n: types.LocalErrorTree) => n['children'].length === 0;
+    const formatName = (id: string, name: string, err: string) =>
+      id + '[<span class=nodeLocalError title=' + err + '>' + name + '</span>]';
+  
+    // Helper function to compare arrays
+    const locationsMatch = (loc1: Array<number>, loc2: Array<number>) => 
+      JSON.stringify(loc1) === JSON.stringify(loc2);
+  
+    function loop(n: types.LocalErrorTree, currentLoc: Array<number>) {
+      const name = n['e'];
+      const children = n['children'];
+      const avg_error = n['avg-error'];
+  
+      // Create node ID
+      const id = 'N' + counter++;
+      const nodeName = formatName(id, name, avg_error);
+  
+      // Traverse the children and track their locations
+      for (const [index, child] of children.entries()) {
+        const childLocation = [...currentLoc, index + 1]; // Add index to current location
+  
+        // Check if the current child location matches the target location
+        if (locationsMatch(childLocation, targetLocation)) {
+          console.log(`Setting color to red for node at location: ${childLocation}`);
+          colors[id] = 'ff0000'; // Red color for matched location
+        }
+  
+        const cName = loop(child, childLocation); // Recurse with the child's location
+        edges.push(cName + ' --> ' + nodeName);
+      }
+  
+      return nodeName;
+    }
+  
+    // Start the loop with an empty currentLocation array
+    loop(tree, currentLocation);
+  
+    // Handle edge case where there's only one node (no edges)
+    if (isLeaf(tree)) {
+      const name = tree['e'];
+      const avg_error = tree['avg-error'];
+      edges.push(formatName('N0', name, avg_error));
+    }
+  
+    // Add color styles to edges
+    for (const id in colors) {
+      edges.push('style ' + id + ' fill:#' + colors[id]);
+    }
+  
+    return 'flowchart RL\n\n' + edges.join('\n');
+  }
+  
 
+  
 function ErrorExplanation({ expressionId }: { expressionId: number })  {
     // Export the expression to a language of the user's choice
     const [expressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
@@ -19,7 +78,7 @@ function ErrorExplanation({ expressionId }: { expressionId: number })  {
     const [spec] = Contexts.useGlobal(Contexts.SpecContext);
     // Get the expression text
     const expressionText = expressions[expressionId].text;
-
+    
     const [errorResponse, setErrorResponse] = React.useState<ErrorExpressionResponse | null>(null);
 
     const [selectedPointsLocalError, ] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
@@ -43,7 +102,7 @@ function ErrorExplanation({ expressionId }: { expressionId: number })  {
     const translateExpression = async () => {
 
         if (selectedPoint) {
-
+            const expressionText = expressions[expressionId].text;
             const vars = fpcorejs.getVarnamesMathJS(expressionText);
             const specVars = fpcorejs.getVarnamesMathJS(spec.expression);
             const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]));
@@ -65,8 +124,9 @@ function ErrorExplanation({ expressionId }: { expressionId: number })  {
     };
 
     useEffect(() => {
+        setErrorResponse(null);
         translateExpression();
-    }, [expressionText, selectedPoint]);
+    }, [expressionId, selectedPoint]);
 
     return (<div>
         {/* Display the export code */}
@@ -83,7 +143,7 @@ function ErrorExplanation({ expressionId }: { expressionId: number })  {
             <p>No explanation available.</p>
         )}
         <div className="local-error-graph">
-        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)}  />
+        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64,[],[1,1])}  />
       </div>
     </div>
     );

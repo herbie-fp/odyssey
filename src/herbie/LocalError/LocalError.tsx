@@ -6,12 +6,13 @@ import { Point } from './Point'
 
 import './LocalError.css';
 
-export function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
+function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
   let colors = {} as Record<string, string>
   let counter = 0
 
+  
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
   const formatName = (id : string, name : string, err: string) => id + '[<span class=nodeLocalError title=' + err + '>' + name + '</span>]'
 
@@ -19,11 +20,10 @@ export function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: n
     const name = n['e']
     const children = n['children']
     const avg_error = n['avg-error']
-
     // node name
     const id = 'N' + counter++
     const nodeName = formatName(id, name, avg_error)
-
+    
     // descend through AST
     for (const c in children) {
       const cName = loop(children[c])
@@ -70,6 +70,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
   //
   const pointLocalError = selectedPointsLocalError.find(a => a.expressionId === expressionId)?.error
 
+  console.log(selectedPointsLocalError)
   // get the local error
   const localError =
     selectedPoint && pointLocalError

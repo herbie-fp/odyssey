@@ -69,6 +69,12 @@ interface HerbieAlternativesResponse {
   /** The splitpoints for each alternative. (e.g. alternatives[1] will have its history stored in
  * histories[1] and splitpoints in splitpoints[1]) */
   splitpoints: ordinal[][];
+
+  //job id for the request
+  job: string;
+
+  // //path of the request
+  path: string;
 }
 
 export const suggestExpressions = async (

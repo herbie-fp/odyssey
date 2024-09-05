@@ -112,16 +112,16 @@
   font-size: 10px;
 }
 
-.cost {
+.analysis {
   font-family: 'Ruda', serif;
-  text-align: right;
+  margin-right: -15px;
   width: 80px; /* Fixed width to prevent resizing */
   display: flex;
   align-items: center; /* Center content vertically */
   justify-content: flex-end; /* Align text to the right */
 }
 
-.analysis {
+.speedup {
   font-family: 'Ruda', serif;
   text-align: right;
   width: 80px; /* Fixed width to prevent resizing */
@@ -152,8 +152,10 @@
 
 .copy {
   cursor: pointer;
-  margin-left: 6px;
   font-size: .8em;
+}
+.expression-table .copy {
+  margin-left: 6px;
 }
 .copy:active {
   background-color: var(--highlight);
@@ -194,6 +196,7 @@
 }
 
 .expression-table-header-row {
+  height: 1.5em;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -219,11 +222,11 @@
   margin-right: auto;
   margin-left: 6px;
 }
-.cost-header {
-  margin-right: 41px;
-}
 .error-header {
-  margin-right: 82px;
+  margin-right: 35px;
+}
+.speedup-header {
+  margin-right: 86px;
 }
 
 .add-expression-top {
@@ -274,7 +277,7 @@
 } */
 
 .add-expression button {
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .expand-header {

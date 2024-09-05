@@ -18,12 +18,16 @@ const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
 import ErrorExplanation from './ErrorExplanation';
+import LinkToReports from './LinkToReports';
 
 function ExpressionTable() {
   // translate the above to use useGlobal
   const [showMath, setShowMath] = useState(false);
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
+  // const [alternativesJobresponse,]
+  // const AlternativesJobResponse
+  const [alternativesJobResponse, setAlternativesJobResponse] = HerbieContext.useGlobal(HerbieContext.AlternativesJobResponseContext)
   const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [cost, ] = HerbieContext.useGlobal(HerbieContext.CostContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
@@ -36,6 +40,9 @@ function ExpressionTable() {
   const [addExpression, setAddExpression] = useState('');
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const naiveExpression = expressions.find(e => e.text === spec.expression);
+  // get cost of naive expression
+  const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
 
   const herbiejs = addJobRecorder(herbiejsImport)
 
@@ -201,6 +208,10 @@ function ExpressionTable() {
       newDerivations.push(newDerivation);
     }
 
+    
+    const path = suggested.path;
+    setAlternativesJobResponse({ expressionId: newExpressions.map(expression => expression.id), path: path });
+    
     setExpressions([...newExpressions, ...expressions]);
     setDerivations([...newDerivations, ...derivations]);
     setCompareExprIds([...compareExprIds, ...newExpressions.map(e => e.id)]);
@@ -223,11 +234,11 @@ function ExpressionTable() {
         </div>
         <div className="compare-header">
         </div>
-        <div className="cost-header">
-          Cost
-        </div>
         <div className="error-header">
           Accuracy
+        </div>
+        <div className="speedup-header">
+          Speedup
         </div>
         <div className="buttons-header">
 
@@ -237,7 +248,7 @@ function ExpressionTable() {
         <div className="add-expression">
           <div className="add-expression-top">
             <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
-            <div className="add-expression-button">
+            <div className="add-expression-button" style={{alignSelf: "center", display: 'flex'} }>
               <button
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
                 onClick={handleAddExpression}
@@ -264,12 +275,9 @@ function ExpressionTable() {
                 : (analysisData.errors.reduce((acc: number, v: any) => {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
-            const costData = cost.find((cost) => cost.expressionId === expression.id)?.cost;
-            // const costResult = costData ? costData[0].toFixed(2) : '...';
-            const costResult = !costData ? '...' : costData;
 
-
-            // console.log("cost data is " + costData + " and cost result is " + costResult);
+            // cost of the expression
+            const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
 
             const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
             const components = [
@@ -278,6 +286,7 @@ function ExpressionTable() {
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
                 { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
+                {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
@@ -317,12 +326,12 @@ function ExpressionTable() {
                         <a className="copy-anchor">⧉</a>
                       </div>
                     </div>
-                  <div className="cost">
-                    {costResult}
-                  </div>
                   <div className="analysis">
                     {/* TODO: Not To hardcode number of bits*/}
                     {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
+                  </div>
+                  <div className="speedup">
+                    {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
                   </div>
                   <div className="herbie">
                     <button onClick={() => handleImprove(expression)}>

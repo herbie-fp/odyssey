@@ -120,6 +120,27 @@ export class PointLocalErrorAnalysis {
   }
 }
 
+type Explanation = [
+  string,  // operator
+  string,  // expression
+  string,  // type
+  number,  // occurrences
+  number,  // errors
+  any[]    // details
+];
+
+export interface ErrorExpressionResponse {
+  explanation: Explanation[];
+}
+
+export class PointErrorExpAnalysis {
+  constructor(public readonly expressionId: number, public readonly point: ordinalPoint, public readonly error:ErrorExpressionResponse) {
+    this.expressionId = expressionId;
+    this.point = point;
+    this.error = error;
+  }
+}
+
 export class FPTaylorAnalysis {
   constructor(public readonly expressionId: number, public readonly analysis: any) {
     this.expressionId = expressionId;

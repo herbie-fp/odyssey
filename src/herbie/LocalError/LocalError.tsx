@@ -70,7 +70,6 @@ function LocalError({ expressionId }: { expressionId: number }) {
   //
   const pointLocalError = selectedPointsLocalError.find(a => a.expressionId === expressionId)?.error
 
-  console.log(selectedPointsLocalError)
   // get the local error
   const localError =
     selectedPoint && pointLocalError

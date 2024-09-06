@@ -1,6 +1,6 @@
 import * as fpcorejs from './fpcore';
 import * as ordinalsjs from './ordinals';
-import { Sample } from '../HerbieTypes';
+import { ErrorExpressionResponse, Sample } from '../HerbieTypes';
 import * as types from '../HerbieTypes';
 import { getApi } from './servercalls';
 
@@ -114,18 +114,7 @@ export const analyzeExpressionExport = async (
 ): Promise<ExpressionExportResponse> => {
   return (await getHerbieApi(host, 'translate', { formula: fpcore, language: language}, true));
 };
-type Explanation = [
-  string,  // operator
-  string,  // expression
-  string,  // type
-  number,  // occurrences
-  number,  // errors
-  any[]    // details
-];
 
-export interface ErrorExpressionResponse {
-  explanation: Explanation[];
-}
 
 export const analyzeErrorExpression = async (
   fpcore: string,

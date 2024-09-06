@@ -123,6 +123,7 @@ function HerbieUIInner() {
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
   const [selectedPoint, setSelectedPoint] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
+  const [selectedPointsErrorExp, setSelectedPointsErrorExp] = Contexts.useGlobal(Contexts.SelectedPointsErrorExpContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
   const [inputRangesTable,] = Contexts.useGlobal(Contexts.InputRangesTableContext)
@@ -406,6 +407,38 @@ function HerbieUIInner() {
     }
 
     setTimeout(getPointLocalError)
+  }
+
+
+  // when the selected point changes, update the selected point local error
+  useEffect(updateSelectedPointErrorExp, [selectedPoint, serverUrl, expressions, archivedExpressions])
+  function updateSelectedPointErrorExp() {
+    async function getPointErrorExp() {
+      const errorExp = []
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      for (const expression of activeExpressions) {
+        if (selectedPoint && expression) {
+          // HACK to make sampling work on Herbie side
+          const vars = fpcorejs.getVarnamesMathJS(expression.text)
+          const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
+          const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
+          errorExp.push(
+            new Types.PointErrorExpAnalysis(
+              expression.id,
+              selectedPoint,
+              await herbiejs.analyzeErrorExpression(
+                fpcorejs.mathjsToFPCore(expression.text),
+                { points: [[modSelectedPoint, 1e308]] } as Sample,
+                serverUrl
+              )
+            )
+          )
+        }
+      }
+      setSelectedPointsErrorExp(errorExp)
+    }
+
+    setTimeout(getPointErrorExp)
   }
 
   useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions, archivedExpressions])

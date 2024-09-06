@@ -412,7 +412,7 @@ function ErrorPlot() {
             }
 
             // See if the current point is selected, if not check if it belongs to the same bucket
-            if (selectedPoint && point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString()) || compareBuckets()) {
+            if (selectedPoint && (point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString()) || compareBuckets())) {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression

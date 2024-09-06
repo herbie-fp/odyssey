@@ -197,7 +197,7 @@ function SpecConfigComponent() {
   }
 
   return <>
-    <div className="spec-overlay-logo" style={{alignSelf: 'center', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '1em', marginTop: '1em', marginBottom: '2em'}}>
+    <div className="spec-overlay-logo" style={{alignSelf: 'center', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '1em', marginTop: '1em', marginBottom: '1em'}}>
       <div>Odyssey: Explore Floating-Point Error</div>
       <div>
         <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" alt="Odyssey logo" style={{}} />
@@ -207,9 +207,9 @@ function SpecConfigComponent() {
       Write a formula below to explore it with Odyssey. Enter approximate ranges for inputs.
     </div>
     <div>
-      <a className="showExample" onClick={handleShowExample}>Show an example</a>
+      <a className="showExample" href="#" onClick={handleShowExample}>Show an example</a>
       &nbsp;|&nbsp;
-      <a className="useFPCoreOption" onClick={handleClickUseFPCore}>{usingFPCore ? `Use mathjs` : `Use FPCore`}</a>
+      <a className="useFPCoreOption" href="#" onClick={handleClickUseFPCore}>{usingFPCore ? `Use mathjs` : `Use FPCore`}</a>
     </div>
     {/* <div className="spec-textarea-container"> */}
     <DebounceInput element="textarea" debounceTimeout={300} rows={!usingFPCore ? 1 : 4} className="spec-textarea" placeholder={usingFPCore ? `e.g. (FPCore (x) :pre (>= x 0) (- (sqrt (+ x 1)) (sqrt x)))` : "e.g. sqrt(x+1) - sqrt(x)"} value={specTextInput} onChange={handleSpecTextUpdate} />

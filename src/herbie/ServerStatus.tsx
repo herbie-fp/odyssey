@@ -93,14 +93,17 @@ function ServerStatusComponent() {
   // Show job count if there are jobs pending
   const statusText = jobCount > 0 ? `Jobs: ${jobCount}` : status ? 'Connected' : 'No Server'
 
+  const connectedFill = '#1ab01a';
+  const connectedStroke = '#1ab31a';
+
   return (
     <div className="serverStatus">
       <div onClick={() => setIsDropdownOpen(true)}>
         <span className={'status ' + statusClass}>
           {/* an SVG status indicator dot */}
           <svg width="10" height="10" viewBox="0 0 20 20">
-            <circle cx="10" cy="10" r="5" fill={statusClass === 'pending' ? 'orange' : status ? '#78D965' : 'none'} stroke={status ? '#94E185' : 'red'} filter={
-              `drop-shadow(0px 0px 2px ${statusClass === 'connected' ? '#94E185' : statusClass === 'pending' ? 'orange' : 'red'})`}
+            <circle cx="10" cy="10" r="7" fill={statusClass === 'pending' ? 'orange' : status ? connectedFill : 'none'} stroke={status ? connectedStroke : 'red'} filter={
+              `drop-shadow(0px 0px 2px ${statusClass === 'connected' ? connectedStroke : statusClass === 'pending' ? 'orange' : 'red'})`}
             />
           </svg>
         </span>

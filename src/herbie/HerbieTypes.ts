@@ -102,7 +102,8 @@ export interface LocalErrorTree {
   e: string
   children: LocalErrorTree[]
   'avg-error': string
-  'exact-error': string
+  'exact-value': string
+  'real-value': string
 }
 
 export class AverageLocalErrorAnalysis {

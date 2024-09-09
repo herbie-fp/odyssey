@@ -169,7 +169,7 @@ input[type="text"]:focus, select:focus {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    font-size: 0.8em;
+    font-size: 1em;
     margin: 3px;
     font-family: 'Ruda';
   }
@@ -241,6 +241,12 @@ input[type="text"]:focus, select:focus {
 
 a:hover {
   cursor: pointer;
+  text-decoration: underline;
+}
+
+a {
+  color: #2A6496;
+  text-decoration: none;
 }
 
 .katex {

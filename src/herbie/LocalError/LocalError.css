@@ -12,6 +12,17 @@
   stroke: var(--foreground-color) !important;
 }
 
+.local-error-graph rect {
+  rx: 5;
+  ry: 5;
+  stroke: #378c8c !important;
+}
+
+.local-error-graph .nodeLocalError {
+  font-family: 'Ruda', sans-serif !important;
+}
+
+
 /* .nodeLocalError {
   font-size: 10px;
 } */

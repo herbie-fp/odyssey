@@ -8,7 +8,7 @@ interface ExpressionExportProps {
 }
 
 const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
-    const supportedLanguages = ["python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
+    const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
 
     // Export the expression to a language of the user's choice
     const [expressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
@@ -42,7 +42,11 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     };
     // Update the expressionText
     React.useEffect(() => {
-        translateExpression();
+        if (language !== "fpcore") {
+            translateExpression();
+        } else {
+            setExportCode({ language: "fpcore", result: expressionText?.text });
+        }
     }, [expressionText, language]);
 
     return (

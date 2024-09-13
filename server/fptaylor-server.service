@@ -1,0 +1,13 @@
+[Unit]
+Description=FPTaylor Server
+After=network.target
+
+[Service]
+ExecStart=node tool-server.js --port 8001 --tool fptaylor --path fptaylor/linux/fptaylor-compiled/fptaylor
+WorkingDirectory=/path/to/server *UPDATE*
+Restart=always
+User=your-username *UPDATE*
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

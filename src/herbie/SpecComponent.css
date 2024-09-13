@@ -44,7 +44,7 @@
   width: 220px;
   clear: left;
   margin: 0 1em 0em 1em;
-  font-family: 'Ruda', sans-serif;
+  font-family: 'IBM Plex Mono', sans-serif;
   line-height: 1em;
 }
 
@@ -130,7 +130,7 @@
 }
 
 .mathjs-instructions {
-  margin-top: 3em;
+  margin-top: 2em;
 }
 
 .function-list {

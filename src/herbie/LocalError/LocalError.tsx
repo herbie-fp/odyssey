@@ -15,8 +15,8 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
-  function formatName(id: string, name: string, avg_err: string, exact_err: string, real_value: string) {
-    const title = `'Average Error: ${avg_err} Exact Value:  ${exact_err}, Real: ${real_value}'`
+  function formatName(id: string, name: string, avg_err: string, exact_err: string, actual_value: string) {
+    const title = `'Average Error: ${avg_err} Floating Point: ${exact_err}, Real: ${actual_value}'`
     console.log(title)
     return id + '[<span class=nodeLocalError title=' + title + '>' + name + '</span>]'
   }
@@ -26,11 +26,11 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const children = n['children']
     const avg_error = n['avg-error']
     const exact_value = n['exact-value']
-    const real_value = n['real-value']
+    const actual_value = n['actual-value']
 
     // node name
     const id = 'N' + counter++
-    const nodeName = formatName(id, name, avg_error, exact_value, real_value)
+    const nodeName = formatName(id, name, avg_error, exact_value, actual_value)
 
     // descend through AST
     for (const c in children) {
@@ -53,7 +53,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const name = tree['e']
     const avg_error = tree['avg-error']
     const exact_error = tree['exact-value']
-    const real_value = tree['real-value']
+    const real_value = tree['actual-value']
     edges.push(formatName('N0', name, avg_error, exact_error, real_value))
   }
 

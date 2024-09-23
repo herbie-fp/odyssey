@@ -18,8 +18,7 @@ const getHerbieApiAsync = async (
   retry: boolean
 ): Promise<any> => {
   const url = `${host}/api/start/${endpoint}`;
-  // LATER add timeout?
-  console.debug('calling', url, 'with data', data);
+  console.debug('calling', url, 'async with data', data);
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -29,17 +28,14 @@ const getHerbieApiAsync = async (
     const job_id = responseData.job
     let counter = 0
     let cap = 100
-    console.log(job_id)
     if (responseData.error) {
       throw new Error('Herbie server: ' + responseData.error);
     }
     console.debug('Job started: ', job_id);
     const statusURL = `${host}/check-status/${job_id}`
-    console.log(statusURL)
     var checkResponse = await fetch(statusURL, {
       method: 'GET',
     });
-    console.log(checkResponse)
     while (checkResponse.status != 201 && counter < cap) {
       counter += 1
       checkResponse = await fetch(`${host}/check-status/${job_id}`, {

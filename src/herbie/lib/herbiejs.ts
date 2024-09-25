@@ -43,6 +43,10 @@ const getHerbieApiAsync = async (
       });
       await new Promise(r => setTimeout(r, 100)); // ms
     }
+    // Guard that the job is finished. If not throw an error giving up on this request.
+    if (checkResponse.status != 201) {
+      throw new Error(`Request timeout`)
+    }
     const result = await fetch(`${host}/api/result/${job_id}`, {
       method: 'GET',
     });

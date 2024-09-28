@@ -15,8 +15,8 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
-  function formatName(id: string, name: string, avg_err: string, exact_err: string, actual_value: string) {
-    const title = `'Average Error: ${avg_err} Floating Point: ${exact_err}, Real: ${actual_value}'`
+  function formatName(id: string, name: string, avg_err: string, exact_err: string, actual_value: string, approx_value: string, diff_value: string, err_value: string) {
+    const title = `'Average Error: ${avg_err} Real: ${exact_err}, Floating Point: ${actual_value}, Approx: ${approx_value}, Diff: ${diff_value}, Err: ${err_value}'`
     console.log(title)
     return id + '[<span class=nodeLocalError title=' + title + '>' + name + '</span>]'
   }
@@ -27,10 +27,13 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const avg_error = n['avg-error']
     const exact_value = n['exact-value']
     const actual_value = n['actual-value']
+    const approx_value = n['apx-value']
+    const diff_value = n['diff-value']
+    const err_value = n['err-value']
 
     // node name
     const id = 'N' + counter++
-    const nodeName = formatName(id, name, avg_error, exact_value, actual_value)
+    const nodeName = formatName(id, name, avg_error, exact_value, actual_value, approx_value, diff_value, err_value)
 
     // descend through AST
     for (const c in children) {
@@ -54,7 +57,10 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const avg_error = tree['avg-error']
     const exact_error = tree['exact-value']
     const real_value = tree['actual-value']
-    edges.push(formatName('N0', name, avg_error, exact_error, real_value))
+    const approx_value = tree['apx-value']
+    const diff_value = tree['diff-value']
+    const err_value = tree['err-value']
+    edges.push(formatName('N0', name, avg_error, exact_error, real_value, approx_value, diff_value, err_value))
   }
 
   // List colors

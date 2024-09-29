@@ -177,12 +177,15 @@ function ExpressionTable() {
   }
 
   const handleImprove = async (expression: Expression) => {
+    console.log("handleImprove")
     if (!sample) {
       return
     }
     // get suggested expressions with Herbie and put them in the expressions table
-    const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
-
+    console.log(sample)
+    const fpc = fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression))
+    console.log(fpc)
+    const suggested = await herbiejs.suggestExpressions(fpc, sample, serverUrl)
 
     const histories = suggested.histories;
     const alternatives = suggested.alternatives;

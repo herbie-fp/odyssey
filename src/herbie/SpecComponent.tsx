@@ -259,6 +259,10 @@ function SpecConfigComponent() {
     <div className="mathjs-instructions" style={{ "display": "block" }}><div>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">standard functions</a> like:</div>
       <dl className="function-list"><dt>+, -, *, /, abs</dt><dd>The usual arithmetic functions</dd><dt>and, or</dt><dd>Logical connectives (for preconditions)</dd><dt>pow</dt><dd>Raising a value to a power</dd><dt>exp, log</dt><dd>Natural exponent and natural log</dd><dt>sin, cos, tan</dt><dd>The trigonometric functions</dd><dt>asin, acos, atan</dt><dd>The inverse trigonometric functions</dd><dt>sqrt, cbrt</dt><dd>Square and cube roots</dd><dt>PI, E</dt><dd>The mathematical constants</dd></dl>
     </div>
+
+    <div className="acknowledgments" style={{"fontSize": 'small', "marginTop": "2em"}}>
+       This work is supported by the U.S. Department of Energy, Office of Science, Office of Advanced Scientific Computing Research, ComPort: Rigorous Testing Methods to Safeguard Software Porting, under Award Number DE-SC0022081.
+    </div>
   </>
 }
 

@@ -101,9 +101,10 @@ export interface LocalErrorTree {
   /** the expression */
   e: string
   children: LocalErrorTree[]
+  'ulps-error': string
   'avg-error': string
   'exact-value': string
-  'diff-value': string
+  'approx-value': string
   'true-error-value': string
 }
 

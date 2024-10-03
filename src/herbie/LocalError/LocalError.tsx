@@ -15,8 +15,10 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
-  function formatName(id: string, name: string, exact_err: string, diff_value: string, true_error: string) {
-    const title = `'Exact/Correct value: ${exact_err} + Difference: ${diff_value}, True Error: ${true_error}'`
+  function formatName(id: string, name: string, exact_err: string,
+    approx_value: string, true_error: string, ulps_error: string) {
+    // TODO fix newlines and brackets. Mermaid doesn't like them.
+    const title = `'Correct R : ${exact_err}Approx F : ${approx_value}Error R - F : ${true_error}ULPs Error : ${ulps_error}'`
     console.log(title)
     return id + '[<span class=nodeLocalError title=' + title + '>' + name + '</span>]'
   }
@@ -26,12 +28,13 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const children = n['children']
     const avg_error = n['avg-error']
     const exact_value = n['exact-value']
-    const diff_value = n['diff-value']
+    const approx_value = n['approx-value']
     const true_error = n['true-error-value']
+    const ulps = n['ulps-error']
 
     // node name
     const id = 'N' + counter++
-    const nodeName = formatName(id, name, exact_value, diff_value, true_error)
+    const nodeName = formatName(id, name, exact_value,approx_value, true_error, ulps)
 
     // descend through AST
     for (const c in children) {
@@ -52,10 +55,11 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   // Edge case: 1 node => no edges
   if (isLeaf(tree)) {
     const name = tree['e']
-    const exact_error = tree['exact-value']
-    const diff_value = tree['diff-value']
+    const exact_value = tree['exact-value']
+    const approx_value = tree['approx-value']
     const true_error = tree['true-error-value']
-    edges.push(formatName('N0', name, exact_error, diff_value, true_error))
+    const ulps = tree['ulps-error']
+    edges.push(formatName('N0', name, exact_value,approx_value, true_error, ulps))
   }
 
   // List colors

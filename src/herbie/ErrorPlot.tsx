@@ -571,8 +571,7 @@ function ErrorPlot() {
               brush.clear(select(svg).select('g'));
               // Reset points to original colors (no greyed out) 
               circles.forEach(({circle, o, id}) => { circle.removeAttribute("class"); });
-              // Reset selected subset of points to empty
-              setSelectedSubset(undefined);
+              // TODO: Reset selected subset of points to empty
 
               // Remove highlights and reset old lines to original color
               highlightMap.forEach(({line, stroke, d, newPath}) => {

@@ -540,8 +540,12 @@ function HerbieUIInner() {
       {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
         <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
           <div className="header">
-          {/* removed header-top */}
-          <div className="app-name">Odyssey</div>
+            {/* removed header-top */}
+            <div className="app-name">
+              <div className="app-icon">
+                <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{width: '20px', marginRight: '5px', marginLeft: '10px'}} alt="Odyssey Icon"></img>
+              </div>
+              Odyssey</div>
           <SpecComponent {...{showOverlay, setShowOverlay}} />
           <ServerStatusComponent />
         </div>

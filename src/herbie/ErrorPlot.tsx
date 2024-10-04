@@ -452,8 +452,8 @@ function ErrorPlot() {
                     <xhtml:a class="copy-anchor">⧉</xhtml:a>
                   </xhtml:div>
                 </foreignObject>
-                <foreignObject x=${xAdjusted + 45 + ""} y=${-26 + ""} height="20px" width="14px">
-                  <xhtml:a class="deselect">╳</xhtml:a>
+                <foreignObject x=${xAdjusted + 40 + ""} y=${-28 + ""} height="20px" width="16px">
+                  <xhtml:a class="deselect" style="font-size: 16px;">╳</xhtml:a>
                 </foreignObject>`;
 
               // Add copy functionality on click of '⧉' icon to get point values of all point variables

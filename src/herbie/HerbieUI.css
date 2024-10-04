@@ -161,7 +161,6 @@ input[type="text"]:focus, select:focus {
     font-size: 1em;
     font-family: 'Ruda';
     font-weight: 500;
-    margin: 3px;
   }
 
   .serverStatus {
@@ -169,7 +168,6 @@ input[type="text"]:focus, select:focus {
     justify-content: flex-end;
     align-items: center;
     font-size: 1em;
-    margin: 3px;
     font-family: 'Ruda';
   }
 }

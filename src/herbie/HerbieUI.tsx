@@ -540,9 +540,7 @@ function HerbieUIInner() {
       <div className="header" style={{ backgroundColor: "var(--foreground-color)", color: "var(--background-color)", paddingLeft: "10px", paddingRight: "10px", alignItems: 'center'}}>
         {/* removed header-top */}
         <div className="app-name">
-          <div className="app-icon">
-            <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
-          </div>
+          <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
           Odyssey
         </div>
         <SpecComponent {...{ showOverlay, setShowOverlay }} />

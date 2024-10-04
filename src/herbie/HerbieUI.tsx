@@ -535,20 +535,27 @@ function HerbieUIInner() {
     
   ];
 
+  function myHeader() {
+    return (
+      <div className="header" style={{ backgroundColor: "var(--foreground-color)", color: "var(--background-color)", paddingLeft: "10px", paddingRight: "10px", alignItems: 'center'}}>
+        {/* removed header-top */}
+        <div className="app-name">
+          <div className="app-icon">
+            <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
+          </div>
+          Odyssey
+        </div>
+        <SpecComponent {...{ showOverlay, setShowOverlay }} />
+        <ServerStatusComponent />
+      </div>
+    )
+  }
+
   return (
     <div>
       {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
         <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
-          <div className="header">
-            {/* removed header-top */}
-            <div className="app-name">
-              <div className="app-icon">
-                <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{width: '20px', marginRight: '5px', marginLeft: '10px'}} alt="Odyssey Icon"></img>
-              </div>
-              Odyssey</div>
-          <SpecComponent {...{showOverlay, setShowOverlay}} />
-          <ServerStatusComponent />
-        </div>
+          {myHeader()}
           <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '750px', gap: '7.5px', fontSize: '18.4px'} }>
             <SpecConfigComponent />
           </div>
@@ -556,12 +563,7 @@ function HerbieUIInner() {
       }
       {!showOverlay &&
         <div className="grid-container">
-          <div className="header">
-            {/* removed header-top */}
-            <div className="app-name">Odyssey</div>
-            <SpecComponent {...{ showOverlay, setShowOverlay }} />
-            <ServerStatusComponent />
-          </div>
+          {myHeader()}
         
           <ExpressionTable />
           <div className="visualizations">

@@ -155,7 +155,6 @@ input[type="text"]:focus, select:focus {
   display:flex;
   grid-area: header; /*Place the header in the "header" grid area */
   justify-content: space-between; /* Align the components at the start and end of the header */
-  border-bottom: 4px solid #5e5e5f1a;
   .app-name {
     display: flex;
     align-items: center;

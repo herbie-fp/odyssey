@@ -20,6 +20,7 @@ import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 import { DocumentationButton } from './DocumentationButton';
+import G from 'glob';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -544,6 +545,8 @@ function HerbieUIInner() {
           Odyssey
         </div>
         <SpecComponent {...{ showOverlay, setShowOverlay }} />
+        <DocumentationButton />
+        <GitHubIssueButton />
         <ServerStatusComponent />
       </div>
     )
@@ -567,11 +570,6 @@ function HerbieUIInner() {
           <div className="visualizations">
             <SelectableVisualization components={components} />
             <SelectableVisualization components={components2} />
-          </div>
-
-          <div className="help-buttons" >
-            <DocumentationButton />
-            <GitHubIssueButton />
           </div>
 
         </div>

@@ -137,7 +137,7 @@ input[type="text"]:focus, select:focus {
   grid-template-areas:
     "header header"
     "visualizations expressions"
-    "help-buttons expressions";
+    "visualizations expressions";
   height: 100vh; 
   grid-template-rows: 30px 1fr 3em;
   grid-template-columns: 4fr 6fr; /*min(70%, 600px);*/

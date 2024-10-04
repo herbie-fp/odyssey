@@ -537,7 +537,7 @@ function HerbieUIInner() {
 
   function myHeader() {
     return (
-      <div className="header" style={{ backgroundColor: "var(--foreground-color)", color: "var(--background-color)", paddingLeft: "10px", paddingRight: "10px", alignItems: 'center'}}>
+      <div className="header" style={{ backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "5px 10px", alignItems: 'center'}}>
         {/* removed header-top */}
         <div className="app-name">
           <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>

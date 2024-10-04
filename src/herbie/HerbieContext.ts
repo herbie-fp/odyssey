@@ -79,6 +79,7 @@ export const SelectedSampleIdContext = makeGlobal(undefined as number | undefine
 export const SamplesContext = makeGlobal([] as types.Sample[])
 export const SelectedPointContext = makeGlobal(undefined as types.ordinalPoint | undefined)
 export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocalErrorAnalysis[])
+export const SelectedPointsErrorExpContext = makeGlobal([] as types.PointErrorExpAnalysis[])
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
 export const FPTaylorAnalysisContext = makeGlobal([] as types.FPTaylorAnalysis[])
 export const FPTaylorRangeContext = makeGlobal([] as types.FPTaylorRange[])

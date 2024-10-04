@@ -15,7 +15,7 @@ import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
 import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
-
+import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
@@ -123,6 +123,7 @@ function HerbieUIInner() {
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
   const [selectedPoint, setSelectedPoint] = Contexts.useGlobal(Contexts.SelectedPointContext)
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
+  const [selectedPointsErrorExp, setSelectedPointsErrorExp] = Contexts.useGlobal(Contexts.SelectedPointsErrorExpContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
   const [inputRangesTable,] = Contexts.useGlobal(Contexts.InputRangesTableContext)
@@ -408,6 +409,38 @@ function HerbieUIInner() {
     setTimeout(getPointLocalError)
   }
 
+
+  // when the selected point changes, update the selected point local error
+  useEffect(updateSelectedPointErrorExp, [selectedPoint, serverUrl, expressions, archivedExpressions])
+  function updateSelectedPointErrorExp() {
+    async function getPointErrorExp() {
+      const errorExp = []
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      for (const expression of activeExpressions) {
+        if (selectedPoint && expression) {
+          // HACK to make sampling work on Herbie side
+          const vars = fpcorejs.getVarnamesMathJS(expression.text)
+          const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
+          const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
+          errorExp.push(
+            new Types.PointErrorExpAnalysis(
+              expression.id,
+              selectedPoint,
+              await herbiejs.analyzeErrorExpression(
+                fpcorejs.mathjsToFPCore(expression.text),
+                { points: [[modSelectedPoint, 1e308]] } as Sample,
+                serverUrl
+              )
+            )
+          )
+        }
+      }
+      setSelectedPointsErrorExp(errorExp)
+    }
+
+    setTimeout(getPointErrorExp)
+  }
+
   useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions, archivedExpressions])
   function updateFPTaylorAnalysis() {
     async function getFPTaylorAnalysis() {
@@ -433,21 +466,12 @@ function HerbieUIInner() {
             body: fpcorejs.FPCoreBody(expression.text)
           })
 
-          const fptaylorInputResponse = await (await fetch(
-             fpbenchServerUrl + "/exec",
-            {
-              method: 'POST', // *GET, POST, PUT, DELETE, etc.
-              mode: 'cors', // no-cors, *cors, same-origin
-              cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-              credentials: 'same-origin', // include, *same-origin, omit
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              redirect: 'follow', // manual, *follow, error
-              referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-              body: JSON.stringify({ 'formulas': [formula] }) // body data type must match "Content-Type" header
-            }
-          )).json();
+          const fptaylorInputResponse = await (getApi(
+            fpbenchServerUrl + "/exec",
+           {'formulas': [formula] },
+           true
+         ));
+         console.log(fptaylorInputResponse);
 
           const fptaylorInput = fptaylorInputResponse.stdout;
 
@@ -470,25 +494,14 @@ function HerbieUIInner() {
             return response;
         };        
 
-          const fptaylorResult = await parseFPTaylorOutput((
-            await (
-              await fetch(
-                fptaylorServerUrl + "/exec",
-                {
-                  method: 'POST', // *GET, POST, PUT, DELETE, etc.
-                  mode: 'cors', // no-cors, *cors, same-origin
-                  cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-                  credentials: 'same-origin', // include, *same-origin, omit
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  redirect: 'follow', // manual, *follow, error
-                  referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                  body: JSON.stringify({ 'fptaylorInput': fptaylorInput }) // body data type must match "Content-Type" header
-                }
-              )
-            ).json()
-          ).stdout)
+        const fptaylorResult = await parseFPTaylorOutput((
+          await (
+            getApi(
+              fptaylorServerUrl + "/exec",
+              { 'fptaylorInput': fptaylorInput },
+              true
+          ))
+        ).stdout)
 
           FPTaylorAnalyses.splice(index, 0,
             new Types.FPTaylorAnalysis(

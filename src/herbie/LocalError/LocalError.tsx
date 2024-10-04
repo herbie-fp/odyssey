@@ -12,6 +12,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   let colors = {} as Record<string, string>
   let counter = 0
 
+  
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
   function formatName(id: string, name: string, avg_err: string, exact_err: string) {
@@ -27,6 +28,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const name = n['e']
     const children = n['children']
     const avg_error = n['avg-error']
+
     const exact_error = n['exact-error']
 
     // node name

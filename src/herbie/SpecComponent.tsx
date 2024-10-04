@@ -1,10 +1,12 @@
 import React, { useCallback, ChangeEvent, useContext, useState, useEffect } from 'react';
 import { InputRange, InputRangeEditor1 } from './InputRangesEditor';
 import { InputRangesTableContext, SpecContext } from './HerbieContext';
-import { SpecRange, Spec } from './HerbieTypes';
+import { SpecRange, Spec, Sample } from './HerbieTypes';
 import * as HerbieTypes from './HerbieTypes';
 import * as utils from './lib/utils';
 import * as HerbieContext from './HerbieContext';
+import * as herbiejsImport from './lib/herbiejs'
+import * as fpcore from './lib/fpcore'
 import KaTeX from 'katex';
 import Modal from 'react-modal';
 
@@ -64,6 +66,7 @@ function SpecConfigComponent() {
 
   // Wait until submit click to set the spec
   const handleSubmitClick = async () => {
+    console.log("handleSubmitClick")
     const specId = value.id + 1;
     const inputRangeId = utils.nextId(inputRangesTable)
     const variables = await getVariables(spec)
@@ -92,11 +95,18 @@ function SpecConfigComponent() {
       mySpec = new Spec(mathJSExpression, specId)
     }
 
-    console.debug('Adding to inputRangesTable: ', inputRanges)
+    console.log('Adding to inputRangesTable: ', inputRanges)
     setInputRangesTable([...inputRangesTable, inputRanges])
 
-    console.debug('Added, now setting spec', mySpec)
+    console.log('Added, now setting spec', mySpec)
     setValue(mySpec);
+
+    const fpc = fpcore.mathjsToFPCore(mathJSExpression, spec.expression, fpcore.getVarnamesMathJS(spec.expression))
+    console.log("FPCORE READY")
+    console.log(fpc)
+    const sample_points = (await herbiejsImport.getSample(fpc, serverUrl)).points;
+    herbiejsImport.preCacheAlternativesRequest(fpc,sample_points,serverUrl)
+    console.log("preCacheAlternativesRequest")
   }
 
   const specValid = async () => {

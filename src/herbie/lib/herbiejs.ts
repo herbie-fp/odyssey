@@ -81,12 +81,28 @@ interface HerbieAlternativesResponse {
   path: string;
 }
 
+export const preCacheAlternativesRequest = async (
+  fpcore: string,
+  points: any,
+  host: string
+): Promise<HerbieAlternativesResponse> => {
+  console.log("preCacheExpressions")
+  const pts = points.sort()
+  console.log(fpcore)
+  console.log(pts)
+  return getHerbieApi(host, 'alternatives', { formula: fpcore, sample: pts, seed: 5 }, true);
+};
+
 export const suggestExpressions = async (
   fpcore: string,
   sample: Sample,
   host: string
 ): Promise<HerbieAlternativesResponse> => {
-  return getHerbieApi(host, 'alternatives', { formula: fpcore, sample: sample.points, seed: 5 }, true);
+  const pts = sample.points.sort()
+  console.log("suggestExpressions")
+  console.log(fpcore)
+  console.log(pts)
+  return getHerbieApi(host, 'alternatives', { formula: fpcore, sample: pts, seed: 5 }, true);
 };
 
 interface LocalErrorResponse {

@@ -1,33 +1,27 @@
 # Adding Component To Odyssey Documentation
 
-This documents my personal experience with adding a React component to Odyssey. 
+## Creating the new component file
+The standard naming scheme for components is as follows:
 
-**Task:** Building a front end component for Herbie's **translate** API endpoint. Given a user expression and a target language, we want to request the translated expression from Herbie's backend to display it in Odyssey.
+You need to create a new file called `<YourComponentName>.tsx` within the `Odyssey/src/herbie` directory. This file will contain all of the logic for the React component you're looking to add. Optionally, you can also create a `<YourComponentName>.css` file for any CSS styling your component might need.
 
-- Create `ExpressionExport.tsx` in `Odyssey/src/herbie`
-- Add it to `ExpressionTable.tsx` components (line 225)
-  - **Note:** Fix `react-tooltip` error
-- Fill out component with CoPilot
-  - Add import statements, props, `useEffects`, returns
-  - Write comments before coding
-  - Don’t say "please" to the AI, be RUDE
-- **Bug:** Error with calling Herbie server, sending JS instead of FPCore
-  - **Fix:** In fetch call, import `fpcorejs` and use `mathjsToFPCore()`
-- **Bug:** Displays work but not on the first time
-  - **Looking for fix:**
-    - Placed API call into `callTranslate` variable
-    - Call `useEffect(callTranslate, [expressionText, language])` after API call
-    - `setTimeout` for 300 milliseconds
-  - **Fix:** First element was Python but is supposed to be lowercase `python`
-    - Also leads to a future TODO of creating a list and not hard coding
-    - We thought it was something wrong with our API call since we were getting an arity mismatch but in reality, it was an unsupported language error (“Python” vs “python”), hence the importance of good error handling on the backend.
-- **Frontend TODOS:**
-  - Do not hard code “python” in the `useState` or the languages, create a list of all the languages ✅
-  - Check line 48, try to remove it, we might not need to `setTimeout`. Try also reverting the `callTranslate` variable, might not need it since the error was in the naming and not the API call. ✅
+## Identifying the parent component
+Your component will almost certainly be a child component of one of the pre-existing components in the codebase. The next step here is to identify which component this is. Some common parent components are:
 
-Expression translated into python:
-![image](https://github.com/herbie-fp/odyssey/assets/112049313/a4996235-21cc-48fc-83e6-3210bfade97b)
+- `ExpressionTable.tsx`, which is the component to render the table of expressions on the right half of Odyssey, and which contains child components that have interactions with individual expressions, such as the Derivation component (which shows the derivation of a particular expression) or the Local Error component (which shows localized error for the individual parts of an expression)
 
-Dropdown with language options:
-![image](https://github.com/herbie-fp/odyssey/assets/112049313/1dff45fe-1956-457b-a76a-f2109830bfce)
+## Adding a component to the ExpressionTable
+If your component has the ExpressionTable as a parent component, navigate to `ExpressionTable.tsx` and find the HTML element `<div className="expressions-actual">` under the returned HTML element. Under this component, you should see the following:
 
+```
+const components = [
+  { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
+  { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
+  { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
+  { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
+  { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
+  { value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
+];
+```
+
+which contains all of the components rendered as part of the Expression Table's rows. Add an import for your component at the top of the `ExpressionTable.tsx` file, and then you should be able to add your component here and have it rendered per row of the Expression Table. Make sure to pass in the expressionId, which your child component will then be able to call upon for any logic involving a particular expression.

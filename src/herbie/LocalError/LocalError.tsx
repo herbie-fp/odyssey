@@ -15,12 +15,11 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
-  function formatName(id: string, name: string, avg_err: string, exact_err: string) {
-    var exact_err_txt = ""
-    if (exact_err != undefined) {
-      exact_err_txt = `, Exact Error:  ${exact_err}`
-    }
-    const title = `'Average Error: ${avg_err}${exact_err_txt}'`
+  function formatName(id: string, name: string, exact_err: string,
+    approx_value: string, true_error: string, ulps_error: string) {
+    // TODO fix newlines and brackets. Mermaid doesn't like them.
+    const title = `'Correct R : ${exact_err}Approx F : ${approx_value}Error R - F : ${true_error}ULPs Error : ${ulps_error}'`
+    console.log(title)
     return id + '[<span class=nodeLocalError title=' + title + '>' + name + '</span>]'
   }
 
@@ -28,12 +27,14 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const name = n['e']
     const children = n['children']
     const avg_error = n['avg-error']
-
-    const exact_error = n['exact-error']
+    const exact_value = n['exact-value']
+    const approx_value = n['approx-value']
+    const true_error = n['true-error-value']
+    const ulps = n['ulps-error']
 
     // node name
     const id = 'N' + counter++
-    const nodeName = formatName(id, name, avg_error, exact_error)
+    const nodeName = formatName(id, name, exact_value,approx_value, true_error, ulps)
 
     // descend through AST
     for (const c in children) {
@@ -54,9 +55,11 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   // Edge case: 1 node => no edges
   if (isLeaf(tree)) {
     const name = tree['e']
-    const avg_error = tree['avg-error']
-    const exact_error = tree['exact-error']
-    edges.push(formatName('N0', name, avg_error, exact_error))
+    const exact_value = tree['exact-value']
+    const approx_value = tree['approx-value']
+    const true_error = tree['true-error-value']
+    const ulps = tree['ulps-error']
+    edges.push(formatName('N0', name, exact_value,approx_value, true_error, ulps))
   }
 
   // List colors

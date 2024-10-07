@@ -48,3 +48,8 @@ If you need to create a new Context, navigate to `HerbieContext.ts` and export a
 ```
 export const YourNewContext = makeGlobal('Your context state here')
 ```
+
+## Creating custom types
+You might also find yourself needing custom types to package data cleanly - these should be defined and set up in `HerbieTypes.ts`.
+
+These work the same way as standard TypeScript [types](https://www.typescriptlang.org/docs/handbook/2/objects.html).

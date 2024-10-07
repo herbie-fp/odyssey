@@ -25,3 +25,26 @@ const components = [
 ```
 
 which contains all of the components rendered as part of the Expression Table's rows. Add an import for your component at the top of the `ExpressionTable.tsx` file, and then you should be able to add your component here and have it rendered per row of the Expression Table. Make sure to pass in the expressionId, which your child component will then be able to call upon for any logic involving a particular expression.
+
+## Global state and contexts
+You may find that your component requires access to some of the global state shared across all of Odyssey. This state is almost always contained within a [Context](https://react.dev/learn/passing-data-deeply-with-context) from `HerbieContext.ts`.
+
+To use these Contexts, simply add
+
+```
+import * as contexts from './HerbieContext';
+```
+
+to your component, which will then allow you to work with React hooks for any context as follows:
+
+```
+  const [sampleContext, setSampleContext] = contexts.useGlobal(contexts.SampleContext)
+```
+
+which will then allow you to work with that state like any other React state.
+
+If you need to create a new Context, navigate to `HerbieContext.ts` and export a new const Context as follows:
+
+```
+export const YourNewContext = makeGlobal('Your context state here')
+```

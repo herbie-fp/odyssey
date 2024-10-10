@@ -1,4 +1,19 @@
 # Server Deployment
+
+## RESTARTING
+
+* Give Pavel your public SSH key
+* ssh pavpan@fpbench.cs.washington.edu
+* herbie/infra
+* odyssey/server
+     * This one has -real.service files for the actual files
+* sudo systemctl restart herbie-demo.service
+     * or fpbench-server-real.service
+     * or fptaylor-server-real.service
+* To view all logs:
+* sudo journalctl -u herbie-demo
+* Then hit G to go to the end of the log (most recent) (will take a couple seconds to respond since the file is long)
+
 ## Release checklist for maintainers
 
 ### Setting up the server directory

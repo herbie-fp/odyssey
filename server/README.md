@@ -14,6 +14,12 @@
 * sudo journalctl -u herbie-demo
 * Then hit G to go to the end of the log (most recent) (will take a couple seconds to respond since the file is long)
 
+## Updating server version (herbie)
+* always git pull to get new commits
+* make sure you are on main/branch you want
+* make install
+* sudo systemctl restart herbie-demo
+
 ## Release checklist for maintainers
 
 ### Setting up the server directory

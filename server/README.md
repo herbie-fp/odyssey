@@ -10,6 +10,8 @@
 * sudo systemctl restart herbie-demo.service
      * or fpbench-server-real.service
      * or fptaylor-server-real.service
+* To see status:
+    * sudo systemctl status herbie-demo
 * To view all logs:
 * sudo journalctl -u herbie-demo
 * Then hit G to go to the end of the log (most recent) (will take a couple seconds to respond since the file is long)

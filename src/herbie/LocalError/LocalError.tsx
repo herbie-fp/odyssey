@@ -19,9 +19,11 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   function formatName(id: string, name: string, exact_err: string,
     approx_value: string, true_error: string, ulps_error: string) {
     // TODO fix newlines and brackets. Mermaid doesn't like them.
-    const title = `'Correct R : ${exact_err}Approx F : ${approx_value}Error R - F : ${true_error}ULPs Error : ${ulps_error}'`
-    console.log(title)
-    return id + '[<span class=nodeLocalError title=' + title + '>' + name + '</span>]'
+    //const title = `'Correct R : ${exact_err}Approx F : ${approx_value}Error R - F : ${true_error}ULPs Error : ${ulps_error}'`
+    //console.log(title)
+    const tooltipContent = `'Correct R : ${exact_err} Approx F : ${approx_value} Error R - F : ${true_error} ULPs Error : ${ulps_error}'`;
+
+    return id + '[<span class=nodeLocalError data-tooltip=' + tooltipContent + '>' + name + '</span>]'
   }
 
   function loop(n : types.LocalErrorTree) {
@@ -102,6 +104,17 @@ function LocalError({ expressionId }: { expressionId: number }) {
 
       labels.forEach(label => {
         const existingDeselect = label.querySelector('.deselect');
+
+        const nodeLocalErrorElement = label.querySelector('.nodeLocalError');
+        
+        if (!nodeLocalErrorElement) {
+          console.error("No 'nodeLocalError' found within this label");
+          return;
+        }
+
+  
+        // Access the custom data-tooltip attribute
+        const nodeLocalErrorTooltip = nodeLocalErrorElement.getAttribute('data-tooltip') || "No details found";
         if (existingDeselect) {
           // Skip creating a new one if it already exists
           return;
@@ -134,9 +147,10 @@ function LocalError({ expressionId }: { expressionId: number }) {
         
         // Create the anchor element directly inside the foreignObject
         const anchor = document.createElementNS('http://www.w3.org/1999/xhtml', 'a'); 
-        anchor.setAttribute('class', 'deselect');
+        anchor.setAttribute('class', 'nodeLocalError');
         anchor.textContent = ''; // Deselect icon
-        
+         // Tooltip text for each node - this is where you can add the details dynamically
+         anchor.setAttribute('title', nodeLocalErrorTooltip); 
         // Ensure the anchor has width and height via CSS, even with no text
         anchor.style.display = 'inline-block';
         anchor.style.width = `${bbox.width}px`;   // Give the anchor a width in pixels
@@ -149,6 +163,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
         // Append the foreignObject to each label element in the Mermaid graph
         label.appendChild(foreignObject);
       });
+      
     };
 
     addForeignObjectToLabels();
@@ -193,13 +208,13 @@ function LocalError({ expressionId }: { expressionId: number }) {
         <Point values={selectedPointValue}/>
       </div>
       <div className="local-error-graph" onClick={handleNodeClick}>
+        <Tooltip anchorSelect=".nodeLocalError" place="top">
+        </Tooltip>
         {/* Always render the Mermaid graph, even if localError is not ready */}
         <Mermaid chart={localError ? localErrorTreeAsMermaidGraph(localError, 64) : ''} />
         {/* Tooltip with ID "mermaid-tooltip" */}
-        <a className="deselect"></a>
-        <Tooltip anchorSelect=".deselect" place="top" >
-          Deselect
-        </Tooltip>
+        
+        
       </div>
     </div>
   );

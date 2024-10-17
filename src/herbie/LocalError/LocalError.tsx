@@ -1,11 +1,12 @@
 import * as HerbieContext from '../HerbieContext';
 import * as types from '../HerbieTypes';
 import * as fpcore from '../lib/fpcore';
+import { Tooltip } from "react-tooltip";
 import Mermaid from './Mermaid';
 import { Point } from './Point'
 
 import './LocalError.css';
-
+import React, { useEffect } from 'react';
 function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
@@ -91,18 +92,74 @@ function LocalError({ expressionId }: { expressionId: number }) {
     ? pointLocalError
     : averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === expressionId)?.errorTree
 
-  if (!localError) {
-    return (
-      <div className="local-error not-computed">
-        <div>Please select a point on the error plot to compute local error.</div>
-      </div>
-    )
-  }
+   // Always call useEffect, even if localError is undefined
+   useEffect(() => {
+    if (!localError) return; // Only run effect if localError exists
+    
+    const addForeignObjectToLabels = () => {
+      
+      const labels = document.querySelectorAll('.node[class*="flowchart-label"]');
+
+      labels.forEach(label => {
+        const existingDeselect = label.querySelector('.deselect');
+        if (existingDeselect) {
+          // Skip creating a new one if it already exists
+          return;
+        }
+        // Get the parent node (the container for the label)
+        const parentNode = label.closest('.node');
+        if (!parentNode) {
+            return; // Skip if the parent node doesn't exist
+        }
+
+        // Cast parentNode to SVGGraphicsElement to access getBBox
+        const svgElement = parentNode as unknown as SVGGraphicsElement;
+
+        if (!svgElement.getBBox) {
+            console.error("getBBox is not available on the parentNode");
+            return;
+        }
+       // Get the bounding box of the parent node
+        const bbox = svgElement.getBBox(); // This gets the size and position of the parent node in SVG coordinates
+
+        // Create the foreignObject element
+        const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+        // Set the width and height to match the parent node's size
+        foreignObject.setAttribute('width', bbox.width.toString());
+        foreignObject.setAttribute('height', bbox.height.toString());
+        // Set the x and y positions relative to the parent node's position
+        foreignObject.setAttribute('x', bbox.x.toString());
+        foreignObject.setAttribute('y', bbox.y.toString());
+
+        
+        // Create the anchor element directly inside the foreignObject
+        const anchor = document.createElementNS('http://www.w3.org/1999/xhtml', 'a'); 
+        anchor.setAttribute('class', 'deselect');
+        anchor.textContent = ''; // Deselect icon
+        
+        // Ensure the anchor has width and height via CSS, even with no text
+        anchor.style.display = 'inline-block';
+        anchor.style.width = `${bbox.width}px`;   // Give the anchor a width in pixels
+        anchor.style.height = `${bbox.height}px`;  // Give the anchor a height in pixels
+        anchor.style.backgroundColor = 'transparent';  // Invisible background (or use 'rgba(0,0,0,0)' if needed)
+
+        // Append the anchor directly to the foreignObject
+        foreignObject.appendChild(anchor);
+        
+        // Append the foreignObject to each label element in the Mermaid graph
+        label.appendChild(foreignObject);
+      });
+    };
+
+    addForeignObjectToLabels();
+  }, [localError]); // Ensure the effect runs only when the graph is rendered and localError is available
 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
   const varnames = fpcore.getVarnamesMathJS(spec.expression)
-  
-  const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
+  // Safely check if selectedPoint and varnames are defined before using them
+  const selectedPointValue = selectedPoint && varnames 
+    ? (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
+    : {};  // Return an empty object if selectedPoint or varnames is undefined
   const handleNodeClick = (event: any) => {
     // Check if the clicked element or its closest ancestor is a .node
     const closestNode = event.target.closest(".node");
@@ -122,6 +179,13 @@ function LocalError({ expressionId }: { expressionId: number }) {
 
     console.log('Node clicked!', event.target);
   };
+  if (!localError) {
+    return (
+      <div className="local-error not-computed">
+        <div>Please select a point on the error plot to compute local error.</div>
+      </div>
+    )
+  }else {
   return (
     <div className="local-error">
       <div className="selected-point">
@@ -129,10 +193,17 @@ function LocalError({ expressionId }: { expressionId: number }) {
         <Point values={selectedPointValue}/>
       </div>
       <div className="local-error-graph" onClick={handleNodeClick}>
-        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)}  />
+        {/* Always render the Mermaid graph, even if localError is not ready */}
+        <Mermaid chart={localError ? localErrorTreeAsMermaidGraph(localError, 64) : ''} />
+        {/* Tooltip with ID "mermaid-tooltip" */}
+        <a className="deselect"></a>
+        <Tooltip anchorSelect=".deselect" place="top" >
+          Deselect
+        </Tooltip>
       </div>
     </div>
-  )
+  );
+}
 }
 
 export { LocalError }

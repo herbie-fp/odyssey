@@ -6,7 +6,7 @@ const { path } = require("chromedriver");
 
 let driver = null;
 const chromeOptions = new chrome.Options().addArguments("--headless=new");
-const URL = "https://www.google.com/webhp?hl=en";
+const URL = "localhost:8000";
 
 describe("Selenium", () => {
   beforeEach(async () => {

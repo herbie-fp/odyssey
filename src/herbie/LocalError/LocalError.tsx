@@ -103,22 +103,15 @@ function LocalError({ expressionId }: { expressionId: number }) {
       const labels = document.querySelectorAll('.node[class*="flowchart-label"]');
 
       labels.forEach(label => {
-        const existingDeselect = label.querySelector('.deselect');
-
         const nodeLocalErrorElement = label.querySelector('.nodeLocalError');
         
         if (!nodeLocalErrorElement) {
           console.error("No 'nodeLocalError' found within this label");
           return;
         }
-
-  
         // Access the custom data-tooltip attribute
         const nodeLocalErrorTooltip = nodeLocalErrorElement.getAttribute('data-tooltip') || "No details found";
-        if (existingDeselect) {
-          // Skip creating a new one if it already exists
-          return;
-        }
+        
         // Get the parent node (the container for the label)
         const parentNode = label.closest('.node');
         if (!parentNode) {
@@ -147,10 +140,9 @@ function LocalError({ expressionId }: { expressionId: number }) {
         
         // Create the anchor element directly inside the foreignObject
         const anchor = document.createElementNS('http://www.w3.org/1999/xhtml', 'a'); 
-        anchor.setAttribute('class', 'nodeLocalError');
-        anchor.textContent = ''; // Deselect icon
-         // Tooltip text for each node - this is where you can add the details dynamically
-         anchor.setAttribute('title', nodeLocalErrorTooltip); 
+         /// Add data-tooltip-id and data-tooltip-content attributes
+        anchor.setAttribute('data-tooltip-id', 'node-tooltip');
+        anchor.setAttribute('data-tooltip-content', nodeLocalErrorTooltip);
         // Ensure the anchor has width and height via CSS, even with no text
         anchor.style.display = 'inline-block';
         anchor.style.width = `${bbox.width}px`;   // Give the anchor a width in pixels
@@ -208,7 +200,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
         <Point values={selectedPointValue}/>
       </div>
       <div className="local-error-graph" onClick={handleNodeClick}>
-        <Tooltip anchorSelect=".nodeLocalError" place="top">
+        <Tooltip id="node-tooltip" place="top">
         </Tooltip>
         {/* Always render the Mermaid graph, even if localError is not ready */}
         <Mermaid chart={localError ? localErrorTreeAsMermaidGraph(localError, 64) : ''} />

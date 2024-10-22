@@ -127,7 +127,8 @@ type Explanation = [
   string,  // type
   number,  // occurrences
   number,  // errors
-  any[]    // details
+  any[] ,   // details
+  Array<Array<number>>
 ];
 
 export interface ErrorExpressionResponse {

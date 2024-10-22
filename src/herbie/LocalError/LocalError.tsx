@@ -3,10 +3,10 @@ import * as types from '../HerbieTypes';
 import * as fpcore from '../lib/fpcore';
 import { Tooltip } from "react-tooltip";
 import Mermaid from './Mermaid';
-import { Point } from './Point'
+import { Point } from './Point'; 
 
 import './LocalError.css';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
@@ -16,14 +16,9 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
-  function formatName(id: string, name: string, exact_err: string,
-    approx_value: string, true_error: string, ulps_error: string) {
-    // TODO fix newlines and brackets. Mermaid doesn't like them.
-    //const title = `'Correct R : ${exact_err}Approx F : ${approx_value}Error R - F : ${true_error}ULPs Error : ${ulps_error}'`
-    //console.log(title)
+  function formatName(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
     const tooltipContent = `'Correct R : ${exact_err} Approx F : ${approx_value} Error R - F : ${true_error} ULPs Error : ${ulps_error}'`;
-
-    return id + '[<span class=nodeLocalError data-tooltip=' + tooltipContent + '>' + name + '</span>]'
+    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-content=' + tooltipContent + '>' + name + '</span>]'
   }
 
   function loop(n : types.LocalErrorTree) {
@@ -96,69 +91,50 @@ function LocalError({ expressionId }: { expressionId: number }) {
 
    // Always call useEffect, even if localError is undefined
    useEffect(() => {
-    if (!localError) return; // Only run effect if localError exists
-    
-    const addForeignObjectToLabels = () => {
-      
+    if (!localError) return;
+  
+    // Add a delay before running the effect's logic
+    const timer = setTimeout(() => {
       const labels = document.querySelectorAll('.node[class*="flowchart-label"]');
-
+      console.log("in")
       labels.forEach(label => {
-        const nodeLocalErrorElement = label.querySelector('.nodeLocalError');
-        
-        if (!nodeLocalErrorElement) {
-          console.error("No 'nodeLocalError' found within this label");
+        const labelGroup = label.querySelector('.label');
+        if (labelGroup) {
+          labelGroup.removeAttribute('transform');
+        }
+  
+        const parentNode = label.closest('.node');
+        if (!parentNode) return;
+  
+        const svgElement = parentNode as unknown as SVGGraphicsElement;
+        if (!svgElement.getBBox) {
+          console.error("getBBox is not available on the parentNode");
           return;
         }
-        // Access the custom data-tooltip attribute
-        const nodeLocalErrorTooltip = nodeLocalErrorElement.getAttribute('data-tooltip') || "No details found";
-        
-        // Get the parent node (the container for the label)
-        const parentNode = label.closest('.node');
-        if (!parentNode) {
-            return; // Skip if the parent node doesn't exist
+  
+        const bbox = svgElement.getBBox();
+  
+        const foreignObject = label.querySelector('foreignObject') as unknown as HTMLElement;
+        if (foreignObject) {
+          foreignObject.setAttribute('width', `${bbox.width}`);
+          foreignObject.setAttribute('height', `${bbox.height}`);
+          foreignObject.setAttribute('x', `${bbox.x}`);
+          foreignObject.setAttribute('y', `${bbox.y}`);
+  
+          const span = foreignObject.querySelector('.nodeLocalError') as HTMLElement;
+          if (span) {
+            span.style.display = 'flex';
+            span.style.justifyContent = 'center';
+            span.style.alignItems = 'center';
+            span.style.textAlign = 'center';
+            span.style.width = `${bbox.width}px`;
+            span.style.height = `${bbox.height}px`;
+          }
         }
-
-        // Cast parentNode to SVGGraphicsElement to access getBBox
-        const svgElement = parentNode as unknown as SVGGraphicsElement;
-
-        if (!svgElement.getBBox) {
-            console.error("getBBox is not available on the parentNode");
-            return;
-        }
-       // Get the bounding box of the parent node
-        const bbox = svgElement.getBBox(); // This gets the size and position of the parent node in SVG coordinates
-
-        // Create the foreignObject element
-        const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-        // Set the width and height to match the parent node's size
-        foreignObject.setAttribute('width', bbox.width.toString());
-        foreignObject.setAttribute('height', bbox.height.toString());
-        // Set the x and y positions relative to the parent node's position
-        foreignObject.setAttribute('x', bbox.x.toString());
-        foreignObject.setAttribute('y', bbox.y.toString());
-
-        
-        // Create the anchor element directly inside the foreignObject
-        const anchor = document.createElementNS('http://www.w3.org/1999/xhtml', 'a'); 
-         /// Add data-tooltip-id and data-tooltip-content attributes
-        anchor.setAttribute('data-tooltip-id', 'node-tooltip');
-        anchor.setAttribute('data-tooltip-content', nodeLocalErrorTooltip);
-        // Ensure the anchor has width and height via CSS, even with no text
-        anchor.style.display = 'inline-block';
-        anchor.style.width = `${bbox.width}px`;   // Give the anchor a width in pixels
-        anchor.style.height = `${bbox.height}px`;  // Give the anchor a height in pixels
-        anchor.style.backgroundColor = 'transparent';  // Invisible background (or use 'rgba(0,0,0,0)' if needed)
-
-        // Append the anchor directly to the foreignObject
-        foreignObject.appendChild(anchor);
-        
-        // Append the foreignObject to each label element in the Mermaid graph
-        label.appendChild(foreignObject);
       });
-      
-    };
-
-    addForeignObjectToLabels();
+    }, 500);  // Add a delay of 500ms
+  
+    return () => clearTimeout(timer);  // Cleanup the timeout when the component unmounts or the effect re-runs
   }, [localError]); // Ensure the effect runs only when the graph is rendered and localError is available
 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
@@ -200,12 +176,12 @@ function LocalError({ expressionId }: { expressionId: number }) {
         <Point values={selectedPointValue}/>
       </div>
       <div className="local-error-graph" onClick={handleNodeClick}>
-        <Tooltip id="node-tooltip" place="top">
-        </Tooltip>
+        
         {/* Always render the Mermaid graph, even if localError is not ready */}
         <Mermaid chart={localError ? localErrorTreeAsMermaidGraph(localError, 64) : ''} />
         {/* Tooltip with ID "mermaid-tooltip" */}
-        
+        <Tooltip id="node-tooltip" place="top">
+        </Tooltip>
         
       </div>
     </div>

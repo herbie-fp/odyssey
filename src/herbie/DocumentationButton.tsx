@@ -8,7 +8,7 @@ export const DocumentationButton = () => {
   };
 
   return (
-    <a onClick={handleButtonClick}>
+    <a onClick={handleButtonClick} style={{color: "var(--background-color)", fontFamily: "Ruda"}}>
       Documentation
     </a>
   );

@@ -20,6 +20,7 @@ import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
 import GitHubIssueButton from './GitHubIssueButton';
 import { DocumentationButton } from './DocumentationButton';
+import G from 'glob';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -535,16 +536,27 @@ function HerbieUIInner() {
     
   ];
 
+  function myHeader() {
+    return (
+      <div className="header" style={{ backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "5px 10px", alignItems: 'center'}}>
+        {/* removed header-top */}
+        <div className="app-name" onClick={() => setShowOverlay(true)}>
+          <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
+          Odyssey
+        </div>
+        <SpecComponent {...{ showOverlay, setShowOverlay }} />
+        <DocumentationButton />
+        <GitHubIssueButton />
+        <ServerStatusComponent />
+      </div>
+    )
+  }
+
   return (
     <div>
       {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
         <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
-          <div className="header">
-          {/* removed header-top */}
-          <div className="app-name">Odyssey</div>
-          <SpecComponent {...{showOverlay, setShowOverlay}} />
-          <ServerStatusComponent />
-        </div>
+          {myHeader()}
           <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '750px', gap: '7.5px', fontSize: '18.4px'} }>
             <SpecConfigComponent />
           </div>
@@ -552,22 +564,12 @@ function HerbieUIInner() {
       }
       {!showOverlay &&
         <div className="grid-container">
-          <div className="header">
-            {/* removed header-top */}
-            <div className="app-name">Odyssey</div>
-            <SpecComponent {...{ showOverlay, setShowOverlay }} />
-            <ServerStatusComponent />
-          </div>
+          {myHeader()}
         
           <ExpressionTable />
           <div className="visualizations">
             <SelectableVisualization components={components} />
             <SelectableVisualization components={components2} />
-          </div>
-
-          <div className="help-buttons" >
-            <DocumentationButton />
-            <GitHubIssueButton />
           </div>
 
         </div>

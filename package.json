@@ -35,6 +35,8 @@
     "start": "node server.js"
   },
   "devDependencies": {
+    "@types/d3-brush": "^3.0.6",
+    "@types/d3-selection": "^3.0.10",
     "@types/glob": "^8.1.0",
     "@types/katex": "^0.16.0",
     "@types/mathjs": "^9.4.2",

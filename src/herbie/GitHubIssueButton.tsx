@@ -10,7 +10,9 @@ const GitHubIssueButton = () => {
   };
 
   return (
-    <a onClick={handleButtonClick}>
+    <a onClick={handleButtonClick} style={{
+      color: "var(--background-color)", fontFamily: "Ruda"
+    }}>
       Open GitHub Issue
     </a>
   );

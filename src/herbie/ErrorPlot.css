@@ -96,3 +96,11 @@ g[aria-label="y-axis label"] {
 .label-container:hover .copy {
   opacity: 1;
 }
+
+.unbrushed, rect.selection {
+  fill: #a6a6a6;
+}
+
+.highlight-line {
+  fill: none;
+}

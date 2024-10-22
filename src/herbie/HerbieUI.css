@@ -137,7 +137,7 @@ input[type="text"]:focus, select:focus {
   grid-template-areas:
     "header header"
     "visualizations expressions"
-    "help-buttons expressions";
+    "visualizations expressions";
   height: 100vh; 
   grid-template-rows: 30px 1fr 3em;
   grid-template-columns: 4fr 6fr; /*min(70%, 600px);*/
@@ -155,14 +155,13 @@ input[type="text"]:focus, select:focus {
   display:flex;
   grid-area: header; /*Place the header in the "header" grid area */
   justify-content: space-between; /* Align the components at the start and end of the header */
-  border-bottom: 4px solid #5e5e5f1a;
   .app-name {
+    cursor: pointer;
     display: flex;
     align-items: center;
     font-size: 1em;
     font-family: 'Ruda';
     font-weight: 500;
-    margin: 3px;
   }
 
   .serverStatus {
@@ -170,7 +169,6 @@ input[type="text"]:focus, select:focus {
     justify-content: flex-end;
     align-items: center;
     font-size: 1em;
-    margin: 3px;
     font-family: 'Ruda';
   }
 }

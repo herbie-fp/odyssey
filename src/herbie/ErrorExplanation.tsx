@@ -10,8 +10,8 @@ import Mermaid from './LocalError/Mermaid';
 function localErrorTreeAsMermaidGraph(
   tree: types.LocalErrorTree,
   bits: number,
-  currentLocation: Array<number>,
-  targetLocation: Array<number>
+  currentLocation: Array<number>,  // Adjusted to match the structure [[1], [1,1]]
+  targetLocation: Array<number>    // Adjusted to match the structure [[1], [1,1]]
 ) {
   let edges = [] as string[];
   let colors = {} as Record<string, string>;
@@ -28,24 +28,34 @@ function localErrorTreeAsMermaidGraph(
     const name = n['e'];
     const children = n['children'];
     const avg_error = n['avg-error'];
-
+  
     const id = 'N' + counter++;
     const nodeName = formatName(id, name, avg_error);
-
+  
+    console.log("target", targetLocation);
+    console.log("current:", currentLoc);
+  
+    // Check if the current location matches the target location
+    if (locationsMatch(currentLoc, targetLocation)) {
+      console.log(`Setting color to red for node at location: ${currentLoc}`);
+      colors[id] = 'ff0000';  // Set the color to red for matching location
+    }
+  
+    // Iterate through the children of the current node
     for (const [index, child] of children.entries()) {
-      const childLocation = [...currentLoc, index + 1];
-
-      if (locationsMatch(childLocation, targetLocation)) {
-        console.log(`Setting color to red for node at location: ${childLocation}`);
-        colors[id] = 'ff0000';
-      }
-
+      // Append the current index to the current location array, starting from [1] for each child
+      const childLocation = [...currentLoc, index + 1]; // Simply append index + 1 to the currentLoc array
+  
+      // Recursive call for the child node
       const cName = loop(child, childLocation);
+  
+      // Push the connection between the child node and the current node
       edges.push(cName + ' --> ' + nodeName);
     }
-
-    return nodeName;
+  
+    return nodeName;  // Return the formatted name of the current node
   }
+  
 
   loop(tree, currentLocation);
 
@@ -104,20 +114,23 @@ function ErrorExplanation({ expressionId }: { expressionId: number }){
   return (
     <div>
       {errorResponse && errorResponse.explanation.length > 0 ? (
-        <div>
-          <p>Operator: {errorResponse.explanation[0][0]}</p>
-          <p>Expression: {errorResponse.explanation[0][1]}</p>
-          <p>Type: {errorResponse.explanation[0][2]}</p>
-          <p>Occurrences: {errorResponse.explanation[0][3]}</p>
-          <p>Errors: {errorResponse.explanation[0][4]}</p>
-          <pre>Details: {JSON.stringify(errorResponse.explanation[0][5], null, 2)}</pre>
-        </div>
+        // <><div>
+        //   <p>Operator: {errorResponse.explanation[0][0]}</p>
+        //   <p>Expression: {errorResponse.explanation[0][1]}</p>
+        //   <p>Type: {errorResponse.explanation[0][2]}</p>
+        //   <p>Occurrences: {errorResponse.explanation[0][3]}</p>
+        //   <p>Errors: {errorResponse.explanation[0][4]}</p>
+        //   <pre>Details: {JSON.stringify(errorResponse.explanation[0][5], null, 2)}</pre>
+        // </div>
+        <div className="local-error-graph">
+            <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], errorResponse.explanation[0][6][0])} />
+          </div>
       ) : (
-        <p>No explanation available.</p>
+        <><p>No explanation available.</p><div className="local-error-graph">
+            <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], [-1])} />
+          </div></>
       )}
-      <div className="local-error-graph">
-        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], [1])} />
-      </div>
+      
     </div>
   );
 };

@@ -31,8 +31,9 @@
 * [ ] Run `./install.sh` to install npm dependencies and put FPTaylor and FPBench binaries in the current directory.
 
 ### Setting up the FPTaylor and FPBench servers
-* [ ] Copy `fptaylor-server.service` and `fpbench-server.service` to the `/etc/systemd/system/` directory and edit the lines marked \*UPDATE\* to set the correct WorkingDirectory (this directory) and the User you want to run the servers as.
+* [ ] Copy `fptaylor-server.service.example` and `fpbench-server.service.example` to `fptaylor-server.service` and `fpbench-server.service` and edit the lines marked \*UPDATE\* to set the correct WorkingDirectory (this directory) and the User you want to run the servers as.
 * [ ] Configure the ports in the ExecStart property in the service files if you want to use different ports.
+* [ ] TODO add documentation -- use systemctl to add the new service files
 * [ ] Run `systemctl daemon-reload` to recognize the new services.
 * [ ] Run `systemctl start fptaylor-server` and `systemctl start fpbench-server` to start the servers. You can check the status with `systemctl status fptaylor-server` and `systemctl status fpbench-server`.
 * [ ] Run `systemctl enable fptaylor-server` and `systemctl enable fpbench-server` to start the servers on boot.

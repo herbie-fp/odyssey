@@ -1,7 +1,7 @@
 # Adding Component To Odyssey Documentation
 
 ## Creating a branch
-To avoid breaking functionality on the main branch, it is best practice to develop on a separate branch, ideally named something descriptive (the name of your component is a good choice for this).
+To avoid breaking functionality on the main branch, it is best practice to [develop on a separate branch](https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging), ideally named something descriptive (the name of your component is a good choice for this).
 
 ## Creating the new component file
 The standard naming scheme for components is as follows:

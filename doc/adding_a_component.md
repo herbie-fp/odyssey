@@ -1,7 +1,7 @@
 # Adding Component To Odyssey Documentation
 This documentation assumes that you have the repo set up locally, that you have installed all necessary dependencies, and that you can compile, build, and then run Odyssey on your local machine.
 
-The codebase makes heavy use of [React](https://react.dev/), which you should be familiar with before constructing a component. There exist tutorials [for more modern React)](https://react.dev/learn) as well as [this older React tutorial](
+The codebase makes heavy use of [React](https://react.dev/), which you should be familiar with before constructing a component. There exist tutorials [for more modern React](https://react.dev/learn) as well as [this older React tutorial](
 https://legacy.reactjs.org/tutorial/tutorial.html).
 
 TypeScript is the language of choice for this codebase. It features a fairly powerful [type system](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html) that you should be familiar with.

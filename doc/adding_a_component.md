@@ -20,9 +20,11 @@ import * as contexts from './HerbieContext';
 import './YourComponent.css'; // If you have a CSS file associated with the component
 // Other local imports (Herbie types, Contexts, etc) will go here
 
-// If you have any external parameters that should be passed in to the component,
+// If you have any external parameters that should be passed in to the component
+// (these will be any props passed in from the parent component, and follow
+// standard TypeScript [type annotations](https://www.tutorialsteacher.com/typescript/type-annotation)
 // this should be defined in the next line to be passed into the function.
-const YourComponent = ({ externalParameter }: { externalParameter: number }) => {
+const YourComponent = ({ yourExternalParameter }: { yourExternalParameter: typeOfExternalParameter }) => {
   // Set up your global contexts at the beginning
   // If you need any global Odyssey state, this will come in the form of Contexts
   // (more on that later in the Contexts section)
@@ -100,7 +102,7 @@ import * as contexts from './HerbieContext';
 to your component, which will then allow you to work with React hooks for any context as follows:
 
 ```
-  const [sampleContext, setSampleContext] = contexts.useGlobal(contexts.SampleContext)
+const [sampleContext, setSampleContext] = contexts.useGlobal(contexts.SampleContext)
 ```
 
 which will then allow you to work with that state like any other React state.

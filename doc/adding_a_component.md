@@ -1,4 +1,5 @@
 # Adding Component To Odyssey Documentation
+This documentation assumes that you have the repo set up locally, that you have installed all necessary dependencies, and that you can compile, build, and then run Odyssey on your local machine.
 
 ## Creating a branch
 To avoid breaking functionality on the main branch, you should [develop on a separate branch](https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging), ideally named something descriptive related to the functionality you're implementing (the name of your component is a good choice for this).

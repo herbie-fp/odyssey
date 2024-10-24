@@ -12,6 +12,7 @@ import { FPTaylorComponent } from './FPTaylorComponent';
 import ExpressionExport from './ExpressionExport';
 import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';
+import { GPU_FPX } from './GPU_FPX';
 
 import { addJobRecorder } from './HerbieUI';
 
@@ -288,7 +289,8 @@ function ExpressionTable() {
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
-                // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
+                // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />},
+                { value: 'GPU_FPX', label: 'Find NANs', component: <GPU_FPX expressionId={expression.id} /> }
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>

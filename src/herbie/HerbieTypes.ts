@@ -79,6 +79,12 @@ export class SpecRange {
   }
 }
 
+export class GPU_FPXExpression {
+  constructor(public readonly cudaExpression: string) {
+    this.cudaExpression = cudaExpression;
+  }
+}
+
 /**
  * the error of an expression
  */

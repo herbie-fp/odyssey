@@ -1,7 +1,7 @@
 # Adding Component To Odyssey Documentation
 
 ## Creating a branch
-To avoid breaking functionality on the main branch, it is best practice to [develop on a separate branch](https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging), ideally named something descriptive (the name of your component is a good choice for this).
+To avoid breaking functionality on the main branch, you should [develop on a separate branch](https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging), ideally named something descriptive related to the functionality you're implementing (the name of your component is a good choice for this).
 
 ## Creating the new component file
 The standard naming scheme for components is as follows:
@@ -13,8 +13,12 @@ Your component will almost certainly be a child component of one of the pre-exis
 
 - `ExpressionTable.tsx`, which is the component to render the table of expressions on the right half of Odyssey, and which contains child components that have interactions with individual expressions, such as the Derivation component (which shows the derivation of a particular expression) or the Local Error component (which shows localized error for the individual parts of an expression)
 
+- `SelectableVisualization.tsx`, which is the component to render the various visualizations on the left half of Odyssey, and which contains a drop-down menu from which the user can choose multiple different visualizations.
+
+It is possible for the same component to be reused in multiple locations, and thus have multiple parent components - in that case, it should be added in each location where the component should appear.
+
 ## Adding a component to the ExpressionTable
-If your component has the ExpressionTable as a parent component, navigate to `ExpressionTable.tsx` and find the HTML element `<div className="expressions-actual">` under the returned HTML element. Under this component, you should see the following:
+If your component has the ExpressionTable as a parent component, navigate to `ExpressionTable.tsx` and find the HTML element `<div className="expressions-actual">` under the returned HTML element. Under this component, you should see something like the following (as of October 2024):
 
 ```
 const components = [
@@ -28,6 +32,19 @@ const components = [
 ```
 
 which contains all of the components rendered as part of the Expression Table's rows. Add an import for your component at the top of the `ExpressionTable.tsx` file, and then you should be able to add your component here and have it rendered per row of the Expression Table. Make sure to pass in the expressionId, which your child component will then be able to call upon for any logic involving a particular expression.
+
+## Adding a component to the SelectableVisualization
+If your component has the SelectableVisualization as a parent component, navigate to `HerbieUI.tsx` and find the HTML element <SelectableVisualization>. The element in question should have a `components`, defined in the same file as something like (as of October 2024):
+
+```
+const components = [
+  { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
+  { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
+  { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
+];
+```
+
+which contains all of the components rendered as part of the Selectable Visualization. Add an import for your component at the top of the `HerbieUI.tsx` file, and then you should be able to add your component here and have it rendered as an option in the Selectable Visualization. 
 
 ## Global state and contexts
 You may find that your component requires access to some of the global state shared across all of Odyssey. This state is almost always contained within a [Context](https://react.dev/learn/passing-data-deeply-with-context) from `HerbieContext.ts`.

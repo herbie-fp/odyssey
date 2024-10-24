@@ -8,6 +8,39 @@ The standard naming scheme for components is as follows:
 
 You need to create a new file called `<YourComponentName>.tsx` within the `Odyssey/src/herbie` directory. This file will contain all of the logic for the React component you're looking to add. Optionally, you can also create a `<YourComponentName>.css` file for any CSS styling your component might need.
 
+## A basic template
+The following is a basic template for a skeleton React component:
+
+```
+// External imports (libraries, etc.) will go here
+
+import * as contexts from './HerbieContext';
+import './YourComponent.css'; // If you have a CSS file associated with the component
+// Other local imports (Herbie types, Contexts, etc) will go here
+
+const YourComponent = ({ expressionId }: { expressionId: number }) => {
+  // Set up your global contexts at the beginning
+  const [someContext, setSomeContext] = contexts.useGlobal(contexts.SomeContext)
+
+  // Functions for logic relating to the component go here
+  function someFunction() {
+    // do something here
+  }
+
+  const otherFunction = (parameter: number) => {
+    // do something else here
+  }
+
+  return (
+    <div>
+      <p>Your component's child components will go here.</p>
+    </div>
+  );
+};
+
+export { YourComponent };
+```
+
 ## Identifying the parent component
 Your component will almost certainly be a child component of one of the pre-existing components in the codebase. The next step here is to identify which component this is. Some common parent components are:
 

@@ -24,7 +24,10 @@ import './YourComponent.css'; // If you have a CSS file associated with the comp
 // this should be defined in the next line to be passed into the function.
 const YourComponent = ({ externalParameter }: { externalParameter: number }) => {
   // Set up your global contexts at the beginning
-  const [someContext, setSomeContext] = contexts.useGlobal(contexts.SomeContext)
+  // If you need any global Odyssey state, this will come in the form of Contexts
+  // (more on that later in the Contexts section)
+  // Using contexts will look something like this:
+  // const [someContext, setSomeContext] = contexts.useGlobal(contexts.SomeContext)
 
   // Functions for logic relating to the component go here
   function someFunction() {

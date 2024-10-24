@@ -13,12 +13,14 @@ The following is a basic template for a skeleton React component (this will go i
 
 ```
 // External imports (libraries, etc.) will go here
+import React from 'react';
 
 import * as contexts from './HerbieContext';
 import './YourComponent.css'; // If you have a CSS file associated with the component
 // Other local imports (Herbie types, Contexts, etc) will go here
 
-const YourComponent = ({ expressionId }: { expressionId: number }) => {
+// If you have any external parameters that should be passed in to the component, the should be defined in the next line to be passed into the function.
+const YourComponent = ({ externalParameter }: { externalParameter: number }) => {
   // Set up your global contexts at the beginning
   const [someContext, setSomeContext] = contexts.useGlobal(contexts.SomeContext)
 

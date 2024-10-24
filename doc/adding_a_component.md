@@ -22,9 +22,9 @@ import './YourComponent.css'; // If you have a CSS file associated with the comp
 
 // If you have any external parameters that should be passed in to the component
 // (these will be any props passed in from the parent component, and follow
-// standard TypeScript [type annotations](https://www.tutorialsteacher.com/typescript/type-annotation)
+// standard TypeScript type annotations (https://www.tutorialsteacher.com/typescript/type-annotation)
 // this should be defined in the next line to be passed into the function.
-const YourComponent = ({ yourExternalParameter }: { yourExternalParameter: typeOfExternalParameter }) => {
+const YourComponent = ({ yourProp }: { yourProp: typeOfYourProp }) => {
   // Set up your global contexts at the beginning
   // If you need any global Odyssey state, this will come in the form of Contexts
   // (more on that later in the Contexts section)
@@ -73,7 +73,7 @@ const components = [
 ];
 ```
 
-which contains all of the components rendered as part of the Expression Table's rows. Add an import for your component at the top of the `ExpressionTable.tsx` file, and then you should be able to add your component here and have it rendered per row of the Expression Table. Make sure to pass in the expressionId, which your child component will then be able to call upon for any logic involving a particular expression.
+which contains all of the components rendered as part of the Expression Table's rows. Add an import for your component at the top of the `ExpressionTable.tsx` file, and then you should be able to add your component here and have it rendered per row of the Expression Table. Make sure to pass in the expressionId, which your child component will then be able to call upon for any logic involving a particular expression, and include this as an [prop](https://legacy.reactjs.org/docs/components-and-props.html) that can be passed in in your component.
 
 **Importantly**, note that the ExpressionTable will then pass all of these components into a SelectableVisualization component (not to be confused with the left-side SelectableVisualization) - this component corresponds to the individual dropdowns available for each expression on the **right half** of Odyssey, not the single selectable visualization on the left half of Odyssey.
 

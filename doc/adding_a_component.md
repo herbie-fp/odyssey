@@ -20,7 +20,8 @@ import * as contexts from './HerbieContext';
 import './YourComponent.css'; // If you have a CSS file associated with the component
 // Other local imports (Herbie types, Contexts, etc) will go here
 
-// If you have any external parameters that should be passed in to the component, the should be defined in the next line to be passed into the function.
+// If you have any external parameters that should be passed in to the component,
+// this should be defined in the next line to be passed into the function.
 const YourComponent = ({ externalParameter }: { externalParameter: number }) => {
   // Set up your global contexts at the beginning
   const [someContext, setSomeContext] = contexts.useGlobal(contexts.SomeContext)

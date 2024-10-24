@@ -9,7 +9,7 @@ The standard naming scheme for components is as follows:
 You need to create a new file called `<YourComponentName>.tsx` within the `Odyssey/src/herbie` directory. This file will contain all of the logic for the React component you're looking to add. Optionally, you can also create a `<YourComponentName>.css` file for any CSS styling your component might need.
 
 ## A basic template
-The following is a basic template for a skeleton React component:
+The following is a basic template for a skeleton React component (this will go in your tsx file you just created):
 
 ```
 // External imports (libraries, etc.) will go here

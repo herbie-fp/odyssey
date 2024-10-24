@@ -50,9 +50,9 @@ Your component will almost certainly be a child component of one of the pre-exis
 
 - `ExpressionTable.tsx`, which is the component to render the table of expressions on the right half of Odyssey, and which contains child components that have interactions with individual expressions, such as the Derivation component (which shows the derivation of a particular expression) or the Local Error component (which shows localized error for the individual parts of an expression)
 
-- `SelectableVisualization.tsx`, which is the component to render the various visualizations on the left half of Odyssey, and which contains a drop-down menu from which the user can choose multiple different visualizations.
+- Left-side global `SelectableVisualization.tsx`, which is the component to render the various visualizations on the left half of Odyssey, and which contains a drop-down menu from which the user can choose multiple different visualizations.
 
-It is possible for the same component to be reused in multiple locations, and thus have multiple parent components - in that case, it should be added in each location where the component should appear.
+It is possible for the same component to be reused in multiple locations, and thus have multiple parent components - in that case, it should be added in each location where the component should appear. This also makes it very flexible to modify the location of the component.
 
 ## Adding a component to the ExpressionTable
 If your component has the ExpressionTable as a parent component, navigate to `ExpressionTable.tsx` and find the HTML element `<div className="expressions-actual">` under the returned HTML element. Under this component, you should see something like the following (as of October 2024):
@@ -70,8 +70,10 @@ const components = [
 
 which contains all of the components rendered as part of the Expression Table's rows. Add an import for your component at the top of the `ExpressionTable.tsx` file, and then you should be able to add your component here and have it rendered per row of the Expression Table. Make sure to pass in the expressionId, which your child component will then be able to call upon for any logic involving a particular expression.
 
-## Adding a component to the SelectableVisualization
-If your component has the SelectableVisualization as a parent component, navigate to `HerbieUI.tsx` and find the HTML element <SelectableVisualization>. The element in question should have a `components`, defined in the same file as something like (as of October 2024):
+**Importantly**, note that the ExpressionTable will then pass all of these components into a SelectableVisualization component (not to be confused with the left-side SelectableVisualization) - this component corresponds to the individual dropdowns available for each expression on the **right half** of Odyssey, not the single selectable visualization on the left half of Odyssey.
+
+## Adding a component to the Left-Side SelectableVisualization
+If your component has the left-side SelectableVisualization as a parent component, navigate to `HerbieUI.tsx` and find the HTML element <SelectableVisualization>. The element in question should have a `components`, defined in the same file as something like (as of October 2024):
 
 ```
 const components = [

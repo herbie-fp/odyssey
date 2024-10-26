@@ -8,7 +8,7 @@ interface ExpressionExportProps {
 }
 
 const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
-    const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
+    const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js", "CUDA"];
 
     // Export the expression to a language of the user's choice
     const [expressions] = Contexts.useGlobal(Contexts.ExpressionsContext);

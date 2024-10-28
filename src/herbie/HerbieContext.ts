@@ -86,7 +86,7 @@ export const FPTaylorRangeContext = makeGlobal([] as types.FPTaylorRange[])
 export const InputRangesTableContext = makeGlobal([] as (types.InputRanges | types.RangeInSpecFPCore) [])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
-export const GPU_FPXContext = makeGlobal([] as types.GPU_FPXExpression[])
+export const gpuFpxSelected = makeGlobal(false);
 
 type jobCountAction = { type: 'increment' } | { type: 'decrement' }
 function jobCountReducer(jobCount: number, action : jobCountAction ) {

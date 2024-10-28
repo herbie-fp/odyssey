@@ -8,12 +8,11 @@ interface ExpressionExportProps {
 }
 
 const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
-    const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js", "CUDA"];
+    const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js", "cuda"];
 
     // Export the expression to a language of the user's choice
     const [expressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
     const [serverUrl] = Contexts.useGlobal(Contexts.ServerContext);
-
     // Get the expression text
     const expressionText = expressions.find(expr => expr.id === expressionId.expressionId);
     if (expressionText == null) {
@@ -23,6 +22,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     const [language, setLanguage] = useState(supportedLanguages[0]);
     const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const gpuFpxSelected = Contexts.useGlobal(Contexts.gpuFpxSelected);
 
     // Make server call to get translation when user submits
     const translateExpression = async () => {

@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import * as contexts from './HerbieContext';
 import './GPU_FPX.css';
+import './ExpressionExport';
+import { ExpressionExportResponse } from './lib/herbiejs';
 
 // Other local imports (Herbie types, Contexts, etc) will go here
 
@@ -11,7 +13,8 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   //Get expressions
   const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
   const current_expression = expressions.find(expression => expression.id === expressionId);
-  
+  const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);
+  const [gpuFpxSelected] = contexts.useGlobal(contexts.gpuFpxSelected);
 
   // Convert to CUDA
   function someFunction() {
@@ -26,6 +29,11 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
     <div>
       <p>Current expression:</p>
       <p>{current_expression?.text}</p>
+
+      <p>Should run cuda translate and send to GPU-FPX Server?</p>
+      <p>
+        {gpuFpxSelected ? "yes" : "no"}
+      </p>
     </div>
   );
 };

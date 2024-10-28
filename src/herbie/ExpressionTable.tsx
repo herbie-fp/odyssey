@@ -148,7 +148,7 @@ function ExpressionTable() {
   //   return <div className="expression-table">Waiting for sampling...</div>
   // }
   const sample = samples.find((sample) => sample.id === selectedSampleId)
-  
+
   const handleAddExpression = () => {
     validateExpression(addExpression);
     const selectedId = nextId(expressions);
@@ -208,10 +208,10 @@ function ExpressionTable() {
       newDerivations.push(newDerivation);
     }
 
-    
+
     const path = suggested.path;
     setAlternativesJobResponse({ expressionId: newExpressions.map(expression => expression.id), path: path });
-    
+
     setExpressions([...newExpressions, ...expressions]);
     setDerivations([...newDerivations, ...derivations]);
     setCompareExprIds([...compareExprIds, ...newExpressions.map(e => e.id)]);
@@ -268,7 +268,7 @@ function ExpressionTable() {
           {activeExpressions.map((id) => {
             const expression = expressions.find((expression) => expression.id === id) as Expression;
             const isChecked = compareExprIds.includes(expression.id);
-            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;  
+            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
             const analysisResult =
               !analysisData
                 ? undefined
@@ -318,7 +318,7 @@ function ExpressionTable() {
                       })()
                         }} />
                     :
-                    <div className="expression-text"  >
+                    <div className="expression-text" id={`` + expression.id}>
                       {expression.text}
                     </div>
                     }
@@ -326,11 +326,11 @@ function ExpressionTable() {
                         <a className="copy-anchor">⧉</a>
                       </div>
                     </div>
-                  <div className="analysis">
+                  <div className="analysis" id={`` + expression.id}>
                     {/* TODO: Not To hardcode number of bits*/}
                     {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
                   </div>
-                  <div className="speedup">
+                  <div className="speedup" id={`` + expression.id}>
                     {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
                   </div>
                   <div className="herbie">
@@ -341,12 +341,12 @@ function ExpressionTable() {
 
 
                   <div className="delete">
-                    <button onClick={() =>{ 
+                    <button onClick={() =>{
                       setArchivedExpressions([...archivedExpressions, expression.id]);
                       const activeExp = activeExpressions.filter(id => id !== expression.id);
                       if (activeExp.length > 0) {
                         setSelectedExprId(activeExp[0]);
-                      } 
+                      }
                       }}>
                     ╳
                     </button>
@@ -354,7 +354,7 @@ function ExpressionTable() {
                 </div>
                 {expandedExpressions.includes(expression.id) && (
                   <div className="dropdown" onClick={() => handleExpressionClick(expression.id)}>
-                    
+
                     <SelectableVisualization components={components} />
                   </div>
                 )}

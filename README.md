@@ -3,7 +3,7 @@
 
 Odyssey is a tool for interactively rewriting numerical expressions to reduce floating-point error.
 
-<img src="doc/overview.gif" width=600/>
+<img src="doc/images/overview.gif" width=600/>
 <br>
 <br>
 
@@ -20,26 +20,26 @@ Odyssey is a tool for interactively rewriting numerical expressions to reduce fl
 
 Odyssey displays the *local error* of expressions. Local error shows how different subexpressions contribute to the total error for an input.
 
-<img src="doc/local_error.gif" width=600/>
+<img src="doc/images/local_error.gif" width=600/>
 <br>
 <br>
 
 Odyssey generates rewriting suggestions with the state-of-the-art [Herbie](https://herbie.uwplse.org/demo/) floating-point expression rewriting tool.
 
-<img src="doc/ask_herbie.gif" width=600/>
+<img src="doc/images/ask_herbie.gif" width=600/>
 <br>
 <br>
 
 Derivations of Herbie's rewrites are also available.
 
-<img src="doc/derivation.gif" width=600/>
+<img src="doc/images/derivation.gif" width=600/>
 <br>
 <br>
 
 The sample range of the expression can be adjusted to fit your use case.
 
 <!-- TODO gif of Odyssey showing adjusting the sample range for sqrt(x + 1) - sqrt(x) -->
-<img src="doc/resample.gif" width=600/>
+<img src="doc/images/resample.gif" width=600/>
 <br>
 <br>
 

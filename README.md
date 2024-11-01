@@ -150,3 +150,12 @@ This extension contributes the following settings:
 Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
 
 * [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+
+-->
+
+## Acknowledgements
+
+This work is supported by the U.S. Department of Energy, Office of Science,
+Office of Advanced Scientific Computing Research, ComPort: Rigorous Testing
+Methods to Safeguard Software Porting, under Award Number DE-SC0022081.
+

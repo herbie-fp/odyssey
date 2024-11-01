@@ -17,7 +17,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
   function formatName(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
-    const tooltipContent = `'Correct R : ${exact_err} Approx F : ${approx_value} Error R - F : ${true_error} ULPs Error : ${ulps_error}'`;
+    const tooltipContent = `'Correct R : ${exact_err} Approx F : ${approx_value} Absolute Error R - F : ${true_error} ULPs Error : ${ulps_error}'`;
     return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-content=' + tooltipContent + '>' + name + '</span>]'
   }
 
@@ -26,13 +26,13 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const children = n['children']
     const avg_error = n['avg-error']
     const exact_value = n['exact-value']
-    const approx_value = n['approx-value']
-    const true_error = n['true-error-value']
+    const approx_value = n['actual-value']
+    const absolute_error = n['absolute-error']
     const ulps = n['ulps-error']
 
     // node name
     const id = 'N' + counter++
-    const nodeName = formatName(id, name, exact_value,approx_value, true_error, ulps)
+    const nodeName = formatName(id, name, exact_value,approx_value, absolute_error, ulps)
 
     // descend through AST
     for (const c in children) {
@@ -54,10 +54,10 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   if (isLeaf(tree)) {
     const name = tree['e']
     const exact_value = tree['exact-value']
-    const approx_value = tree['approx-value']
-    const true_error = tree['true-error-value']
+    const approx_value = tree['actual-value']
+    const absolute_error = tree['absolute-error']
     const ulps = tree['ulps-error']
-    edges.push(formatName('N0', name, exact_value,approx_value, true_error, ulps))
+    edges.push(formatName('N0', name, exact_value,approx_value, absolute_error, ulps))
   }
 
   // List colors

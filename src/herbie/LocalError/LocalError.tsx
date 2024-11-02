@@ -17,8 +17,8 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
   function formatName(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
-    const tooltipContent = `'Correct R : ${exact_err} Approx F : ${approx_value} Error R - F : ${true_error} ULPs Error : ${ulps_error}'`;
-    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-content=' + tooltipContent + '>' + name + '</span>]'
+    const tooltipContent = `'Correct R : ${exact_err} <br /> Approx F : ${approx_value} <br /> Error R - F : ${true_error} <br /> ULPs Error : ${ulps_error}'`;
+    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
   }
 
   function loop(n : types.LocalErrorTree) {

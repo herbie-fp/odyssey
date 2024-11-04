@@ -198,10 +198,10 @@ function SpecConfigComponent() {
 
   return <>
     <div className="spec-overlay-logo" style={{alignSelf: 'center', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '1em', marginTop: '1em', marginBottom: '1em'}}>
-      <div>Odyssey: Explore Floating-Point Error</div>
       <div>
-        <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" alt="Odyssey logo" style={{}} />
+        <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" alt="Odyssey logo" style={{width:'100px'}} />
       </div>
+      <div>Explore Floating-Point Error</div>
     </div>
     <div className="spec-overlay-header">
       Write a formula below to explore it with Odyssey. Enter approximate ranges for inputs.

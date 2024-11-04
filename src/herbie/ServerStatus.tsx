@@ -93,8 +93,8 @@ function ServerStatusComponent() {
   // Show job count if there are jobs pending
   const statusText = jobCount > 0 ? `Jobs: ${jobCount}` : status ? 'Connected' : 'No Server'
 
-  const connectedFill = '#1ab01a';
-  const connectedStroke = '#1ab31a';
+  const connectedFill = '#8ff51b';
+  const connectedStroke = '#8ff51b';
 
   const statusColor = statusClass === 'pending' ? 'orange' : status ? connectedFill : 'none';
 

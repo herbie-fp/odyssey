@@ -13,7 +13,7 @@ const GitHubIssueButton = () => {
     <a onClick={handleButtonClick} style={{
       color: "var(--background-color)", fontFamily: "Ruda"
     }}>
-      Open GitHub Issue
+      Issues
     </a>
   );
 };

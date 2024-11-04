@@ -104,8 +104,8 @@ export interface LocalErrorTree {
   'ulps-error': string
   'avg-error': string
   'exact-value': string
-  'approx-value': string
-  'true-error-value': string
+  'actual-value': string
+  'absolute-error': string
 }
 
 export class AverageLocalErrorAnalysis {

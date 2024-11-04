@@ -17,8 +17,8 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
   function formatName(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
-    const tooltipContent = `'Correct R : ${exact_err} Approx F : ${approx_value} Error R - F : ${true_error} ULPs Error : ${ulps_error}'`;
-    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-content=' + tooltipContent + '>' + name + '</span>]'
+    const tooltipContent = `'Correct R : ${exact_err} <br /> Approx F : ${approx_value} <br /> Error R - F : ${true_error} <br /> ULPs Error : ${ulps_error}'`;
+    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
   }
 
   function loop(n : types.LocalErrorTree) {
@@ -26,8 +26,8 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     const children = n['children']
     const avg_error = n['avg-error']
     const exact_value = n['exact-value']
-    const approx_value = n['approx-value']
-    const true_error = n['true-error-value']
+    const approx_value = n['actual-value']
+    const true_error = n['absolute-error']
     const ulps = n['ulps-error']
 
     // node name
@@ -54,9 +54,10 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   if (isLeaf(tree)) {
     const name = tree['e']
     const exact_value = tree['exact-value']
-    const approx_value = tree['approx-value']
-    const true_error = tree['true-error-value']
+    const approx_value = tree['actual-value']
+    const true_error = tree['absolute-error']
     const ulps = tree['ulps-error']
+
     edges.push(formatName('N0', name, exact_value,approx_value, true_error, ulps))
   }
 

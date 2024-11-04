@@ -1,0 +1,2 @@
+trueSpec,trueAnalysis,trueSpeedup
+sqrt(x+1) - sqrt(x),53.3%,1.0x

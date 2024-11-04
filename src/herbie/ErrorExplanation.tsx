@@ -6,12 +6,14 @@ import * as types from './HerbieTypes';
 import { analyzeErrorExpression} from './lib/herbiejs';
 import{ErrorExpressionResponse, } from './HerbieTypes'
 import Mermaid from './LocalError/Mermaid';
+import { Tooltip } from "react-tooltip";
 
 function localErrorTreeAsMermaidGraph(
   tree: types.LocalErrorTree,
   bits: number,
   currentLocation: Array<number>,  // Adjusted to match the structure [[1], [1,1]]
-  targetLocation: Array<number>    // Adjusted to match the structure [[1], [1,1]]
+  targetLocation: Array<number> ,   // Adjusted to match the structure [[1], [1,1]]
+  explanation: string
 ) {
   let edges = [] as string[];
   let colors = {} as Record<string, string>;
@@ -20,6 +22,11 @@ function localErrorTreeAsMermaidGraph(
   const isLeaf = (n: types.LocalErrorTree) => n['children'].length === 0;
   const formatName = (id: string, name: string, err: string) =>
     id + '[<span class=nodeLocalError title=' + err + '>' + name + '</span>]';
+
+  function tooltipHelp(id: string, name: string, err: string) {
+    const tooltipContent = `'Error: ${explanation}'`;
+    return id + '[<span class=nodeErrorExp data-tooltip-id=node-tooltip data-tooltip-content=' + tooltipContent + '>' + name + '</span>]'
+  }
 
   const locationsMatch = (loc1: Array<number>, loc2: Array<number>) =>
     JSON.stringify(loc1) === JSON.stringify(loc2);
@@ -30,15 +37,13 @@ function localErrorTreeAsMermaidGraph(
     const avg_error = n['avg-error'];
   
     const id = 'N' + counter++;
-    const nodeName = formatName(id, name, avg_error);
-  
-    console.log("target", targetLocation);
-    console.log("current:", currentLoc);
-  
+    let nodeName = "";
     // Check if the current location matches the target location
     if (locationsMatch(currentLoc, targetLocation)) {
-      console.log(`Setting color to red for node at location: ${currentLoc}`);
+      nodeName = tooltipHelp(id, name, avg_error);
       colors[id] = 'ff0000';  // Set the color to red for matching location
+    }else{
+      nodeName = formatName(id, name, avg_error);
     }
   
     // Iterate through the children of the current node
@@ -87,7 +92,6 @@ function ErrorExplanation({ expressionId }: { expressionId: number }){
 
   const pointLocalError = selectedPointsLocalError.find(a => a.expressionId === expressionId)?.error;
   
-  console.log(selectedPointsErrorExp)
   const localError = selectedPoint && pointLocalError
     ? pointLocalError
     : averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === expressionId)?.errorTree;
@@ -95,10 +99,51 @@ function ErrorExplanation({ expressionId }: { expressionId: number }){
   
   // Use useEffect to update the errorResponse state
   useEffect(() => {
-    console.log(expressionId)
-    console.log(expressions[expressionId].text)
     const pointErrorExp = selectedPointsErrorExp.find(a => a.expressionId === expressionId)?.error;
     setErrorResponse(pointErrorExp || null); // If pointErrorExp is undefined, set null
+
+    const timer = setTimeout(() => {
+      const labels = document.querySelectorAll('.node[class*="flowchart-label"]');
+      console.log("in")
+      labels.forEach(label => {
+        const errorLabel = label.querySelector('.nodeErrorExp');
+        if (errorLabel) {
+          const labelGroup = label.querySelector('.label');
+          if (labelGroup) {
+            labelGroup.removeAttribute('transform');
+          }
+    
+          const parentNode = label.closest('.node');
+          if (!parentNode) return;
+    
+          const svgElement = parentNode as unknown as SVGGraphicsElement;
+          if (!svgElement.getBBox) {
+            console.error("getBBox is not available on the parentNode");
+            return;
+          }
+    
+          const bbox = svgElement.getBBox();
+    
+          const foreignObject = label.querySelector('foreignObject') as unknown as HTMLElement;
+          if (foreignObject) {
+            foreignObject.setAttribute('width', `${bbox.width}`);
+            foreignObject.setAttribute('height', `${bbox.height}`);
+            foreignObject.setAttribute('x', `${bbox.x}`);
+            foreignObject.setAttribute('y', `${bbox.y}`);
+    
+            const span = foreignObject.querySelector('.nodeErrorExp') as HTMLElement;
+            if (span) {
+              span.style.display = 'flex';
+              span.style.justifyContent = 'center';
+              span.style.alignItems = 'center';
+              span.style.textAlign = 'center';
+              span.style.width = `${bbox.width}px`;
+              span.style.height = `${bbox.height}px`;
+            }
+          }
+        }
+    });
+    }, 500);
   }, [selectedPointsErrorExp]);  // Run this effect whenever pointErrorExp changes
 
 
@@ -123,11 +168,14 @@ function ErrorExplanation({ expressionId }: { expressionId: number }){
         //   <pre>Details: {JSON.stringify(errorResponse.explanation[0][5], null, 2)}</pre>
         // </div>
         <div className="local-error-graph">
-            <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], errorResponse.explanation[0][6][0])} />
+            <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], errorResponse.explanation[0][6][0],errorResponse.explanation[0][2])} />
+            {/* Tooltip with ID "mermaid-tooltip" */}
+            <Tooltip id="node-tooltip" place="top">
+            </Tooltip>
           </div>
       ) : (
         <><p>No explanation available.</p><div className="local-error-graph">
-            <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], [-1])} />
+            <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], [-1],"None")} />
           </div></>
       )}
       

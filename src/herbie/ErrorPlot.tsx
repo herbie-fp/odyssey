@@ -446,7 +446,7 @@ function ErrorPlot() {
               // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach, will consider alternatives
               labelContainer.innerHTML = `
                 <rect class="selected-label" x=${xAdjusted - 70 + ""} y=${-27 + ""} height="22px"></rect>
-                <text x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
+                <text class="full-num-anchor" x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
                 <foreignObject x=${xAdjusted + 20 + ""} y=${-27 + ""} height="22px" width="22px">
                   <xhtml:div class="copy">
                     <xhtml:a class="copy-anchor">⧉</xhtml:a>
@@ -601,6 +601,10 @@ function ErrorPlot() {
             }
           }
         }} />
+        {/* Tooltip for full selected value on selected point label*/}
+        <Tooltip anchorSelect=".full-num-anchor" place="top" >
+          {selectedPoint ? selectedPoint[i] : ""}
+        </Tooltip>
         {/* Tooltip for deselect 'X' on selected point label*/}
         <Tooltip anchorSelect=".deselect" place="top" >
           Deselect

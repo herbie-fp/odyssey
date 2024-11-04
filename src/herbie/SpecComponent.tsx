@@ -207,7 +207,7 @@ function SpecConfigComponent() {
       Write a formula below to explore it with Odyssey. Enter approximate ranges for inputs.
     </div>
     <div>
-      <a className="showExample" href="#" onClick={handleShowExample}>Show an example</a>
+      <a className="showExample" href="#" onClick={handleShowExample}>Show an example expression</a>
       &nbsp;|&nbsp;
       <a className="useFPCoreOption" href="#" onClick={handleClickUseFPCore}>{usingFPCore ? `Use mathjs` : `Use FPCore`}</a>
     </div>

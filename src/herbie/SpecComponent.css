@@ -70,11 +70,12 @@
 }
 
 .spec-textarea {
-  width: 98%; /* Make the textarea as wide as the container */
+  width: 94%; /* Make the textarea as wide as the container */
   font-family: 'Ruda', sans-serif;
   font-size: 1em;
   font-weight: bold;
   /* height: 5em; */
+  align-self:center;
 }
 
 .varname {
@@ -111,6 +112,7 @@
 
 .spec-range-inputs {
   text-align: center;
+  margin-left:var(--left-indent);
 }
 
 .submit {
@@ -141,4 +143,13 @@
 }
 .function-list dd {
   margin-bottom: 7.5px;
+}
+
+.spec-page {
+  input, textarea {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius:8px;
+    font-size: smaller;
+  }
 }

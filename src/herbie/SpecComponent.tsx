@@ -204,7 +204,7 @@ function SpecConfigComponent() {
   }
 
   return (
-    <>
+    <div className="spec-page" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '750px', gap: '7.5px', fontSize: '18.4px'} }>
       <div
         className="spec-overlay-logo"
         style={{
@@ -230,7 +230,7 @@ function SpecConfigComponent() {
         Write a formula below. Enter approximate
         ranges for inputs.
       </div>
-      <div style={{
+      <div className="expression-input-header" style={{
           display: "flex",
           width: "100%",
         justifyContent: "space-between",
@@ -241,8 +241,6 @@ function SpecConfigComponent() {
         <a className="showExample action" href="javascript:;" onClick={handleShowExample}>
           Show an example expression
         </a>
-        {/* &nbsp;|&nbsp;
-      <a className="useFPCoreOption" href="#" onClick={handleClickUseFPCore}>{usingFPCore ? `Use mathjs` : `Use FPCore`}</a> */}
         {/* Use mathjs <=> Use FPCore toggle switch */}
         <div
           style={{
@@ -284,8 +282,6 @@ function SpecConfigComponent() {
         value={specTextInput}
         onChange={handleSpecTextUpdate}
       />
-      {/* </div> */}
-
       {spec.expression.length === 0 && ""}
 
       {/* Render the expression into HTML with KaTeX */}
@@ -299,7 +295,11 @@ function SpecConfigComponent() {
       )}
 
       {spec.expression.indexOf("FPCore") === -1 && (
-        <div className="spec-range-inputs">
+        <div className="spec-range-inputs" style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          marginLeft: '23px'}}>
           {variables.map((v, i) => {
             const range =
               mySpecRanges.find((r) => r.variable === v) ||
@@ -351,7 +351,14 @@ function SpecConfigComponent() {
       )}
 
       {!disabled && (
-        <button className="explore-button" onClick={handleSubmitClick}>
+        <button className="explore-button" style={{
+          alignSelf: 'flex-end',
+          padding: "10px 20px",
+          fontWeight: "bold",
+          borderRadius: "7px",
+          backgroundColor: "#a6e5eb",
+          border: 'none',
+        }} onClick={handleSubmitClick}>
           Explore
         </button>
       )}
@@ -395,7 +402,7 @@ function SpecConfigComponent() {
         Rigorous Testing Methods to Safeguard Software Porting, under Award
         Number DE-SC0022081.
       </div>
-    </>
+    </div>
   );
 }
 

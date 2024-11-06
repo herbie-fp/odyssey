@@ -263,14 +263,19 @@ export const displayNumber = (v: number) => {
   const s = v.toPrecision(1)
   const [base, exponent] = s.split('e')
   const digits = 4
+
   if (!exponent) {
-    return v.toPrecision(1) === v.toString() ? v.toPrecision(1) : v.toPrecision(digits)
+    const result = v.toPrecision(1) === v.toString() ? v.toPrecision(1) 
+      : parseFloat(v.toFixed(digits)) + ""
+    return result
   }
+
   if (Number(exponent) <= 1 && -1 <= Number(exponent)) {
     const a = v.toString()
     const b = v.toPrecision(digits)
     return a.length < b.length ? a : b
   }
+  
   const result = v.toPrecision(1)
   return result.startsWith('1e') ? result.slice(1) : result
 }

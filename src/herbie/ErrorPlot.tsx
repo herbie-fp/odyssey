@@ -447,7 +447,7 @@ function ErrorPlot() {
               labelContainer.innerHTML = `
                 <rect class="selected-label" x=${xAdjusted - 70 + ""} y=${-27 + ""} height="22px"></rect>
                 <text class="full-num-anchor" x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
-                <foreignObject x=${xAdjusted + 20 + ""} y=${-27 + ""} height="22px" width="22px">
+                <foreignObject x=${xAdjusted + 23 + ""} y=${-28 + ""} height="22px" width="22px">
                   <xhtml:div class="copy">
                     <xhtml:a class="copy-anchor">⧉</xhtml:a>
                   </xhtml:div>

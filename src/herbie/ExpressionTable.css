@@ -34,7 +34,7 @@
     height: 0;
 }
 
-.slider {
+/* .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -76,7 +76,7 @@
 
 .slider.round:before {
     border-radius: 50%;
-}
+} */
 
 /* flex container
   items float right

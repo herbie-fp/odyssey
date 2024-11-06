@@ -7,6 +7,7 @@
     --foreground-light: #a9a9a9;
     --highlight: #bcbcbc7d;
     --foreground-extreme: #000000;
+    --action-color: #3a00ff;
   }
 }
 @media (prefers-color-scheme: dark) {
@@ -245,6 +246,16 @@ a:hover {
 a {
   color: #2A6496;
   text-decoration: none;
+}
+
+a.action {
+  color: var(--action-color);
+  text-decoration: none;
+  font-weight: 450;
+}
+
+a.action:focus {
+  outline: none;
 }
 
 .katex {

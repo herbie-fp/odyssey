@@ -1,9 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Ruda:wght@400..900&display=swap');
 
-@media (prefers-color-scheme: light) {
+/* Use light mode in general; dark mode/VSCode-specific support is commented out below. */
+
+body {
+  --background-color:  #f5f5f5;
+  --foreground-color: #000000;/* #3c3b3b);*/
+  --foreground-light: #a9a9a9;
+  --highlight: #bcbcbc7d;
+  --foreground-extreme: #000000;
+  --action-color: #3a00ff;
+}
+
+:root {
+  --ui-color: #eeeeee;
+  --ui-hover-color: #dddddd;
+  --ui-focus-color: #dededebd;
+  --ui-pressed-color: #656565;
+  --foreground-deemphasize-color: gray;
+}
+
+/* @media (prefers-color-scheme: light) {
   body {
     --background-color: var(--vscode-editor-background, #f5f5f5);
-    --foreground-color: var(--vscode-editor-foreground, #000000);/* #3c3b3b);*/
+    --foreground-color: var(--vscode-editor-foreground, #000000);
     --foreground-light: #a9a9a9;
     --highlight: #bcbcbc7d;
     --foreground-extreme: #000000;
@@ -45,13 +64,12 @@
     --foreground-deemphasize-color: gray;
   }
 :root:has(.vscode-dark) {
-  /* invert the above colors */
   --ui-color: #313131;
   --ui-hover-color: #4b4b4b;
   --ui-focus-color: #1f1f1f;
   --ui-pressed-color: #a2a2a2;
   --foreground-deemphasize-color: gray;
-  }
+  } */
 
 body {
   color: var(--foreground-color);

@@ -379,7 +379,7 @@ function SpecConfigComponent() {
       )}
 
       {/* TODO this nesting p > dl is bad apparently, shows console error */}
-      <div className="mathjs-instructions" style={{ display: "block" }}>
+      <div className="mathjs-instructions" style={{ display: "block", alignSelf: 'center' }}>
         <div>
           Use ordinary mathematical syntax (parsed by{" "}
           <a href="https://mathjs.org">math.js</a>) and{" "}
@@ -410,7 +410,7 @@ function SpecConfigComponent() {
 
       <div
         className="acknowledgments"
-        style={{ fontSize: "small", marginTop: "2em" }}
+        style={{ fontSize: "small", marginTop: "2em", textAlign: 'center' }}
       >
         This work is supported by the U.S. Department of Energy, Office of
         Science, Office of Advanced Scientific Computing Research, ComPort:

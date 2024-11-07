@@ -43,7 +43,7 @@
   float: left;
   width: 220px;
   clear: left;
-  margin: 0 1em 0em 1em;
+  margin: 0 2em 0em 4em;
   font-family: "IBM Plex Mono", sans-serif;
   line-height: 1em;
 }
@@ -136,6 +136,7 @@
 
 .mathjs-instructions {
   margin-top: 2em;
+  font-size: smaller;
 }
 
 .function-list {

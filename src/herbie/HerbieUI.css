@@ -232,7 +232,7 @@ input[type="text"]:focus, select:focus {
 .grid-container > .visualizations {
   grid-area: visualizations; /* Place the visualization section in the "visualizations" grid area */
   margin-left: 10px;
-  border-right: 2px solid #5e5e5f1a;
+  box-shadow: 5px 0 10px rgba(0, 0, 0, 0.07)
 }
 
 .grid-container > .visualization > select {

@@ -274,14 +274,21 @@ function SpecConfigComponent() {
         <div>Explore Floating-Point Error</div>
       </div>
       <div className="spec-overlay-header">
-        Write a formula below. Enter approximate
-        ranges for inputs.
+        Write a formula below. Enter approximate ranges for inputs.
       </div>
       {ExpressionInputHeader}
       {/* <div className="spec-textarea-container"> */}
       {SpecTextarea}
       {/* Render the expression into HTML with KaTeX */}
-      <div className='spec-details' style={{marginLeft: '23px', display: 'flex', flexDirection: 'column', gap: '7.5px'} }>
+      <div
+        className="spec-details"
+        style={{
+          marginLeft: "23px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "7.5px",
+        }}
+      >
         {spec.expression.length > 0 && (
           <div
             className="spec-tex"
@@ -292,10 +299,14 @@ function SpecConfigComponent() {
         )}
 
         {spec.expression.indexOf("FPCore") === -1 && (
-          <div className="spec-range-inputs" style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px"}}>
+          <div
+            className="spec-range-inputs"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
+          >
             {variables.map((v, i) => {
               const range =
                 mySpecRanges.find((r) => r.variable === v) ||
@@ -344,20 +355,27 @@ function SpecConfigComponent() {
               );
             })}
           </div>
-          )}
+        )}
       </div>
 
       {!disabled && (
-        <button className="explore-button" style={{
-          alignSelf: 'flex-end',
-          padding: "10px 20px",
-          fontWeight: "bold",
-          borderRadius: "7px",
-          backgroundColor: "#a6e5eb",
-          border: 'none',
-        }} onClick={handleSubmitClick}>
-          Explore
-        </button>
+        <>
+          <hr></hr>
+          <button
+            className="explore-button"
+            style={{
+              alignSelf: "flex-end",
+              padding: "10px 20px",
+              fontWeight: "bold",
+              borderRadius: "7px",
+              backgroundColor: "#a6e5eb",
+              border: "none",
+            }}
+            onClick={handleSubmitClick}
+          >
+            Explore
+          </button>
+        </>
       )}
 
       {/* TODO this nesting p > dl is bad apparently, shows console error */}

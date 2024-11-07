@@ -556,6 +556,24 @@ function HerbieUIInner() {
     )
   }
 
+  function mySubHeader() {
+    return (
+      <div className="subheader">
+        <a
+          href="#"
+          className="left-item action"
+          onClick={() => setShowOverlay(true)}
+        >
+          &larr; Back to Spec Entry
+        </a>
+        <div className="center-item">
+          <strong>{spec.expression}</strong>
+        </div>
+        <div></div> {/* Empty div for flexible space on the right */}
+      </div>
+    );
+  }  
+
   return (
     <div>
       {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
@@ -569,7 +587,7 @@ function HerbieUIInner() {
       {!showOverlay &&
         <div className="grid-container">
           {myHeader()}
-        
+          {mySubHeader()}
           <ExpressionTable />
           <div className="visualizations">
             <SelectableVisualization components={components} />

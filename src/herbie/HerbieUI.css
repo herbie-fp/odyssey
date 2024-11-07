@@ -155,10 +155,11 @@ input[type="text"]:focus, select:focus {
   display: grid;
   grid-template-areas:
     "header header"
+    "subheader subheader"
     "visualizations expressions"
     "visualizations expressions";
   height: 100vh; 
-  grid-template-rows: 40px 1fr 3em;
+  grid-template-rows: 40px 50px 1fr 3em;
   grid-template-columns: 4fr 6fr; /*min(70%, 600px);*/
 }
 
@@ -282,4 +283,34 @@ a.action:focus {
 
 .katex .mathnormal {
   font: normal 1em 'Ruda' !important;
+}
+
+.subheader {
+  grid-area: subheader; /* Place the subheader in the "subheader" grid area */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* Three columns: flexible space, center item, flexible space */
+  align-items: center; /* Center items vertically */
+  padding: 10px 27px;
+  font-size: 20px;
+  background-color: var(--background-color);
+  color: var(--foreground-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.subheader .left-item {
+  grid-column: 1; /* Place in the first column */
+  font-size: 14px;
+  color: var(--action-color);
+  text-decoration: none;
+}
+
+/* .subheader .left-item:hover {
+  text-decoration: underline;
+} */
+
+.subheader .center-item {
+  grid-column: 2; /* Place in the center column */
+  justify-self: center; /* Center the item within its grid cell */
+  font-family: 'Ruda', sans-serif;
+  font-weight: bold;
 }

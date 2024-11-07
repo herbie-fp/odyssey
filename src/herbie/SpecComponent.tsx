@@ -593,7 +593,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   return (
     <div className="spec-container">
       <div className="spec-title">
-        <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
+        {/* <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div> */}
       </div>
       <Modal
         isOpen={false}

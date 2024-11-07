@@ -590,7 +590,9 @@ function HerbieUIInner() {
           {mySubHeader()}
           <ExpressionTable />
           <div className="visualizations">
-            <SelectableVisualization components={components} />
+            {/* <SelectableVisualization components={components} /> */}
+            <h4>Error Plot</h4>
+            <ErrorPlot />
             <SelectableVisualization components={components2} />
           </div>
 

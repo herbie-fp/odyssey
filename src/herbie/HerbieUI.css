@@ -314,3 +314,21 @@ a.action:focus {
   font-family: 'Ruda', sans-serif;
   font-weight: bold;
 }
+
+.grid-container {
+  input,
+  textarea {
+    border: 1px solid #ccc;
+    
+    border-radius: 8px;
+    font-size: smaller;
+  }
+
+  input {
+    padding: 5px;
+  }
+
+  textarea {
+    padding: 10px;
+  }
+}

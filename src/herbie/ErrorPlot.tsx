@@ -147,7 +147,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
         line: true,
         label: "% Accuracy", domain: [0, 100],
         ticks: new Array(100 / 5 + 1).fill(0).map((_, i) => i * 5),
-        tickFormat: (d: number) => d % 25 !== 0 ? '' : d
+        tickFormat: (d: number) => d % 50 !== 0 ? '' : d
     },
     // y: {
     //     line: true,

@@ -203,41 +203,9 @@ function SpecConfigComponent() {
     setSpec(new Spec('', spec.id));
   }
 
-  return (
-    <div className="spec-page" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '750px', gap: '7.5px', fontSize: '18.4px'} }>
-      <div
-        className="spec-overlay-logo"
-        style={{
-          alignSelf: "center",
-          display: "flex",
-          flexDirection: "column",
-          textAlign: "center",
-          gap: "1em",
-          marginTop: "1em",
-          marginBottom: "1em",
-        }}
-      >
-        <div>
-          <img
-            src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png"
-            alt="Odyssey logo"
-            style={{ width: "100px" }}
-          />
-        </div>
-        <div>Explore Floating-Point Error</div>
-      </div>
-      <div className="spec-overlay-header">
-        Write a formula below. Enter approximate
-        ranges for inputs.
-      </div>
-      <div className="expression-input-header" style={{
-          display: "flex",
-          width: "100%",
-        justifyContent: "space-between",
-        alignItems: "center",
-        fontSize: "small"
-        }}
-      >
+  const ExpressionInputHeader = () => {
+    return (
+      <div className="expression-input-header">
         <a className="showExample action" href="javascript:;" onClick={handleShowExample}>
           Show an example expression
         </a>
@@ -268,6 +236,26 @@ function SpecConfigComponent() {
              }}>Use FPCore</span>
         </div>
       </div>
+    )
+  }
+
+  return (
+    <div className="spec-page">
+      <div className="spec-overlay-logo">
+        <div>
+          <img
+            src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png"
+            alt="Odyssey logo"
+            style={{ width: "100px" }}
+          />
+        </div>
+        <div>Explore Floating-Point Error</div>
+      </div>
+      <div className="spec-overlay-header">
+        Write a formula below. Enter approximate
+        ranges for inputs.
+      </div>
+      <ExpressionInputHeader />
       {/* <div className="spec-textarea-container"> */}
       <DebounceInput
         element="textarea"

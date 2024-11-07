@@ -3,7 +3,7 @@
   cursor: pointer;
 }
 .spec-container {
-  width:60%;
+  width: 60%;
 }
 .spec-container .rewriting {
   font-size: 10px;
@@ -44,7 +44,7 @@
   width: 220px;
   clear: left;
   margin: 0 1em 0em 1em;
-  font-family: 'IBM Plex Mono', sans-serif;
+  font-family: "IBM Plex Mono", sans-serif;
   line-height: 1em;
 }
 
@@ -57,11 +57,10 @@
   flex-direction: row;
   /* center items horizontally */
   justify-content: center;
-
 }
 
 .spec-text {
-  font-family: 'Ruda', serif;
+  font-family: "Ruda", serif;
   font-size: 1em;
   /* overflow should be ... */
   white-space: nowrap;
@@ -71,18 +70,17 @@
 
 .spec-textarea {
   width: 94%; /* Make the textarea as wide as the container */
-  font-family: 'Ruda', sans-serif;
+  font-family: "Ruda", sans-serif;
   font-size: 1em;
   font-weight: bold;
   /* height: 5em; */
-  align-self:center;
+  align-self: center;
 }
 
 .varname {
-  font-family: 'Ruda', sans-serif;
+  font-family: "Ruda", sans-serif;
   font-size: 1em;
   align-self: center;
-  
 }
 
 .min {
@@ -90,18 +88,18 @@
 }
 
 .spec-range-input input {
-  font-family: 'Ruda', sans-serif;
+  font-family: "Ruda", sans-serif;
   font-size: 1em;
   width: 130px;
   font-weight: bold;
 }
 
 .spec-overlay-logo {
-  font: bold 1.5em 'Ruda', sans-serif;
+  font: bold 1.5em "Ruda", sans-serif;
 }
 
 .separator-math {
-  font-family: 'Ruda', sans-serif;
+  font-family: "Ruda", sans-serif;
 }
 
 .spec-range-input {
@@ -112,7 +110,7 @@
 
 .spec-range-inputs {
   text-align: center;
-  margin-left:var(--left-indent);
+  margin-left: var(--left-indent);
 }
 
 .submit {
@@ -125,7 +123,7 @@
   gap: 5px;
 }
 
-.explore-button{
+.explore-button {
   margin-top: 6px;
   font-size: 1em;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -152,10 +150,40 @@
 }
 
 .spec-page {
-  input, textarea {
+  input,
+  textarea {
     border: 1px solid #ccc;
     padding: 15px;
-    border-radius:8px;
+    border-radius: 8px;
     font-size: smaller;
   }
+}
+
+.spec-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: auto;
+  padding: 10px;
+  width: 750px;
+  gap: 7.5px;
+  font-size: 18.4px;
+}
+
+.spec-overlay-logo {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.expression-input-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  font-size: small;
 }

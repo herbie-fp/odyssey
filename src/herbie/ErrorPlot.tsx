@@ -147,7 +147,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
         line: true,
         label: "% Accuracy", domain: [0, 100],
         ticks: new Array(100 / 5 + 1).fill(0).map((_, i) => i * 5),
-        tickFormat: (d: number) => d % 25 !== 0 ? '' : d
+        tickFormat: (d: number) => d % 50 !== 0 ? '' : d
     },
     // y: {
     //     line: true,
@@ -185,6 +185,7 @@ function ErrorPlot() {
   const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
+  const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   const sample = samples.find(s => s.id === selectedSampleId)
   const width = 800;
 
@@ -396,6 +397,9 @@ function ErrorPlot() {
             const c = t.parentNode
             const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
             t.parentNode.onclick = async () => {
+              if (jobCount > 0) { // there are pending jobs
+                return;
+              }
               setSelectedPoint(point)
               setSelectedExprId(id)
             }
@@ -446,8 +450,8 @@ function ErrorPlot() {
               // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach, will consider alternatives
               labelContainer.innerHTML = `
                 <rect class="selected-label" x=${xAdjusted - 70 + ""} y=${-27 + ""} height="22px"></rect>
-                <text x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
-                <foreignObject x=${xAdjusted + 20 + ""} y=${-27 + ""} height="22px" width="22px">
+                <text class="full-num-anchor" x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
+                <foreignObject x=${xAdjusted + 23 + ""} y=${-28 + ""} height="22px" width="22px">
                   <xhtml:div class="copy">
                     <xhtml:a class="copy-anchor">⧉</xhtml:a>
                   </xhtml:div>
@@ -601,6 +605,10 @@ function ErrorPlot() {
             }
           }
         }} />
+        {/* Tooltip for full selected value on selected point label*/}
+        <Tooltip anchorSelect=".full-num-anchor" place="top" >
+          {selectedPoint ? selectedPoint[i] : ""}
+        </Tooltip>
         {/* Tooltip for deselect 'X' on selected point label*/}
         <Tooltip anchorSelect=".deselect" place="top" >
           Deselect

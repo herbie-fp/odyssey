@@ -40,6 +40,7 @@ function ExpressionTable() {
   const [addExpression, setAddExpression] = useState('');
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   const naiveExpression = expressions.find(e => e.text === spec.expression);
   // get cost of naive expression
   const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
@@ -220,9 +221,10 @@ function ExpressionTable() {
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
-        <div className="expand-header">
+        <div className="expand-header action">
         <div onClick={() => handleExpandAllClick()}>
-                      {noneExpanded ? '+' : '−'}
+                      {!noneExpanded ? <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                        : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>}
                     </div>
         </div>
         <div className="checkbox-header">
@@ -244,26 +246,7 @@ function ExpressionTable() {
 
         </div>
       </div>
-      <div className="expressions">
-        <div className="add-expression">
-          <div className="add-expression-top">
-            <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={ addExpression.trim() ? 'has-text' : "" } />
-            <div className="add-expression-button" style={{alignSelf: "center", display: 'flex'} }>
-              <button
-                disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
-                onClick={handleAddExpression}
-              >
-                Add
-              </button>
-            </div>
-          </div>
-          <div className="add-expression-dropdown">
-            <div className="add-expression-tex" dangerouslySetInnerHTML={{
-                __html: renderAddExpressionAsTex()
-              }} />
-          </div>
-        </div>
-      </div>
+      
         <div className="expressions-actual">
           {activeExpressions.map((id) => {
             const expression = expressions.find((expression) => expression.id === id) as Expression;
@@ -290,11 +273,13 @@ function ExpressionTable() {
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
-                <div key={expression.id} className={`expression`} >
+                <div key={expression.id} className={`expression`} style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : 'none'}}>
                   {/* expand button [+] */}
-                  <div className="expand">
+                  <div className="expand action">
                     <div onClick={() => handleExpandClick(expression.id)}>
-                      {expandedExpressions.includes(expression.id) ? '−' : '+' }
+                      {expandedExpressions.includes(expression.id) ? 
+                        <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                        : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>}
                     </div>
                   </div>
                   <input type="checkbox" checked={isChecked} onChange={event => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
@@ -334,7 +319,7 @@ function ExpressionTable() {
                     {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
                   </div>
                   <div className="herbie">
-                    <button onClick={() => handleImprove(expression)}>
+                    <button disabled={jobCount > 0} onClick={() => handleImprove(expression)}>
                       Improve
                     </button>
                   </div>
@@ -361,7 +346,30 @@ function ExpressionTable() {
               </div>
             );
           })}
+      </div>
+      <div className="expressions" style={{marginTop: 'auto', backgroundColor: "#1f1c18", padding: "10px 15px"}}>
+        <div className="add-expression" style={{ display: "flex", flexDirection: 'column', gap: '5px' }}>
+          <div style={{color: "var(--background-color)", fontSize: "smaller"}}>
+            Add an expression
+          </div>
+          <div className="add-expression-dropdown">
+            <div className="add-expression-tex" style={{color: addExpressionErrors(addExpression).length > 0 ? "salmon" : "white", paddingLeft: '5px'}} dangerouslySetInnerHTML={{
+                __html: renderAddExpressionAsTex()
+              }} />
+          </div>
+          <div className="add-expression-top">
+            <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={addExpression.trim() ? 'has-text' : ""} placeholder="e.g. sqrt(x + 1) - sqrt(x)" style={{ fontFamily: 'Ruda', fontWeight: 600, flexGrow: 1} } />
+            <div className="add-expression-button" style={{alignSelf: "center", display: 'flex'} }>
+              <button
+                disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
+                onClick={handleAddExpression}
+              >
+                + Add
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
         < Tooltip anchorSelect=".copy-anchor" place="top" >
           Copy to clipboard
         </Tooltip>

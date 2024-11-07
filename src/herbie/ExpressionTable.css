@@ -34,7 +34,7 @@
     height: 0;
 }
 
-.slider {
+/* .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -76,7 +76,7 @@
 
 .slider.round:before {
     border-radius: 50%;
-}
+} */
 
 /* flex container
   items float right
@@ -143,8 +143,6 @@
   /* font-size: large; */
   font-size: 20px;
   font-weight: bold;
-  color: gray;
-  cursor: pointer;
   text-align: center;
   /* color: black; */
   /* margin: auto; */
@@ -196,22 +194,20 @@
 }
 
 .expression-table-header-row {
-  height: 1.5em;
+  height: 40px;
+  font-size: 12px;
+  background-color: #fbf8f4;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  font-size: 10px;
   font-weight: bold;
-  padding: 4px;
+  padding-left: 4px;
   padding-right: 10px;
-  border-bottom: 1px solid #ccc;
   align-items: center;
 }
 
 .expand-header {
   font-weight: bold;
-  color: gray;
-  cursor: pointer;
   font-size: 20px;
 }
 
@@ -223,25 +219,20 @@
   margin-left: 6px;
 }
 .error-header {
-  margin-right: 35px;
+  margin-right: 20px;
 }
 .speedup-header {
   margin-right: 86px;
 }
 
 .add-expression-top {
-  margin: 5px;
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: end;
   gap: 5px;
 }
 .add-expression-dropdown {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  margin-left: 49px;
 }
 
 .expression-table textarea {
@@ -257,14 +248,13 @@
 
 .add-expression-dropdown {
   transition: all .3s ease;
-  margin-left: 50px;
   opacity: 0;
   max-height: 0;
 }
 
-.add-expression:has(textarea:focus-visible) .add-expression-dropdown, .add-expression:has(textarea.has-text) .add-expression-dropdown {
+.add-expression:has(textarea.has-text) .add-expression-dropdown {
   min-height: 2em;
-  transition: all .3s ease;
+  transition: all .3s ease-in-out;
   max-height: 100%;
   opacity: 1;
 }
@@ -278,6 +268,18 @@
 
 .add-expression button {
   font-size: 10px;
+  padding: 7px 12px;
+  font-weight: bold;
+  border-radius: 6px;
+  background-color: #a6e5eb;
+}
+
+.add-expression button:hover {
+  background-color: #7fd3d9;
+}
+
+.add-expression button:disabled {
+  background-color: #ccc;
 }
 
 .expand-header {
@@ -371,10 +373,6 @@
 
 .dropdown .visualization {
   margin-left: 5px;
-}
-
-.add-expression-top textarea {
-  margin-left: 49px;
 }
 
 .add-expression-tex {

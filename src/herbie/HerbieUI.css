@@ -190,6 +190,7 @@ input[type="text"]:focus, select:focus {
     align-items: center;
     font-size: 1em;
     font-family: 'Ruda';
+    width: 70px;
   }
 }
 

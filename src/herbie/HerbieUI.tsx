@@ -13,14 +13,10 @@ import * as utils from './lib/utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
-import { FPTaylorComponent } from './FPTaylorComponent';
 import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
-import GitHubIssueButton from './GitHubIssueButton';
-import { DocumentationButton } from './DocumentationButton';
-import G from 'glob';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -545,8 +541,16 @@ function HerbieUIInner() {
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
         <SpecComponent {...{ showOverlay, setShowOverlay }} />
-        <DocumentationButton />
-        <GitHubIssueButton />
+        <a href="https://github.com/herbie-fp/odyssey" style={{
+          color: "var(--background-color)", fontFamily: "Ruda"
+        }}>
+          Documentation
+        </a>
+        <a href="https://github.com/herbie-fp/odyssey/issues/new" style={{
+          color: "var(--background-color)", fontFamily: "Ruda"
+        }}>
+          Issues
+        </a>
         <ServerStatusComponent />
       </div>
     )

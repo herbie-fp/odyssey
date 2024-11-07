@@ -52,6 +52,32 @@ The total number of exceptions are: 2`;
 
 const formattedReport = formatReport(report);
 
+const FullReport = ({ formattedReport }: { formattedReport: string[] }) => (
+  <div>
+    <h3>Full Report</h3>
+    <h4>FP64 Operations</h4>
+    <p>
+      {formattedReport[0]}<br />
+      {formattedReport[1]}<br />
+      {formattedReport[2]}<br />
+      {formattedReport[3]}<br />
+    </p>
+    <h4>FP32 Operations</h4>
+    <p>
+      {formattedReport[4]}<br />
+      {formattedReport[5]}<br />
+      {formattedReport[6]}<br />
+      {formattedReport[7]}<br />
+    </p>
+    <h4>Other Stats</h4>
+    <p>
+      {formattedReport[8]}<br />
+      {formattedReport[9]}<br />
+    </p>
+  </div>
+);
+
+
   return (
     <div>
       {/* <p>Current expression:</p>
@@ -59,33 +85,14 @@ const formattedReport = formatReport(report);
       <p>The total number of exceptions are: 2</p>
       <button onClick={handleReportClick}>See Full Report</button>
       <button onClick={handleRunAnalyzerClick}>Run Analyzer</button>
+      
       {/* <p>Should run cuda translate and send to GPU-FPX Server?</p>
       <p>
         {gpuFpxSelected ? "yes" : "no"}
-      </p> */}
-      {showReport ? 
-          /* Should actually retrieve the stored GPU-FPX report and display it */
-        <div>
-          <h2> Full Report </h2>
-          <h3>--- FP64 Operations ---</h3>
-          <p>{formattedReport[0]}<br />
-             {formattedReport[1]}<br />
-             {formattedReport[2]}<br />
-             {formattedReport[3]}<br />
-          </p>
-          <h3>--- FP32 Operations ---</h3>
-          <p>{formattedReport[4]}<br />
-             {formattedReport[5]}<br />
-             {formattedReport[6]}<br />
-             {formattedReport[7]}<br />
-          </p>
-          <h3>--- Other Stats ---</h3>
-          <p>{formattedReport[8]}<br />
-             {formattedReport[9]}<br />
-          </p>
-        </div> : ""}
+      </p> */}    
 
-        {runAnalyzer ? /* Should also actually run the expression through the GPU-FPX Analyzer */<p>"Running analyzer on expression...</p> : ""}
+      {showReport ? <FullReport formattedReport={formattedReport} /> : ""}
+      {runAnalyzer ? /* Should also actually run the expression through the GPU-FPX Analyzer */<p>"Running analyzer on expression...</p> : ""}
     </div>
   );
 };

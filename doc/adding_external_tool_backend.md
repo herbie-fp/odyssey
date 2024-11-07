@@ -1,8 +1,7 @@
 # Adding an external tool server to Odyssey's backend
-
 The purpose of this documentation is to explain how to add a new tool as a binary to Odyssey's backend, and ensure it can be set up when users run Odyssey.
 
-This documentation assumes that you have the repo set up locally, that you have installed all necessary dependencies, and that you can compile, build, and then run Odyssey on your local machine.
+This documentation assumes that you have the repo set up locally, that you have installed all necessary dependencies, and that you can compile, build, and then run Odyssey on your local machine. This documentation also assumes you have binaries or executables for your particular tool.
 
 The codebase makes heavy use of [React](https://react.dev/), which you should be familiar with before constructing a component. There exist tutorials [for more modern React](https://react.dev/learn) as well as [this older React tutorial](https://legacy.reactjs.org/tutorial/tutorial.html).
 

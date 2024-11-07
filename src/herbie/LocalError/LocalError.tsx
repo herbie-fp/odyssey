@@ -4,10 +4,12 @@ import * as fpcore from '../lib/fpcore';
 import { Tooltip } from "react-tooltip";
 import Mermaid from './Mermaid';
 import { Point } from './Point'; 
-
+import * as herbiejs from '../lib/herbiejs'
 import './LocalError.css';
 import { useEffect } from 'react';
-function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
+import React from 'react';
+import { ErrorExpressionResponse } from '../HerbieTypes';
+function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, currentLocation: Array<number>,  targetLocation: Array<number> ,explanation: string) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
   let colors = {} as Record<string, string>
@@ -17,11 +19,18 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
   function formatName(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
-    const tooltipContent = `'Correct R : ${exact_err} <br /> Approx F : ${approx_value} <br /> Error R - F : ${true_error} <br /> ULPs Error : ${ulps_error}'`;
+    const tooltipContent = `'Correct R : ${herbiejs.displayNumber(Number(exact_err))} <br /> Approx F : ${herbiejs.displayNumber(Number(approx_value))} <br /> Error R - F : ${herbiejs.displayNumber(Number(true_error))} <br /> ULPs Error : ${herbiejs.displayNumber(Number(ulps_error))}'`;
+    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
+  }
+  function errorFormat(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
+    const tooltipContent = `'Correct R : ${herbiejs.displayNumber(Number(exact_err))} <br /> Approx F : ${herbiejs.displayNumber(Number(approx_value))} <br /> Error R - F : ${herbiejs.displayNumber(Number(true_error))} <br /> ULPs Error : ${herbiejs.displayNumber(Number(ulps_error))} <br /> Explanation : ${explanation}'`;
     return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
   }
 
-  function loop(n : types.LocalErrorTree) {
+  const locationsMatch = (loc1: Array<number>, loc2: Array<number>) =>
+    JSON.stringify(loc1) === JSON.stringify(loc2);
+
+  function loop(n : types.LocalErrorTree,currentLoc: Array<number>) {
     const name = n['e']
     const children = n['children']
     const avg_error = n['avg-error']
@@ -32,11 +41,17 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
 
     // node name
     const id = 'N' + counter++
-    const nodeName = formatName(id, name, exact_value,approx_value, true_error, ulps)
-
+    let nodeName = "";
+    // Check if the current location matches the target location
+    if (locationsMatch(currentLoc, targetLocation)) {
+      nodeName = errorFormat(id, name, exact_value,approx_value, true_error, ulps)
+    }else{
+      nodeName = formatName(id, name, exact_value,approx_value, true_error, ulps)
+    }
     // descend through AST
-    for (const c in children) {
-      const cName = loop(children[c])
+    for (const [index, child] of children.entries()) {
+      const childLocation = [...currentLoc, index + 1]; 
+      const cName = loop(child,childLocation)
       edges.push(cName + ' --> ' + nodeName)
     }
 
@@ -48,7 +63,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     return nodeName
   }
 
-  loop(tree)
+  loop(tree,currentLocation)
 
   // Edge case: 1 node => no edges
   if (isLeaf(tree)) {
@@ -78,9 +93,9 @@ function LocalError({ expressionId }: { expressionId: number }) {
   const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   // get the current sample and expression so we can pick the right local error from the averagelocalerrors table
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext);
-  const [selectedExprId,] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
   const [averageLocalErrors,] = HerbieContext.useGlobal(HerbieContext.AverageLocalErrorsContext);
-  const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
+  const [selectedPointsErrorExp, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointsErrorExpContext);
+  const [errorResponse, setErrorResponse] = React.useState<ErrorExpressionResponse | null>(null);
   //
   const pointLocalError = selectedPointsLocalError.find(a => a.expressionId === expressionId)?.error
 
@@ -138,6 +153,10 @@ function LocalError({ expressionId }: { expressionId: number }) {
     return () => clearTimeout(timer);  // Cleanup the timeout when the component unmounts or the effect re-runs
   }, [localError]); // Ensure the effect runs only when the graph is rendered and localError is available
 
+  useEffect(() => {
+    const pointErrorExp = selectedPointsErrorExp.find(a => a.expressionId === expressionId)?.error;
+    setErrorResponse(pointErrorExp || null); // If pointErrorExp is undefined, set null
+  }, [selectedPointsErrorExp]); 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
   const varnames = fpcore.getVarnamesMathJS(spec.expression)
   // Safely check if selectedPoint and varnames are defined before using them
@@ -173,19 +192,27 @@ function LocalError({ expressionId }: { expressionId: number }) {
   return (
     <div className="local-error">
       <div className="selected-point">
-        <div className="selected-point-title">Selected Point:</div>
         <Point values={selectedPointValue}/>
       </div>
-      <div className="local-error-graph" onClick={handleNodeClick}>
+      {errorResponse && errorResponse.explanation.length > 0 ? (
+        <div className="local-error-graph" onClick={handleNodeClick}>
         
         {/* Always render the Mermaid graph, even if localError is not ready */}
-        <Mermaid chart={localError ? localErrorTreeAsMermaidGraph(localError, 64) : ''} />
+        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], errorResponse.explanation[0][6][0],errorResponse.explanation[0][2])} />
         {/* Tooltip with ID "mermaid-tooltip" */}
         <Tooltip id="node-tooltip" place="top">
         </Tooltip>
-        
+        </div>
+        ):(
+          <div className="local-error-graph">
+          <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64,[], [-1],"None")} />
+          {/* Tooltip with ID "mermaid-tooltip" 
+            sqrt(x + 1) - sqrt(x-1+3x^2) */}
+          <Tooltip id="node-tooltip" place="top">
+          </Tooltip>
+          </div>
+        )}
       </div>
-    </div>
   );
 }
 }

@@ -45,7 +45,9 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
         if (language !== "fpcore") {
             translateExpression();
         } else {
-            setExportCode({ language: "fpcore", result: expressionText?.text });
+            // convert text to fpcore
+            const fpcore = fpcorejs.mathjsToFPCore(expressionText?.text);
+            setExportCode({ language: "fpcore", result: fpcore });
         }
     }, [expressionText, language]);
 

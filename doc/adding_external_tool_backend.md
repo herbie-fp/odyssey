@@ -86,10 +86,13 @@ You should add an endpoint for your backend tool here. The endpoint will look so
 		const safe_input = input.<YOUR_TOOL_INPUT>.replace(/'/g, "\\'");
 		try {
 			// The most important line is this next one. Include anything you need to run your executable or binary from the command line, and exec will run it from the command line as a command.
+			// Note that if your tool needs multiple commands to run, you will need multiple exec statements here
 			const { stdout, stderr } = await exec(
 				`cd ${odysseyDir} && .${<YOUR_TOOL_PATH>.replace(odysseyDir, '')} <(printf '${safe_input}')`,
 				{ shell: '/bin/bash' }
 			);
+
+			// Define some string to be the returned result of your tool to send as a response from your endpoint.
 
 			res.json({ stdout: `<(printf "${stdout}")` });
 		} catch (e) {
@@ -97,8 +100,6 @@ You should add an endpoint for your backend tool here. The endpoint will look so
 		}
 	})
 ```
-
-
 
 The existing FPTaylor and FPBench endpoints serve as good examples to guide your implementation.
 

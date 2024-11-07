@@ -21,6 +21,9 @@ const Plot = require('@observablehq/plot')  // have to do this for ES modules fo
 import { select } from 'd3-selection';  // Required for brushing
 import { brushX } from 'd3-brush';
 
+// Brushing still in progress, disable currently
+const BRUSHING = false;
+
 type varname = string
 
 interface OrdinalErrorPoint {
@@ -514,8 +517,10 @@ function ErrorPlot() {
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n');
           });
 
-          // Layering brushing on top of plot
-          const brush = brushX()
+          // Only allow brushing if developing it
+          if (BRUSHING) {
+            // Layering brushing on top of plot
+            const brush = brushX()
             // Bounds brushing is enabled in, rectangle in svg created by x+y axes
             .extent([[39, 17], [782, 269]]) 
             .on('brush end', (event: any) => { // TODO: decide if 'end' or 'brush end' should be used for highlighting
@@ -548,7 +553,7 @@ function ErrorPlot() {
                 highlightMap.forEach(({line, stroke, d, newPath}) => {
                   // grey out existing line
                   line.setAttribute("stroke", "#a6a6a6");
- 
+
                   // Create new path tracing brushed region: "M"ove to the beginning of line in region
                   let newD = "M";
                   // Trim off initial "M" then divide path of original line into each point component
@@ -567,22 +572,23 @@ function ErrorPlot() {
               } 
             });
 
-          select(svg).append('g')
-            .attr('class', 'brush')
-            .call(brush)
-            .on("dblclick", () => {
-              // TODO: replicate this so it works for single click
-              brush.clear(select(svg).select('g'));
-              // Reset points to original colors (no greyed out) 
-              circles.forEach(({circle, o, id}) => { circle.removeAttribute("class"); });
-              // TODO: Reset selected subset of points to empty
+            select(svg).append('g')
+              .attr('class', 'brush')
+              .call(brush)
+              .on("dblclick", () => {
+                // TODO: replicate this so it works for single click
+                brush.clear(select(svg).select('g'));
+                // Reset points to original colors (no greyed out) 
+                circles.forEach(({circle, o, id}) => { circle.removeAttribute("class"); });
+                // TODO: Reset selected subset of points to empty
 
-              // Remove highlights and reset old lines to original color
-              highlightMap.forEach(({line, stroke, d, newPath}) => {
-                line.setAttribute("stroke", stroke);
-                newPath.setAttribute("d", "")
-              })
-            });
+                // Remove highlights and reset old lines to original color
+                highlightMap.forEach(({line, stroke, d, newPath}) => {
+                  line.setAttribute("stroke", stroke);
+                  newPath.setAttribute("d", "")
+                })
+              });
+          }
 
           // Append all plot components to svg
           [...plot.children].map(c => svg.appendChild(c));
@@ -592,7 +598,7 @@ function ErrorPlot() {
             svg.appendChild(labelPointBorder);
             svg.appendChild(labelContainer);
             svg.appendChild(labelPoint);
-          } else { // maybe brushing is happening, append highlight lines
+          } else if (BRUSHING) { // maybe brushing is happening, append highlight lines
             highlightMap.forEach((highlightLine, lineExpIdx) => {
               if (lineExpIdx !== selectedExprId) {
                 svg.appendChild(highlightLine.pathG);

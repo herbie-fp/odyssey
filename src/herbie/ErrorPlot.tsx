@@ -185,6 +185,7 @@ function ErrorPlot() {
   const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
+  const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   const sample = samples.find(s => s.id === selectedSampleId)
   const width = 800;
 
@@ -396,6 +397,9 @@ function ErrorPlot() {
             const c = t.parentNode
             const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
             t.parentNode.onclick = async () => {
+              if (jobCount > 0) { // there are pending jobs
+                return;
+              }
               setSelectedPoint(point)
               setSelectedExprId(id)
             }

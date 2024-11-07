@@ -40,6 +40,7 @@ function ExpressionTable() {
   const [addExpression, setAddExpression] = useState('');
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   const naiveExpression = expressions.find(e => e.text === spec.expression);
   // get cost of naive expression
   const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
@@ -334,7 +335,7 @@ function ExpressionTable() {
                     {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
                   </div>
                   <div className="herbie">
-                    <button onClick={() => handleImprove(expression)}>
+                    <button disabled={jobCount > 0} onClick={() => handleImprove(expression)}>
                       Improve
                     </button>
                   </div>

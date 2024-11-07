@@ -203,41 +203,63 @@ function SpecConfigComponent() {
     setSpec(new Spec('', spec.id));
   }
 
-  const ExpressionInputHeader = () => {
-    return (
-      <div className="expression-input-header">
-        <a className="showExample action" href="javascript:;" onClick={handleShowExample}>
-          Show an example expression
-        </a>
-        {/* Use mathjs <=> Use FPCore toggle switch */}
-        <div
+  const ExpressionInputHeader = (
+    <div className="expression-input-header">
+      <a
+        className="showExample action"
+        href="javascript:;"
+        onClick={handleShowExample}
+      >
+        Show an example expression
+      </a>
+      {/* Use mathjs <=> Use FPCore toggle switch */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "1em",
+        }}
+        onClick={handleToggleUseFPCore}
+      >
+        <span
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1em",
-          }}
-          onClick={handleToggleUseFPCore}
-        >
-          <span style={{
             fontWeight: "bold",
             color: usingFPCore ? "gray" : "black",
-             }}>Use mathjs</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              disabled
-              checked={usingFPCore}
-            />
-            <span className="slider round"></span>
-          </label>
-          <span style={{
+          }}
+        >
+          Use mathjs
+        </span>
+        <label className="switch">
+          <input type="checkbox" disabled checked={usingFPCore} />
+          <span className="slider round"></span>
+        </label>
+        <span
+          style={{
             fontWeight: "bold",
             color: usingFPCore ? "black" : "gray",
-             }}>Use FPCore</span>
-        </div>
+          }}
+        >
+          Use FPCore
+        </span>
       </div>
-    )
-  }
+    </div>
+  );
+
+  const SpecTextarea = (
+    <DebounceInput
+      element="textarea"
+      debounceTimeout={300}
+      rows={!usingFPCore ? 1 : 4}
+      className="spec-textarea"
+      placeholder={
+        usingFPCore
+          ? `e.g. (FPCore (x) :pre (>= x 0) (- (sqrt (+ x 1)) (sqrt x)))`
+          : "e.g. sqrt(x+1) - sqrt(x)"
+      }
+      value={specTextInput}
+      onChange={handleSpecTextUpdate}
+    />
+  );
 
   return (
     <div className="spec-page">
@@ -255,88 +277,75 @@ function SpecConfigComponent() {
         Write a formula below. Enter approximate
         ranges for inputs.
       </div>
-      <ExpressionInputHeader />
+      {ExpressionInputHeader}
       {/* <div className="spec-textarea-container"> */}
-      <DebounceInput
-        element="textarea"
-        debounceTimeout={300}
-        rows={!usingFPCore ? 1 : 4}
-        className="spec-textarea"
-        placeholder={
-          usingFPCore
-            ? `e.g. (FPCore (x) :pre (>= x 0) (- (sqrt (+ x 1)) (sqrt x)))`
-            : "e.g. sqrt(x+1) - sqrt(x)"
-        }
-        value={specTextInput}
-        onChange={handleSpecTextUpdate}
-      />
-      {spec.expression.length === 0 && ""}
-
+      {SpecTextarea}
       {/* Render the expression into HTML with KaTeX */}
-      {spec.expression.length > 0 && (
-        <div
-          className="spec-tex"
-          dangerouslySetInnerHTML={{
-            __html: htmlContent,
-          }}
-        />
-      )}
+      <div className='spec-details' style={{marginLeft: '23px', display: 'flex', flexDirection: 'column', gap: '7.5px'} }>
+        {spec.expression.length > 0 && (
+          <div
+            className="spec-tex"
+            dangerouslySetInnerHTML={{
+              __html: htmlContent,
+            }}
+          />
+        )}
 
-      {spec.expression.indexOf("FPCore") === -1 && (
-        <div className="spec-range-inputs" style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          marginLeft: '23px'}}>
-          {variables.map((v, i) => {
-            const range =
-              mySpecRanges.find((r) => r.variable === v) ||
-              new HerbieTypes.SpecRange(v, -1e308, 1e308);
-            return (
-              <div className="spec-range-input" key={v}>
-                <div className="varname">{v}:</div>
-                <InputRangeEditor1
-                  value={{
-                    varname: v,
-                    lower: range.lowerBound.toString(),
-                    upper: range.upperBound.toString(),
-                  }}
-                  setValue={(value: { lower: string; upper: string }) => {
-                    console.debug("set input range", v, value);
-                    if (mySpecRanges.map((r) => r.variable).includes(v)) {
-                      setMySpecRanges(
-                        mySpecRanges.map((r) =>
-                          r.variable === v
-                            ? new HerbieTypes.SpecRange(
-                                v,
-                                parseFloat(value.lower),
-                                parseFloat(value.upper)
-                              )
-                            : r
-                        )
-                      );
-                    } else {
-                      const newSpecRanges = [
-                        ...mySpecRanges,
-                        new HerbieTypes.SpecRange(
-                          v,
-                          parseFloat(value.lower),
-                          parseFloat(value.upper)
-                        ),
-                      ];
-                      setMySpecRanges(
-                        newSpecRanges.filter((r) =>
-                          variables.includes(r.variable)
-                        )
-                      );
-                    }
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
-      )}
+        {spec.expression.indexOf("FPCore") === -1 && (
+          <div className="spec-range-inputs" style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px"}}>
+            {variables.map((v, i) => {
+              const range =
+                mySpecRanges.find((r) => r.variable === v) ||
+                new HerbieTypes.SpecRange(v, -1e308, 1e308);
+              return (
+                <div className="spec-range-input" key={v}>
+                  <div className="varname">{v}:</div>
+                  <InputRangeEditor1
+                    value={{
+                      varname: v,
+                      lower: range.lowerBound.toString(),
+                      upper: range.upperBound.toString(),
+                    }}
+                    setValue={(value: { lower: string; upper: string }) => {
+                      console.debug("set input range", v, value);
+                      if (mySpecRanges.map((r) => r.variable).includes(v)) {
+                        setMySpecRanges(
+                          mySpecRanges.map((r) =>
+                            r.variable === v
+                              ? new HerbieTypes.SpecRange(
+                                  v,
+                                  parseFloat(value.lower),
+                                  parseFloat(value.upper)
+                                )
+                              : r
+                          )
+                        );
+                      } else {
+                        const newSpecRanges = [
+                          ...mySpecRanges,
+                          new HerbieTypes.SpecRange(
+                            v,
+                            parseFloat(value.lower),
+                            parseFloat(value.upper)
+                          ),
+                        ];
+                        setMySpecRanges(
+                          newSpecRanges.filter((r) =>
+                            variables.includes(r.variable)
+                          )
+                        );
+                      }
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          )}
+      </div>
 
       {!disabled && (
         <button className="explore-button" style={{

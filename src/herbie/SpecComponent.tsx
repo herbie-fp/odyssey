@@ -247,7 +247,7 @@ function SpecConfigComponent() {
 
   const SpecTextarea = (
     <DebounceInput
-      element="textarea"
+      element={usingFPCore ? "textarea" : "input"}
       debounceTimeout={300}
       rows={!usingFPCore ? 1 : 4}
       className="spec-textarea"

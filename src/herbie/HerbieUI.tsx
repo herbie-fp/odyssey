@@ -591,7 +591,7 @@ function HerbieUIInner() {
           <ExpressionTable />
           <div className="visualizations">
             {/* <SelectableVisualization components={components} /> */}
-            <h4>Error Plot</h4>
+            <div style={{fontSize: "12px", padding:"11px 0px", fontWeight: 'bold'}}>Error Plot</div>
             <ErrorPlot />
             <h4>Other Comparisons</h4>
             <SelectableVisualization components={components2} />

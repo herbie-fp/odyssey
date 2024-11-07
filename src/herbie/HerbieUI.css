@@ -3,7 +3,7 @@
 /* Use light mode in general; dark mode/VSCode-specific support is commented out below. */
 
 body {
-  --background-color:  #f5f5f5;
+  --background-color:  #ffffff;
   --foreground-color: #000000;/* #3c3b3b);*/
   --foreground-light: #a9a9a9;
   --highlight: #bcbcbc7d;
@@ -234,7 +234,10 @@ input[type="text"]:focus, select:focus {
 .grid-container > .visualizations {
   grid-area: visualizations; /* Place the visualization section in the "visualizations" grid area */
   margin-left: 10px;
-  box-shadow: 5px 0 10px rgba(0, 0, 0, 0.07)
+  box-shadow: 5px 0 10px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+
 }
 
 .grid-container > .visualization > select {
@@ -272,6 +275,13 @@ a.action {
   color: var(--action-color);
   text-decoration: none;
   font-weight: 450;
+}
+
+.action {
+  color: var(--action-color);
+  text-decoration: none;
+  font-weight: 450;
+  cursor: pointer;
 }
 
 a.action:focus {

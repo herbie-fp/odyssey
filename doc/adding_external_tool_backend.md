@@ -195,3 +195,8 @@ Add an error prompt for your tool with a call to the function from the previous 
 ```
 
 As always, the existing FPTaylor and FPBench endpoints serve as good examples to guide your implementation.
+
+## Connecting your external tool to the main server
+You should also include an instance of your tool in the main server, where current instnaces of Herbie, Odyssey, and other tools are run for the web demo. 
+
+Documentation for this can be found under the ``/server`` directory.

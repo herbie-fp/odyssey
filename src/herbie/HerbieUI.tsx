@@ -17,6 +17,7 @@ import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
+import { expressionToTex } from './ExpressionTable';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -320,15 +321,19 @@ function HerbieUIInner() {
   // Add spec to expressions if it doesn't exist
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
-    if (spec.expression === '' || expressions.find(e =>
-      e.specId === spec.id)) { return }
-    const expressionId = nextId(expressions)
-    console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
-    setExpressions([new Expression(spec.expression, expressionId, spec.id), ...expressions])
-    setDerivations([
-      new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
-      ...derivations,
-    ]);
+    async function add() {
+      if (spec.expression === '' || expressions.find(e =>
+        e.specId === spec.id)) { return }
+      const expressionId = nextId(expressions)
+      const tex = await expressionToTex(spec.expression, serverUrl);
+      console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
+      setExpressions([new Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
+      setDerivations([
+        new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
+        ...derivations,
+      ]);
+    } 
+    add();
   }
 
   // Archive all expressions that are not related to the current spec

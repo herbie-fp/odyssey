@@ -325,7 +325,7 @@ function HerbieUIInner() {
       if (spec.expression === '' || expressions.find(e =>
         e.specId === spec.id)) { return }
       const expressionId = nextId(expressions)
-      const tex = await expressionToTex(spec.expression, serverUrl);
+      const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
       console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
       setExpressions([new Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
       setDerivations([

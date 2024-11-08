@@ -14,14 +14,13 @@ import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';
 
 import { addJobRecorder } from './HerbieUI';
-const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
 import ErrorExplanation from './ErrorExplanation';
 import LinkToReports from './LinkToReports';
 
 // Make server call to get tex version of expression
-export const expressionToTex = async (expression: fpcore.mathjs, serverUrl: string) => {
+export const expressionToTex = async (expression: fpcore.mathjs, numVars: number, serverUrl: string) => {
   try {
     const response = await herbiejsImport.analyzeExpressionExport(
       fpcore.mathjsToFPCore(expression),
@@ -29,8 +28,8 @@ export const expressionToTex = async (expression: fpcore.mathjs, serverUrl: stri
       serverUrl
     );
 
-    // result starts with "exp(x) =", slice that off
-    return response.result.slice(30);
+    // result starts with "exp(x) =" (all vars ", " separated), slice that off
+    return response.result.slice(30 + ((numVars - 1) * 3));
   } catch (err: any) {
     return (err as Error).toString()
   }
@@ -170,7 +169,7 @@ function ExpressionTable() {
   const handleAddExpression = async () => {
     validateExpression(addExpression);
     const selectedId = nextId(expressions);
-    const tex = await expressionToTex(addExpression, serverUrl);
+    const tex = await expressionToTex(addExpression, fpcore.getVarnamesMathJS(addExpression).length, serverUrl);
     const newExpressions = [
       new Expression(addExpression, selectedId, spec.id, tex),
       ...expressions,
@@ -190,7 +189,7 @@ function ExpressionTable() {
     try {
       validateExpression(expression);
       const tex = expression.trim() === '' ? '' 
-        : KaTeX.renderToString(await expressionToTex(expression, serverUrl), { throwOnError: false });
+        : KaTeX.renderToString(await expressionToTex(expression, fpcore.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
       setAddExpressionTex(tex);
     } catch (e) {
       setAddExpressionTex((e as Error).toString());
@@ -219,7 +218,7 @@ function ExpressionTable() {
 
       const s = alternatives[i];
       const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-      const tex = await expressionToTex(fPCoreToMathJS, serverUrl);
+      const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(s).length, serverUrl);
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
 

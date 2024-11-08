@@ -309,7 +309,11 @@ function ExpressionTable() {
                   {showMath ?
                     <div className="expression-tex" dangerouslySetInnerHTML={{
                       __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
-                    }} />
+                    }} style={{
+                          maxWidth: '350px',
+                          overflowX: 'auto',
+                          overflowY: 'hidden',
+                    }}/>
                     :
                     <div className="expression-text"  >
                       {expression.text}

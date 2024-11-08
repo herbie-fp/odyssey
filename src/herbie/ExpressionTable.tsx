@@ -218,7 +218,7 @@ function ExpressionTable() {
 
       const s = alternatives[i];
       const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-      const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(s).length, serverUrl);
+      const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
 

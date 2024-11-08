@@ -571,8 +571,14 @@ function HerbieUIInner() {
         >
           &larr; Back to Spec Entry
         </a>
-        <div className="center-item">
-          <strong>{spec.expression}</strong>
+        <div className="center-item" style={{
+            display: 'inline-block',
+            maxWidth: '700px', // Adjust as needed
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}>
+          {spec.expression}
         </div>
         <div></div> {/* Empty div for flexible space on the right */}
       </div>

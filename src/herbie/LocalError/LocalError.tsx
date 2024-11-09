@@ -192,7 +192,6 @@ function LocalError({ expressionId }: { expressionId: number }) {
   return (
     <div className="local-error">
       <div className="selected-point">
-        <Point values={selectedPointValue}/>
       </div>
       {errorResponse && errorResponse.explanation.length > 0 ? (
         <div className="local-error-graph" onClick={handleNodeClick}>

@@ -14,11 +14,26 @@ import KaTeX from 'katex';
 import { DebounceInput } from 'react-debounce-input';
 
 import { addJobRecorder } from './HerbieUI';
-const math11 = require('mathjs11');
 
 import './ExpressionTable.css';
 import ErrorExplanation from './ErrorExplanation';
 import LinkToReports from './LinkToReports';
+
+// Make server call to get tex version of expression
+export const expressionToTex = async (expression: fpcore.mathjs, numVars: number, serverUrl: string) => {
+  try {
+    const response = await herbiejsImport.analyzeExpressionExport(
+      fpcore.mathjsToFPCore(expression),
+      "tex",
+      serverUrl
+    );
+
+    // result starts with "exp(x) =" (all vars ", " separated), slice that off
+    return response.result.slice(30 + ((numVars - 1) * 3));
+  } catch (err: any) {
+    return (err as Error).toString()
+  }
+};
 
 function ExpressionTable() {
   // translate the above to use useGlobal
@@ -38,6 +53,7 @@ function ExpressionTable() {
   const [samples,] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
+  const [addExpressionTex, setAddExpressionTex] = useState('');
   const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
@@ -150,11 +166,12 @@ function ExpressionTable() {
   // }
   const sample = samples.find((sample) => sample.id === selectedSampleId)
   
-  const handleAddExpression = () => {
+  const handleAddExpression = async () => {
     validateExpression(addExpression);
     const selectedId = nextId(expressions);
+    const tex = await expressionToTex(addExpression, fpcore.getVarnamesMathJS(addExpression).length, serverUrl);
     const newExpressions = [
-      new Expression(addExpression, selectedId, spec.id),
+      new Expression(addExpression, selectedId, spec.id, tex),
       ...expressions,
     ]
     setExpressions(newExpressions);
@@ -167,13 +184,15 @@ function ExpressionTable() {
     setAddExpression('')
   }
 
-  const renderAddExpressionAsTex = () => {
+  const handleAddExpressionChange = async (expression: string) => {
+    setAddExpression(expression);
     try {
-      validateExpression(addExpression);
-      return addExpression.trim() === '' ? '' : KaTeX.renderToString(math11.parse(addExpression).toTex(), { throwOnError: false })
+      validateExpression(expression);
+      const tex = expression.trim() === '' ? '' 
+        : KaTeX.renderToString(await expressionToTex(expression, fpcore.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
+      setAddExpressionTex(tex);
     } catch (e) {
-      //throw e;
-      return (e as Error).toString()
+      setAddExpressionTex((e as Error).toString());
     }
   }
 
@@ -199,7 +218,8 @@ function ExpressionTable() {
 
       const s = alternatives[i];
       const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-      const newExpression = new Expression(fPCoreToMathJS, newId, spec.id);
+      const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
+      const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
 
       // The following code assumes the HTMLHistory[] returend by Herbie
@@ -268,12 +288,12 @@ function ExpressionTable() {
                 { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
-                { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
-                {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
+                // { value: 'errorExplanation', label: 'Error Explanation', component: <ErrorExplanation expressionId={expression.id}/> },
+                // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
-                <div key={expression.id} className={`expression`} style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : 'none'}}>
+                <div key={expression.id} className={`expression`} style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
                   {/* expand button [+] */}
                   <div className="expand action">
                     <div onClick={() => handleExpandClick(expression.id)}>
@@ -288,20 +308,12 @@ function ExpressionTable() {
                   <div className="expression-name-container" onClick={() => handleExpressionClick(expression.id)}>
                   {showMath ?
                     <div className="expression-tex" dangerouslySetInnerHTML={{
-                      __html: (() => {
-                        try {
-                          // Check if there are no variables
-                          if (fpcore.getVarnamesMathJS(spec.expression).length === 0) {
-                            throw new Error("No variables detected.")
-                          }
-
-                          return KaTeX.renderToString(math11.parse(expression.text).toTex(), { throwOnError: false })
-                        } catch (e) {
-                          //throw e;
-                          return (e as Error).toString()
-                        }
-                      })()
-                        }} />
+                      __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
+                    }} style={{
+                          maxWidth: '350px',
+                          overflowX: 'auto',
+                          overflowY: 'hidden',
+                    }}/>
                     :
                     <div className="expression-text"  >
                       {expression.text}
@@ -354,11 +366,11 @@ function ExpressionTable() {
           </div>
           <div className="add-expression-dropdown">
             <div className="add-expression-tex" style={{color: addExpressionErrors(addExpression).length > 0 ? "salmon" : "white", paddingLeft: '5px'}} dangerouslySetInnerHTML={{
-                __html: renderAddExpressionAsTex()
+                __html: addExpressionTex
               }} />
           </div>
           <div className="add-expression-top">
-            <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => setAddExpression(event.target.value)} className={addExpression.trim() ? 'has-text' : ""} placeholder="e.g. sqrt(x + 1) - sqrt(x)" style={{ fontFamily: 'Ruda', fontWeight: 600, flexGrow: 1} } />
+            <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => handleAddExpressionChange(event.target.value)} className={addExpression.trim() ? 'has-text' : ""} placeholder="e.g. sqrt(x + 1) - sqrt(x)" style={{ fontFamily: 'Ruda', fontWeight: 600, flexGrow: 1} } />
             <div className="add-expression-button" style={{alignSelf: "center", display: 'flex'} }>
               <button
                 disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}

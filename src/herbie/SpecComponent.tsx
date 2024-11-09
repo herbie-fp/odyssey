@@ -17,6 +17,7 @@ const math11 = require('mathjs11');
 
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
+import { expressionToTex } from './ExpressionTable';
 
 async function ensureMathJS(expression: string, serverUrl: string): Promise<string> {
   if (expression.includes("FPCore")) {
@@ -150,11 +151,12 @@ function SpecConfigComponent() {
           // Check if there are no variables
           const expr = await ensureMathJS(spec.expression, serverUrl)
 
-          if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
+          const numVars = fpcorejs.getVarnamesMathJS(expr).length;
+          if (numVars === 0) {
             throw new Error("No variables detected.")
           }
           await (validateSpecExpression(expr));
-          return KaTeX.renderToString(math11.parse(expr).toTex(), { throwOnError: false })
+          return KaTeX.renderToString(await expressionToTex(expr, numVars, serverUrl), { throwOnError: false })
         } catch (e) {
           //throw e;
           return (e as Error).toString()
@@ -557,11 +559,12 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
           // Check if there are no variables
           const expr = await ensureMathJS(spec.expression, serverUrl)
 
-          if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
+          const numVars = fpcorejs.getVarnamesMathJS(expr).length;
+          if (numVars === 0) {
             throw new Error("No variables detected.")
           }
           await (validateSpecExpression(expr));
-          return KaTeX.renderToString(math11.parse(expr).toTex(), { throwOnError: false })
+          return KaTeX.renderToString(await expressionToTex(expr, numVars, serverUrl), { throwOnError: false })
         } catch (e) {
           //throw e;
           return (e as Error).toString()

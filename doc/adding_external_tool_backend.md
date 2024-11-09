@@ -1,8 +1,7 @@
 # Adding an external tool server to Odyssey's backend
-
 The purpose of this documentation is to explain how to add a new tool as a binary to Odyssey's backend, and ensure it can be set up when users run Odyssey.
 
-This documentation assumes that you have the repo set up locally, that you have installed all necessary dependencies, and that you can compile, build, and then run Odyssey on your local machine.
+This documentation assumes that you have the repo set up locally, that you have installed all necessary dependencies, and that you can compile, build, and then run Odyssey on your local machine. This documentation also assumes you have binaries or executables for your particular tool.
 
 The codebase makes heavy use of [React](https://react.dev/), which you should be familiar with before constructing a component. There exist tutorials [for more modern React](https://react.dev/learn) as well as [this older React tutorial](https://legacy.reactjs.org/tutorial/tutorial.html).
 
@@ -86,10 +85,14 @@ You should add an endpoint for your backend tool here. The endpoint will look so
 		const input = req.body;
 		const safe_input = input.<YOUR_TOOL_INPUT>.replace(/'/g, "\\'");
 		try {
+			// The most important line is this next one. Include anything you need to run your executable or binary from the command line, and exec will run it from the command line as a command.
+			// Note that if your tool needs multiple commands to run, you will need multiple exec statements here
 			const { stdout, stderr } = await exec(
 				`cd ${odysseyDir} && .${<YOUR_TOOL_PATH>.replace(odysseyDir, '')} <(printf '${safe_input}')`,
 				{ shell: '/bin/bash' }
 			);
+
+			// Define some string to be the returned result of your tool to send as a response from your endpoint.
 
 			res.json({ stdout: `<(printf "${stdout}")` });
 		} catch (e) {

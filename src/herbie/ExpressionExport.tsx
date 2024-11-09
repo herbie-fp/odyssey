@@ -32,8 +32,13 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
                 language,
                 serverUrl
             );
-            console.log(response)
-            setExportCode(response);
+            if (language === "tex") {
+                const numVars = fpcorejs.getVarnamesMathJS(expressionText.text).length;
+                setExportCode({language: response.language, 
+                    result: response.result.slice(30 + ((numVars - 1) * 3))});
+            } else {
+                setExportCode(response);
+            }
             setError(null);
         } catch (err: any) {
             setError('Error: ' + (err.message || err));

@@ -13,6 +13,9 @@ async function runTest(rowData) {
     const trueSpec = rowData['trueSpec'];
     const trueAnalysis = rowData['trueAnalysis'];
     const trueSpeedup = rowData['trueSpeedup'];
+    const herbieTimeout = rowData['herbieTimeout'];
+    const bestHerbieAnalysisExpr = rowData['bestHerbieAnalysisExpr'];
+    const bestHerbieAnalysis = rowData['bestHerbieAnalysis'];
 
     await page.goto(ODYSSEY_URL);
     await page.setViewport({ width: 1080, height: 1024 });
@@ -44,7 +47,7 @@ async function runTest(rowData) {
     );
 
     const analysis = await page.locator(analysisSelector).waitHandle();
-    const analysisText = await analysis?.evaluate(el => el.textContent);
+    const analysisText = (await analysis?.evaluate(el => el.textContent)).replace("%", "");
 
     console.log('The analysis specification is', analysisText);
     assert(analysisText === trueAnalysis)
@@ -63,7 +66,7 @@ async function runTest(rowData) {
     );
 
     const speedup = await page.locator(speedupSelector).waitHandle();
-    const speedupText = await speedup?.evaluate(el => el.textContent);
+    const speedupText = (await speedup?.evaluate(el => el.textContent)).replace("x", "");
 
     console.log('The speedup specification is', speedupText);
     assert(speedupText === trueSpeedup)
@@ -74,6 +77,45 @@ async function runTest(rowData) {
 
     const herbieButtonSelector = '.herbie-button[id="0"]';
     await page.locator(herbieButtonSelector).click();
+
+    await new Promise(r => setTimeout(r, herbieTimeout));
+
+    const herbieAnalysisExpressions = await page.evaluate(() => {
+      const analysisElements = document.querySelectorAll('.analysis[id]');
+
+      const elementDict = {};
+      analysisElements.forEach(element => {
+        elementDict[element.id] = element.outerHTML;
+      });
+
+      return elementDict;
+    });
+
+    let bestObservedHerbieAccuracy = 0;
+    let bestObservedHerbieExprID = null;
+
+    for (const key in herbieAnalysisExpressions) {
+      const value = herbieAnalysisExpressions[key];
+
+      const match = value.match(/>(\d+(\.\d+)?)%<\/div>/);
+      const accuracy = match ? parseFloat(match[1]) : 0;
+
+      if (accuracy > bestObservedHerbieAccuracy) {
+        bestObservedHerbieAccuracy = accuracy;
+        bestObservedHerbieExprID = key;
+      }
+    }
+
+    console.log("Best observed Herbie-improved accuracy:", bestObservedHerbieAccuracy);
+    // eslint-disable-next-line eqeqeq
+    assert(bestObservedHerbieAccuracy == bestHerbieAnalysis)
+
+    const bestObservedHerbieExprSelector = await page.locator('.expression-text[id="' + bestObservedHerbieExprID + '"]').waitHandle();
+    const bestObservedHerbieExpr = await bestObservedHerbieExprSelector?.evaluate(el => el.textContent);
+
+    console.log("Best Observed Herbie-improved expression:", bestObservedHerbieExpr);
+    // eslint-disable-next-line eqeqeq
+    assert(bestObservedHerbieExpr == bestHerbieAnalysisExpr);
 
   } catch (err) {
     console.error(err);

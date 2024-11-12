@@ -36,7 +36,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
                 const numVars = fpcorejs.getVarnamesMathJS(expressionText.text).length;
                 const pre = response.result.split('=')[0];
                 setExportCode({language: response.language, 
-                    result:  response.result.slice(pre + 1)});
+                    result:  response.result.slice(pre.length + 1)});
             } else {
                 setExportCode(response);
             }

@@ -113,7 +113,7 @@ async function runTest(rowData) {
     const bestObservedHerbieExprSelector = await page.locator('.expression-text[id="' + bestObservedHerbieExprID + '"]').waitHandle();
     const bestObservedHerbieExpr = await bestObservedHerbieExprSelector?.evaluate(el => el.textContent);
 
-    console.log("Best Observed Herbie-improved expression:", bestObservedHerbieExpr);
+    console.log("Best observed Herbie-improved expression:", bestObservedHerbieExpr);
     // eslint-disable-next-line eqeqeq
     assert(bestObservedHerbieExpr == bestHerbieAnalysisExpr);
 

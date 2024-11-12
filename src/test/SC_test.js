@@ -67,6 +67,14 @@ async function runTest(rowData) {
 
     console.log('The speedup specification is', speedupText);
     assert(speedupText === trueSpeedup)
+
+    // TODO: Figure out how to make Puppeteer click circle
+    // const pointSelector = '.circle[cx="562.1969706704823"]'
+    // const point = await page.locator(pointSelector);
+
+    const herbieButtonSelector = '.herbie-button[id="0"]';
+    await page.locator(herbieButtonSelector).click();
+
   } catch (err) {
     console.error(err);
   } finally {

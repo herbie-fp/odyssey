@@ -334,7 +334,7 @@ function ExpressionTable() {
                     {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
                   </div>
                   <div className="herbie">
-                    <button onClick={() => handleImprove(expression)}>
+                    <button onClick={() => handleImprove(expression)} className={"herbie-button"} id={`` + expression.id}>
                       Improve
                     </button>
                   </div>

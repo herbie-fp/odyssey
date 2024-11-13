@@ -34,7 +34,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, 
     }
     var accuracy_str = ""
     if (!(abs_error_difference === "equal")) {
-      accuracy_str = ` <br /> Percent Accuracy : ${herbiejs.displayNumber(Number(percent))}%${explanation_str}`
+      accuracy_str = ` <br /> Percent Accuracy : ${Number(percent).toPrecision(4)}%${explanation_str}`
     }
     const tooltipContent = `'Correct R : ${displayError(exact_err)} <br /> Approx F : ${displayError(approx_value)}${difference_str}${accuracy_str}'`;
     return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'

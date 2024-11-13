@@ -31,6 +31,8 @@ that should look like the above as of November 2024.
 
 You should construct a similar constant for your external binary, and provide some link to which your binary can be downloaded.
 
+Your external binary should be hosted as a zip file with an internal folder structure similar to one of the existing Herbie, FPTaylor, or FPBench binary zipfile structures (it will generally look something like having a dist folder, with individual folders for each OS - downloading one of the existing binary zipfiles and following that structure will be useful).
+
 
 ## Separating different binaries for different distributions
 At the beginning of the ``activate`` function,

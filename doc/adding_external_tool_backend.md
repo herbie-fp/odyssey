@@ -80,7 +80,7 @@ Later on in the activate function, you should see the following setup for expres
 	app.use(bodyParser.json());
 ```
 
-You should add one [endpoint](https://www.smashingmagazine.com/2018/01/understanding-using-rest-api/) for each functionality in your backend tool here. These are [Express](https://expressjs.com/en/guide/routing.html) endpoints and will use that routing. Each endpoint will look something like this:
+You should add one [endpoint](https://www.smashingmagazine.com/2018/01/understanding-using-rest-api/) for each functionality in your backend tool here. These are [Express](https://expressjs.com/en/guide/routing.html) endpoints and will use that routing. Note the use of the [exec](https://nodejs.org/api/child_process.html#child_processexeccommand-options-callback) function to execute your tool executable from the command line. Each endpoint will look something like this:
 
 ```
 // Name your endpoint something logical, as you will be calling it from the frontend

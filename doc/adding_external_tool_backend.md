@@ -201,6 +201,26 @@ Add an error prompt for your tool with a call to the function from the previous 
 
 As always, the existing FPTaylor and FPBench endpoints serve as good examples to guide your implementation.
 
+## If your tool is only supported on some OSes
+In some cases, your tool may only be supported on certain operating systems. Here, you can follow similar steps to the logic for the FPBench and FPTaylor cases.
+
+In particular, define a new constant for supported platforms like so:
+
+```
+		const systemSupportsFPTaylor = process.platform === 'linux'
+		const systemSupportsFPBench = process.platform === 'linux'
+		const systemSupportsYOUR_TOOL = process.platform === YOUR_SUPPORTED_PLATFORMS_HERE
+```
+
+and then when prompting the user to install your tool, add a check to make sure they're on an OS that supports your tool:
+
+```
+		if (!fs.existsSync(YOUR_TOOL_PATH) && systemSupportsYOUR_TOOL) {
+			// Rest of the logic from before goes here
+			// ...
+		}
+```
+
 ## Connecting your external tool to the main server
 You should also include an instance of your tool in the main server, where current instnaces of Herbie, Odyssey, and other tools are run for the web demo. 
 

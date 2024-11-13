@@ -289,11 +289,19 @@ function SpecConfigComponent() {
           display: "flex",
           flexDirection: "column",
           gap: "7.5px",
+          width: "calc(100% - 30px)",
         }}
       >
         {spec.expression.length > 0 && (
           <div
             className="spec-tex"
+            style={{
+              maxWidth: "100%",
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              // color red if the expression is invalid
+              color: htmlContent.includes("Error") ? "red" : "black",
+            }}
             dangerouslySetInnerHTML={{
               __html: htmlContent,
             }}

@@ -34,8 +34,9 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
             );
             if (language === "tex") {
                 const numVars = fpcorejs.getVarnamesMathJS(expressionText.text).length;
+                const pre = response.result.split('=')[0];
                 setExportCode({language: response.language, 
-                    result: response.result.slice(30 + ((numVars - 1) * 3))});
+                    result:  response.result.slice(pre.length + 1)});
             } else {
                 setExportCode(response);
             }

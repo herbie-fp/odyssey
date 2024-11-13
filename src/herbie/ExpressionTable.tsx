@@ -28,7 +28,8 @@ export const expressionToTex = async (expression: fpcore.mathjs, numVars: number
     );
 
     // result starts with "exp(x) =" (all vars ", " separated), slice that off
-    return response.result.slice(30 + ((numVars - 1) * 3));
+    const pre = response.result.split('=')[0];
+    return response.result.slice(pre.length + 1);
   } catch (err: any) {
     return (err as Error).toString()
   }

@@ -5,6 +5,8 @@ This documentation assumes that you have the repo set up locally, that you have 
 
 The codebase makes heavy use of [React](https://react.dev/), which you should be familiar with before constructing a component. There exist tutorials [for more modern React](https://react.dev/learn) as well as [this older React tutorial](https://legacy.reactjs.org/tutorial/tutorial.html).
 
+This particular section of the codebase makes heavy use of Node's [file system library calls](https://nodejs.org/api/fs.html), and the documentation for that might be useful to review for the various fs calls.
+
 TypeScript is the language of choice for this codebase. It features a fairly powerful [type system](https://www.typescriptlang.org/docs/handbook/intro.html) that you should be familiar with.
 
 

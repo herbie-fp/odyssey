@@ -106,7 +106,8 @@ export interface LocalErrorTree {
   'avg-error': string
   'exact-value': string
   'actual-value': string
-  'absolute-error': string
+  'abs-error-difference': string
+  'percent-accuracy': string
 }
 
 export class AverageLocalErrorAnalysis {

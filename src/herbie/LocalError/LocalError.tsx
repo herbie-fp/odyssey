@@ -15,16 +15,39 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, 
   let colors = {} as Record<string, string>
   let counter = 0
 
-  
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
-  function formatName(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
-    const tooltipContent = `'Correct R : ${herbiejs.displayNumber(Number(exact_err))} <br /> Approx F : ${herbiejs.displayNumber(Number(approx_value))} <br /> Error R - F : ${herbiejs.displayNumber(Number(true_error))} <br /> ULPs Error : ${herbiejs.displayNumber(Number(ulps_error))}'`;
+  function makeNodeInfo(id: string, name: string, 
+    exact_err: string, approx_value: string, 
+    abs_error_difference: string, percent: string,
+    _explanation?: string) {
+    var explanation_str = ""
+    if (typeof _explanation !== 'undefined') {
+      explanation_str = ` <br /> Error Code : ${_explanation}`
+    }
+    var difference_str = ` <br /> Error R - F : ${displayError(abs_error_difference)}`
+    if (abs_error_difference === "invalid" 
+      || abs_error_difference === "unsamplable" 
+      || abs_error_difference === "equal") {
+      console.debug(`abs_error was 'equal, 'invalid, or 'unsamplable: ${difference_str}`)
+      difference_str = ""
+    }
+    var accuracy_str = ""
+    if (!(abs_error_difference === "equal")) {
+      accuracy_str = ` <br /> Percent Accuracy : ${herbiejs.displayNumber(Number(percent))}%${explanation_str}`
+    }
+    const tooltipContent = `'Correct R : ${displayError(exact_err)} <br /> Approx F : ${displayError(approx_value)}${difference_str}${accuracy_str}'`;
     return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
   }
-  function errorFormat(id: string, name: string, exact_err: string, approx_value: string, true_error: string, ulps_error: string) {
-    const tooltipContent = `'Correct R : ${herbiejs.displayNumber(Number(exact_err))} <br /> Approx F : ${herbiejs.displayNumber(Number(approx_value))} <br /> Error R - F : ${herbiejs.displayNumber(Number(true_error))} <br /> ULPs Error : ${herbiejs.displayNumber(Number(ulps_error))} <br /> Explanation : ${explanation}'`;
-    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
+
+  function displayError(abs_error: string) {
+    if (abs_error === "invalid" || abs_error === "unsamplable" 
+      || abs_error === "+inf.0" || abs_error === "-inf.0" 
+      || abs_error === "true" || abs_error === "false") {
+      return abs_error
+    } else {
+      return herbiejs.displayNumber(Number(abs_error))
+    }
   }
 
   const locationsMatch = (loc1: Array<number>, loc2: Array<number>) =>
@@ -36,17 +59,18 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, 
     const avg_error = n['avg-error']
     const exact_value = n['exact-value']
     const approx_value = n['actual-value']
-    const true_error = n['absolute-error']
-    const ulps = n['ulps-error']
+    const true_error = n['abs-error-difference']
+    const ulps = n['ulps-error'] // unused maybe log to debug?
+    const percent = n['percent-accuracy']
 
     // node name
     const id = 'N' + counter++
     let nodeName = "";
     // Check if the current location matches the target location
     if (locationsMatch(currentLoc, targetLocation)) {
-      nodeName = errorFormat(id, name, exact_value,approx_value, true_error, ulps)
+      nodeName = makeNodeInfo(id, name, exact_value, approx_value, true_error, percent, explanation)
     }else{
-      nodeName = formatName(id, name, exact_value,approx_value, true_error, ulps)
+      nodeName = makeNodeInfo(id, name, exact_value, approx_value, true_error, percent)
     }
     // descend through AST
     for (const [index, child] of children.entries()) {
@@ -70,10 +94,11 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, 
     const name = tree['e']
     const exact_value = tree['exact-value']
     const approx_value = tree['actual-value']
-    const true_error = tree['absolute-error']
+    const true_error = tree['abs-error-difference']
     const ulps = tree['ulps-error']
+    const percent = tree['percent-accuracy']
 
-    edges.push(formatName('N0', name, exact_value,approx_value, true_error, ulps))
+    edges.push(makeNodeInfo('N0', name, exact_value, approx_value, true_error, percent))
   }
 
   // List colors
@@ -112,7 +137,7 @@ function LocalError({ expressionId }: { expressionId: number }) {
     // Add a delay before running the effect's logic
     const timer = setTimeout(() => {
       const labels = document.querySelectorAll('.node[class*="flowchart-label"]');
-      console.log("in")
+      console.debug("in")
       labels.forEach(label => {
         const labelGroup = label.querySelector('.label');
         if (labelGroup) {

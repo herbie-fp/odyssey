@@ -86,7 +86,10 @@ You should add one [endpoint](https://www.smashingmagazine.com/2018/01/understan
 // Name your endpoint something logical, as you will be calling it from the frontend
 	app.post('/<YOUR_TOOL>/<YOUR_ENDPOINT_NAME>', async (req: any, res: any) => {
 		const input = req.body;
+
+		// Sanitize the req.body input to prevent security issues
 		const safe_input = input.<YOUR_TOOL_INPUT>.replace(/'/g, "\\'");
+
 		try {
 			// The most important line is this next one. Include anything you need to run your executable or binary from the command line, and exec will run it from the command line as a command.
 			// Note that if your tool needs multiple commands to run, you will need multiple exec statements here

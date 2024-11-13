@@ -166,6 +166,7 @@ This will look something like the following:
 			}
 
 			try {
+				// Clean up the zip by using the unlink system call
 				fs.unlinkSync(dest)
 
 				// make binary executable

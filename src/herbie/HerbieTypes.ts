@@ -19,10 +19,11 @@ export class Derivation {
 export class Expression {
   /**
    *  @param {string} text - mathjs expression */
-  constructor(public readonly text: string, public readonly id: number, public readonly specId: number) {
+  constructor(public readonly text: string, public readonly id: number, public readonly specId: number, public readonly tex: string) {
     this.text = text;
     this.id = id;
     this.specId = specId;
+    this.tex = tex;
   }
 }
 
@@ -104,8 +105,9 @@ export interface LocalErrorTree {
   'ulps-error': string
   'avg-error': string
   'exact-value': string
-  'approx-value': string
-  'true-error-value': string
+  'actual-value': string
+  'abs-error-difference': string
+  'percent-accuracy': string
 }
 
 export class AverageLocalErrorAnalysis {
@@ -130,7 +132,8 @@ type Explanation = [
   string,  // type
   number,  // occurrences
   number,  // errors
-  any[]    // details
+  any[] ,   // details
+  Array<Array<number>>
 ];
 
 export interface ErrorExpressionResponse {

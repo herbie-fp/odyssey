@@ -32,8 +32,14 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
                 language,
                 serverUrl
             );
-            console.log(response)
-            setExportCode(response);
+            if (language === "tex") {
+                const numVars = fpcorejs.getVarnamesMathJS(expressionText.text).length;
+                const pre = response.result.split('=')[0];
+                setExportCode({language: response.language, 
+                    result:  response.result.slice(pre.length + 1)});
+            } else {
+                setExportCode(response);
+            }
             setError(null);
         } catch (err: any) {
             setError('Error: ' + (err.message || err));
@@ -45,7 +51,9 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
         if (language !== "fpcore") {
             translateExpression();
         } else {
-            setExportCode({ language: "fpcore", result: expressionText?.text });
+            // convert text to fpcore
+            const fpcore = fpcorejs.mathjsToFPCore(expressionText?.text);
+            setExportCode({ language: "fpcore", result: fpcore });
         }
     }, [expressionText, language]);
 

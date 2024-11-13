@@ -11,6 +11,51 @@ interface HerbieResponse {
   tree?: types.LocalErrorTree;
 }
 
+const getHerbieApiAsync = async (
+  host: string,
+  endpoint: string,
+  data: object,
+  retry: boolean
+): Promise<any> => {
+  const url = `${host}/api/start/${endpoint}`;
+  console.debug('calling', url, 'async with data', data);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    const responseData = await response.json();
+    const job_id = responseData.job
+    let counter = 0
+    let cap = 100
+    if (responseData.error) {
+      throw new Error('Herbie server: ' + responseData.error);
+    }
+    console.debug('Job started: ', job_id);
+    const statusURL = `${host}/check-status/${job_id}`
+    var checkResponse = await fetch(statusURL, {
+      method: 'GET',
+    });
+    while (checkResponse.status != 201 && counter < cap) {
+      counter += 1
+      checkResponse = await fetch(`${host}/check-status/${job_id}`, {
+        method: 'GET',
+      });
+      await new Promise(r => setTimeout(r, 100)); // ms
+    }
+    // Guard that the job is finished. If not throw an error giving up on this request.
+    if (checkResponse.status != 201) {
+      throw new Error(`Request timeout`)
+    }
+    const result = await fetch(`${host}/api/result/${job_id}`, {
+      method: 'GET',
+    });
+    return await result.json()
+  } catch (error: any) {
+    throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`)
+  }
+};
+
 // All Herbie API calls are POSTs to /api/{endpoint}
 const getHerbieApi = async (
   host: string,
@@ -18,6 +63,22 @@ const getHerbieApi = async (
   data: object,
   retry: boolean
 ): Promise<any> => {
+  const asyncEndpoints = [
+    "improve",
+    "sample",
+    "explanations",
+    "analyze",
+    "exacts",
+    "calculate",
+    "localerror",
+    "alternatives",
+    "cost"
+  ]
+  // If async API available use that instead.
+  if (false && asyncEndpoints.includes(endpoint)) {
+    return getHerbieApiAsync(host, endpoint, data, retry);
+  }
+
   const url = `${host}/api/${endpoint}`;
   // LATER add timeout?
   console.debug('calling', url, 'with data', data);
@@ -112,7 +173,7 @@ export const analyzeExpressionExport = async (
   language: string,
   host: string
 ): Promise<ExpressionExportResponse> => {
-  return (await getHerbieApi(host, 'translate', { formula: fpcore, language: language}, true));
+  return (await getHerbieApi(host, 'translate', { formula: fpcore, language: language }, true));
 };
 
 
@@ -130,7 +191,7 @@ export const getCost = async (
   sample: Sample,
   host: string
 ): Promise<number> => {
-  return (await getHerbieApi(host, 'cost', { formula: fpcore, sample: sample.points}, true) as CostResponse).cost;
+  return (await getHerbieApi(host, 'cost', { formula: fpcore, sample: sample.points }, true) as CostResponse).cost;
 };
 
 type point = ordinal[]
@@ -154,7 +215,7 @@ export const analyzeExpression = async (
     }
     return min;
   };
-  
+
   function fastMax(arr: number[]) {
     var len = arr.length, max = -Infinity;
     while (len--) {
@@ -176,7 +237,7 @@ export const analyzeExpression = async (
   // console.log('first 10 sample points (from /sample) after sorting', sample.points.map(p => p[0]).sort().slice(0, 10));
 
   const vars = fpcorejs.getVarnamesFPCore(fpcore);
-  const ticksByVarIdx : [string, number][][]= vars.map((v, i) => {
+  const ticksByVarIdx: [string, number][][] = vars.map((v, i) => {
     const values = sample.points.map(p => p[0][i]);
     return ordinalsjs.chooseTicks(fastMin(values), fastMax(values)).map(v => [displayNumber(v), ordinalsjs.floatToApproximateOrdinal(v)]);
   });
@@ -202,14 +263,19 @@ export const displayNumber = (v: number) => {
   const s = v.toPrecision(1)
   const [base, exponent] = s.split('e')
   const digits = 4
+
   if (!exponent) {
-    return v.toPrecision(1) === v.toString() ? v.toPrecision(1) : v.toPrecision(digits)
+    const result = v.toPrecision(1) === v.toString() ? v.toPrecision(1) 
+      : parseFloat(v.toFixed(digits)) + ""
+    return result
   }
+
   if (Number(exponent) <= 1 && -1 <= Number(exponent)) {
     const a = v.toString()
     const b = v.toPrecision(digits)
     return a.length < b.length ? a : b
   }
+  
   const result = v.toPrecision(1)
   return result.startsWith('1e') ? result.slice(1) : result
 }

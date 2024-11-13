@@ -1,44 +1,81 @@
 import * as HerbieContext from '../HerbieContext';
 import * as types from '../HerbieTypes';
 import * as fpcore from '../lib/fpcore';
+import { Tooltip } from "react-tooltip";
 import Mermaid from './Mermaid';
-import { Point } from './Point'
-
+import { Point } from './Point'; 
+import * as herbiejs from '../lib/herbiejs'
 import './LocalError.css';
-
-function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) {
+import { useEffect } from 'react';
+import React from 'react';
+import { ErrorExpressionResponse } from '../HerbieTypes';
+function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, currentLocation: Array<number>,  targetLocation: Array<number> ,explanation: string) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
   let colors = {} as Record<string, string>
   let counter = 0
 
-  
   const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
 
-  function formatName(id: string, name: string, exact_err: string,
-    approx_value: string, true_error: string, ulps_error: string) {
-    // TODO fix newlines and brackets. Mermaid doesn't like them.
-    const title = `'Correct R : ${exact_err}Approx F : ${approx_value}Error R - F : ${true_error}ULPs Error : ${ulps_error}'`
-    console.log(title)
-    return id + '[<span class=nodeLocalError title=' + title + '>' + name + '</span>]'
+  function makeNodeInfo(id: string, name: string, 
+    exact_err: string, approx_value: string, 
+    abs_error_difference: string, percent: string,
+    _explanation?: string) {
+    var explanation_str = ""
+    if (typeof _explanation !== 'undefined') {
+      explanation_str = ` <br /> Error Code : ${_explanation}`
+    }
+    var difference_str = ` <br /> Error R - F : ${displayError(abs_error_difference)}`
+    if (abs_error_difference === "invalid" 
+      || abs_error_difference === "unsamplable" 
+      || abs_error_difference === "equal") {
+      console.debug(`abs_error was 'equal, 'invalid, or 'unsamplable: ${difference_str}`)
+      difference_str = ""
+    }
+    var accuracy_str = ""
+    if (!(abs_error_difference === "equal")) {
+      accuracy_str = ` <br /> Percent Accuracy : ${herbiejs.displayNumber(Number(percent))}%${explanation_str}`
+    }
+    const tooltipContent = `'Correct R : ${displayError(exact_err)} <br /> Approx F : ${displayError(approx_value)}${difference_str}${accuracy_str}'`;
+    return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
   }
 
-  function loop(n : types.LocalErrorTree) {
+  function displayError(abs_error: string) {
+    if (abs_error === "invalid" || abs_error === "unsamplable" 
+      || abs_error === "+inf.0" || abs_error === "-inf.0" 
+      || abs_error === "true" || abs_error === "false") {
+      return abs_error
+    } else {
+      return herbiejs.displayNumber(Number(abs_error))
+    }
+  }
+
+  const locationsMatch = (loc1: Array<number>, loc2: Array<number>) =>
+    JSON.stringify(loc1) === JSON.stringify(loc2);
+
+  function loop(n : types.LocalErrorTree,currentLoc: Array<number>) {
     const name = n['e']
     const children = n['children']
     const avg_error = n['avg-error']
     const exact_value = n['exact-value']
-    const approx_value = n['approx-value']
-    const true_error = n['true-error-value']
-    const ulps = n['ulps-error']
+    const approx_value = n['actual-value']
+    const true_error = n['abs-error-difference']
+    const ulps = n['ulps-error'] // unused maybe log to debug?
+    const percent = n['percent-accuracy']
 
     // node name
     const id = 'N' + counter++
-    const nodeName = formatName(id, name, exact_value,approx_value, true_error, ulps)
-
+    let nodeName = "";
+    // Check if the current location matches the target location
+    if (locationsMatch(currentLoc, targetLocation)) {
+      nodeName = makeNodeInfo(id, name, exact_value, approx_value, true_error, percent, explanation)
+    }else{
+      nodeName = makeNodeInfo(id, name, exact_value, approx_value, true_error, percent)
+    }
     // descend through AST
-    for (const c in children) {
-      const cName = loop(children[c])
+    for (const [index, child] of children.entries()) {
+      const childLocation = [...currentLoc, index + 1]; 
+      const cName = loop(child,childLocation)
       edges.push(cName + ' --> ' + nodeName)
     }
 
@@ -50,16 +87,18 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number) 
     return nodeName
   }
 
-  loop(tree)
+  loop(tree,currentLocation)
 
   // Edge case: 1 node => no edges
   if (isLeaf(tree)) {
     const name = tree['e']
     const exact_value = tree['exact-value']
-    const approx_value = tree['approx-value']
-    const true_error = tree['true-error-value']
+    const approx_value = tree['actual-value']
+    const true_error = tree['abs-error-difference']
     const ulps = tree['ulps-error']
-    edges.push(formatName('N0', name, exact_value,approx_value, true_error, ulps))
+    const percent = tree['percent-accuracy']
+
+    edges.push(makeNodeInfo('N0', name, exact_value, approx_value, true_error, percent))
   }
 
   // List colors
@@ -79,9 +118,9 @@ function LocalError({ expressionId }: { expressionId: number }) {
   const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   // get the current sample and expression so we can pick the right local error from the averagelocalerrors table
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext);
-  const [selectedExprId,] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
   const [averageLocalErrors,] = HerbieContext.useGlobal(HerbieContext.AverageLocalErrorsContext);
-  const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
+  const [selectedPointsErrorExp, ] = HerbieContext.useGlobal(HerbieContext.SelectedPointsErrorExpContext);
+  const [errorResponse, setErrorResponse] = React.useState<ErrorExpressionResponse | null>(null);
   //
   const pointLocalError = selectedPointsLocalError.find(a => a.expressionId === expressionId)?.error
 
@@ -91,18 +130,64 @@ function LocalError({ expressionId }: { expressionId: number }) {
     ? pointLocalError
     : averageLocalErrors.find((localError) => localError.sampleId === selectedSampleId && localError.expressionId === expressionId)?.errorTree
 
-  if (!localError) {
-    return (
-      <div className="local-error not-computed">
-        <div>Please select a point on the error plot to compute local error.</div>
-      </div>
-    )
-  }
+   // Always call useEffect, even if localError is undefined
+   useEffect(() => {
+    if (!localError) return;
+  
+    // Add a delay before running the effect's logic
+    const timer = setTimeout(() => {
+      const labels = document.querySelectorAll('.node[class*="flowchart-label"]');
+      console.debug("in")
+      labels.forEach(label => {
+        const labelGroup = label.querySelector('.label');
+        if (labelGroup) {
+          labelGroup.removeAttribute('transform');
+        }
+  
+        const parentNode = label.closest('.node');
+        if (!parentNode) return;
+  
+        const svgElement = parentNode as unknown as SVGGraphicsElement;
+        if (!svgElement.getBBox) {
+          console.error("getBBox is not available on the parentNode");
+          return;
+        }
+  
+        const bbox = svgElement.getBBox();
+  
+        const foreignObject = label.querySelector('foreignObject') as unknown as HTMLElement;
+        if (foreignObject) {
+          foreignObject.setAttribute('width', `${bbox.width}`);
+          foreignObject.setAttribute('height', `${bbox.height}`);
+          foreignObject.setAttribute('x', `${bbox.x}`);
+          foreignObject.setAttribute('y', `${bbox.y}`);
+  
+          const span = foreignObject.querySelector('.nodeLocalError') as HTMLElement;
+          if (span) {
+            span.style.display = 'flex';
+            span.style.justifyContent = 'center';
+            span.style.alignItems = 'center';
+            span.style.textAlign = 'center';
+            span.style.width = `${bbox.width}px`;
+            span.style.height = `${bbox.height}px`;
+          }
+        }
+      });
+    }, 500);  // Add a delay of 500ms
+  
+    return () => clearTimeout(timer);  // Cleanup the timeout when the component unmounts or the effect re-runs
+  }, [localError]); // Ensure the effect runs only when the graph is rendered and localError is available
 
+  useEffect(() => {
+    const pointErrorExp = selectedPointsErrorExp.find(a => a.expressionId === expressionId)?.error;
+    setErrorResponse(pointErrorExp || null); // If pointErrorExp is undefined, set null
+  }, [selectedPointsErrorExp]); 
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
   const varnames = fpcore.getVarnamesMathJS(spec.expression)
-  
-  const selectedPointValue = (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
+  // Safely check if selectedPoint and varnames are defined before using them
+  const selectedPointValue = selectedPoint && varnames 
+    ? (selectedPoint as number[]).map((value, i) => ({ [varnames[i]]: value })).reduce((a, b) => ({ ...a, ...b }), {})
+    : {};  // Return an empty object if selectedPoint or varnames is undefined
   const handleNodeClick = (event: any) => {
     // Check if the clicked element or its closest ancestor is a .node
     const closestNode = event.target.closest(".node");
@@ -122,17 +207,38 @@ function LocalError({ expressionId }: { expressionId: number }) {
 
     console.log('Node clicked!', event.target);
   };
+  if (!localError) {
+    return (
+      <div className="local-error not-computed">
+        <div>Please select a point on the error plot to compute local error.</div>
+      </div>
+    )
+  }else {
   return (
     <div className="local-error">
       <div className="selected-point">
-        <div className="selected-point-title">Selected Point:</div>
-        <Point values={selectedPointValue}/>
       </div>
-      <div className="local-error-graph" onClick={handleNodeClick}>
-        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64)}  />
+      {errorResponse && errorResponse.explanation.length > 0 ? (
+        <div className="local-error-graph" onClick={handleNodeClick}>
+        
+        {/* Always render the Mermaid graph, even if localError is not ready */}
+        <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64, [], errorResponse.explanation[0][6][0],errorResponse.explanation[0][2])} />
+        {/* Tooltip with ID "mermaid-tooltip" */}
+        <Tooltip id="node-tooltip" place="top">
+        </Tooltip>
+        </div>
+        ):(
+          <div className="local-error-graph">
+          <Mermaid chart={localErrorTreeAsMermaidGraph(localError, 64,[], [-1],"None")} />
+          {/* Tooltip with ID "mermaid-tooltip" 
+            sqrt(x + 1) - sqrt(x-1+3x^2) */}
+          <Tooltip id="node-tooltip" place="top">
+          </Tooltip>
+          </div>
+        )}
       </div>
-    </div>
-  )
+  );
+}
 }
 
 export { LocalError }

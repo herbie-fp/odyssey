@@ -13,14 +13,11 @@ import * as utils from './lib/utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
-import { FPTaylorComponent } from './FPTaylorComponent';
 import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
-import GitHubIssueButton from './GitHubIssueButton';
-import { DocumentationButton } from './DocumentationButton';
-import G from 'glob';
+import { expressionToTex } from './ExpressionTable';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -324,15 +321,19 @@ function HerbieUIInner() {
   // Add spec to expressions if it doesn't exist
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
-    if (spec.expression === '' || expressions.find(e =>
-      e.specId === spec.id)) { return }
-    const expressionId = nextId(expressions)
-    console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
-    setExpressions([new Expression(spec.expression, expressionId, spec.id), ...expressions])
-    setDerivations([
-      new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
-      ...derivations,
-    ]);
+    async function add() {
+      if (spec.expression === '' || expressions.find(e =>
+        e.specId === spec.id)) { return }
+      const expressionId = nextId(expressions)
+      const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
+      console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
+      setExpressions([new Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
+      setDerivations([
+        new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
+        ...derivations,
+      ]);
+    } 
+    add();
   }
 
   // Archive all expressions that are not related to the current spec
@@ -529,35 +530,67 @@ function HerbieUIInner() {
   const components2 = [
     { value: 'None', label: 'None', component: <div />},
     { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
-    { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
+    // { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
-    { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
+    // { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
     
   ];
 
   function myHeader() {
     return (
-      <div className="header" style={{ backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "5px 10px", alignItems: 'center'}}>
+      <div className="header" style={{ fontSize: '11px', backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "10px 27px", alignItems: 'center'}}>
         {/* removed header-top */}
         <div className="app-name" onClick={() => setShowOverlay(true)}>
           <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
-          Odyssey
+          <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
         <SpecComponent {...{ showOverlay, setShowOverlay }} />
-        <DocumentationButton />
-        <GitHubIssueButton />
+        <a href="https://github.com/herbie-fp/odyssey" style={{
+          color: "var(--background-color)", fontFamily: "Ruda"
+        }}>
+          Documentation
+        </a>
+        <a href="https://github.com/herbie-fp/odyssey/issues/new" style={{
+          color: "var(--background-color)", fontFamily: "Ruda"
+        }}>
+          Issues
+        </a>
         <ServerStatusComponent />
       </div>
     )
   }
+
+  function mySubHeader() {
+    return (
+      <div className="subheader">
+        <a
+          href="#"
+          className="left-item action"
+          onClick={() => setShowOverlay(true)}
+        >
+          &larr; Back to Spec Entry
+        </a>
+        <div className="center-item" style={{
+            display: 'inline-block',
+            maxWidth: '700px', // Adjust as needed
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}>
+          {spec.expression}
+        </div>
+        <div></div> {/* Empty div for flexible space on the right */}
+      </div>
+    );
+  }  
 
   return (
     <div>
       {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
         <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
           {myHeader()}
-          <div className="overlay-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 'auto', padding: '10px', width: '750px', gap: '7.5px', fontSize: '18.4px'} }>
+          <div className="overlay-content">
             <SpecConfigComponent />
           </div>
           </div>
@@ -565,10 +598,13 @@ function HerbieUIInner() {
       {!showOverlay &&
         <div className="grid-container">
           {myHeader()}
-        
+          {mySubHeader()}
           <ExpressionTable />
           <div className="visualizations">
-            <SelectableVisualization components={components} />
+            {/* <SelectableVisualization components={components} /> */}
+            <div style={{fontSize: "12px", padding:"11px 0px", fontWeight: 'bold'}}>Error Plot</div>
+            <ErrorPlot />
+            <h4>Other Comparisons</h4>
             <SelectableVisualization components={components2} />
           </div>
 

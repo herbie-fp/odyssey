@@ -7,6 +7,7 @@ import * as utils from './lib/utils';
 import * as HerbieContext from './HerbieContext';
 import KaTeX from 'katex';
 import Modal from 'react-modal';
+import './sliders.css';
 
 import { DebounceInput, DebounceTextArea } from 'react-debounce-input';
 console.log("KaTeX:", KaTeX);
@@ -16,6 +17,7 @@ const math11 = require('mathjs11');
 
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
+import { expressionToTex } from './ExpressionTable';
 
 async function ensureMathJS(expression: string, serverUrl: string): Promise<string> {
   if (expression.includes("FPCore")) {
@@ -149,11 +151,12 @@ function SpecConfigComponent() {
           // Check if there are no variables
           const expr = await ensureMathJS(spec.expression, serverUrl)
 
-          if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
+          const numVars = fpcorejs.getVarnamesMathJS(expr).length;
+          if (numVars === 0) {
             throw new Error("No variables detected.")
           }
           await (validateSpecExpression(expr));
-          return KaTeX.renderToString(math11.parse(expr).toTex(), { throwOnError: false })
+          return KaTeX.renderToString(await expressionToTex(expr, numVars, serverUrl), { throwOnError: false })
         } catch (e) {
           //throw e;
           return (e as Error).toString()
@@ -196,74 +199,236 @@ function SpecConfigComponent() {
     setSpec(new Spec('', spec.id));
   }
 
-  return <>
-    <div className="spec-overlay-logo" style={{alignSelf: 'center', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '1em', marginTop: '1em', marginBottom: '1em'}}>
-      <div>Odyssey: Explore Floating-Point Error</div>
-      <div>
-        <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" alt="Odyssey logo" style={{}} />
+  const handleToggleUseFPCore = () => {
+    setUsingFPCore(!usingFPCore);
+    setSpecTextInput('');
+    setSpec(new Spec('', spec.id));
+  }
+
+  const ExpressionInputHeader = (
+    <div className="expression-input-header">
+      <a
+        className="showExample action"
+        href="javascript:;"
+        onClick={handleShowExample}
+      >
+        Show an example expression
+      </a>
+      {/* Use mathjs <=> Use FPCore toggle switch */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "1em",
+        }}
+        onClick={handleToggleUseFPCore}
+      >
+        <span
+          style={{
+            fontWeight: "bold",
+            color: usingFPCore ? "gray" : "black",
+          }}
+        >
+          Use mathjs
+        </span>
+        <label className="switch">
+          <input type="checkbox" disabled checked={usingFPCore} />
+          <span className="slider round"></span>
+        </label>
+        <span
+          style={{
+            fontWeight: "bold",
+            color: usingFPCore ? "black" : "gray",
+          }}
+        >
+          Use FPCore
+        </span>
       </div>
     </div>
-    <div className="spec-overlay-header">
-      Write a formula below to explore it with Odyssey. Enter approximate ranges for inputs.
-    </div>
-    <div>
-      <a className="showExample" href="#" onClick={handleShowExample}>Show an example</a>
-      &nbsp;|&nbsp;
-      <a className="useFPCoreOption" href="#" onClick={handleClickUseFPCore}>{usingFPCore ? `Use mathjs` : `Use FPCore`}</a>
-    </div>
-    {/* <div className="spec-textarea-container"> */}
-    <DebounceInput element="textarea" debounceTimeout={300} rows={!usingFPCore ? 1 : 4} className="spec-textarea" placeholder={usingFPCore ? `e.g. (FPCore (x) :pre (>= x 0) (- (sqrt (+ x 1)) (sqrt x)))` : "e.g. sqrt(x+1) - sqrt(x)"} value={specTextInput} onChange={handleSpecTextUpdate} />
-    {/* </div> */}
+  );
 
-    {spec.expression.length === 0 && ''}
+  const SpecTextarea = (
+    <DebounceInput
+      element={usingFPCore ? "textarea" : "input"}
+      debounceTimeout={300}
+      rows={!usingFPCore ? 1 : 4}
+      className="spec-textarea"
+      placeholder={
+        usingFPCore
+          ? `e.g. (FPCore (x) :pre (>= x 0) (- (sqrt (+ x 1)) (sqrt x)))`
+          : "e.g. sqrt(x+1) - sqrt(x)"
+      }
+      value={specTextInput}
+      onChange={handleSpecTextUpdate}
+    />
+  );
 
-    {/* Render the expression into HTML with KaTeX */}
-    {spec.expression.length > 0 && <div className="spec-tex" dangerouslySetInnerHTML={{
-      __html: htmlContent
-    }} />}
-
-    {spec.expression.indexOf('FPCore') === -1 && (
-      <div className="spec-range-inputs">
-        {variables.map((v, i) => {
-          const range = mySpecRanges.find(r => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
-          return (
-            <div className="spec-range-input" key={v}>
-              <div className="varname">
-                {v}:
-              </div>
-              <InputRangeEditor1
-                value={{
-                  varname: v,
-                  lower: range.lowerBound.toString(),
-                  upper: range.upperBound.toString()
-                }}
-                setValue={(value: { lower: string, upper: string }) => {
-                  console.debug('set input range', v, value);
-                  if (mySpecRanges.map(r => r.variable).includes(v)) {
-                    setMySpecRanges(mySpecRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r));
-                  } else {
-                    const newSpecRanges = [...mySpecRanges, new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper))];
-                    setMySpecRanges(newSpecRanges.filter(r => variables.includes(r.variable)));
-                  }
-                }}
-              />
-            </div>
-          );
-        })}
+  return (
+    <div className="spec-page">
+      <div className="spec-overlay-logo">
+        <div>
+          <img
+            src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png"
+            alt="Odyssey logo"
+            style={{ width: "100px" }}
+          />
+        </div>
+        <div>Explore Floating-Point Error</div>
       </div>
-    )}
+      <div className="spec-overlay-header">
+        Write a formula below. Enter approximate ranges for inputs.
+      </div>
+      {ExpressionInputHeader}
+      {/* <div className="spec-textarea-container"> */}
+      {SpecTextarea}
+      {/* Render the expression into HTML with KaTeX */}
+      <div
+        className="spec-details"
+        style={{
+          marginLeft: "23px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "7.5px",
+          width: "calc(100% - 30px)",
+        }}
+      >
+        {spec.expression.length > 0 && (
+          <div
+            className="spec-tex"
+            style={{
+              maxWidth: "100%",
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              // color red if the expression is invalid
+              color: htmlContent.includes("Error") ? "red" : "black",
+            }}
+            dangerouslySetInnerHTML={{
+              __html: htmlContent,
+            }}
+          />
+        )}
 
-    {!disabled && <button className="explore-button" onClick={handleSubmitClick}>Explore</button>}
+        {spec.expression.indexOf("FPCore") === -1 && (
+          <div
+            className="spec-range-inputs"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
+          >
+            {variables.map((v, i) => {
+              const range =
+                mySpecRanges.find((r) => r.variable === v) ||
+                new HerbieTypes.SpecRange(v, -1e308, 1e308);
+              return (
+                <div className="spec-range-input" key={v}>
+                  <div className="varname">{v}:</div>
+                  <InputRangeEditor1
+                    value={{
+                      varname: v,
+                      lower: range.lowerBound.toString(),
+                      upper: range.upperBound.toString(),
+                    }}
+                    setValue={(value: { lower: string; upper: string }) => {
+                      console.debug("set input range", v, value);
+                      if (mySpecRanges.map((r) => r.variable).includes(v)) {
+                        setMySpecRanges(
+                          mySpecRanges.map((r) =>
+                            r.variable === v
+                              ? new HerbieTypes.SpecRange(
+                                  v,
+                                  parseFloat(value.lower),
+                                  parseFloat(value.upper)
+                                )
+                              : r
+                          )
+                        );
+                      } else {
+                        const newSpecRanges = [
+                          ...mySpecRanges,
+                          new HerbieTypes.SpecRange(
+                            v,
+                            parseFloat(value.lower),
+                            parseFloat(value.upper)
+                          ),
+                        ];
+                        setMySpecRanges(
+                          newSpecRanges.filter((r) =>
+                            variables.includes(r.variable)
+                          )
+                        );
+                      }
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-    {/* TODO this nesting p > dl is bad apparently, shows console error */}
-    <div className="mathjs-instructions" style={{ "display": "block" }}><div>Use ordinary mathematical syntax (parsed by <a href="https://mathjs.org">math.js</a>) and <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">standard functions</a> like:</div>
-      <dl className="function-list"><dt>+, -, *, /, abs</dt><dd>The usual arithmetic functions</dd><dt>and, or</dt><dd>Logical connectives (for preconditions)</dd><dt>pow</dt><dd>Raising a value to a power</dd><dt>exp, log</dt><dd>Natural exponent and natural log</dd><dt>sin, cos, tan</dt><dd>The trigonometric functions</dd><dt>asin, acos, atan</dt><dd>The inverse trigonometric functions</dd><dt>sqrt, cbrt</dt><dd>Square and cube roots</dd><dt>PI, E</dt><dd>The mathematical constants</dd></dl>
+      {!disabled && (
+        <>
+          <hr></hr>
+          <button
+            className="explore-button"
+            style={{
+              alignSelf: "flex-end",
+              padding: "10px 20px",
+              fontWeight: "bold",
+              borderRadius: "7px",
+              backgroundColor: "#a6e5eb",
+              border: "none",
+            }}
+            onClick={handleSubmitClick}
+          >
+            Explore
+          </button>
+        </>
+      )}
+
+      {/* TODO this nesting p > dl is bad apparently, shows console error */}
+      <div className="mathjs-instructions" style={{ display: "block", alignSelf: 'center' }}>
+        <div>
+          Use ordinary mathematical syntax (parsed by{" "}
+          <a href="https://mathjs.org">math.js</a>) and{" "}
+          <a href="https://herbie.uwplse.org/doc/2.1/input.html#heading-2">
+            standard functions
+          </a>{" "}
+          like:
+        </div>
+        <dl className="function-list">
+          <dt>+, -, *, /, abs</dt>
+          <dd>The usual arithmetic functions</dd>
+          <dt>and, or</dt>
+          <dd>Logical connectives (for preconditions)</dd>
+          <dt>pow</dt>
+          <dd>Raising a value to a power</dd>
+          <dt>exp, log</dt>
+          <dd>Natural exponent and natural log</dd>
+          <dt>sin, cos, tan</dt>
+          <dd>The trigonometric functions</dd>
+          <dt>asin, acos, atan</dt>
+          <dd>The inverse trigonometric functions</dd>
+          <dt>sqrt, cbrt</dt>
+          <dd>Square and cube roots</dd>
+          <dt>PI, E</dt>
+          <dd>The mathematical constants</dd>
+        </dl>
+      </div>
+
+      <div
+        className="acknowledgments"
+        style={{ fontSize: "small", marginTop: "2em", textAlign: 'center' }}
+      >
+        This work is supported by the U.S. Department of Energy, Office of
+        Science, Office of Advanced Scientific Computing Research, ComPort:
+        Rigorous Testing Methods to Safeguard Software Porting, under Award
+        Number DE-SC0022081.
+      </div>
     </div>
-
-    <div className="acknowledgments" style={{"fontSize": 'small', "marginTop": "2em"}}>
-       This work is supported by the U.S. Department of Energy, Office of Science, Office of Advanced Scientific Computing Research, ComPort: Rigorous Testing Methods to Safeguard Software Porting, under Award Number DE-SC0022081.
-    </div>
-  </>
+  );
 }
 
 function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void }) {
@@ -402,11 +567,12 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
           // Check if there are no variables
           const expr = await ensureMathJS(spec.expression, serverUrl)
 
-          if (fpcorejs.getVarnamesMathJS(expr).length === 0) {
+          const numVars = fpcorejs.getVarnamesMathJS(expr).length;
+          if (numVars === 0) {
             throw new Error("No variables detected.")
           }
           await (validateSpecExpression(expr));
-          return KaTeX.renderToString(math11.parse(expr).toTex(), { throwOnError: false })
+          return KaTeX.renderToString(await expressionToTex(expr, numVars, serverUrl), { throwOnError: false })
         } catch (e) {
           //throw e;
           return (e as Error).toString()
@@ -438,7 +604,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   return (
     <div className="spec-container">
       <div className="spec-title">
-        <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div>
+        {/* <div className="spec-text" onClick={handleSpecClick}>{value.expression}</div> */}
       </div>
       <Modal
         isOpen={false}

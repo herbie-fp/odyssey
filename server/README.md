@@ -1,4 +1,27 @@
 # Server Deployment
+
+## RESTARTING
+
+* Give Pavel your public SSH key
+* ssh pavpan@fpbench.cs.washington.edu
+* herbie/infra
+* odyssey/server
+     * This one has -real.service files for the actual files
+* sudo systemctl restart herbie-demo.service
+     * or fpbench-server-real.service
+     * or fptaylor-server-real.service
+* To see status:
+    * sudo systemctl status herbie-demo
+* To view all logs:
+* sudo journalctl -u herbie-demo
+* Then hit G to go to the end of the log (most recent) (will take a couple seconds to respond since the file is long)
+
+## Updating server version (herbie)
+* always git pull to get new commits
+* make sure you are on main/branch you want
+* make install
+* sudo systemctl restart herbie-demo
+
 ## Release checklist for maintainers
 
 ### Setting up the server directory
@@ -8,8 +31,9 @@
 * [ ] Run `./install.sh` to install npm dependencies and put FPTaylor and FPBench binaries in the current directory.
 
 ### Setting up the FPTaylor and FPBench servers
-* [ ] Copy `fptaylor-server.service` and `fpbench-server.service` to the `/etc/systemd/system/` directory and edit the lines marked \*UPDATE\* to set the correct WorkingDirectory (this directory) and the User you want to run the servers as.
+* [ ] Copy `fptaylor-server.service.example` and `fpbench-server.service.example` to `fptaylor-server.service` and `fpbench-server.service` and edit the lines marked \*UPDATE\* to set the correct WorkingDirectory (this directory) and the User you want to run the servers as.
 * [ ] Configure the ports in the ExecStart property in the service files if you want to use different ports.
+* [ ] TODO add documentation -- use systemctl to add the new service files
 * [ ] Run `systemctl daemon-reload` to recognize the new services.
 * [ ] Run `systemctl start fptaylor-server` and `systemctl start fpbench-server` to start the servers. You can check the status with `systemctl status fptaylor-server` and `systemctl status fpbench-server`.
 * [ ] Run `systemctl enable fptaylor-server` and `systemctl enable fpbench-server` to start the servers on boot.

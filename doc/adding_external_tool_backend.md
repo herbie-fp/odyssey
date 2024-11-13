@@ -210,7 +210,7 @@ with a section for prompting the user to download specific tools if they don't h
 
 As always, the existing FPTaylor and FPBench endpoints serve as good examples to guide your implementation.
 
-## If your tool is only supported on some OSes
+## If your tool is only supported on some OSes or has other requirements (like hardware)
 In some cases, your tool may only be supported on certain operating systems. Here, you can follow similar steps to the logic for the FPBench and FPTaylor cases.
 
 In particular, define a new constant for supported platforms like so:
@@ -220,6 +220,8 @@ In particular, define a new constant for supported platforms like so:
 		const systemSupportsFPBench = process.platform === 'linux'
 		const systemSupportsYOUR_TOOL = process.platform === YOUR_SUPPORTED_PLATFORMS_HERE
 ```
+
+which may need advanced logic if you're checking if the user has specific hardware.
 
 and then when prompting the user to install your tool, add a check to make sure they're on an OS that supports your tool:
 

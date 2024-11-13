@@ -127,6 +127,8 @@ This will look something like the following:
 		const home = require('os').homedir()
 		// TODO path.join instead of string concat
 		const odysseyDir = home + '/.local/share/odyssey'
+
+		// If the directories don't exist, make them
 		if (!fs.existsSync(odysseyDir)) {
 			fs.mkdirSync(odysseyDir, { recursive: true })
 		}
@@ -136,6 +138,8 @@ This will look something like the following:
 		if (!fs.existsSync(odysseyDir + '/dist')) {
 			fs.mkdirSync(odysseyDir + '/dist')
 		}
+
+
 		const dest = home + '/.local/share/odyssey/<YOUR_TOOL>-compiled.zip'
 		downloadFile(url, dest, (err: any) => {
 			if (err) {

@@ -80,10 +80,11 @@ Later on in the activate function, you should see the following setup for expres
 	app.use(bodyParser.json());
 ```
 
-You should add an endpoint for your backend tool here. The endpoint will look something like this:
+You should add one endpoint for each functionality in your backend tool here. Each endpoint will look something like this:
 
 ```
-	app.post('/<YOUR_TOOL>/exec', async (req: any, res: any) => {
+// Name your endpoint something logical, as you will be calling it from the frontend
+	app.post('/<YOUR_TOOL>/<YOUR_ENDPOINT_NAME>', async (req: any, res: any) => {
 		const input = req.body;
 		const safe_input = input.<YOUR_TOOL_INPUT>.replace(/'/g, "\\'");
 		try {

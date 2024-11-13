@@ -195,9 +195,7 @@ Following the running of the openTab command itself, you should see the line of 
 	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
 ```
 
-with a section for prompting the user to download specific tools if they don't have them already.
-
-Add an error prompt for your tool with a call to the function from the previous part. It should generally look something like the following.
+with a section for prompting the user to download specific tools if they don't have them already. Here, add an error prompt for your tool with a call to the function from the previous part. It should generally look something like the following.
 
 ```
 		if (!fs.existsSync(<YOUR_TOOL_PATH>)) {

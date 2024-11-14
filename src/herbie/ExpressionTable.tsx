@@ -185,10 +185,11 @@ function ExpressionTable() {
   }
 
   const handleAddExpressionChange = async (expression: string) => {
+    expression = expression.trim();
     setAddExpression(expression);
     try {
       validateExpression(expression);
-      const tex = expression.trim() === '' ? ''
+      const tex = expression === '' ? ''
         : KaTeX.renderToString(await expressionToTex(expression, fpcore.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
       setAddExpressionTex(tex);
     } catch (e) {

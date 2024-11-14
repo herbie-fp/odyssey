@@ -181,6 +181,25 @@ function ExpressionTable() {
     setSelectedExprId(selectedId)
     setCompareExprIds([...compareExprIds, selectedId])
     setAddExpression('')
+    
+    fetch('http://localhost:8003/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sessionStorage.getItem('sessionId'),
+        expression: addExpression,
+        timestamp: new Date().toLocaleString(),
+      }),
+    })
+    .then(response => {
+      if (response.ok) {
+        console.log('Server is running and log saved');
+      }
+      else {
+        console.error('Server responded with an error:', response.status);
+      }
+    })
+    .catch(error => console.error('Request failed:', error));
   }
 
   const handleAddExpressionChange = async (expression: string) => {

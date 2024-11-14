@@ -99,6 +99,30 @@ function SpecConfigComponent() {
 
     console.debug('Added, now setting spec', mySpec)
     setValue(mySpec);
+
+    if (!sessionStorage.getItem('sessionId')) {
+      const sessionId = Date.now().toString();
+      sessionStorage.setItem('sessionId', sessionId);
+    }
+    
+    fetch('http://localhost:8003/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sessionStorage.getItem('sessionId'),
+        expression: spec.expression,
+        timestamp: new Date().toLocaleString(),
+      }),
+    })
+    .then(response => {
+      if (response.ok) {
+        console.log('Server is running and log saved');
+      }
+      else {
+        console.error('Server responded with an error:', response.status);
+      }
+    })
+    .catch(error => console.error('Request failed:', error));
   }
 
   const specValid = async () => {

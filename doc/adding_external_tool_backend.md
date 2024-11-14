@@ -5,6 +5,8 @@ This documentation assumes that you have the repo set up locally, that you have 
 
 The codebase makes heavy use of [React](https://react.dev/), which you should be familiar with before constructing a component. There exist tutorials [for more modern React](https://react.dev/learn) as well as [this older React tutorial](https://legacy.reactjs.org/tutorial/tutorial.html).
 
+This particular section of the codebase makes heavy use of Node's [file system library calls](https://nodejs.org/api/fs.html), and the documentation for that might be useful to review for the various fs calls.
+
 TypeScript is the language of choice for this codebase. It features a fairly powerful [type system](https://www.typescriptlang.org/docs/handbook/intro.html) that you should be familiar with.
 
 
@@ -30,6 +32,8 @@ const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/do
 that should look like the above as of November 2024.
 
 You should construct a similar constant for your external binary, and provide some link to which your binary can be downloaded.
+
+Your external binary should be hosted as a zip file with an internal folder structure similar to one of the existing Herbie, FPTaylor, or FPBench binary zipfile structures (it will generally look something like having a dist folder, with individual folders for each OS - downloading one of the existing binary zipfiles and following that structure will be useful).
 
 
 ## Separating different binaries for different distributions
@@ -78,12 +82,16 @@ Later on in the activate function, you should see the following setup for expres
 	app.use(bodyParser.json());
 ```
 
-You should add an endpoint for your backend tool here. The endpoint will look something like this:
+You should add one [endpoint](https://www.smashingmagazine.com/2018/01/understanding-using-rest-api/) for each functionality in your backend tool here. These are [Express](https://expressjs.com/en/guide/routing.html) endpoints and will use that routing. Note the use of the [exec](https://nodejs.org/api/child_process.html#child_processexeccommand-options-callback) function to execute your tool executable from the command line. Each endpoint will look something like this:
 
 ```
-	app.post('/<YOUR_TOOL>/exec', async (req: any, res: any) => {
+// Name your endpoint something logical, as you will be calling it from the frontend
+	app.post('/<YOUR_TOOL>/<YOUR_ENDPOINT_NAME>', async (req: any, res: any) => {
 		const input = req.body;
+
+		// Sanitize the req.body input to prevent security issues
 		const safe_input = input.<YOUR_TOOL_INPUT>.replace(/'/g, "\\'");
+
 		try {
 			// The most important line is this next one. Include anything you need to run your executable or binary from the command line, and exec will run it from the command line as a command.
 			// Note that if your tool needs multiple commands to run, you will need multiple exec statements here
@@ -121,6 +129,8 @@ This will look something like the following:
 		const home = require('os').homedir()
 		// TODO path.join instead of string concat
 		const odysseyDir = home + '/.local/share/odyssey'
+
+		// If the directories don't exist, make them
 		if (!fs.existsSync(odysseyDir)) {
 			fs.mkdirSync(odysseyDir, { recursive: true })
 		}
@@ -130,6 +140,8 @@ This will look something like the following:
 		if (!fs.existsSync(odysseyDir + '/dist')) {
 			fs.mkdirSync(odysseyDir + '/dist')
 		}
+
+
 		const dest = home + '/.local/share/odyssey/<YOUR_TOOL>-compiled.zip'
 		downloadFile(url, dest, (err: any) => {
 			if (err) {
@@ -156,6 +168,7 @@ This will look something like the following:
 			}
 
 			try {
+				// Clean up the zip by using the unlink system call
 				fs.unlinkSync(dest)
 
 				// make binary executable
@@ -182,9 +195,7 @@ Following the running of the openTab command itself, you should see the line of 
 	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
 ```
 
-with a section for prompting the user to download specific tools if they don't have them already.
-
-Add an error prompt for your tool with a call to the function from the previous part. It should generally look something like the following.
+with a section for prompting the user to download specific tools if they don't have them already. Here, add an error prompt for your tool with a call to the function from the previous part. It should generally look something like the following.
 
 ```
 		if (!fs.existsSync(<YOUR_TOOL_PATH>)) {
@@ -198,6 +209,28 @@ Add an error prompt for your tool with a call to the function from the previous 
 ```
 
 As always, the existing FPTaylor and FPBench endpoints serve as good examples to guide your implementation.
+
+## If your tool is only supported on some OSes or has other requirements (like hardware)
+In some cases, your tool may only be supported on certain operating systems. Here, you can follow similar steps to the logic for the FPBench and FPTaylor cases.
+
+In particular, define a new constant for supported platforms like so:
+
+```
+		const systemSupportsFPTaylor = process.platform === 'linux'
+		const systemSupportsFPBench = process.platform === 'linux'
+		const systemSupportsYOUR_TOOL = process.platform === YOUR_SUPPORTED_PLATFORMS_HERE
+```
+
+which may need advanced logic if you're checking if the user has specific hardware.
+
+and then when prompting the user to install your tool, add a check to make sure they're on an OS that supports your tool:
+
+```
+		if (!fs.existsSync(YOUR_TOOL_PATH) && systemSupportsYOUR_TOOL) {
+			// Rest of the logic from before goes here
+			// ...
+		}
+```
 
 ## Connecting your external tool to the main server
 You should also include an instance of your tool in the main server, where current instnaces of Herbie, Odyssey, and other tools are run for the web demo. 

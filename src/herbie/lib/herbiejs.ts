@@ -75,7 +75,7 @@ const getHerbieApi = async (
     "cost"
   ]
   // If async API available use that instead.
-  if (asyncEndpoints.includes(endpoint)) {
+  if (false && asyncEndpoints.includes(endpoint)) {
     return getHerbieApiAsync(host, endpoint, data, retry);
   }
 

@@ -10,7 +10,7 @@ export interface mathjs extends String { }
 interface fpcore extends String { }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-const CONSTANTS : {[key: string]: string} = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool" }
+const CONSTANTS : {[key: string]: string} = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool", "INFINITY": "real"}
 
 const FUNCTIONS : {[key: string]: [string[], string]}= {}
 

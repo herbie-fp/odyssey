@@ -135,7 +135,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           onChange={e => setUpperBound(e.target.value)}
         />
       </span>
-      { 
+      {/* { 
         boundsCrossesZero &&
         <>
           <span className="separator"> with <span className="separator-math">|{varname}| &ge; </span></span>
@@ -148,7 +148,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           />
           </span>
           </> 
-      }
+      } */}
       {error && <div style={{ color: 'red' }} className="error">{error}</div>}
     </div>
   );

@@ -162,11 +162,6 @@ function SpecConfigComponent() {
     setSpecTextInput(event.target.value);
   }
 
-  const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
-    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))))
-    // setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
-  }
-
   const [htmlContent, setHtmlContent] = useState('')
   useEffect(() => {
     async function getResult() {

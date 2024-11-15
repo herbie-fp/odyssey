@@ -255,8 +255,10 @@
 .add-expression:has(textarea.has-text) .add-expression-dropdown {
   min-height: 2em;
   transition: all .3s ease-in-out;
-  max-height: 100%;
+  max-height: 50px;
   opacity: 1;
+  height: 50px;
+  overflow: auto;
 }
 /* } {
   background-color: orange;

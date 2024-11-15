@@ -282,6 +282,16 @@ function SpecConfigComponent() {
     />
   );
 
+  // make sure the ranges get initialized; works because useEffect runs *after* render
+  useEffect(() => {
+    const vars = variables;
+    const newRanges = vars.map((v) => {
+      const range = mySpecRanges.find((r) => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
+      return range;
+    });
+    setMySpecRanges(newRanges);
+  }, [variables]);
+
   return (
     <div className="spec-page">
       <div className="spec-overlay-logo">

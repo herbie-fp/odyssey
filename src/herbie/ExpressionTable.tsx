@@ -54,9 +54,12 @@ function ExpressionTable() {
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
   const [addExpressionTex, setAddExpressionTex] = useState('');
-  const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
+  
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
-  const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
+  const [jobCount,] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
+
+  const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext)
+
   const naiveExpression = expressions.find(e => e.text === spec.expression);
   // get cost of naive expression
   const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;

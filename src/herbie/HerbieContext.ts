@@ -86,6 +86,7 @@ export const FPTaylorRangeContext = makeGlobal([] as types.FPTaylorRange[])
 export const InputRangesTableContext = makeGlobal([] as (types.InputRanges | types.RangeInSpecFPCore) [])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
+export const ExpandedExpressionsContext = makeGlobal([] as number[])  // Spec IDs
 
 type jobCountAction = { type: 'increment' } | { type: 'decrement' }
 function jobCountReducer(jobCount: number, action : jobCountAction ) {

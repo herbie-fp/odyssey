@@ -179,9 +179,10 @@ function LocalError({ expressionId }: { expressionId: number }) {
   }, [localError]); // Ensure the effect runs only when the graph is rendered and localError is available
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setTimeout(()=> {
     const pointErrorExp = selectedPointsErrorExp.find(a => a.expressionId === expressionId)?.error;
-    setErrorResponse(pointErrorExp || null);}, 500); // If pointErrorExp is undefined, set null
+    setErrorResponse(pointErrorExp || null);
+    },100);
     return () => clearTimeout(timer);
   }, [selectedPointsErrorExp]); 
 

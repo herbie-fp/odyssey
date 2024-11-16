@@ -310,9 +310,11 @@ function HerbieUIInner() {
         return  // should never get here
       }
 
-      const sample_points = (await herbiejs.getSample(fpCore, serverUrl)).points;
+      const sample_json = (await herbiejs.getSample(fpCore, serverUrl));
+      console.log(`SAMPLE:${sample_json['job']}`)
+      const sample_points = sample_json.points;
       // always create a new sample with this spec and these input ranges
-      const sample = new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))
+      const sample = new Sample(sample_json['job']!, sample_points, spec.id, inputRanges.id, nextId(samples))
       setSamples([...samples, sample]);
       console.debug(`Sampled spec ${spec.id} for input ranges ${inputRanges.id}:`, sample)
     }
@@ -362,7 +364,7 @@ function HerbieUIInner() {
           // HACK to make sampling work on Herbie side
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-          const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
+          const modSample = new Sample(sample.job, sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
           const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl))
           return new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)
           // updates.push(new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree))

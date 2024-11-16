@@ -87,10 +87,12 @@ export type expressionError = number
 // LATER probably don't need ExpressionError in this
 export class Sample {
   constructor(
+      public readonly job: string,
       public readonly points: [ordinalPoint, expressionError][],
       public readonly specId: number,
       public readonly inputRangesId: number,
       public readonly id: number) {
+    this.job = job;
     this.points = points;
     this.specId = specId;
     this.inputRangesId = inputRangesId;

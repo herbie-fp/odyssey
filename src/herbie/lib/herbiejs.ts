@@ -188,10 +188,9 @@ export const analyzeErrorExpression = async (
 
 export const getCost = async (
   fpcore: string,
-  sample: Sample,
   host: string
 ): Promise<number> => {
-  return (await getHerbieApi(host, 'cost', { formula: fpcore, sample: sample.points }, true) as CostResponse).cost;
+  return (await getHerbieApi(host, 'cost', { formula: fpcore }, true) as CostResponse).cost;
 };
 
 type point = ordinal[]

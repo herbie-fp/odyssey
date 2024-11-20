@@ -63,13 +63,13 @@ const gpufpxAnalyzerCallback = async (req, res, binaryPath) => {
   try {
       // First command - compile
       const { stdout: compileOutput } = await execPromise(
-          `${binaryPath}/./compile-odyssey.sh "${safe_formulas}"`,
+          `${binaryPath}/compile-odyssey.sh "${safe_formulas}"`,
           { shell: '/bin/bash', cwd: binaryPath }
       );
 
       // Second command - run analyzer with preload
       const { stdout: analyzerOutput } = await execPromise(
-          `${binaryPath} && LD_PRELOAD=${binaryPath}/./analyzer.so ./cuda_program`,
+          `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/analyzer.so ./cuda_program`,
           { shell: '/bin/bash', cwd:binaryPath }
       );
 
@@ -89,15 +89,15 @@ const gpufpxDetectorCallback = async (req, res, binaryPath) => {
   try {
       // First command - compile (if not already compiled)
       const { stdout: compileOutput } = await execPromise(
-          `./compile-odyssey.sh "${safe_formulas}"`,
-          { shell: '/bin/bash' }
-      );
-
+        `${binaryPath}/compile-odyssey.sh "${safe_formulas}"`,
+        { shell: '/bin/bash', cwd: binaryPath }
+    );
+    
       // Second command - run detector with preload
       const { stdout: detectorOutput } = await execPromise(
-          `LD_PRELOAD=./detector.so ./cuda_program`,
-          { shell: '/bin/bash' }
-      );
+        `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/detector.so ./cuda_program`,
+        { shell: '/bin/bash', cwd:binaryPath }
+    );
 
       res.json({ stdout: detectorOutput });
   } catch (e) {

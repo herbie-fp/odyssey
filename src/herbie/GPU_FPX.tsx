@@ -76,7 +76,7 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
             setAnalyzerResult(analyzerData.stdout);
 
             // Then run detector
-            const detectorResponse = await fetch('http://155.98.69.61:8002/exec', {
+            const detectorResponse = await fetch('http://155.98.69.61:8003/exec', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

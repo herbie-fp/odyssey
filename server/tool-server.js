@@ -63,14 +63,14 @@ const gpufpxAnalyzerCallback = async (req, res, binaryPath) => {
   try {
       // First command - compile
       const { stdout: compileOutput } = await execPromise(
-          `./compile-odyssey.sh "${safe_formulas}"`,
-          { shell: '/bin/bash' }
+          `${binaryPath}/./compile-odyssey.sh "${safe_formulas}"`,
+          { shell: '/bin/bash', cwd: binaryPath }
       );
 
       // Second command - run analyzer with preload
       const { stdout: analyzerOutput } = await execPromise(
-          `LD_PRELOAD=./analyzer.so ./cuda_program`,
-          { shell: '/bin/bash' }
+          `${binaryPath} && LD_PRELOAD=${binaryPath}/./analyzer.so ./cuda_program`,
+          { shell: '/bin/bash', cwd:binaryPath }
       );
 
       res.json({ stdout: analyzerOutput });

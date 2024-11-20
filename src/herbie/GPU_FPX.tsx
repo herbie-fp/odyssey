@@ -40,25 +40,27 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
 
   const handleRunAnalysis = async () => {
         try {
-          // First get current FPCore expression
-          const fpCoreExpr = current_expression;
+        //   // First get current FPCore expression
+        //   const fpCoreExpr = current_expression;
 
-          // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
-          const fpbenchResponse = await fetch('http://155.98.69.61:8888/exec', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', 
-            },
-            body: JSON.stringify({
-                formulas: [fpCoreExpr],
-                // Specify CUDA as target language
-                language: 'c'
-            })
-        });
+        //   // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
+        //   const fpbenchResponse = await fetch('http://155.98.69.61:8888/exec', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json', 
+        //     },
+        //     body: JSON.stringify({
+        //         formulas: [fpCoreExpr],
+        //         // Specify CUDA as target language
+        //         language: 'c'
+        //     })
+        // });
 
-        const fpbenchResult = await fpbenchResponse.json();
-        // Extract just the expression from the function body
-        const cudaExpr = extractExpression(fpbenchResult.stdout);
+        // const fpbenchResult = await fpbenchResponse.json();
+        // // Extract just the expression from the function body
+        // const cudaExpr = extractExpression(fpbenchResult.stdout);
+
+        const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
         
         // Now we can run GPU-FPX with the extracted expression
             const analyzerResponse = await fetch('http://155.98.69.61:8001/exec', {

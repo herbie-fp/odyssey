@@ -15,12 +15,96 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const [showReport, setShowReport] = useState(false);
   const [runAnalyzer, setRunAnalyzer] = useState(false);
 
-  const handleReportClick = () => {
-    setShowReport(!showReport);
-  }
+  /* ---------------------------------------------------  */
 
+  //State for results from Analyzer and Detector
+  const [analyzerResult, setAnalyzerResult] = useState<string>("");
+  const [detectorResult, setDetectorResult] = useState<string>("");
+
+  // State for loading/error handling
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+
+  /****************************************************************/ 
+
+  // Extract the expression from FPBench's CUDA (for now it's C) output
+  const extractExpression = (cudaExpression: string): string => {
+    // Look for the return statements
+    const returnMatch = cudaExpression.match(/return\s+(.*?);/);
+    if (returnMatch && returnMatch[1]) {
+        return returnMatch[1].trim();
+    }
+    throw new Error("Could not parse CUDA function body");
+};
+
+  const handleRunAnalysis = async () => {
+        try {
+          // First get current FPCore expression
+          const fpCoreExpr = current_expression;
+
+          // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
+          const fpbenchResponse = await fetch('http://155.98.69.61:8888/exec', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+            body: JSON.stringify({
+                formulas: [fpCoreExpr],
+                // Specify CUDA as target language
+                language: 'c'
+            })
+        });
+
+        const fpbenchResult = await fpbenchResponse.json();
+        // Extract just the expression from the function body
+        const cudaExpr = extractExpression(fpbenchResult.stdout);
+        
+        // Now we can run GPU-FPX with the extracted expression
+            const analyzerResponse = await fetch('http://155.98.69.61:8001/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    formulas: [cudaExpr]
+                })
+            });
+            const analyzerData = await analyzerResponse.json();
+            setAnalyzerResult(analyzerData.stdout);
+
+            // Then run detector
+            const detectorResponse = await fetch('http://155.98.69.61:8002/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    formulas: [cudaExpr]
+                })
+            });
+            const detectorData = await detectorResponse.json();
+            setDetectorResult(detectorData.stdout);
+
+        } catch (error) {
+            console.error('Error running GPU-FPX:', error);
+            // Handle error appropriately
+        }
+    };
+    
+
+  // Button to trigger analysis
   const handleRunAnalyzerClick = () => {
     setRunAnalyzer(!runAnalyzer);
+    handleRunAnalysis();
+};
+  
+        
+  /****************************************************************/ 
+
+
+  const handleReportClick = () => {
+    setShowReport(!showReport);
   }
 
   const formatReport = (report: string) => {
@@ -34,23 +118,24 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
       )
   }
 
-  const report = `------------ GPU-FPX Report -----------
+//   const report = `------------ GPU-FPX Report -----------
 
---- FP64 Operations ---
-Total NaN found:              0
-Total INF found:              0
-Total underflow (subnormal):  0
-Total Division by 0:          0
---- FP32 Operations ---
-Total NaN found:              1
-Total INF found:              0
-Total underflow (subnormal):  0
-Total Division by 0:          1
---- Other Stats ---
-Kernels:      1
-The total number of exceptions are: 2`;
+// --- FP64 Operations ---
+// Total NaN found:              0
+// Total INF found:              0
+// Total underflow (subnormal):  0
+// Total Division by 0:          0
+// --- FP32 Operations ---
+// Total NaN found:              1
+// Total INF found:              0
+// Total underflow (subnormal):  0
+// Total Division by 0:          1
+// --- Other Stats ---
+// Kernels:      1
+// The total number of exceptions are: 2`;
 
-const formattedReport = formatReport(report);
+
+const formattedReport = formatReport(analyzerResult);
 
 const FullReport = ({ formattedReport }: { formattedReport: string[] }) => (
   <div>
@@ -80,8 +165,8 @@ const FullReport = ({ formattedReport }: { formattedReport: string[] }) => (
 
   return (
     <div>
-      {/* <p>Current expression:</p>
-      <p>{current_expression?.text}</p> */}
+      <p>Current expression:</p>
+      <p>{current_expression?.text}</p> 
       <p>The total number of exceptions are: 2</p>
       <button onClick={handleReportClick}>See Full Report</button>
       <button onClick={handleRunAnalyzerClick}>Run Analyzer</button>

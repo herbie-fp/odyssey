@@ -28,23 +28,23 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
 
   /****************************************************************/ 
 
-  // Extract the expression from FPBench's CUDA (for now it's C) output
-  const extractExpression = (cudaExpression: string): string => {
-    // Look for the return statements
-    const returnMatch = cudaExpression.match(/return\s+(.*?);/);
-    if (returnMatch && returnMatch[1]) {
-        return returnMatch[1].trim();
-    }
-    throw new Error("Could not parse CUDA function body");
-};
+//   // Extract the expression from FPBench's CUDA (for now it's C) output
+//   const extractExpression = (cudaExpression: string): string => {
+//     // Look for the return statements
+//     const returnMatch = cudaExpression.match(/return\s+(.*?);/);
+//     if (returnMatch && returnMatch[1]) {
+//         return returnMatch[1].trim();
+//     }
+//     throw new Error("Could not parse CUDA function body");
+// };
 
   const handleRunAnalysis = async () => {
         try {
         //   // First get current FPCore expression
         //   const fpCoreExpr = current_expression;
-
+        //   console.log("Starting FPBench conversion for expression:", fpCoreExpr);
         //   // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
-        //   const fpbenchResponse = await fetch('http://155.98.69.61:8888/exec', {
+        //   const fpbenchResponse = await fetch('https://herbie.uwplse.org/fpbench/exec', {
         //     method: 'POST',
         //     headers: {
         //         'Content-Type': 'application/json', 
@@ -57,9 +57,11 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
         // });
 
         // const fpbenchResult = await fpbenchResponse.json();
-        // // Extract just the expression from the function body
-        // const cudaExpr = extractExpression(fpbenchResult.stdout);
-
+        // console.log("Raw FPBench result:", fpbenchResult);
+        // Extract just the expression from the function body
+        // const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
+        // const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
+        // console.log("Extracted CUDA expression:", cudaExpr);
         const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
         
         // Now we can run GPU-FPX with the extracted expression
@@ -100,16 +102,12 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
     setRunAnalyzer(!runAnalyzer);
     handleRunAnalysis();
 };
-  
-        
-  /****************************************************************/ 
-
 
   const handleReportClick = () => {
     setShowReport(!showReport);
   }
 
-  const formatReport = (report: string) => {
+  const formatDetectorReport = (report: string) => {
     // Split on newlines and filter out empty lines and headers
     return report.split(/\r?\n/)
       .map(line => line.trim())
@@ -120,24 +118,17 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
       )
   }
 
-//   const report = `------------ GPU-FPX Report -----------
+  const extractDetectorReport = (log: string): string => {
+    const startMarker = "------------ GPU-FPX Report -----------";
+    const endMarker = "The total number of exceptions are:";
+    const start = log.indexOf(startMarker);
+    const endLineStart = log.indexOf(endMarker);
+    const endLine = log.slice(endLineStart).split('\n')[0];
+    
+    return log.slice(start, endLineStart + endLine.length);
+};
 
-// --- FP64 Operations ---
-// Total NaN found:              0
-// Total INF found:              0
-// Total underflow (subnormal):  0
-// Total Division by 0:          0
-// --- FP32 Operations ---
-// Total NaN found:              1
-// Total INF found:              0
-// Total underflow (subnormal):  0
-// Total Division by 0:          1
-// --- Other Stats ---
-// Kernels:      1
-// The total number of exceptions are: 2`;
-
-
-const formattedReport = formatReport(analyzerResult);
+const formattedReport = formatDetectorReport(extractDetectorReport(detectorResult));
 
 const FullReport = ({ formattedReport }: { formattedReport: string[] }) => (
   <div>
@@ -179,7 +170,7 @@ const FullReport = ({ formattedReport }: { formattedReport: string[] }) => (
       </p> */}    
 
       {showReport ? <FullReport formattedReport={formattedReport} /> : ""}
-      {runAnalyzer ? /* Should also actually run the expression through the GPU-FPX Analyzer */<p>"Running analyzer on expression...</p> : ""}
+      {runAnalyzer ? <p>Running analyzer on expression...</p> : ""}
     </div>
   );
 };

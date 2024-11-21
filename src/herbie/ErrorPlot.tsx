@@ -403,8 +403,30 @@ function ErrorPlot() {
               if (jobCount > 0) { // there are pending jobs
                 return;
               }
+
               setSelectedPoint(point)
               setSelectedExprId(id)
+
+              fetch('http://localhost:8003/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sessionId: sessionStorage.getItem('sessionId'),
+                  SelectedPoint: point,
+                  SelectedExpression: expressions.find(e => e.id === id)?.text,
+                  Description: `Selected Point: ${point} on Expression: ${expressions.find(e => e.id === id)?.text}in the Error Plot Graph`,
+                  timestamp: new Date().toLocaleString(),
+                }),
+              })
+              .then(response => {
+                if (response.ok) {
+                  console.log('Server is running and log saved');
+                }
+                else {
+                  console.error('Server responded with an error:', response.status);
+                }
+              })
+              .catch(error => console.error('Request failed:', error));
             }
 
             // Compare the selectedPoint's bucket to that of the given point

@@ -77,10 +77,8 @@ body {
   background-color: var(--background-color);
   font-family: "IBM Plex Serif", serif;
   padding: 0px;
-}
-
-body {
   margin: 0px;
+  overflow: hidden; /* Inner components manual set scroll, if needed */
 }
 
 

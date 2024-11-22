@@ -333,11 +333,8 @@ function ExpressionTable() {
                   {showMath ?
                     <div className="expression-tex" dangerouslySetInnerHTML={{
                       __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
-                    }} style={{
-                          maxWidth: '350px',
-                          overflowX: 'auto',
-                          overflowY: 'hidden',
-                    }}/>
+                      }}
+                    />
                     :
                     <div className="expression-text" id={`` + expression.id}>
                       {expression.text}
@@ -359,8 +356,6 @@ function ExpressionTable() {
                       Improve
                     </button>
                   </div>
-
-
                   <div className="delete">
                     <button onClick={() =>{
                       setArchivedExpressions([...archivedExpressions, expression.id]);

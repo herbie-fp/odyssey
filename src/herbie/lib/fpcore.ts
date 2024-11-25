@@ -10,7 +10,7 @@ export interface mathjs extends String { }
 interface fpcore extends String { }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-const CONSTANTS : {[key: string]: string} = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool" }
+const CONSTANTS : {[key: string]: string} = { "PI": "real", "E": "real", "TRUE": "bool", "FALSE": "bool", "INFINITY": "real"}
 
 const FUNCTIONS : {[key: string]: [string[], string]}= {}
 
@@ -122,7 +122,7 @@ function bottom_up(tree: any, cb: any) {
 }
 
 function dump_fpcore(formula: any, ranges:any ) {  // NOTE modified get_precondition...
-  var tree = math.parse(formula);
+  var tree = math.parse(cleanMathJS(formula));
 
   var names: any = [];
   try {
@@ -195,6 +195,7 @@ window.dump_tree = dump_tree
 window.math = math
 
 function getVarnamesMathJS(mathjs_text: mathjs) {
+  mathjs_text = mathjs_text.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')
   const names: string[] = []
   try {
     dump_tree(math.parse(mathjs_text), names)
@@ -239,6 +240,7 @@ function rangeErrors([low, high] = [undefined, undefined], empty_if_missing = fa
   return A
 }
 function FPCoreBody(mathJSExpr: mathjs) {
+  mathJSExpr = cleanMathJS(mathJSExpr)
   try {
     return dump_tree(math.parse(mathJSExpr), [])
   } catch (e: any) {
@@ -374,6 +376,11 @@ function branchConditionalHandler(node: any, options : any) {
     : i !== conditions.length - 1 ? `\\mathbf{elif} \\> ${c.condition.toTex(options)}: \\\\ \\quad ${c.trueExpr.toTex(options)}`
     : `\\mathbf{else :} \\\\ \\quad ${c.falseExpr.toTex(options)}`).join('\\\\')
 }
+
+const cleanMathJS = (mathjs: mathjs) => {
+  return mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')
+}
+
 const math2Tex = (mathjs: string) => {
   return math11.parse(mathjs.replaceAll('!', 'not').replaceAll('||', 'or').replaceAll('&&', 'and')).toTex({handler: branchConditionalHandler})
 }

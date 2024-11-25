@@ -2,7 +2,6 @@ import React, { ReactText, useState } from 'react';
 import { LocalError } from './LocalError/LocalError';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
-import GitHubIssueButton from './GitHubIssueButton';
 import * as Contexts from './HerbieContext'
 import './SelectableVisualization.css';
 

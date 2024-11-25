@@ -99,6 +99,30 @@ function SpecConfigComponent() {
 
     console.debug('Added, now setting spec', mySpec)
     setValue(mySpec);
+
+    if (!sessionStorage.getItem('sessionId')) {
+      const sessionId = Date.now().toString();
+      sessionStorage.setItem('sessionId', sessionId);
+    }
+    
+    fetch('http://localhost:8003/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sessionStorage.getItem('sessionId'),
+        expression: spec.expression,
+        timestamp: new Date().toLocaleString(),
+      }),
+    })
+    .then(response => {
+      if (response.ok) {
+        console.log('Server is running and log saved');
+      }
+      else {
+        console.error('Server responded with an error:', response.status);
+      }
+    })
+    .catch(error => console.error('Request failed:', error));
   }
 
   const specValid = async () => {
@@ -136,11 +160,6 @@ function SpecConfigComponent() {
       setSpec(new Spec(v, spec.id));
     }
     setSpecTextInput(event.target.value);
-  }
-
-  const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
-    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))))
-    // setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
   }
 
   const [htmlContent, setHtmlContent] = useState('')
@@ -262,6 +281,16 @@ function SpecConfigComponent() {
       onChange={handleSpecTextUpdate}
     />
   );
+
+  // make sure the ranges get initialized; works because useEffect runs *after* render
+  useEffect(() => {
+    const vars = variables;
+    const newRanges = vars.map((v) => {
+      const range = mySpecRanges.find((r) => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
+      return range;
+    });
+    setMySpecRanges(newRanges);
+  }, [variables]);
 
   return (
     <div className="spec-page">

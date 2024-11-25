@@ -8,23 +8,18 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   const [FPTaylorAnalyses, ] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
 
-  let variablesSet: Set<string> = new Set<string>();
-  expressions.forEach(expression => {
-    const result = getVarnamesMathJS(expression.text);
-    variablesSet = new Set([...variablesSet, ...result]);
-  });
-  const [variables, _] = useState(Array.from(variablesSet));
+  const expression = expressions.find(expression => expression.id === expressionId);
+  if (!expression) {
+    return <div>Expression not found.</div>;
+  }
+  const variables = getVarnamesMathJS(expression.text);
 
-  const initialVariableRanges: { [key: string]: { min: number; max: number } } = {};
-  variables.forEach(variable => {
-    initialVariableRanges[variable] = { min: 0, max: 0 };
-  });
-
-  const [variableRanges, setVariableRanges] = useState(initialVariableRanges);
+  const [variableRanges, setVariableRanges] = useState(
+    Object.fromEntries(variables.map(variable => [variable, { min: "0", max: "10" }])));
 
   const handleVariableRangeUpdate = () => {
     const specRanges = variables.map(
-      variable => new SpecRange(variable, variableRanges[variable].min, variableRanges[variable].max)
+      variable => new SpecRange(variable, parseFloat(variableRanges[variable].min), parseFloat(variableRanges[variable].max))
     );
 
     let updatedFPTaylorRanges = [...FPTaylorRanges];
@@ -37,37 +32,63 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   const bounds = analysisResult?.bounds ?? "FPTaylor returned no error bounds.";
   const absoluteError = analysisResult?.absoluteError ?? "FPTaylor returned no absolute error.";
 
+  const errorMessages = (() => {
+    // List variable-specific errors for each kind of problem we could encounter in validateVariableRanges
+    const messages = [];
+    for (const [variable, range] of Object.entries(variableRanges)) {
+      if (isNaN(parseFloat(range.min))) {
+        messages.push(`Min for ${variable} is not a number.`);
+      }
+      if (isNaN(parseFloat(range.max))) {
+        messages.push(`Max for ${variable} is not a number.`);
+      }
+      if (parseFloat(range.min) >= parseFloat(range.max)) {
+        messages.push(`Min for ${variable} is greater than or equal to max.`);
+      }
+    }
+    return messages;
+  })();
+
   return (
     <div>
-      <p>Bounds: {bounds}</p>
-      <p>Absolute Error: {absoluteError}</p>
+      <p>Bounds: {analysisResult ? bounds : 
+        "FPTaylor has not been run on this expression yet."
+        }</p>
+      <p>Absolute Error: {analysisResult ? 
+        absoluteError : 
+        "FPTaylor has not been run on this expression yet."
+      }</p>
       {variables.map(variable => (
         <div key={variable}>
           <label>
             {variable} - Min:
             <input
-              type="number"
               value={variableRanges[variable].min}
               onChange={(e) => setVariableRanges(prevRanges => ({
                 ...prevRanges,
-                [variable]: { min: Number(e.target.value), max: prevRanges[variable].max }
+                [variable]: { min: e.target.value, max: prevRanges[variable].max }
               }))}
             />
           </label>
+          &nbsp;
           <label>
             {variable} - Max:
             <input
-              type="number"
               value={variableRanges[variable].max}
               onChange={(e) => setVariableRanges(prevRanges => ({
                 ...prevRanges,
-                [variable]: { min: prevRanges[variable].min, max: Number(e.target.value)}
+                [variable]: { min: prevRanges[variable].min, max: e.target.value}
               }))}
             />
           </label>
         </div>
       ))}
-      <button onClick={handleVariableRangeUpdate}>Analyze Ranges with FPTaylor</button>
+      <ul>
+        {errorMessages.map((message, index) => <li key={index}>{message}</li>)}
+      </ul>
+      {errorMessages.length === 0 &&
+        <button onClick={handleVariableRangeUpdate}>Analyze Ranges with FPTaylor</button>
+      }
     </div>
   );
 };

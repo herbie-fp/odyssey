@@ -109,13 +109,28 @@ const gpufpxDetectorCallback = async (req, res, binaryPath) => {
 
 
 /*********************************************************/
+const fs = require('fs');
+const logCallback = async (req, res) => {
+  const logData = req.body;
+  const logEntry = JSON.stringify(logData) + '\n';
+
+  fs.appendFile('logs.txt', logEntry, (err) => {
+    if (err) {
+      console.error('Failed to write to log file', err);
+      res.status(500).json({ error: 'Failed to log data' });
+    } else {
+      res.sendStatus(200); // Log saved successfully
+    }
+  });
+};
 // Export the server function and callbacks
 module.exports = {
   runServer,
   fptaylor: fptaylorCallback,
   fpbench: fpbenchCallback,
   gpufpxAnalyzer:gpufpxAnalyzerCallback,
-  gpufpxDetector:gpufpxDetectorCallback
+  gpufpxDetector:gpufpxDetectorCallback,
+  log: logCallback
 };
 
 // Command-line interface

@@ -1,0 +1,15 @@
+{"sessionId":"1731616998697","expression":"sqrt(x + 1) - sqrt(x)","timestamp":"11/14/2024, 1:43:18 PM"}
+{"sessionId":"1731616998697","expression":"x","timestamp":"11/14/2024, 1:43:29 PM"}
+{"sessionId":"1731617017276","expression":"sqrt(x + 1) - sqrt(x)","timestamp":"11/14/2024, 1:43:37 PM"}
+{"sessionId":"1731617017276","expression":"x","timestamp":"11/14/2024, 1:43:43 PM"}
+{"sessionId":"1731617997998","expression":"sqrt(x + 1) - sqrt(x)","timestamp":"11/14/2024, 1:59:57 PM"}
+{"sessionId":"1731617997998","expression":"x","timestamp":"11/14/2024, 2:00:36 PM"}
+{"sessionId":"1731617997998","expression":"x","timestamp":"11/14/2024, 2:22:28 PM"}
+{"sessionId":"1731617997998","expression":"x","timestamp":"11/14/2024, 2:22:39 PM"}
+{"sessionId":"1731619859193","expression":"sqrt(x + 1) - sqrt(x)","timestamp":"11/14/2024, 2:30:59 PM"}
+{"sessionId":"1731620636172","expression":"sqrt(x + 1) - sqrt(x)","timestamp":"11/14/2024, 2:43:56 PM"}
+{"sessionId":"1731620636172","expression":"x","timestamp":"11/14/2024, 2:44:00 PM"}
+{"sessionId":"1731620636172","expression":"x","timestamp":"11/14/2024, 2:51:16 PM"}
+{"sessionId":"1731620636172","expression":"1","timestamp":"11/14/2024, 2:51:33 PM"}
+{"sessionId":"1731623158430","expression":"sqrt(x + 1) - sqrt(x)","timestamp":"11/14/2024, 3:25:58 PM"}
+{"sessionId":"1731623158430","expression":"sqrt(x + 1) - sqrt(x)","timestamp":"11/14/2024, 3:26:15 PM"}

@@ -128,33 +128,42 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
     return log.slice(start, endLineStart + endLine.length);
 };
 
-const formattedReport = formatDetectorReport(extractDetectorReport(detectorResult));
+const extractAnalyzerReport = (log: string): string => {
+  const startMarker = "#GPU-FPX-ANA SHARED REGISTER:";
+  const endMarker = "This completes the analyzer report.";
+  const start = log.indexOf(startMarker);
+  const endLineStart = log.indexOf(endMarker);  
+  return log.slice(start, endLineStart);
+};
 
-const FullReport = ({ formattedReport }: { formattedReport: string[] }) => (
+const formattedDectectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
+
+const DetectorReport = ({ formattedDectectorReport }: { formattedDectectorReport: string[] }) => (
   <div>
-    <h3>Full Report</h3>
+    <h3>Detector Results</h3>
     <h4>FP64 Operations</h4>
     <p>
-      {formattedReport[0]}<br />
-      {formattedReport[1]}<br />
-      {formattedReport[2]}<br />
-      {formattedReport[3]}<br />
+      {formattedDectectorReport[0]}<br />
+      {formattedDectectorReport[1]}<br />
+      {formattedDectectorReport[2]}<br />
+      {formattedDectectorReport[3]}<br />
     </p>
     <h4>FP32 Operations</h4>
     <p>
-      {formattedReport[4]}<br />
-      {formattedReport[5]}<br />
-      {formattedReport[6]}<br />
-      {formattedReport[7]}<br />
+      {formattedDectectorReport[4]}<br />
+      {formattedDectectorReport[5]}<br />
+      {formattedDectectorReport[6]}<br />
+      {formattedDectectorReport[7]}<br />
     </p>
     <h4>Other Stats</h4>
     <p>
-      {formattedReport[8]}<br />
-      {formattedReport[9]}<br />
+      {formattedDectectorReport[8]}<br />
+      {formattedDectectorReport[9]}<br />
     </p>
   </div>
 );
 
+const AnalyzerReport = extractAnalyzerReport(analyzerResult);
 
   return (
     <div>
@@ -162,15 +171,19 @@ const FullReport = ({ formattedReport }: { formattedReport: string[] }) => (
       <p>{current_expression?.text}</p> 
       <p>The total number of exceptions are: 2</p>
       <button onClick={handleReportClick}>See Full Report</button>
-      <button onClick={handleRunAnalyzerClick}>Run Analyzer</button>
+      <button onClick={handleRunAnalyzerClick}>Run GPU-FPX</button>
       
       {/* <p>Should run cuda translate and send to GPU-FPX Server?</p>
       <p>
         {gpuFpxSelected ? "yes" : "no"}
       </p> */}    
 
-      {showReport ? <FullReport formattedReport={formattedReport} /> : ""}
-      {runAnalyzer ? <p>Running analyzer on expression...</p> : ""}
+      {showReport ? 
+      <div>
+         <DetectorReport formattedDectectorReport={formattedDectectorReport} />
+         <h3>Analyzer Results:</h3>
+         <p>{AnalyzerReport}</p>
+      </div> : ""}
     </div>
   );
 };

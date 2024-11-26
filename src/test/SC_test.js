@@ -3,11 +3,12 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const ODYSSEY_URL = 'http://127.0.0.1:5500/index.html'
+const ODYSSEY_URL = 'http://127.0.0.1:6500/index.html#'
 
 async function runTest(rowData) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
+  console.log("Odyssey instance launched successfully.")
 
   try {
     const trueSpec = rowData['trueSpec'];
@@ -17,11 +18,20 @@ async function runTest(rowData) {
     const bestHerbieAnalysisExpr = rowData['bestHerbieAnalysisExpr'];
     const bestHerbieAnalysis = rowData['bestHerbieAnalysis'];
 
+    console.log(`Running test with trueSpec ${trueSpec}`)
+
     await page.goto(ODYSSEY_URL);
     await page.setViewport({ width: 1080, height: 1024 });
 
+    console.log("Odyssey page loading successful.")
+
     await page.locator('.spec-textarea').fill(trueSpec);
+
+    console.log("Expression input into Odyssey successful.")
+
     await page.locator('.explore-button').click();
+
+    console.log("Odyssey explore button run.")
 
     const textSelector = await page.locator('.spec-text').waitHandle();
     const spec = await textSelector?.evaluate(el => el.textContent);

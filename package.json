@@ -86,6 +86,7 @@
     "react-split": "^2.0.14",
     "react-split-grid": "^1.0.4",
     "react-tooltip": "^5.18.1",
+    "serve-index": "^1.9.1",
     "simplebar-react": "^3.2.4",
     "util": "^0.12.5"
   }

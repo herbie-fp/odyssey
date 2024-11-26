@@ -54,9 +54,12 @@ function ExpressionTable() {
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
   const [addExpressionTex, setAddExpressionTex] = useState('');
-  const [expandedExpressions, setExpandedExpressions] = useState<number[]>([]);
+  
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
-  const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
+  const [jobCount,] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
+
+  const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext)
+
   const naiveExpression = expressions.find(e => e.text === spec.expression);
   // get cost of naive expression
   const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
@@ -182,13 +185,33 @@ function ExpressionTable() {
     setSelectedExprId(selectedId)
     setCompareExprIds([...compareExprIds, selectedId])
     setAddExpression('')
+    
+    fetch('http://localhost:8003/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sessionStorage.getItem('sessionId'),
+        expression: addExpression,
+        timestamp: new Date().toLocaleString(),
+      }),
+    })
+    .then(response => {
+      if (response.ok) {
+        console.log('Server is running and log saved');
+      }
+      else {
+        console.error('Server responded with an error:', response.status);
+      }
+    })
+    .catch(error => console.error('Request failed:', error));
   }
 
   const handleAddExpressionChange = async (expression: string) => {
+    expression = expression.trim();
     setAddExpression(expression);
     try {
       validateExpression(expression);
-      const tex = expression.trim() === '' ? ''
+      const tex = expression === '' ? ''
         : KaTeX.renderToString(await expressionToTex(expression, fpcore.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
       setAddExpressionTex(tex);
     } catch (e) {
@@ -292,7 +315,9 @@ function ExpressionTable() {
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
-                <div key={expression.id} className={`expression`} style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
+                <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
+                  style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
+
                   {/* expand button [+] */}
                   <div className="expand action">
                     <div onClick={() => handleExpandClick(expression.id)}>
@@ -308,11 +333,8 @@ function ExpressionTable() {
                   {showMath ?
                     <div className="expression-tex" dangerouslySetInnerHTML={{
                       __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
-                    }} style={{
-                          maxWidth: '350px',
-                          overflowX: 'auto',
-                          overflowY: 'hidden',
-                    }}/>
+                      }}
+                    />
                     :
                     <div className="expression-text" id={`` + expression.id}>
                       {expression.text}
@@ -334,8 +356,6 @@ function ExpressionTable() {
                       Improve
                     </button>
                   </div>
-
-
                   <div className="delete">
                     <button onClick={() =>{
                       setArchivedExpressions([...archivedExpressions, expression.id]);

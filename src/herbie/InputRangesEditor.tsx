@@ -94,7 +94,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
       setError('All ranges must be filled.');
       return false;
     } else if (Number(lowerBound) >= Number(upperBound)) {
-      setError('Lower bound must be less than upper bound for all ranges.');
+      setError('Lower bound must be less than upper bound.');
       return false;
     } 
     
@@ -113,6 +113,29 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
     setError('');
     return true
   };
+
+  const rangesErrorMessages = (
+    lowerBound: string, upperBound: string, minAbsVal: string
+  ) => {
+    const messages = [];
+    if (lowerBound === '' || upperBound === '' || minAbsVal === '') {
+      messages.push('All ranges must be filled.');
+    } else if (Number(lowerBound) >= Number(upperBound)) {
+      messages.push('Lower bound must be less than upper bound.');
+    } 
+    
+    // These errors can only be triggered if the user selects bounds that cross zero, 
+    // and therefore might have a minimum absolute value 
+    else if ((Number(lowerBound) < 0) && (Number(upperBound) >= 0)) {
+      if (Number(minAbsVal) < 0) {
+        messages.push('Minimum absolute value must be positive.');
+      } else if (Math.abs(Number(minAbsVal)) >= Math.abs(Number(lowerBound)) || 
+          Math.abs(Number(minAbsVal)) >= Math.abs(Number(upperBound))) {
+        messages.push('Minimum absolute value must be less than magnitude of lower and upper bounds.');
+      }
+    }
+    return messages
+  }
 
   const boundsCrossesZero = (Number(lowerBound) <= 0) && (Number(upperBound) >= 0);
 
@@ -135,7 +158,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           onChange={e => setUpperBound(e.target.value)}
         />
       </span>
-      { 
+      {/* { 
         boundsCrossesZero &&
         <>
           <span className="separator"> with <span className="separator-math">|{varname}| &ge; </span></span>
@@ -148,8 +171,9 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           />
           </span>
           </> 
-      }
-      {error && <div style={{ color: 'red' }} className="error">{error}</div>}
+      } */}
+      &nbsp;
+      {error && <span style={{ color: 'red', fontSize: 'smaller' }} className="error">{error}</span>}
     </div>
   );
 };

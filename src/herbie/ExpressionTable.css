@@ -19,6 +19,7 @@
 
 .expressions-actual {
   scrollbar-width: 11px !important;
+  overscroll-behavior: contain; /* Don't scroll beyond set expressions table area */
 }
 
 .tex-toggle {
@@ -114,7 +115,6 @@
 
 .analysis {
   font-family: 'Ruda', serif;
-  margin-right: -15px;
   width: 80px; /* Fixed width to prevent resizing */
   display: flex;
   align-items: center; /* Center content vertically */
@@ -124,7 +124,7 @@
 .speedup {
   font-family: 'Ruda', serif;
   text-align: right;
-  width: 80px; /* Fixed width to prevent resizing */
+  width: 65px; /* Fixed width to prevent resizing and aligning .analysis */
   display: flex;
   align-items: center; /* Center content vertically */
   justify-content: flex-end; /* Align text to the right */
@@ -255,8 +255,10 @@
 .add-expression:has(textarea.has-text) .add-expression-dropdown {
   min-height: 2em;
   transition: all .3s ease-in-out;
-  max-height: 100%;
+  max-height: 50px;
   opacity: 1;
+  height: 50px;
+  overflow: auto;
 }
 /* } {
   background-color: orange;
@@ -379,8 +381,15 @@
   width: 60%;
 }
 
+.expression-tex {
+  max-width: 555px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 .expression-name-container {
   flex: 1;
+  max-width: 565px;
 }
 
 #showTexCheckbox {

@@ -26,15 +26,17 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, 
       explanation_str = ` <br /> Error Code : ${_explanation}`
     }
     var difference_str = ` <br /> Error R - F : ${displayError(abs_error_difference)}`
+    var accuracy_str = ""
+    if (!(abs_error_difference === "equal")) {
+      accuracy_str = ` <br /> Percent Accuracy : ${Number(percent).toPrecision(4)}%${explanation_str}`
+    }
     if (abs_error_difference === "invalid" 
       || abs_error_difference === "unsamplable" 
       || abs_error_difference === "equal") {
       console.debug(`abs_error was 'equal, 'invalid, or 'unsamplable: ${difference_str}`)
+      // Hide invalid information.
       difference_str = ""
-    }
-    var accuracy_str = ""
-    if (!(abs_error_difference === "equal")) {
-      accuracy_str = ` <br /> Percent Accuracy : ${herbiejs.displayNumber(Number(percent))}%${explanation_str}`
+      accuracy_str = ""
     }
     const tooltipContent = `'Correct R : ${displayError(exact_err)} <br /> Approx F : ${displayError(approx_value)}${difference_str}${accuracy_str}'`;
     return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
@@ -179,9 +181,13 @@ function LocalError({ expressionId }: { expressionId: number }) {
   }, [localError]); // Ensure the effect runs only when the graph is rendered and localError is available
 
   useEffect(() => {
+    const timer = setTimeout(()=> {
     const pointErrorExp = selectedPointsErrorExp.find(a => a.expressionId === expressionId)?.error;
-    setErrorResponse(pointErrorExp || null); // If pointErrorExp is undefined, set null
+    setErrorResponse(pointErrorExp || null);
+    },100);
+    return () => clearTimeout(timer);
   }, [selectedPointsErrorExp]); 
+
   // const graph = localErrorTreeAsMermaidGraph(localError, 64)
   const varnames = fpcore.getVarnamesMathJS(spec.expression)
   // Safely check if selectedPoint and varnames are defined before using them

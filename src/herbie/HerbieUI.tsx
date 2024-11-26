@@ -126,6 +126,7 @@ function HerbieUIInner() {
   const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
   const [inputRangesTable,] = Contexts.useGlobal(Contexts.InputRangesTableContext)
   const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
+  const [expandedExpressions,] = Contexts.useGlobal(Contexts.ExpandedExpressionsContext)
 
   const herbiejs = addJobRecorder(herbiejsImport)
 
@@ -380,12 +381,12 @@ function HerbieUIInner() {
     setTimeout(getLocalErrorUpdates)
   }
 
-  // when the selected point changes, update the selected point local error
-  useEffect(updateSelectedPointLocalError, [selectedPoint, serverUrl, expressions, archivedExpressions])
+  // when the selected point changes, update the selected point local error for expanded expressions
+  useEffect(updateSelectedPointLocalError, [selectedPoint, serverUrl, expressions, archivedExpressions, expandedExpressions])
   function updateSelectedPointLocalError() {
     async function getPointLocalError() {
       const localErrors = []
-      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id) && expandedExpressions.includes(e.id))
       for (const expression of activeExpressions) {
         if (selectedPoint && expression) {
           // HACK to make sampling work on Herbie side
@@ -413,11 +414,11 @@ function HerbieUIInner() {
 
 
   // when the selected point changes, update the selected point local error
-  useEffect(updateSelectedPointErrorExp, [selectedPoint, serverUrl, expressions, archivedExpressions])
+  useEffect(updateSelectedPointErrorExp, [selectedPoint, serverUrl, expressions, archivedExpressions, expandedExpressions])
   function updateSelectedPointErrorExp() {
     async function getPointErrorExp() {
       const errorExp = []
-      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+      const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id) && expandedExpressions.includes(e.id))
       for (const expression of activeExpressions) {
         if (selectedPoint && expression) {
           // HACK to make sampling work on Herbie side

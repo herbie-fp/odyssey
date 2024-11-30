@@ -241,7 +241,7 @@ function HerbieUIInner() {
           // console.log("Expression is " + formula);
           // console.log("sample is " + sample);
 
-          const costData = await herbiejs.getCost(formula, sample, serverUrl);
+          const costData = await herbiejs.getCost(formula, serverUrl);
 
           console.log("hooray the cost data is: ", costData);
 

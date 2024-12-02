@@ -2,7 +2,8 @@ const puppeteer = require('puppeteer');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const { start } = require('repl');
+const express = require('express');
+const serveIndex = require('serve-index');
 
 const PORT = 6500;
 const ODYSSEY_URL = `http://127.0.0.1:${PORT}/index.html#`
@@ -136,25 +137,28 @@ async function runTest(rowData) {
   }
 }
 
-async function startServer() {
-  const express = require('express');
-  const serveIndex = require('serve-index');
-  const path = require('path');
-
-  const app = express();
-
+async function startServer(app) {
   const directoryPath = path.join(__dirname, '../../');
 
   app.use('/', express.static(directoryPath), serveIndex(directoryPath, { icons: true }));
 
-  app.listen(PORT, () => {
-      console.log(`Server is running at http://localhost:${PORT}`);
+  const server = app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}.\n`);
+  });app
+
+  return server
+}
+
+async function stopServer(app) {
+  server.close(() => {
+    console.log(`Server on http://localhost:${PORT} has been stopped.\n`);
   });
 }
 
 async function main() {
   try {
-    await startServer();
+    const app = express();
+    server = await startServer(app);
 
     const data = fs.readFileSync(path.join(__dirname, 'test.csv'), 'utf8');
     const lines = data.trim().split('\n');
@@ -171,7 +175,10 @@ async function main() {
 
       console.log(`Running test ${i}`);
       await runTest(rowData);
+      console.log(`Test ${i} passed.\n`);
     }
+
+    await stopServer(server);
   } catch (err) {
     console.error(err);
   }

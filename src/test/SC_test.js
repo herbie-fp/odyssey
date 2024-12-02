@@ -2,8 +2,10 @@ const puppeteer = require('puppeteer');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const { start } = require('repl');
 
-const ODYSSEY_URL = 'http://127.0.0.1:6500/index.html#'
+const PORT = 6500;
+const ODYSSEY_URL = `http://127.0.0.1:${PORT}/index.html#`
 
 async function runTest(rowData) {
   const browser = await puppeteer.launch();
@@ -33,7 +35,7 @@ async function runTest(rowData) {
 
     console.log("Odyssey explore button run.")
 
-    const textSelector = await page.locator('.spec-text').waitHandle();
+    const textSelector = await page.locator('.center-item').waitHandle();
     const spec = await textSelector?.evaluate(el => el.textContent);
     console.log('The input specification is', spec);
     assert(spec === trueSpec);
@@ -134,8 +136,26 @@ async function runTest(rowData) {
   }
 }
 
+async function startServer() {
+  const express = require('express');
+  const serveIndex = require('serve-index');
+  const path = require('path');
+
+  const app = express();
+
+  const directoryPath = path.join(__dirname, '../../');
+
+  app.use('/', express.static(directoryPath), serveIndex(directoryPath, { icons: true }));
+
+  app.listen(PORT, () => {
+      console.log(`Server is running at http://localhost:${PORT}`);
+  });
+}
+
 async function main() {
   try {
+    await startServer();
+
     const data = fs.readFileSync(path.join(__dirname, 'test.csv'), 'utf8');
     const lines = data.trim().split('\n');
     const headers = lines[0].split(',');

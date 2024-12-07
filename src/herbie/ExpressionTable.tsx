@@ -314,7 +314,7 @@ function ExpressionTable() {
                 // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
               ];
             return (
-              <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
+              <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`} key={expression.id}>
                 <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
                   style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
 

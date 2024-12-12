@@ -26,12 +26,4 @@ jobs:
       run: |
         npm install
         npx webpack
-    - name: Set up index
-      run: |
-        mkdir dist2
-        mv dist dist2
-        mv dist2 dist
-        cp index.html dist/
-    - name: Test suite
-      run: |
         node src/test/main_test.js

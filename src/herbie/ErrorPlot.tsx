@@ -22,7 +22,7 @@ import { select } from 'd3-selection';  // Required for brushing
 import { brushX } from 'd3-brush';
 
 // Brushing still in progress, disable currently
-const BRUSHING = false;
+const BRUSHING = true;
 
 type varname = string
 

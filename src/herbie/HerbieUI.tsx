@@ -4,6 +4,7 @@ import './HerbieUI.css';
 
 import { SpecComponent, SpecConfigComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
+import { SerializeStateComponent } from './SerializeStateComponent';
 import { ExpressionTable } from './ExpressionTable';
 import * as Contexts from './HerbieContext';
 import { Derivation, Expression, ErrorAnalysis, CostAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
@@ -535,7 +536,6 @@ function HerbieUIInner() {
     // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     // { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
-    
   ];
 
   function myHeader() {
@@ -557,6 +557,7 @@ function HerbieUIInner() {
         }}>
           Issues
         </a>
+        <SerializeStateComponent specPage={showOverlay}/>
         <ServerStatusComponent />
       </div>
     )

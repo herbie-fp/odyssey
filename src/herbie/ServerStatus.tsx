@@ -64,7 +64,7 @@ function ServerStatusComponent() {
       transform: 'translate(-50%, -50%)',
       backgroundColor: 'var(--background-color)'
     },
-    };
+  };
 
   // const handleDropdownClick = () => {
   //   setIsDropdownOpen(!isDropdownOpen);
@@ -128,7 +128,7 @@ function ServerStatusComponent() {
       <Modal 
         isOpen={isDropdownOpen}
         onRequestClose={() => setIsDropdownOpen(false)}
-        contentLabel="Minimal Modal Example"
+        contentLabel="Server URL Modal"
         style={customStyles}
         ariaHideApp={false}
       >

@@ -14,6 +14,7 @@ async function runTest(rowData) {
   console.log("Odyssey instance launched successfully.")
 
   try {
+    assert(1 == 0);
     const trueSpec = rowData['trueSpec'];
     const trueAnalysis = rowData['trueAnalysis'];
     const trueSpeedup = rowData['trueSpeedup'];

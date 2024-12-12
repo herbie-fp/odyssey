@@ -1,7 +1,10 @@
 # Odyssey Test Suite
 The test suite runs off a Node.js scripts that automate end-to-end testing. It uses Puppeteer for browser automation, Express to serve the test files, and Assert for validation. The script tests the functionality by running automated tests with input data from a CSV file and then ensuring Odyssey correctly evaluates expressions, fetches optimizations and other results from backend tools, and provides expected results.
 
-## Starting the Web Server
+## Running tests
+In order to run the tests, run the test file inside ``./src/test`` with ``node <TEST_FILE>.js``, replacing ``<TEST_FILE>`` with the name of your test file as needed.
+
+## Starting the Odyssey server
 The test suite starts by launching a simple Express server, serving the Odyssey web application on a specific port (PORT = 6500). The server serves files from the parent directory and provides an index of available files.
 
 The function startServer(app) sets up the server using Express. The Odyssey application is served from the parent directory and runs on http://localhost:6500.
@@ -19,8 +22,7 @@ Then, the test data, which includes different sets of input expressions and thei
 
 All of this is called from the main function, which will process this information in from the specified CSV file.
 
-
-## Running Tests
+## Tests for expressions
 For each row in the CSV file, a test is executed using the runTest(rowData) function. This function simulates user interaction with the Odyssey web page, filling in the test expression, triggering exploration, and checking the results. The process for this is as follows: 
 
 - Launch browser, navigating to Odyssey

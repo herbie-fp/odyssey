@@ -14,7 +14,6 @@ async function runTest(rowData) {
   console.log("Odyssey instance launched successfully.")
 
   try {
-    assert(1 == 0);
     const trueSpec = rowData['trueSpec'];
     const trueAnalysis = rowData['trueAnalysis'];
     const trueSpeedup = rowData['trueSpeedup'];
@@ -132,6 +131,7 @@ async function runTest(rowData) {
     assert(bestObservedHerbieExpr == bestHerbieAnalysisExpr);
 
   } catch (err) {
+    console.log(`Test failure.\n`);
     console.error(err);
   } finally {
     await browser.close();
@@ -176,7 +176,7 @@ async function main() {
 
       console.log(`Running test ${i}`);
       await runTest(rowData);
-      console.log(`Test ${i} passed.\n`);
+      console.log(`Test ${i} done.\n`);
     }
 
     await stopServer(server);

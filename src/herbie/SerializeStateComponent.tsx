@@ -75,10 +75,6 @@ function SerializeStateComponent(props: exportStateProps) {
   const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
   const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
 
-  // this.variable = variable;
-  // this.lowerBound = lowerBound;
-  // this.upperBound = upperBound;
-
   const stateToJson = (e: React.FormEvent) => {
     e.preventDefault(); 
     e.stopPropagation(); 
@@ -101,7 +97,7 @@ function SerializeStateComponent(props: exportStateProps) {
       // TODO: add more states
     }
 
-    navigator.clipboard.writeText(JSON.stringify(state)); 
+    navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
 
     setIsModalOpen(false);
   }
@@ -148,7 +144,7 @@ function SerializeStateComponent(props: exportStateProps) {
     setIsModalOpen(false);
   }
 
-  const customStyles = {
+  const modalStyles = {
     overlay: {
       backgroundColor: 'rgba(0, 0, 0, 0.5)'
     },
@@ -163,16 +159,21 @@ function SerializeStateComponent(props: exportStateProps) {
     },
   };
 
+  const buttonStyles = {
+    color: "var(--background-color)",
+    fontFamily: "Ruda",
+  }
+
   // Export page
   if (props.specPage) {
     return (
-      <div className="importExport">
-        <a onClick={() => setIsModalOpen(true)} style={{ color: "var(--background-color)", fontFamily: "Ruda", paddingBottom: "2px"}}>Import</a>
+      <div className="import-export" style={{paddingBottom: "2px"}}>
+        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Import</a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}
           contentLabel="State Export Modal"
-          style={customStyles}
+          style={modalStyles}
           ariaHideApp={false}
         >
           <form onSubmit={jsonToState}>
@@ -185,13 +186,13 @@ function SerializeStateComponent(props: exportStateProps) {
     );
   } else {
     return (
-      <div className="importExport">
-        <a onClick={() => setIsModalOpen(true)} style={{ color: "var(--background-color)", fontFamily: "Ruda" }}>Export</a>
+      <div className="import-export" style={{paddingBottom: "2px"}}>
+        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Export</a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}
           contentLabel="State Export Modal"
-          style={customStyles}
+          style={modalStyles}
           ariaHideApp={false}
         >
           <form onSubmit={stateToJson}>

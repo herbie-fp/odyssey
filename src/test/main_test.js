@@ -9,6 +9,8 @@ const PORT = 6500;
 const ODYSSEY_URL = `http://127.0.0.1:${PORT}/index.html#`
 
 async function runTest(rowData) {
+  let testFailed = false;
+
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   console.log("Odyssey instance launched successfully.")
@@ -132,11 +134,14 @@ async function runTest(rowData) {
     assert(bestObservedHerbieExpr == bestHerbieAnalysisExpr);
 
   } catch (err) {
-    console.log(`Test failure.\n`);
-    throw (err);
+    console.log(`Test failure:`);
+    console.log(err);
+    testFailed = true;
   } finally {
     await browser.close();
   }
+
+  return testFailed;
 }
 
 async function startServer(app) {
@@ -152,12 +157,17 @@ async function startServer(app) {
 }
 
 async function stopServer(app) {
-  server.close(() => {
-    console.log(`Server on http://localhost:${PORT} has been stopped.\n`);
+  return new Promise((resolve) => {
+    server.close(() => {
+      console.log(`Server on http://localhost:${PORT} has been stopped.\n`);
+      resolve();
+    });
   });
 }
 
 async function main() {
+  let testFailed = false;
+
   try {
     const app = express();
     server = await startServer(app);
@@ -176,13 +186,17 @@ async function main() {
       });
 
       console.log(`Running test ${i}`);
-      await runTest(rowData);
+      testFailed = await runTest(rowData) || testFailed; // If any test fails, test suite fails
       console.log(`Test ${i} done.\n`);
     }
 
     await stopServer(server);
   } catch (err) {
     console.error(err);
+  }
+
+  if (testFailed) {
+    process.exit(1);
   }
 }
 

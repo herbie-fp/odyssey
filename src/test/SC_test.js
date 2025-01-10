@@ -2,12 +2,16 @@ const puppeteer = require('puppeteer');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
+const serveIndex = require('serve-index');
 
-const ODYSSEY_URL = 'http://127.0.0.1:5500/index.html'
+const PORT = 6500;
+const ODYSSEY_URL = `http://127.0.0.1:${PORT}/index.html#`
 
 async function runTest(rowData) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
+  console.log("Odyssey instance launched successfully.")
 
   try {
     const trueSpec = rowData['trueSpec'];
@@ -17,13 +21,22 @@ async function runTest(rowData) {
     const bestHerbieAnalysisExpr = rowData['bestHerbieAnalysisExpr'];
     const bestHerbieAnalysis = rowData['bestHerbieAnalysis'];
 
+    console.log(`Running test with trueSpec ${trueSpec}`)
+
     await page.goto(ODYSSEY_URL);
     await page.setViewport({ width: 1080, height: 1024 });
 
+    console.log("Odyssey page loading successful.")
+
     await page.locator('.spec-textarea').fill(trueSpec);
+
+    console.log("Expression input into Odyssey successful.")
+
     await page.locator('.explore-button').click();
 
-    const textSelector = await page.locator('.spec-text').waitHandle();
+    console.log("Odyssey explore button run.")
+
+    const textSelector = await page.locator('.center-item').waitHandle();
     const spec = await textSelector?.evaluate(el => el.textContent);
     console.log('The input specification is', spec);
     assert(spec === trueSpec);
@@ -124,8 +137,29 @@ async function runTest(rowData) {
   }
 }
 
+async function startServer(app) {
+  const directoryPath = path.join(__dirname, '../../');
+
+  app.use('/', express.static(directoryPath), serveIndex(directoryPath, { icons: true }));
+
+  const server = app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}.\n`);
+  });app
+
+  return server
+}
+
+async function stopServer(app) {
+  server.close(() => {
+    console.log(`Server on http://localhost:${PORT} has been stopped.\n`);
+  });
+}
+
 async function main() {
   try {
+    const app = express();
+    server = await startServer(app);
+
     const data = fs.readFileSync(path.join(__dirname, 'test.csv'), 'utf8');
     const lines = data.trim().split('\n');
     const headers = lines[0].split(',');
@@ -141,7 +175,10 @@ async function main() {
 
       console.log(`Running test ${i}`);
       await runTest(rowData);
+      console.log(`Test ${i} passed.\n`);
     }
+
+    await stopServer(server);
   } catch (err) {
     console.error(err);
   }

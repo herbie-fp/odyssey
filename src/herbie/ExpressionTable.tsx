@@ -335,7 +335,9 @@ function ExpressionTable() {
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
-                <div key={expression.id} className={`expression`} style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
+                <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
+                  style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
+
                   {/* expand button [+] */}
                   <div className="expand action">
                     <div onClick={() => handleExpandClick(expression.id)}>
@@ -351,11 +353,8 @@ function ExpressionTable() {
                   {showMath ?
                     <div className="expression-tex" dangerouslySetInnerHTML={{
                       __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
-                    }} style={{
-                          maxWidth: '350px',
-                          overflowX: 'auto',
-                          overflowY: 'hidden',
-                    }}/>
+                      }}
+                    />
                     :
                     <div className="expression-text" id={`` + expression.id}>
                       {expression.text}
@@ -377,8 +376,6 @@ function ExpressionTable() {
                       Improve
                     </button>
                   </div>
-
-
                   <div className="delete">
                     <button onClick={() =>{
                       setArchivedExpressions([...archivedExpressions, expression.id]);

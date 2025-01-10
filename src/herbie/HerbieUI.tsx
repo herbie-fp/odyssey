@@ -121,6 +121,8 @@ function HerbieUIInner() {
   const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
   const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
   const [selectedPoint, setSelectedPoint] = Contexts.useGlobal(Contexts.SelectedPointContext)
+  const [selectedSubsetRange, setSelectedSubset] = Contexts.useGlobal(Contexts.SelectedSubsetRangeContext);
+  const [selectedSubsetAnalyses, setSelectedSubsetAnalyses] = Contexts.useGlobal(Contexts.SelectedSubsetAnalysesContext);
   const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
   const [selectedPointsErrorExp, setSelectedPointsErrorExp] = Contexts.useGlobal(Contexts.SelectedPointsErrorExpContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
@@ -143,10 +145,11 @@ function HerbieUIInner() {
 
   // Data relationships
 
-  // when the spec changes, unset the selected point
+  // when the spec changes, unset the selected point & brushing
   useEffect(unsetSelectedPointAndExpression, [spec])
   function unsetSelectedPointAndExpression() {
     setSelectedPoint(undefined)
+    setSelectedSubset(undefined)
   }
 
   // HACK immediately select the first available expression if none is selected
@@ -318,6 +321,60 @@ function HerbieUIInner() {
       console.debug(`Sampled spec ${spec.id} for input ranges ${inputRanges.id}:`, sample)
     }
     sample()
+  }
+
+  // Whenever a subset of points is selected (brushing completes)
+  // * perform an analysis for the points in the selected range
+  // * do NOT change the input range component
+  useEffect(updateSubsetAnalyses, [selectedSubsetRange])
+  function updateSubsetAnalyses() {
+    async function updateSubsetAnalysesAsync() {
+      if (selectedSubsetRange) {
+        // In brushing context, don't resample for any expressions, want an 
+        // existing sample for expressions
+        if (samples.length === 0) {
+          return
+        }
+        const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
+
+        setSelectedSubsetAnalyses((await Promise.all(activeExpressions.map(async expression => {
+          // Only get analyses for the current spec
+          const sample = samples[samples.length - 1];
+          if (sample.specId !== spec.id) {
+            return;
+          }
+
+          try {
+            // Create adjusted sample with only points in brushed region
+            // inputRangesId and id are unused in finding analysis, set to -1
+            const i = selectedSubsetRange.varIdx;
+            const adjSample = new Sample(
+              sample.points.filter((p) => selectedSubsetRange.ordinalPoints.some(sp => p[0][i] === sp[i])),
+              // TODO: find the right thing to do here!
+              // [0][i] >= p[0][i] 
+              //   && p[0][i] <= selectedSubsetRange.points[selectedSubsetRange.points.length][i]), 
+              sample.specId, -1, -1);
+
+            // console.log(selectedSubsetRange.points);
+            // console.log(adjSample);
+
+            // HACK to make sampling work on Herbie side
+            const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
+            const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), adjSample, serverUrl)
+            // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
+
+            return new ErrorAnalysis(analysis, expression.id, sample.id)
+          } catch (e) {
+            const throwError = (e: any) => () => {
+              throw Error(`Analysis failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
+            }
+            setTimeout(throwError(e))
+            return;
+          }
+        }))) as ErrorAnalysis[]);
+      }
+    }
+    updateSubsetAnalysesAsync()
   }
 
   // Add spec to expressions if it doesn't exist

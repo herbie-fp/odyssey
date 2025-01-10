@@ -53,7 +53,6 @@ if (typeof window !== 'undefined') {
   const queryParams = new URLSearchParams(window.location.search);
   const expr = queryParams.get('expr');
 
-  console.log('Argument 1:', expr);
   defaultExpression = expr ? expr : defaultExpression;
 }
 
@@ -78,6 +77,8 @@ export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(undefined as number | undefined);// undefined as number | undefined)
 export const SamplesContext = makeGlobal([] as types.Sample[])
 export const SelectedPointContext = makeGlobal(undefined as types.ordinalPoint | undefined)
+export const SelectedSubsetRangeContext = makeGlobal(undefined as types.SelectedSubset | undefined)
+export const SelectedSubsetAnalysesContext = makeGlobal(undefined as types.ErrorAnalysis[] | undefined)
 export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocalErrorAnalysis[])
 export const SelectedPointsErrorExpContext = makeGlobal([] as types.PointErrorExpAnalysis[])
 export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])

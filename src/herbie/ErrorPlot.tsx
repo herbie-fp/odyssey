@@ -21,9 +21,6 @@ const Plot = require('@observablehq/plot')  // have to do this for ES modules fo
 import { select } from 'd3-selection';  // Required for brushing
 import { brushX } from 'd3-brush';
 
-// Brushing still in progress, disable currently
-const BRUSHING = true;
-
 type varname = string
 
 interface OrdinalErrorPoint {
@@ -186,6 +183,7 @@ function ErrorPlot() {
   const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
+  const [selectedSubset, setSelectedSubset] = contexts.useGlobal(HerbieContext.SelectedSubsetRangeContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
   const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
@@ -333,6 +331,38 @@ function ErrorPlot() {
   // Only want to show resample button if the range has changed
   const showResample = JSON.stringify(inputRanges) !== JSON.stringify(myInputRanges)
 
+  // Compare buckets of 2 points
+  const compareBuckets = (
+      selected: HerbieTypes.ordinalPoint, given: HerbieTypes.ordinalPoint, 
+      dataPoints: number[][], expId: number, varIdx: number
+    ) => {
+    const expIdx = compareExpressions.map((e, _) => ([e, _] as [Expression, number])).filter(([e, _]) => e.id === expId)[0][1];
+    const pIdx = dataPoints[expIdx].indexOf(given[varIdx]);
+    const selectedIdx = dataPoints[expIdx].indexOf(selected[varIdx]);
+
+    // Make sure selected value exists in this expression before comparing
+    return selectedIdx !== -1 && 
+      // Compare idx of point to idx of head of bucket that would contain selected point
+      pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
+  }
+
+  // Creates a new "d" attr for a <path> element based on given "d" bounded by bounds
+  const calculatePath = (bounds: number[], d: string): string => {
+    // Create new path bounded to selection: "M"ove to the beginning of line in region
+    let newD = "M";
+    // Trim off initial "M" then divide path of original line into each point component
+    const linePoints = d.slice(1).split("L");
+    for (const lp of linePoints) {
+      const x = Number(lp.split(",")[0]);
+      // If this part of original path is within bounds, add to new path
+      if (x >= bounds[0] && x <= bounds[1]) {
+        newD += (lp + "L");
+      }
+    }
+
+    return newD.slice(0, newD.length - 1); // slice off last fencepost L
+  }
+
   return <div className="error-plot">
     {/* <ResampleComponent /> */}
     {/* Plot all vars */}
@@ -345,7 +375,7 @@ function ErrorPlot() {
 
       const data = exprData.map(varData => varData[i]);
       const dataPoints: number[][] = [];
-      if (selectedPoint) {
+      if (selectedPoint || selectedSubset) {
         // Picking out x-axis data (variable values) for each expression
         data.forEach(e => {
           dataPoints.push(e.map((d: OrdinalErrorPoint) => ordinals.ordinalToFloat(d.x)));
@@ -395,35 +425,23 @@ function ErrorPlot() {
           plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
 
-            // t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
-
             const c = t.parentNode
             const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
-            t.parentNode.onclick = async () => {
+            c.onclick = async () => {
               if (jobCount > 0) { // there are pending jobs
                 return;
               }
               setSelectedPoint(point)
               setSelectedExprId(id)
-            }
-
-            // Compare the selectedPoint's bucket to that of the given point
-            const compareBuckets = () => {
-              if (selectedPoint) {
-                const expIdx = compareExpressions.map((e, i) => ([e,i] as [Expression, number])).filter(([e,i]) => e.id === id)[0][1];
-
-                const pIdx = dataPoints[expIdx].indexOf(point[i]);
-                const selectedIdx = dataPoints[expIdx].indexOf(selectedPoint[i]);
-
-                // Make sure selected value exists in this expression before comparing
-                return selectedIdx !== -1 && 
-                  // Compare idx of point to idx of head of bucket that would contain selected point
-                  pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
-              }
+              // remove brushing, 
+              // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
+              setSelectedSubset(undefined)
             }
 
             // See if the current point is selected, if not check if it belongs to the same bucket
-            if (selectedPoint && (point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString()) || compareBuckets())) {
+            if (selectedPoint && 
+                (point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString())
+                  || compareBuckets(selectedPoint, point, dataPoints, id, i))) {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression
@@ -487,7 +505,7 @@ function ErrorPlot() {
           // Map from expression id --> data about line for expression (only includes currently selected lines)
           const highlightMap: Map<number, {line: Element, stroke: string, d: string, newPath: Element, pathG: Node}> = new Map();
           plot.querySelectorAll('[aria-label="line"] ').forEach((line) => {
-            const stroke = line.getAttribute("stroke") ?? "#a6a6a6";
+            const stroke = line.getAttribute("stroke") ?? "#d2d2d2";
             // Little hack for getting line's expression's id
             const text = line.querySelector("title")?.textContent;
             const expId = text && text !== null ? JSON.parse(text).id : 0;
@@ -498,7 +516,6 @@ function ErrorPlot() {
             g.setAttribute("stroke-width", expId === selectedExprId ? "4px" : "2px");
             g.setAttribute("class", "highlight-line");
             const newPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            newPath.setAttribute("d", "");
             g.appendChild(newPath);
 
             highlightMap.set(expId, 
@@ -507,88 +524,83 @@ function ErrorPlot() {
           
 
           // Grab all the plot circles to color them differently
-          const circles: {circle: Element, o: ordinal[], id: number}[] = [];
+          const circles: {circle: Element, parent: ParentNode | null, o: ordinal[], id: number}[] = [];
           plot.querySelectorAll('[aria-label="dot"] circle').forEach(circle => {
             const t: any = circle.querySelector("title"); // `any` feels like a HACK, but very resistant to work otherwise
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent);
-            circles.push({circle, o, id})
+            const parent = circle.parentNode;
+            circles.push({circle, parent, o, id})
 
             // Done using circle ordinal & id info, reset textContent so onHover of points gives useful info for user
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n');
           });
+          let brushedPoints: ordinal[][] = [];
 
-          // Only allow brushing if developing it
-          if (BRUSHING) {
-            // Layering brushing on top of plot
-            const brush = brushX()
+          // Layering brushing on top of plot
+          const brush = brushX()
             // Bounds brushing is enabled in, rectangle in svg created by x+y axes
             .extent([[39, 17], [782, 269]]) 
-            .on('brush end', (event: any) => { // TODO: decide if 'end' or 'brush end' should be used for highlighting
-              // TODO: Selected subset and selected point cannot exist simultaneously, remove selected point
-
+            .on('brush end', (event: any) => {
               const selection = event.selection;
               if (selection) {
-                // x bounds of brushed selection
-                const [x1, x2] = selection;
+                const [x1, x2] = selection; // x bounds
                 
                 // To store ordinal values of all points within brushed region
-                const brushedPoints: ordinal[][] = [];
+                brushedPoints = [];
                 // For each circle, highlight if within brushed area
-                circles.forEach(({circle, o, id}) => {
-                  // Get the position of the circle
-                  const xPos = Number(circle.getAttribute("cx"));
+                circles.forEach((c) => {
+                  const xPos = Number(c.circle.getAttribute("cx"));
 
-                  // grey out points if point is outside of brushed bounds
-                  // this will remove the styling from selected point that makes it appear selected
-                  if (!(xPos >= x1 && xPos <= x2)) {
-                    circle.setAttribute("class", "unbrushed"); // grey out
+                  // grey out points outside of brushed bounds, remove styling from selected points
+                  if (!(x1 <= xPos && xPos <= x2)) { 
+                    c.circle.setAttribute("class", "unbrushed"); // grey out
                   } else {
-                    circle.setAttribute("class", "brushed");
-                    brushedPoints.push(o);
+                    c.circle.setAttribute("class", "brushed");
+                    brushedPoints.push(c.o);
                   }
                 });
-                // TODO: Store selected points in global variable
                 
                 // For each line, highlight portion within brushed region
-                highlightMap.forEach(({line, stroke, d, newPath}) => {
-                  // grey out existing line
-                  line.setAttribute("stroke", "#a6a6a6");
+                highlightMap.forEach((hLine) => {
+                  hLine.line.setAttribute("class", "unbrushed-line"); // grey out
 
-                  // Create new path tracing brushed region: "M"ove to the beginning of line in region
-                  let newD = "M";
-                  // Trim off initial "M" then divide path of original line into each point component
-                  const linePoints = d.slice(1).split("L");
-                  for (const lp of linePoints) {
-                    const [x, _y] = lp.split(",");
-                    // If this part of original path is within brushed region, add to new path
-                    if (x >= x1 && x <= x2) {
-                      newD += (lp + "L");
-                    }
-                  }
-
-                  // Set path of highlight line to be rendered on top of greyed original lines
-                  newPath.setAttribute('d', newD.slice(0, newD.length - 1)) // slice off last fencepost L
+                  // Calculate highlight line path, render on top of greyed original lines
+                  hLine.newPath.setAttribute('d', calculatePath(selection, hLine.d));
+                  svg.appendChild(hLine.pathG);
                 })
               } 
+            })
+            .on('end', (event: any) => {
+              if (event.selection){
+                // store selected points subset in global variable, triggers re-render
+                setSelectedSubset({
+                  selection: event.selection,
+                  varIdx: i, 
+                  ordinalPoints: brushedPoints,
+                  points: brushedPoints.map(p => p.map((v: ordinal) => ordinals.ordinalToFloat(v)))
+                });
+
+                // Selected points & selected subset cannot exist simultaneously
+                setSelectedPoint(undefined);
+              }
             });
 
-            select(svg).append('g')
-              .attr('class', 'brush')
-              .call(brush)
-              .on("dblclick", () => {
-                // TODO: replicate this so it works for single click
-                brush.clear(select(svg).select('g'));
-                // Reset points to original colors (no greyed out) 
-                circles.forEach(({circle, o, id}) => { circle.removeAttribute("class"); });
-                // TODO: Reset selected subset of points to empty
+          select(svg).append('g')
+            .attr('class', 'brush')
+            .attr('id', 'brush')
+            .call(brush)
+            .on("click dblclick", () => {
+              brush.clear(select(svg).select('g'));
+              // Returns lines & points to original colors
+              circles.forEach((c) => { c.circle.removeAttribute("class"); });
+              highlightMap.forEach((highlightLine) => {
+                highlightLine.line.setAttribute("stroke", highlightLine.stroke);
+                highlightLine.newPath.removeAttribute("d");
+              })
 
-                // Remove highlights and reset old lines to original color
-                highlightMap.forEach(({line, stroke, d, newPath}) => {
-                  line.setAttribute("stroke", stroke);
-                  newPath.setAttribute("d", "")
-                })
-              });
-          }
+              // un-set global variable storing selected points, triggers re-render
+              setSelectedSubset(undefined);
+            });
 
           // Append all plot components to svg
           [...plot.children].map(c => svg.appendChild(c));
@@ -598,17 +610,50 @@ function ErrorPlot() {
             svg.appendChild(labelPointBorder);
             svg.appendChild(labelContainer);
             svg.appendChild(labelPoint);
-          } else if (BRUSHING) { // maybe brushing is happening, append highlight lines
-            highlightMap.forEach((highlightLine, lineExpIdx) => {
-              if (lineExpIdx !== selectedExprId) {
-                svg.appendChild(highlightLine.pathG);
+          } else if (selectedSubset) { // maybe brushing is happening
+            // This styling only appears for plot where brushing originally appeared (adj points)
+            if (selectedSubset.varIdx === i) {
+              // set shading rectangle
+              const selectionRect = svg.getElementById('brush').querySelector('.selection');
+              selectionRect?.removeAttribute("style"); // remove style="display: none;"
+              selectionRect?.setAttribute("x", `${selectedSubset.selection[0]}`);
+              selectionRect?.setAttribute("y", "17");
+              selectionRect?.setAttribute("width", `${selectedSubset.selection[1] - selectedSubset.selection[0]}`);
+              selectionRect?.setAttribute("height", "252");
+
+              // append highlight lines
+              highlightMap.forEach((highlightLine, lineExpIdx) => {
+                highlightLine.line.setAttribute("class", "unbrushed-line");
+
+                // Calculate highlight line path, render on top of greyed original lines
+                highlightLine.newPath.setAttribute('d', calculatePath(selectedSubset.selection, highlightLine.d));
+                if (lineExpIdx !== selectedExprId) {
+                  svg.appendChild(highlightLine.pathG);
+                }
+              })
+              // append line for selected expression last so it's on top:
+              const selectedHighlight = highlightMap.get(selectedExprId);
+              if (selectedHighlight) {
+                svg.appendChild(selectedHighlight.pathG);
+              }
+            }
+
+            // grey out unbrushed circles
+            const selPoints = selectedSubset.points;
+            
+            circles.forEach((c) => {
+              const givenPoint = c.o.map((v: ordinal) => ordinals.ordinalToFloat(v))
+              const pos = Number(c.circle.getAttribute("cx"));
+              // For all "given" points in circles, determine if selected point is in given's bucket
+              if (selPoints.some(p => compareBuckets(p, givenPoint, dataPoints, c.id, i))) { 
+                c.circle.setAttribute("class", "brushed");
+                // bit of a a hack to get circle on top of unbrushed circles:
+                c.parent?.removeChild(c.circle)
+                c.parent?.appendChild(c.circle)
+              } else {
+                c.circle.setAttribute("class", "unbrushed"); // grey out
               }
             })
-            // append line for selected expression last so it's on top:
-            const selectedHighlight = highlightMap.get(selectedExprId);
-            if (selectedHighlight) {
-              svg.appendChild(selectedHighlight.pathG);
-            }
           }
         }} />
         {/* Tooltip for full selected value on selected point label*/}

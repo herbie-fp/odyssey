@@ -51,6 +51,7 @@ function ExpressionTable() {
   const [spec,] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [samples,] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
+  const [selectedSubsetAnalyses, ] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetAnalysesContext)
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
   const [addExpressionTex, setAddExpressionTex] = useState('');
@@ -294,7 +295,12 @@ function ExpressionTable() {
           {activeExpressions.map((id) => {
             const expression = expressions.find((expression) => expression.id === id) as Expression;
             const isChecked = compareExprIds.includes(expression.id);
-            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
+
+            const analysisData = (selectedSubsetAnalyses === undefined)
+              // General case, analysis over whole inputRange
+              ? analyses.find((analysis) => analysis.expressionId === expression.id)?.data
+              // When a subset of points has been selected, show analysis for just that range
+              : selectedSubsetAnalyses.find((analysis) => analysis.expressionId === expression.id)?.data;  
             const analysisResult =
               !analysisData
                 ? undefined
@@ -332,18 +338,18 @@ function ExpressionTable() {
                   <div className="expression-name-container" onClick={() => handleExpressionClick(expression.id)}>
                   {showMath ?
                     <div className="expression-tex" dangerouslySetInnerHTML={{
-                      __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
+                        __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
                       }}
                     />
                     :
                     <div className="expression-text" id={`` + expression.id}>
                       {expression.text}
                     </div>
-                    }
+                  }
                     <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
-                        <a className="copy-anchor">⧉</a>
-                      </div>
+                      <a className="copy-anchor">⧉</a>
                     </div>
+                  </div>
                   <div className="analysis" id={`` + expression.id}>
                     {/* TODO: Not To hardcode number of bits*/}
                     {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}

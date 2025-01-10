@@ -79,6 +79,15 @@ export class SpecRange {
   }
 }
 
+export class SelectedSubset {
+  constructor(public readonly selection: number[], public readonly varIdx: number, public readonly ordinalPoints: ordinal[][], public readonly points: number[][]) {
+    this.selection = selection;
+    this.varIdx = varIdx;
+    this.ordinalPoints = ordinalPoints;
+    this.points = points;
+  }
+}
+
 /**
  * the error of an expression
  */

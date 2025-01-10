@@ -349,7 +349,8 @@ function HerbieUIInner() {
             // inputRangesId and id are unused in finding analysis, set to -1
             const i = selectedSubsetRange.varIdx;
             const adjSample = new Sample(
-              sample.points.filter((p) => selectedSubsetRange.ordinalPoints.some(sp => p[0][i] === sp[i])),
+              sample.points,
+              // sample.points.filter((p) => selectedSubsetRange.ordinalPoints.some(sp => p[0][i] === sp[i])),
               // TODO: find the right thing to do here!
               // [0][i] >= p[0][i] 
               //   && p[0][i] <= selectedSubsetRange.points[selectedSubsetRange.points.length][i]), 

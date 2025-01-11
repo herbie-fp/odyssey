@@ -193,6 +193,7 @@ function ExpressionTable() {
       body: JSON.stringify({
         sessionId: sessionStorage.getItem('sessionId'),
         expression: addExpression,
+        Description: "Added Expression by clicking Add button",
         timestamp: new Date().toLocaleString(),
       }),
     })
@@ -245,7 +246,26 @@ function ExpressionTable() {
       const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
-
+       
+      fetch('http://localhost:8003/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionStorage.getItem('sessionId'),
+          expression: fPCoreToMathJS,
+          Description: "Added Expression by clicking improve",
+          timestamp: new Date().toLocaleString(),
+        }),
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log('Server is running and log saved');
+        }
+        else {
+          console.error('Server responded with an error:', response.status);
+        }
+      })
+      .catch(error => console.error('Request failed:', error));
       // The following code assumes the HTMLHistory[] returend by Herbie
       // is mapped to the alternatives array 1:1
       const d = histories[i];

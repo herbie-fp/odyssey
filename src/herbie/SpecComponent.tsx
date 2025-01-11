@@ -111,6 +111,7 @@ function SpecConfigComponent() {
       body: JSON.stringify({
         sessionId: sessionStorage.getItem('sessionId'),
         expression: spec.expression,
+        Description: "Added Expression from the home page",
         timestamp: new Date().toLocaleString(),
       }),
     })

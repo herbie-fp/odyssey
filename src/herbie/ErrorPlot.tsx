@@ -407,35 +407,72 @@ function ErrorPlot() {
           svg.innerHTML = ''
           const plot = await plotError({
             varnames,
-            varidx: i,
-            ticks: ticksByVarIdx[i],
-            splitpoints: splitpointsByVarIdx[i],
-            // get the data for the current variable
-            // data is stored as exprData -> varData -> Point[], so:
-            data,
-            bits,
-            styles,
-            width: width,
-            height: 300
-          });
+              varidx: i,
+              ticks: ticksByVarIdx[i],
+              splitpoints: splitpointsByVarIdx[i],
+              // get the data for the current variable
+              // data is stored as exprData -> varData -> Point[], so:
+              data,
+              bits,
+              styles,
+              width: width,
+              height: 300
+            });
 
-          // Prepping variables to layer selected point label on top of graph
-          let labelContainer, labelPoint, labelPointBorder: undefined | SVGElement = undefined;
+            // Prepping variables to layer selected point label on top of graph
+            let labelContainer, labelPoint, labelPointBorder: undefined | SVGElement = undefined;
 
-          plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
-            const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
+            plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+              const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
 
-            const c = t.parentNode
-            const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
+              const c = t.parentNode
+              const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
             c.onclick = async () => {
               if (jobCount > 0) { // there are pending jobs
                 return;
               }
+
               setSelectedPoint(point)
               setSelectedExprId(id)
               // remove brushing, 
               // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
               setSelectedSubset(undefined)
+
+              fetch('http://localhost:8003/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sessionId: sessionStorage.getItem('sessionId'),
+                  SelectedPoint: point,
+                  SelectedExpression: expressions.find(e => e.id === id)?.text,
+                  Description: `Selected Point: ${point} on Expression: ${expressions.find(e => e.id === id)?.text}in the Error Plot Graph`,
+                  timestamp: new Date().toLocaleString(),
+                }),
+              })
+              .then(response => {
+                if (response.ok) {
+                  console.log('Server is running and log saved');
+                }
+                else {
+                  console.error('Server responded with an error:', response.status);
+                }
+              })
+              .catch(error => console.error('Request failed:', error));
+            }
+
+            // Compare the selectedPoint's bucket to that of the given point
+            const compareBuckets = () => {
+              if (selectedPoint) {
+                const expIdx = compareExpressions.map((e, i) => ([e,i] as [Expression, number])).filter(([e,i]) => e.id === id)[0][1];
+
+                const pIdx = dataPoints[expIdx].indexOf(point[i]);
+                const selectedIdx = dataPoints[expIdx].indexOf(selectedPoint[i]);
+
+                // Make sure selected value exists in this expression before comparing
+                return selectedIdx !== -1 && 
+                  // Compare idx of point to idx of head of bucket that would contain selected point
+                  pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
+              }
             }
 
             // See if the current point is selected, if not check if it belongs to the same bucket

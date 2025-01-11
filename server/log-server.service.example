@@ -3,7 +3,7 @@ Description=Logging Server
 After=network.target
 
 [Service]
-ExecStart=node log-server.js
+ExecStart=node log-server.js --port 8003
 WorkingDirectory=/path/to/server *UPDATE*
 Restart=always
 User=your-username *UPDATE*

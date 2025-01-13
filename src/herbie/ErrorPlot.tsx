@@ -460,20 +460,7 @@ function ErrorPlot() {
               .catch(error => console.error('Request failed:', error));
             }
 
-            // Compare the selectedPoint's bucket to that of the given point
-            const compareBuckets = () => {
-              if (selectedPoint) {
-                const expIdx = compareExpressions.map((e, i) => ([e,i] as [Expression, number])).filter(([e,i]) => e.id === id)[0][1];
-
-                const pIdx = dataPoints[expIdx].indexOf(point[i]);
-                const selectedIdx = dataPoints[expIdx].indexOf(selectedPoint[i]);
-
-                // Make sure selected value exists in this expression before comparing
-                return selectedIdx !== -1 && 
-                  // Compare idx of point to idx of head of bucket that would contain selected point
-                  pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
-              }
-            }
+          
 
             // See if the current point is selected, if not check if it belongs to the same bucket
             if (selectedPoint && 

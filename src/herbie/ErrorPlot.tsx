@@ -673,11 +673,6 @@ function ErrorPlot() {
               if (selectedHighlight) {
                 svg.appendChild(selectedHighlight.pathG);
               }
-            } else {
-              // Just grey out lines
-              highlightMap.forEach((highlightLine, lineExpIdx) => {
-                highlightLine.line.setAttribute("class", "unbrushed-line");
-              });
             }
 
             // grey out unbrushed circles

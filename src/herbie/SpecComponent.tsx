@@ -18,6 +18,7 @@ const math11 = require('mathjs11');
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
 import { expressionToTex } from './ExpressionTable';
+import { getApi } from './lib/servercalls';
 
 async function ensureMathJS(expression: string, serverUrl: string): Promise<string> {
   if (expression.includes("FPCore")) {
@@ -105,25 +106,17 @@ function SpecConfigComponent() {
       sessionStorage.setItem('sessionId', sessionId);
     }
     
-    fetch('http://localhost:8003/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: sessionStorage.getItem('sessionId'),
-        expression: spec.expression,
-        Description: "Added Expression from the home page",
-        timestamp: new Date().toLocaleString(),
-      }),
-    })
-    .then(response => {
-      if (response.ok) {
-        console.log('Server is running and log saved');
-      }
-      else {
-        console.error('Server responded with an error:', response.status);
-      }
-    })
-    .catch(error => console.error('Request failed:', error));
+     await (getApi(
+            'http://localhost:8003/log',
+            {
+              sessionId: sessionStorage.getItem('sessionId'),
+              expression: spec.expression,
+              Description: "Added Expression from the home page",
+              timestamp: new Date().toLocaleString(),
+            },
+             true
+            ));
+    
   }
 
   const specValid = async () => {

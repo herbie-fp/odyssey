@@ -20,6 +20,7 @@ const Plot = require('@observablehq/plot')  // have to do this for ES modules fo
 
 import { select } from 'd3-selection';  // Required for brushing
 import { brushX } from 'd3-brush';
+import { getApi } from "./lib/servercalls";
 
 type varname = string
 
@@ -437,27 +438,16 @@ function ErrorPlot() {
               // remove brushing, 
               // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
               setSelectedSubset(undefined)
-
-              fetch('http://localhost:8003/log', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  sessionId: sessionStorage.getItem('sessionId'),
-                  SelectedPoint: point,
-                  SelectedExpression: expressions.find(e => e.id === id)?.text,
-                  Description: `Selected Point: ${point} on Expression: ${expressions.find(e => e.id === id)?.text}in the Error Plot Graph`,
-                  timestamp: new Date().toLocaleString(),
-                }),
-              })
-              .then(response => {
-                if (response.ok) {
-                  console.log('Server is running and log saved');
-                }
-                else {
-                  console.error('Server responded with an error:', response.status);
-                }
-              })
-              .catch(error => console.error('Request failed:', error));
+              await (getApi(
+                          'http://localhost:8003/log',
+                         {sessionId: sessionStorage.getItem('sessionId'),
+                          SelectedPoint: point,
+                          SelectedExpression: expressions.find(e => e.id === id)?.text,
+                          Description: `Selected Point: ${point} on Expression: ${expressions.find(e => e.id === id)?.text}in the Error Plot Graph`,
+                          timestamp: new Date().toLocaleString(), },
+                         true
+                       ));
+              
             }
 
           

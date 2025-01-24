@@ -439,7 +439,7 @@ function ErrorPlot() {
               // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
               setSelectedSubset(undefined)
               await (getApi(
-                          'http://localhost:8003/log',
+                          'https://herbie.uwplse.org/odyssey-log/log',
                          {sessionId: sessionStorage.getItem('sessionId'),
                           SelectedPoint: point,
                           SelectedExpression: expressions.find(e => e.id === id)?.text,

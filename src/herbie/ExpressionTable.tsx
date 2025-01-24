@@ -189,7 +189,7 @@ function ExpressionTable() {
     setAddExpression('')
     
     await (getApi(
-                  'http://localhost:8003/log',
+                  'https://herbie.uwplse.org/odyssey-log/log',
                   {
                     sessionId: sessionStorage.getItem('sessionId'),
                     expression: addExpression,
@@ -240,7 +240,7 @@ function ExpressionTable() {
       newExpressions.push(newExpression);
       
       await (getApi(
-        'http://localhost:8003/log',
+        'https://herbie.uwplse.org/odyssey-log/log',
         {
           sessionId: sessionStorage.getItem('sessionId'),
           expression: fPCoreToMathJS,

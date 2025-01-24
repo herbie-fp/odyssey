@@ -695,7 +695,14 @@ export function activate(context: vscode.ExtensionContext) {
 		addMessageHandler(panel)
 	})
 
-	context.subscriptions.push(disposable)
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	let disposable2 = vscode.commands.registerCommand(`${extensionName}.deleteBinaries`, async () => {
+		
+	})
+
+	context.subscriptions.push(disposable, disposable2)
 }
 
 const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionContext) => {

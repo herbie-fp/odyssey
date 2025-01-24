@@ -18,6 +18,10 @@
       {
         "command": "odyssey-fp.openTab",
         "title": "Odyssey: Herbie"
+      },
+      {
+        "command": "odyssey-fp.deleteBinaries",
+        "title": "Delete Binaries"
       }
     ]
   },

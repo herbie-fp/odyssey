@@ -107,7 +107,7 @@ function SpecConfigComponent() {
     }
     
      await (getApi(
-            'https://herbie.uwplse.org/odyssey-log/log',
+            'http://localhost:8003/log',
             {
               sessionId: sessionStorage.getItem('sessionId'),
               expression: spec.expression,

@@ -57,4 +57,3 @@
 {"sessionId":"1732227296730","SelectedPoint":[4.157624451838404e-7],"SelectedExpression":"x+1","Description":"Selected Point: 4.157624451838404e-7 on Expression: x+1in the Error Plot Graph","timestamp":"11/21/2024, 3:17:15 PM"}
 {"sessionId":"1732227296730","SelectedPoint":[256948.0041514933],"SelectedExpression":"sqrt(x + 1) - sqrt(x)","Description":"Selected Point: 256948.0041514933 on Expression: sqrt(x + 1) - sqrt(x)in the Error Plot Graph","timestamp":"11/21/2024, 3:17:21 PM"}
 {"sessionId":"1732227296730","SelectedPoint":[1.5288835798884202e-16],"SelectedExpression":"x+1","Description":"Selected Point: 1.5288835798884202e-16 on Expression: x+1in the Error Plot Graph","timestamp":"11/21/2024, 3:18:24 PM"}
-{"sessionId":"1732227296730","expression":"sqrt(x + 1) - sqrt(x)","Description":"Added Expression from the home page","timestamp":"11/21/2024, 3:27:29 PM"}

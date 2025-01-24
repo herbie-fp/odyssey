@@ -2,23 +2,25 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 
 import './HerbieUI.css';
 
+import * as Types from './HerbieTypes'
+import { Derivation, Expression, ErrorAnalysis, CostAnalysis, Sample } from './HerbieTypes';
+import * as Contexts from './HerbieContext';
+
 import { SpecComponent, SpecConfigComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { SerializeStateComponent } from './SerializeStateComponent';
 import { ExpressionTable } from './ExpressionTable';
-import * as Contexts from './HerbieContext';
-import { Derivation, Expression, ErrorAnalysis, CostAnalysis, SpecRange, Spec, Sample } from './HerbieTypes';
-import * as Types from './HerbieTypes'
-import { nextId } from './lib/utils';
-import * as utils from './lib/utils';
 import { SelectableVisualization } from './SelectableVisualization';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
+import { expressionToTex } from './ExpressionTable';
+
+import * as utils from './lib/utils';
+import { nextId } from './lib/utils';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejsImport from './lib/herbiejs';
-import { expressionToTex } from './ExpressionTable';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -198,7 +200,6 @@ function HerbieUIInner() {
           // HACK to make sampling work on Herbie side
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), sample, serverUrl)
-          console.log('Analysis was:', analysis)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
           return new ErrorAnalysis(analysis, expression.id, sample.id)
@@ -234,20 +235,10 @@ function HerbieUIInner() {
         if (sample.specId !== spec.id) {
           return;
         }
-        console.debug('Getting new cost for expression', expression, 'and sample', sample, '...')
 
         try {
-          const specVars = fpcorejs.getVarnamesMathJS(spec.expression);
-          // const formula = fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars);
           const formula = fpcorejs.mathjsToFPCore(expression.text);
-
-
-          // console.log("Expression is " + formula);
-          // console.log("sample is " + sample);
-
           const costData = await herbiejs.getCost(formula, sample, serverUrl);
-
-          console.log("hooray the cost data is: ", costData);
 
           return new CostAnalysis(expression.id, costData);
         } catch (e) {
@@ -262,10 +253,7 @@ function HerbieUIInner() {
     updateCostAsync();
   }
 
-
-
   // Reactively update expression styles whenever expressions change
-
   useEffect(updateExpressionStyles, [expressions])
   function updateExpressionStyles() {
     setExpressionStyles(expressions.map((expression) => {
@@ -533,7 +521,6 @@ function HerbieUIInner() {
            {'formulas': [formula] },
            true
          ));
-         console.log(fptaylorInputResponse);
 
           const fptaylorInput = fptaylorInputResponse.stdout;
 

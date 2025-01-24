@@ -1,23 +1,25 @@
 // Also want to fix build -- maybe switch to vite, but most important is to move webview to subfolder
 import {useState, useEffect} from "react";
-import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
-import * as HerbieContext from './HerbieContext'
+import { Tooltip } from "react-tooltip";
+
+import * as HerbieContext from './HerbieContext' // ??
+import * as contexts from './HerbieContext' // >>
+import { SelectedExprIdContext, ExpressionsContext, 
+  AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
+
+import * as HerbieTypes from './HerbieTypes'
+import { Expression, ordinal, expressionError } from './HerbieTypes'
 
 import * as fpcorejs from './lib/fpcore'
 import * as ordinals from './lib/ordinals'
 import * as herbiejs from './lib/herbiejs'
+import { nextId } from "./lib/utils";
 
-import { Expression, ordinal, expressionError } from './HerbieTypes'
-import * as HerbieTypes from './HerbieTypes'
-import * as contexts from './HerbieContext'
 import { InputRangeEditor1 } from "./InputRangesEditor";
 
 import './ErrorPlot.css'
-import { nextId } from "./lib/utils";
-import { Tooltip } from "react-tooltip";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
-
 import { select } from 'd3-selection';  // Required for brushing
 import { brushX } from 'd3-brush';
 
@@ -108,11 +110,8 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
       x: points.reduce((acc, e) => e.x + acc, 0) / points.length
     })
-    // console.log(data)
-    // console.log(slidingWindow(data, binSize))
     const compressedSlidingWindow = compress(
       slidingWindow(data, binSize), width, average)
-    //console.log(compressedSlidingWindow)
     
     const percentageCompressedSlidingWindow = compressedSlidingWindow.map(({x,y}:{x:any,y:any})=>({x,y:(100-(y/64*100))}))
     const percentageData = compress(data,width).map(({x,y,orig}:{x:any,y:any,orig:any})=>({x,y:(100-(y/64*100)),orig}))
@@ -209,8 +208,6 @@ function ErrorPlot() {
   useEffect(() => {setMyInputRanges(inputRanges)}, [sample])
 
   const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id))
-
-  // console.log('selectedExprId', selectedExprId)
   
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)

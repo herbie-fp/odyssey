@@ -1,7 +1,5 @@
 import React from 'react';
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
-import * as ordinals from './lib/ordinals'
-import { ordinal } from './HerbieTypes'
 import './SpeedVersusAccuracyPareto.css';
 
 interface SpeedVersusAccuracyParetoProps {
@@ -15,19 +13,15 @@ type Point = {
 }
 
 async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Point[], clickedExpressionId: number, expressionStyles: ExpressionStyle[]) {
-    // const bits = benchmark["bits"];
-
     // The line differs from rest_pts in two ways:
     // - We filter to the actual pareto frontier, in case points moved
     // - We make a broken line to show the real Pareto frontier
-    // let line: Point[] = [];
+
     // initialize line as empty object
     let line: Point[] = [];
 
     // create a new array with rest_pts reverse sorted from lowest to highest cost
     const sorted_pts = rest_pts.slice().sort((a, b) => a.cost - b.cost);
-    // console.log("sorted points: ", sorted_pts);
-    // debugger;
 
     let mostAccurateSoFar: Point | null = null; 
     
@@ -168,9 +162,7 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
                 plot.querySelectorAll('[aria-label="dot"] circle').forEach((t: any) => {
                     // if a point if clicked (onclick), set its clickedExpressionID
                     t.onclick = async() => {
-                        console.log('Clicked point -> Setting selected point', t.getAttribute("data-id"));
                         setSelectedExprId(parseInt(t.getAttribute("data-id")));
-                        console.log('New selected point', selectedExprId);
                     }
                 });    
 

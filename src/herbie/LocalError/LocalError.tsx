@@ -1,14 +1,18 @@
+import React from 'react';
+import { useEffect } from 'react';
+import { Tooltip } from "react-tooltip";
+
 import * as HerbieContext from '../HerbieContext';
 import * as types from '../HerbieTypes';
-import * as fpcore from '../lib/fpcore';
-import { Tooltip } from "react-tooltip";
-import Mermaid from './Mermaid';
-import { Point } from './Point'; 
-import * as herbiejs from '../lib/herbiejs'
-import './LocalError.css';
-import { useEffect } from 'react';
-import React from 'react';
 import { ErrorExpressionResponse } from '../HerbieTypes';
+
+import * as fpcore from '../lib/fpcore';
+import * as herbiejs from '../lib/herbiejs'
+
+import Mermaid from './Mermaid';
+
+import './LocalError.css';
+
 function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, currentLocation: Array<number>,  targetLocation: Array<number> ,explanation: string) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
@@ -210,8 +214,6 @@ function LocalError({ expressionId }: { expressionId: number }) {
       }
       return
     }
-
-    console.log('Node clicked!', event.target);
   };
   if (!localError) {
     return (

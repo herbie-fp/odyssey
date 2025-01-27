@@ -382,12 +382,26 @@ function HerbieUIInner() {
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
     async function add() {
+<<<<<<< HEAD
       if (spec.expression === '' || expressions.find(e =>
         e.specId === spec.id)) { return }
       const expressionId = utils.nextId(expressions)
       const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
       console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
       setExpressions([new HerbieTypes.Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
+=======
+      const expressionId = nextId(expressions)
+      const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
+      
+      if (spec.expression === '' || expressions.find(e => e.specId === spec.id)) {
+        setDerivations(derivations)
+        setExpressions(expressions) // HACK: to avoid mess with multiple threads
+        return;
+      }
+
+      console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`,'and expressions:', expressions)
+      setExpressions([new Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
+>>>>>>> 83ee336 (+ to state: selectedExprId, compareExprIds, expandedExpressions)
       setDerivations([
         new HerbieTypes.Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
         ...derivations,

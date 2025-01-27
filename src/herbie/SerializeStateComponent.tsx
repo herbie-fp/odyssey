@@ -74,7 +74,9 @@ function SerializeStateComponent(props: exportStateProps) {
   const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext);
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext);
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
-  const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
+  const [ , setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
+  const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
+  const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext);
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
 
@@ -117,10 +119,10 @@ function SerializeStateComponent(props: exportStateProps) {
       specRanges,
       expressions: newExpressions,
       derivations: newDerivations,
+      selectedExprId,
+      compareExprIds,
+      expandedExpressions,
     }
-
-    console.log("export expressions", newExpressions);
-    console.log("export derivations", newDerivations);
 
       // TODO: Revisit potential idea of storing each individual expression object
       // expression: {
@@ -159,21 +161,20 @@ function SerializeStateComponent(props: exportStateProps) {
     setInputRangesTable([...inputRangesTable, inputRanges])
     setSpec({expression: mathJSExpression, id: specId, fpcore});
 
-    // TODO: add logging as in SpecContext.tsx
-
     return specId;
   }
 
   // initialize expressions on IMPORT 
-  const initializeExpressions = (allExpressions: Expression[], allDerivations: Derivation[], newSpecId: number) => {
+  const initializeExpressions = (oldExpressions: Expression[], oldDerivations: Derivation[], 
+    newSpecId: number, oldSelectedExprId: number, oldCompareExprIds: number[], oldExpandedExpressions: number[]) => {
     
     const oldIdToNewExpressions: Map<number, Expression> = new Map();
     const newExpressions: Expression[] = [];
     const newDerivations: Derivation[] = [];
     
     // re-assign ids to expressions.
-    for (let i = 0; i < allExpressions.length; i++) {
-      const expression = allExpressions[i];          
+    for (let i = 0; i < oldExpressions.length; i++) {
+      const expression = oldExpressions[i];          
       const newId = nextId(expressions) + i;
 
       const newExpression = new Expression(expression.text, newId, newSpecId, expression.tex);
@@ -181,8 +182,8 @@ function SerializeStateComponent(props: exportStateProps) {
       newExpressions.push(newExpression);
     }
 
-    for (let i = 0; i < allDerivations.length; i++) {
-      const deriv = allDerivations[i];
+    for (let i = 0; i < oldDerivations.length; i++) {
+      const deriv = oldDerivations[i];
       
       const newExpression = oldIdToNewExpressions.get(deriv.id);
 
@@ -193,28 +194,19 @@ function SerializeStateComponent(props: exportStateProps) {
       const newParentId = newParent?.id;
 
       // this shouldn't happen, newId and newParentId should always exist
-      if (newExpressionId == undefined) {
+      if (newExpressionId === undefined) {
         continue;
       }
       newDerivations.push(new Derivation(deriv.derivation, newExpressionId, newParentId));
     }
 
-      // Do we have to use .find or can we assume the HTMLHistory[] returend by Herbie
-      // is mapped to the alternatives array 1:1
-      // const deriv = allDerivations.find(d => d.id === expression.id);
-      // const derivParent = allExpressions.find(e => e.id === deriv.parentId)
-      // if(deriv !== undefined) {
-      //   newDerivations.push(new Derivation(deriv.derivation, newId, derivParent));
-      // }
-
-    setExpressions([...newExpressions, ...expressions]);
+    setExpressions([...oldIdToNewExpressions.values(), ...expressions]);
     setDerivations([...newDerivations, ...derivations]);
-    setCompareExprIds([...compareExprIds, ...newExpressions.map(e => e.id)]);
 
-    console.log("import expressions", newExpressions);
-    console.log("all derivations", allDerivations);
-    console.log("import derivations", newDerivations);
-
+    setSelectedExprId(oldIdToNewExpressions.get(oldSelectedExprId)?.id ?? -1);
+    // Shouldn't get any -1s in this result, just dealing with possible undefined from .get
+    setExpandedExpressions(oldExpandedExpressions.map((id) => oldIdToNewExpressions.get(id)?.id ?? -1));
+    setCompareExprIds(oldCompareExprIds.map((id) => oldIdToNewExpressions.get(id)?.id ?? -1));
   }
 
   const jsonToState = async (e: React.FormEvent) => {
@@ -232,13 +224,15 @@ function SerializeStateComponent(props: exportStateProps) {
 
     // Sets spec and input ranges for initial table, gets back new ID for spec
     const newSpecId = await initializeSpec(jsonState.serverUrl, jsonState.spec.expression, 
-        jsonState.spec.fpcore, jsonState.specRanges);
+      jsonState.spec.fpcore, jsonState.specRanges);
 
     // Initializes and sets IDs of each new expression
-    initializeExpressions(jsonState.expressions, jsonState.derivations, newSpecId);
+    initializeExpressions(jsonState.expressions, jsonState.derivations, newSpecId, 
+      jsonState.selectedExprId, jsonState.compareExprIds, jsonState.expandedExpressions);
 
     // TODO: setting more states
     // High level vision for now: OUR history > Alice's history
+    // - selected point (last one?)
 
     setIsModalOpen(false);
   }

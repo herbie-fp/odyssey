@@ -324,17 +324,16 @@ function HerbieUIInner() {
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
     async function add() {
-      // if (spec.expression === '' || expressions.find(e =>
-      //   e.specId === spec.id)) { return }
       const expressionId = nextId(expressions)
       const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
-      console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`,'and expressions:', expressions)
-      if (spec.expression === '' || expressions.find(e =>
-        e.specId === spec.id)) {  
-          setExpressions(expressions)
-          return;
-        }
       
+      if (spec.expression === '' || expressions.find(e => e.specId === spec.id)) {
+        setDerivations(derivations)
+        setExpressions(expressions) // HACK: to avoid mess with multiple threads
+        return;
+      }
+
+      console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`,'and expressions:', expressions)
       setExpressions([new Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
       setDerivations([
         new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),

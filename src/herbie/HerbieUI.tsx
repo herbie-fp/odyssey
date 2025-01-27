@@ -316,54 +316,33 @@ function HerbieUIInner() {
   // * do NOT change the input range component
   useEffect(updateSubsetAnalyses, [selectedSubsetRange])
   function updateSubsetAnalyses() {
-    async function updateSubsetAnalysesAsync() {
-      if (selectedSubsetRange) {
-        // In brushing context, don't resample for any expressions, want an 
-        // existing sample for expressions
-        if (samples.length === 0) {
-          return
+    if (selectedSubsetRange) {
+      // Get analyses for active expressions
+      const activeAnalyses = analyses.filter(a => !archivedExpressions.includes(a.expressionId))
+
+      const brushedVar = selectedSubsetRange.varIdx;
+      const brushedSize = selectedSubsetRange.ordinalPoints.length;
+
+      const subsetAnalyses: Types.SubsetErrorAnalysis[] = [];
+      for (const a of activeAnalyses) {
+        const subsetErrors = [];
+        // Don't resample/analyze for any expressions, take subset of existing
+        for (const [i, ordSamplePoint] of a.data.ordinalSample.entries()) {
+          if (ordSamplePoint[brushedVar] >= selectedSubsetRange.ordinalPoints[0][brushedVar] 
+            && ordSamplePoint[brushedVar] <= selectedSubsetRange.ordinalPoints[brushedSize - 1][brushedVar]) {
+              subsetErrors.push(a.data.errors[i]); // DANGEROUS ? assuming indicies of errors and ordinalPoints align 1:1
+          }
         }
-        const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
 
-        setSelectedSubsetAnalyses((await Promise.all(activeExpressions.map(async expression => {
-          // Only get analyses for the current spec
-          const sample = samples[samples.length - 1];
-          if (sample.specId !== spec.id) {
-            return;
-          }
+        const subsetErrorResult = (subsetErrors.reduce((acc: number, v: any) => {
+          return acc + v;
+        }, 0) / subsetErrors.length).toFixed(2);
 
-          try {
-            // Create adjusted sample with only points in brushed region
-            // inputRangesId and id are unused in finding analysis, set to -1
-            const i = selectedSubsetRange.varIdx;
-            const adjSample = new Sample(
-              sample.points,
-              // sample.points.filter((p) => selectedSubsetRange.ordinalPoints.some(sp => p[0][i] === sp[i])),
-              // TODO: find the right thing to do here!
-              // [0][i] >= p[0][i] 
-              //   && p[0][i] <= selectedSubsetRange.points[selectedSubsetRange.points.length][i]), 
-              sample.specId, -1, -1);
-
-            // console.log(selectedSubsetRange.points);
-            // console.log(adjSample);
-
-            // HACK to make sampling work on Herbie side
-            const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-            const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), adjSample, serverUrl)
-            // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
-
-            return new ErrorAnalysis(analysis, expression.id, sample.id)
-          } catch (e) {
-            const throwError = (e: any) => () => {
-              throw Error(`Analysis failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
-            }
-            setTimeout(throwError(e))
-            return;
-          }
-        }))) as ErrorAnalysis[]);
+        subsetAnalyses.push({expressionId: a.expressionId, subsetErrorResult});
       }
+
+      setSelectedSubsetAnalyses(subsetAnalyses);
     }
-    updateSubsetAnalysesAsync()
   }
 
   // Add spec to expressions if it doesn't exist

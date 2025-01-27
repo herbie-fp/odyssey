@@ -183,6 +183,7 @@ function ErrorPlot() {
   const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
   const [selectedSubset, setSelectedSubset] = contexts.useGlobal(HerbieContext.SelectedSubsetRangeContext)
+  const [_, setSelectedAnalysis] = contexts.useGlobal(HerbieContext.SelectedSubsetAnalysesContext)
   const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
   const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
   const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
@@ -333,6 +334,10 @@ function ErrorPlot() {
       selected: HerbieTypes.ordinalPoint, given: HerbieTypes.ordinalPoint, 
       dataPoints: number[][], expId: number, varIdx: number
     ) => {
+    if (selected === given) {
+      return true;
+    }
+
     const expIdx = compareExpressions.map((e, _) => ([e, _] as [Expression, number])).filter(([e, _]) => e.id === expId)[0][1];
     const pIdx = dataPoints[expIdx].indexOf(given[varIdx]);
     const selectedIdx = dataPoints[expIdx].indexOf(selected[varIdx]);
@@ -456,8 +461,6 @@ function ErrorPlot() {
               })
               .catch(error => console.error('Request failed:', error));
             }
-
-          
 
             // See if the current point is selected, if not check if it belongs to the same bucket
             if (selectedPoint && 
@@ -619,8 +622,9 @@ function ErrorPlot() {
                 highlightLine.newPath.removeAttribute("d");
               })
 
-              // un-set global variable storing selected points, triggers re-render
+              // un-set global selected subset & analysis states, triggers re-render
               setSelectedSubset(undefined);
+              setSelectedAnalysis(undefined);
             });
 
           // Append all plot components to svg

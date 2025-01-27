@@ -316,17 +316,20 @@ function ExpressionTable() {
             const expression = expressions.find((expression) => expression.id === id) as Expression;
             const isChecked = compareExprIds.includes(expression.id);
 
-            const analysisData = (selectedSubsetAnalyses === undefined)
-              // General case, analysis over whole inputRange
-              ? analyses.find((analysis) => analysis.expressionId === expression.id)?.data
-              // When a subset of points has been selected, show analysis for just that range
-              : selectedSubsetAnalyses.find((analysis) => analysis.expressionId === expression.id)?.data;  
-            const analysisResult =
-              !analysisData
-                ? undefined
+            let analysisResult: string | undefined;
+             // use pre-caluclated result for a subset of points (brushing)
+            if (selectedSubsetAnalyses) {
+              const analysisData = selectedSubsetAnalyses.find(analysis => analysis.expressionId === expression.id);
+              analysisResult = analysisData?.subsetErrorResult;
+
+            } else { // otherwise, use full analysis data
+              const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data; 
+              analysisResult =
+                !analysisData ? undefined // otherwise, use full analysis data
                 : (analysisData.errors.reduce((acc: number, v: any) => {
-                  return acc + v;
-                }, 0) / 8000).toFixed(2);
+                    return acc + v;
+                  }, 0) / 8000).toFixed(2);
+            }
 
             // cost of the expression
             const costResult = cost.find(c => c.expressionId === expression.id)?.cost;

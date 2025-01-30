@@ -629,7 +629,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
+	let disposable2 = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
 
 		await runHerbieServer()
 		// await runFPBenchServer()
@@ -698,10 +698,31 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable2 = vscode.commands.registerCommand(`${extensionName}.deleteBinaries`, async () => {
-		
-	})
-
+	let disposable = vscode.commands.registerCommand(`${extensionName}.deleteBinaries`, async () => {
+		const deleteConfirmed = await vscode.window.showWarningMessage(
+			"Are you sure you want to delete all binaries? This action cannot be undone.",
+			{ modal: true },
+			"Delete"
+		);
+	
+		if (deleteConfirmed !== "Delete") {
+			return;
+		}
+	
+		try {
+			if (fs.existsSync(fpbenchPath)) {
+				fs.rmSync(fpbenchPath, { recursive: true, force: true });
+			}
+			if (fs.existsSync(fptaylorPath)) {
+				fs.rmSync(fptaylorPath, { recursive: true, force: true });
+			}
+			vscode.window.showInformationMessage("Binaries deleted successfully.");
+		} catch (error) {
+			console.error("Error deleting binaries:", error);
+			vscode.window.showErrorMessage("Failed to delete binaries. Check console for details.");
+		}
+	});
+	
 	context.subscriptions.push(disposable, disposable2)
 }
 

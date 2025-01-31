@@ -1,6 +1,7 @@
 .error-plot .input-ranges-editor input {
-  font-size: 10px;
-  width: 46px;
+  font-size: 13px;
+  font-family: 'Ruda', sans-serif;
+  width: 65px;
 }
 .error-plot .input-ranges-editor {
   display: inline-block;
@@ -8,6 +9,12 @@
 
 .variable-name {
   font-family: 'Ruda', sans-serif;
+  font-size: 13px;
+}
+
+.separator {
+  font-family: 'Ruda', sans-serif;
+  font-size: 13px;
 }
 
 .input-ranges-editor input {

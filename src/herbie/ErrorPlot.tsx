@@ -2,11 +2,7 @@
 import {useState, useEffect} from "react";
 import { Tooltip } from "react-tooltip";
 
-import * as HerbieContext from './HerbieContext' // ??
-import * as contexts from './HerbieContext' // >>
-import { SelectedExprIdContext, ExpressionsContext, 
-  AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
-
+import * as HerbieContext from './HerbieContext'
 import * as HerbieTypes from './HerbieTypes'
 import { Expression, ordinal, expressionError } from './HerbieTypes'
 
@@ -20,7 +16,7 @@ import { InputRangeEditor1 } from "./InputRangesEditor";
 import './ErrorPlot.css'
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
-import { select } from 'd3-selection';  // Required for brushing
+import { select } from 'd3-selection';      // Required for brushing
 import { brushX } from 'd3-brush';
 
 type varname = string
@@ -30,6 +26,7 @@ interface OrdinalErrorPoint {
   y: expressionError,
   orig: ordinal[]  // the original point associated with this input
 }
+
 interface PlotArgs {
   /** A list of variable names for the original points. */
   varnames: varname[];
@@ -51,6 +48,7 @@ interface PlotArgs {
 
   [propName: string]: any  // could have other properties
 }
+
 /**
  * Plot the error of a function.
  * @param varnames A list of variable names for the original points.
@@ -125,13 +123,12 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       Plot.dot(percentageData, {
         x: "x", y: "y", r: 3,
           // HACK pass stuff out in the title attribute, we will update titles afterward
-        title: (d: {orig: any} ) => JSON.stringify({ o: d.orig, id }), //.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
-          // @ts-ignore
-            //"data-id": d => id,//() => window.api.select('Expressions', id),
+        title: (d: {orig: any} ) => JSON.stringify({ o: d.orig, id }),
             ...dot
         })
     ]
   }
+
   const out = Plot.plot({
     width: width,
     height: height,
@@ -139,7 +136,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       tickFormat: (d: number) => tickStrings[tickOrdinals.indexOf(d)],
       line: true, grid: true,
         ticks: tickOrdinals, label: `value of ${varnames[varidx]}`,  // LATER axis label
-      labelAnchor: 'left', labelOffset: 40, /* tickRotate: 70, */
+      labelAnchor: 'left', labelOffset: 40,
         domain
     },
     y: {
@@ -148,12 +145,6 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
         ticks: new Array(100 / 5 + 1).fill(0).map((_, i) => i * 5),
         tickFormat: (d: number) => d % 50 !== 0 ? '' : d
     },
-    // y: {
-    //     line: true,
-    //     label: "% Accuracy", domain: [0, 100],
-    //     ticks: new Array(100 / 25 + 1).fill(0).map((_, i) => i * 25),
-    //     tickFormat: '%' //(d: number) => d % 25 !== 0 ? '' : `%`
-    // },
     marks: [
       ...[ // Vertical bars ("rules")
         // The splitpoints
@@ -169,23 +160,21 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
   return out as SVGElement
 }
 
-// const zip =  <T1,T2,T3>(arr1: T1[], arr2: T2[], arr3=[] as T3[])  : [T1, T2, T3][] => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [] as [T1, T2, T3][])
-
 // need to get varnames from expression, varidx
 // varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400
 function ErrorPlot() {
-  const [spec, ] = contexts.useGlobal(SpecContext)
-  const [selectedExprId, setSelectedExprId] = contexts.useGlobal(SelectedExprIdContext)
-  const [analyses, ] = contexts.useGlobal(AnalysesContext)
-  const [allExpressions, ] = contexts.useGlobal(ExpressionsContext)
-  const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
-  const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
-  const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
-  const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
-  const [selectedSubset, setSelectedSubset] = contexts.useGlobal(HerbieContext.SelectedSubsetRangeContext)
-  const [_, setSelectedAnalysis] = contexts.useGlobal(HerbieContext.SelectedSubsetAnalysesContext)
-  const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
-  const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
+  const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
+  const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
+  const [allExpressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [compareExprIds, ] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
+  const [expressionStyles, ] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
+  const [selectedSampleId, ] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
+  const [selectedPoint, setSelectedPoint] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext)
+  const [selectedSubset, setSelectedSubset] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetRangeContext)
+  const [_, setSelectedAnalysis] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetAnalysesContext)
+  const [samples, ] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   const sample = samples.find(s => s.id === selectedSampleId)
   const width = 800;
@@ -203,7 +192,7 @@ function ErrorPlot() {
   }
 
   const [myInputRanges, setMyInputRanges] = useState(inputRanges)
-  const [archivedExpressions, ] = contexts.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [archivedExpressions, ] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
   // Update myInputRanges when the sample changes
   useEffect(() => {setMyInputRanges(inputRanges)}, [sample])
@@ -230,9 +219,6 @@ function ErrorPlot() {
   if (!sample) {
     return <div className="empty-error-plot">Could not find sample with id {selectedSampleId}</div>
   }
-  // if (!inputRanges) {
-  //   return <div>Could not find input ranges with id {sample.inputRangesId}</div>
-  // }
 
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
@@ -311,10 +297,6 @@ function ErrorPlot() {
     throw new Error(`Missing a style for one of the expressions`)
   }
 
-  // create state for the input ranges
-  // just use a list that looks like input ranges
-
-
   // resample the data using the updated input ranges on click
   function resample() {
     // Add a new inputRangesTable entry
@@ -361,19 +343,14 @@ function ErrorPlot() {
         newD += (lp + "L");
       }
     }
-
     return newD.slice(0, newD.length - 1); // slice off last fencepost L
   }
 
   return <div className="error-plot">
-    {/* <ResampleComponent /> */}
-    {/* Plot all vars */}
-    
+    {/* Plot each var */}
     {vars.map((v, i) => [v, i] as [string, number]).sort((a, b) => a[0].localeCompare(b[0])).map(([v, i]) => {
-      const range = inputRanges?.find(r => r.variable === v)
-      // if (!range) {
-      //   return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
-      // }
+      const range = inputRanges?.find(r => r.variable === v);
+      // TODO: handle case when range cannot be found?
 
       const data = exprData.map(varData => varData[i]);
       const dataPoints: number[][] = [];
@@ -492,7 +469,7 @@ function ErrorPlot() {
               // Handle overlap around edge of plot
               const xAdjusted = (x < 66) ? 66 : (x > 774) ? 774 : x;
 
-              // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach, will consider alternatives
+              // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach
               labelContainer.innerHTML = `
                 <rect class="selected-label" x=${xAdjusted - 70 + ""} y=${-27 + ""} height="22px"></rect>
                 <text class="full-num-anchor" x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
@@ -663,7 +640,7 @@ function ErrorPlot() {
               }
             } else {
               // Just grey out lines
-              highlightMap.forEach((highlightLine, lineExpIdx) => {
+              highlightMap.forEach((highlightLine, _) => {
                 highlightLine.line.setAttribute("class", "unbrushed-line");
               });
             }

@@ -1,23 +1,21 @@
-import React, { useCallback, ChangeEvent, useContext, useState, useEffect } from 'react';
-import { InputRange, InputRangeEditor1 } from './InputRangesEditor';
-import { InputRangesTableContext, SpecContext } from './HerbieContext';
-import { SpecRange, Spec } from './HerbieTypes';
-import * as HerbieTypes from './HerbieTypes';
-import * as utils from './lib/utils';
-import * as HerbieContext from './HerbieContext';
-import KaTeX from 'katex';
+import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
-import './sliders.css';
+import { DebounceInput } from 'react-debounce-input';
+import KaTeX from 'katex';
 
-import { DebounceInput, DebounceTextArea } from 'react-debounce-input';
-console.log("KaTeX:", KaTeX);
+import * as HerbieTypes from './HerbieTypes';
+import { SpecRange, Spec } from './HerbieTypes';
+import * as HerbieContext from './HerbieContext';
+import { InputRange, InputRangeEditor1 } from './InputRangesEditor';
+import { expressionToTex } from './ExpressionTable';
 
-import './SpecComponent.css';
-const math11 = require('mathjs11');
-
+import * as utils from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
-import { expressionToTex } from './ExpressionTable';
+import { getApi } from './lib/servercalls';
+
+import './sliders.css';
+import './SpecComponent.css';
 
 async function ensureMathJS(expression: string, serverUrl: string): Promise<string> {
   if (expression.includes("FPCore")) {
@@ -111,6 +109,7 @@ function SpecConfigComponent() {
       body: JSON.stringify({
         sessionId: sessionStorage.getItem('sessionId'),
         expression: spec.expression,
+        Description: "Added Expression from the home page",
         timestamp: new Date().toLocaleString(),
       }),
     })
@@ -286,7 +285,7 @@ function SpecConfigComponent() {
   useEffect(() => {
     const vars = variables;
     const newRanges = vars.map((v) => {
-      const range = mySpecRanges.find((r) => r.variable === v) || new HerbieTypes.SpecRange(v, -1e308, 1e308);
+      const range = mySpecRanges.find((r) => r.variable === v) || new SpecRange(v, -1e308, 1e308);
       return range;
     });
     setMySpecRanges(newRanges);
@@ -349,7 +348,7 @@ function SpecConfigComponent() {
             {variables.map((v, i) => {
               const range =
                 mySpecRanges.find((r) => r.variable === v) ||
-                new HerbieTypes.SpecRange(v, -1e308, 1e308);
+                new SpecRange(v, -1e308, 1e308);
               return (
                 <div className="spec-range-input" key={v}>
                   <div className="varname">{v}:</div>
@@ -365,7 +364,7 @@ function SpecConfigComponent() {
                         setMySpecRanges(
                           mySpecRanges.map((r) =>
                             r.variable === v
-                              ? new HerbieTypes.SpecRange(
+                              ? new SpecRange(
                                   v,
                                   parseFloat(value.lower),
                                   parseFloat(value.upper)
@@ -376,7 +375,7 @@ function SpecConfigComponent() {
                       } else {
                         const newSpecRanges = [
                           ...mySpecRanges,
-                          new HerbieTypes.SpecRange(
+                          new SpecRange(
                             v,
                             parseFloat(value.lower),
                             parseFloat(value.upper)

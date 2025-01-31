@@ -51,6 +51,7 @@ function ExpressionTable() {
   const [spec,] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [samples,] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
+  const [selectedSubsetAnalyses, ] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetAnalysesContext)
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
   const [addExpressionTex, setAddExpressionTex] = useState('');
@@ -192,6 +193,7 @@ function ExpressionTable() {
       body: JSON.stringify({
         sessionId: sessionStorage.getItem('sessionId'),
         expression: addExpression,
+        Description: "Added Expression by clicking Add button",
         timestamp: new Date().toLocaleString(),
       }),
     })
@@ -244,7 +246,26 @@ function ExpressionTable() {
       const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
-
+       
+      fetch('http://localhost:8003/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionStorage.getItem('sessionId'),
+          expression: fPCoreToMathJS,
+          Description: "Added Expression by clicking improve",
+          timestamp: new Date().toLocaleString(),
+        }),
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log('Server is running and log saved');
+        }
+        else {
+          console.error('Server responded with an error:', response.status);
+        }
+      })
+      .catch(error => console.error('Request failed:', error));
       // The following code assumes the HTMLHistory[] returend by Herbie
       // is mapped to the alternatives array 1:1
       const d = histories[i];
@@ -294,13 +315,21 @@ function ExpressionTable() {
           {activeExpressions.map((id) => {
             const expression = expressions.find((expression) => expression.id === id) as Expression;
             const isChecked = compareExprIds.includes(expression.id);
-            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
-            const analysisResult =
-              !analysisData
-                ? undefined
+
+            let analysisResult: string | undefined;
+             // use pre-caluclated result for a subset of points (brushing)
+            if (selectedSubsetAnalyses) {
+              const analysisData = selectedSubsetAnalyses.find(analysis => analysis.expressionId === expression.id);
+              analysisResult = analysisData?.subsetErrorResult;
+
+            } else { // otherwise, use full analysis data
+              const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data; 
+              analysisResult =
+                !analysisData ? undefined // otherwise, use full analysis data
                 : (analysisData.errors.reduce((acc: number, v: any) => {
-                  return acc + v;
-                }, 0) / 8000).toFixed(2);
+                    return acc + v;
+                  }, 0) / 8000).toFixed(2);
+            }
 
             // cost of the expression
             const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
@@ -314,8 +343,10 @@ function ExpressionTable() {
                 // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
               ];
             return (
-              <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
-                <div key={expression.id} className={`expression`} style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
+              <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`} key={expression.id}>
+                <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
+                  style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
+
                   {/* expand button [+] */}
                   <div className="expand action">
                     <div onClick={() => handleExpandClick(expression.id)}>
@@ -330,21 +361,18 @@ function ExpressionTable() {
                   <div className="expression-name-container" onClick={() => handleExpressionClick(expression.id)}>
                   {showMath ?
                     <div className="expression-tex" dangerouslySetInnerHTML={{
-                      __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
-                    }} style={{
-                          maxWidth: '350px',
-                          overflowX: 'auto',
-                          overflowY: 'hidden',
-                    }}/>
+                        __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
+                      }}
+                    />
                     :
                     <div className="expression-text" id={`` + expression.id}>
                       {expression.text}
                     </div>
-                    }
+                  }
                     <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
-                        <a className="copy-anchor">⧉</a>
-                      </div>
+                      <a className="copy-anchor">⧉</a>
                     </div>
+                  </div>
                   <div className="analysis" id={`` + expression.id}>
                     {/* TODO: Not To hardcode number of bits*/}
                     {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
@@ -357,8 +385,6 @@ function ExpressionTable() {
                       Improve
                     </button>
                   </div>
-
-
                   <div className="delete">
                     <button onClick={() =>{
                       setArchivedExpressions([...archivedExpressions, expression.id]);

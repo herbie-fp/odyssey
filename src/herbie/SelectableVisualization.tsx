@@ -1,7 +1,4 @@
-import React, { ReactText, useState } from 'react';
-import { LocalError } from './LocalError/LocalError';
-import { ErrorPlot } from './ErrorPlot';
-import { DerivationComponent } from './DerivationComponent';
+import React, { useState } from 'react';
 
 import './SelectableVisualization.css';
 

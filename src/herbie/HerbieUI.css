@@ -77,9 +77,6 @@ body {
   background-color: var(--background-color);
   font-family: "IBM Plex Serif", serif;
   padding: 0px;
-}
-
-body {
   margin: 0px;
 }
 
@@ -161,6 +158,7 @@ input[type="text"]:focus, select:focus {
   height: 100vh; 
   grid-template-rows: 40px 50px 1fr 3em;
   grid-template-columns: 4fr 6fr; /*min(70%, 600px);*/
+  overflow: hidden; /* Inner components manual set scroll, if needed */
 }
 
 .help-buttons {

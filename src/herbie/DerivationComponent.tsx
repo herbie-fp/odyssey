@@ -1,5 +1,4 @@
 import * as contexts from './HerbieContext';
-import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 import './DerivationComponent.css';

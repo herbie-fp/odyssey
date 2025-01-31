@@ -1,7 +1,7 @@
 import * as fpcorejs from './fpcore';
 import * as ordinalsjs from './ordinals';
-import { ErrorExpressionResponse, Sample } from '../HerbieTypes';
 import * as types from '../HerbieTypes';
+import { ErrorExpressionResponse, Sample } from '../HerbieTypes';
 import { getApi } from './servercalls';
 
 interface HerbieResponse {
@@ -36,7 +36,7 @@ const getHerbieApiAsync = async (
     var checkResponse = await fetch(statusURL, {
       method: 'GET',
     });
-    while (checkResponse.status != 201 && counter < cap) {
+    while (checkResponse.status !== 201 && counter < cap) {
       counter += 1
       checkResponse = await fetch(`${host}/check-status/${job_id}`, {
         method: 'GET',
@@ -44,7 +44,7 @@ const getHerbieApiAsync = async (
       await new Promise(r => setTimeout(r, 100)); // ms
     }
     // Guard that the job is finished. If not throw an error giving up on this request.
-    if (checkResponse.status != 201) {
+    if (checkResponse.status !== 201) {
       throw new Error(`Request timeout`)
     }
     const result = await fetch(`${host}/api/result/${job_id}`, {
@@ -231,18 +231,11 @@ export const analyzeExpression = async (
   const pointsAndErrors = ((await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)) as AnalyzeResponse).points;
   const ordinalSample = pointsAndErrors.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
 
-  // console.log('first 10 pointsAndErrors', pointsAndErrors.map(([point, error]) => point).slice(0, 10));
-  // console.log('first 10 sample points', sample.points.map(p => p[0]).slice(0, 10));
-  // console.log('first 10 pointsAndErrors points (from /analyze) after sorting', pointsAndErrors.map(([point, error]) => point).sort().slice(0, 10));
-  // console.log('first 10 sample points (from /sample) after sorting', sample.points.map(p => p[0]).sort().slice(0, 10));
-
   const vars = fpcorejs.getVarnamesFPCore(fpcore);
   const ticksByVarIdx: [string, number][][] = vars.map((v, i) => {
     const values = sample.points.map(p => p[0][i]);
     return ordinalsjs.chooseTicks(fastMin(values), fastMax(values)).map(v => [displayNumber(v), ordinalsjs.floatToApproximateOrdinal(v)]);
   });
-
-  // console.debug(`ticksByVarIdx`, sample, ticksByVarIdx);
 
   const splitpointsByVarIdx = vars.map(v => []);  // HACK no splitpoints for now
   const errors = pointsAndErrors.map(([point, error]) => parseFloat(error));
@@ -255,7 +248,6 @@ export const analyzeExpression = async (
     vars,
     errors,
     meanBitsError
-    // pointsJson: { points: ordinalSample, ticks_by_varidx: ticksByVarIdx, splitpoints_by_varidx: splitpointsByVarIdx, bits: 64, vars, error: { target: errors } }, meanBitsError
   };
 };
 

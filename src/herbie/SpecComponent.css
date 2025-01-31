@@ -98,7 +98,7 @@
   font: bold 1.5em "Ruda", sans-serif;
 }
 
-.separator-math {
+.separator, .separator-math {
   font-family: "Ruda", sans-serif;
 }
 

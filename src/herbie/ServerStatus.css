@@ -19,3 +19,8 @@
     font-size: 12px;
     align-items: center;
 }
+
+.status {
+    display: flex;
+    align-items: center;
+}

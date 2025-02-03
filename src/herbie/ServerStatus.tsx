@@ -99,28 +99,17 @@ function ServerStatusComponent() {
   const statusColor = statusClass === 'pending' ? 'orange' : status ? connectedFill : 'none';
 
   return (
-    <div className="serverStatus">
-      <div onClick={() => setIsDropdownOpen(true)}>
+    <div>
+      <div className="serverStatus" onClick={() => setIsDropdownOpen(true)}>
         <span className={'status ' + statusClass}>
           {/* an SVG status indicator dot */}
           <svg width="10" height="10" viewBox="0 0 20 20">
-            <circle cx="10" cy="12" r="7" fill={statusClass === 'pending' ? 'orange' : status ? connectedFill : 'none'} stroke={statusColor}/>
+            <circle cx="10" cy="10" r="7" fill={statusClass === 'pending' ? 'orange' : status ? connectedFill : 'none'} stroke={statusColor}/>
           </svg>
         </span>
         &nbsp;
       
         <span style={{color: statusColor}}>{statusText}</span>
-
-        {/* an SVG dropdown chevron */}
-        {/* <svg className="dropdown-chevron" width="10" height="10" viewBox="0 0 20 20">
-          <path d="M 0,5 10,15 20,5" fill="none" stroke="black" />
-        </svg> */}
-
-        {/* <div className="arrow-container">
-          <div className="dropdown-arrow">
-            {isDropdownOpen ? '▲' : '▼'}
-          </div>
-        </div> */}
       </div>
       
       <Modal 

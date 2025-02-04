@@ -629,7 +629,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable2 = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
+	let disposable = vscode.commands.registerCommand(`${extensionName}.openTab`, async () => {
 
 		await runHerbieServer()
 		// await runFPBenchServer()
@@ -698,14 +698,14 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand(`${extensionName}.deleteBinaries`, async () => {
-		const deleteConfirmed = await vscode.window.showWarningMessage(
-			"Are you sure you want to delete all binaries? This action cannot be undone.",
+	let disposable2 = vscode.commands.registerCommand(`${extensionName}.updateBinaries`, async () => {
+		const updateConfirmed = await vscode.window.showWarningMessage(
+			"Are you sure you want to update all binaries?",
 			{ modal: true },
-			"Delete"
+			"Update"
 		);
 	
-		if (deleteConfirmed !== "Delete") {
+		if (updateConfirmed !== "Update") {
 			return;
 		}
 	
@@ -716,10 +716,12 @@ export function activate(context: vscode.ExtensionContext) {
 			if (fs.existsSync(fptaylorPath)) {
 				fs.rmSync(fptaylorPath, { recursive: true, force: true });
 			}
-			vscode.window.showInformationMessage("Binaries deleted successfully.");
+			downloadFPBench();
+			downloadFPTaylor();
+			vscode.window.showInformationMessage("Binaries updated successfully.");
 		} catch (error) {
-			console.error("Error deleting binaries:", error);
-			vscode.window.showErrorMessage("Failed to delete binaries. Check console for details.");
+			console.error("Error updating binaries:", error);
+			vscode.window.showErrorMessage("Failed to update binaries. Check console for details.");
 		}
 	});
 	

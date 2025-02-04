@@ -20,8 +20,8 @@
         "title": "Odyssey: Herbie"
       },
       {
-        "command": "odyssey-fp.deleteBinaries",
-        "title": "Delete Binaries"
+        "command": "odyssey-fp.updateBinaries",
+        "title": "Odyssey: Update Binaries"
       }
     ]
   },

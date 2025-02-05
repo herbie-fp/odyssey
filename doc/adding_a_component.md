@@ -71,7 +71,7 @@ It is possible for the same component to be reused in multiple locations, and th
 
 ## Adding a component to the ExpressionTable
 
-If your component has the ExpressionTable as a parent component, navigate to `ExpressionTable.tsx` and find the HTML element `<div className="expressions-actual">` under the returned HTML element. Under this component, you should see something like the following (as of October 2024):
+If your component has the ExpressionTable as a parent component, navigate to `ExpressionTable.tsx` and find the HTML element `<div className="expressions">` under the returned HTML element. Under this component, you should see something like the following (as of October 2024):
 
 ```
 const components = [

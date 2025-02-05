@@ -222,7 +222,6 @@ function ErrorPlot() {
 
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
-
   if (compareExpressions.length === 0) {
     return <div className="empty-error-plot"></div>
   }
@@ -242,6 +241,22 @@ function ErrorPlot() {
         errors,
         meanBitsError
       } = analysisData(e) as HerbieTypes.ErrorAnalysisData // we already checked that analysisData(e) exists for all compareExpressions
+      
+      // TODO: do bucketting here instead before it gets split
+      const average = (points: OrdinalErrorPoint[]) => ({
+        y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
+        x: points.reduce((acc, e) => e.x + acc, 0) / points.length
+      })
+      
+      // for each set of 10 points
+      for (let i = 0; i < width; i += 10) {
+        const ordSlice = ordinalSample.slice(i, i + 10);
+        const errSlice = errors.slice(i, i + 10);
+        // average
+      }
+        // avg over set per variable
+        // put that into resulting error thing
+      
       return vars.map((v, i) => {
         return ordinalSample.reduce((acc, p, j) => {
           acc.push({
@@ -254,6 +269,8 @@ function ErrorPlot() {
       })
     })
 
+  // We need to get some variables for setting up the graph from one of the expressions,
+  // so we define a default.
   let defaultData = analysisData(selectedExpr) as HerbieTypes.ErrorAnalysisData
 
   if (!defaultData) {
@@ -274,6 +291,8 @@ function ErrorPlot() {
     errors,
     meanBitsError
   } = defaultData
+
+
 
   const styles = compareExpressions.map(e => {
     const style = (expressionStyles.find(e1 => e1.expressionId === e.id) as HerbieTypes.ExpressionStyle).style
@@ -348,7 +367,10 @@ function ErrorPlot() {
 
   return <div className="error-plot">
     {/* Plot each var */}
-    {vars.map((v, i) => [v, i] as [string, number]).sort((a, b) => a[0].localeCompare(b[0])).map(([v, i]) => {
+    {vars.map((v, i) => [v, i] as [string, number])
+        // display vars alphabetically
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([v, i]) => {
       const range = inputRanges?.find(r => r.variable === v);
       // TODO: handle case when range cannot be found?
 

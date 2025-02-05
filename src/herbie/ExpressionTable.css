@@ -1,25 +1,13 @@
-/* ::-webkit-scrollbar-thumb {
-  border-radius: 4px;
-  background-color: rgba(0, 0, 0, .5);
-  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
-} */
-
-.expressions {
-  display: flex;
-  flex-direction: column;
-  /* put 10px space between items */
-  gap: 2px;
-}
-
-.expressions-actual::-webkit-scrollbar {
+.expressions::-webkit-scrollbar {
   width: 11px !important;
-  /* display: block; */
   scrollbar-color: var(--vscode-scrollbarSlider-background) var(--vscode-editor-background);
 }
 
-.expressions-actual {
+.expressions {
   scrollbar-width: 11px !important;
   overscroll-behavior: contain; /* Don't scroll beyond set expressions table area */
+  overflow-y: scroll;
+  padding-top: 3px;
 }
 
 .tex-toggle {
@@ -35,53 +23,6 @@
     height: 0;
 }
 
-/* .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-
-.toggle-checkbox:checked+.slider {
-    background-color: #2196F3;
-}
-
-.toggle-checkbox:focus+.slider {
-    box-shadow: 0 0 1px #2196F3;
-}
-
-.toggle-checkbox:checked+.slider:before {
-    transform: translateX(26px);
-}
-
-.slider.round {
-    border-radius: 34px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-} */
-
-/* flex container
-  items float right
-*/
 .expression {
   display: flex;
   flex-direction: row;
@@ -136,16 +77,9 @@
 
 .expand {
   /* fix the button text width so it doesn't change when the text changes */
-  /* width: 25px;
-  
-  max-height: 1em;
-  text-align: top; */
-  /* font-size: large; */
   font-size: 20px;
   font-weight: bold;
   text-align: center;
-  /* color: black; */
-  /* margin: auto; */
 }
 
 .copy {
@@ -166,8 +100,6 @@
   padding: 5px;
   padding-left: 9px;
   padding-top: 0px;
-  /* large thick square dots on left border */
-  /* border-left: 4px dotted #888; */
   margin-bottom: 5px;
   font-size: 10px;
 }
@@ -175,17 +107,10 @@
 .dropdown select {
   font-size: 10px;
 }
+
 .expression-table {
   display: flex;
   flex-direction: column;
-}
-.expressions {
-  box-shadow: 0px 2px 2px 0px #ccc;
-  clip-path: inset(0px 0px -4px 0px);
-}
-.expressions-actual {
-  overflow-y: scroll;
-  padding-top: 3px;
 }
 
 .expression-container:has(.dropdown) {
@@ -225,65 +150,6 @@
   margin-right: 86px;
 }
 
-.add-expression-top {
-  display: flex;
-  gap: 5px;
-}
-.add-expression-dropdown {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-}
-
-.expression-table textarea {
-  height: 1em;
-  width: 50%;
-  transition: all .3s ease;
-}
-
-.expression-table textarea:focus-visible, textarea.has-text {
-  height: 5em;
-  transition: all .3s ease;
-}
-
-.add-expression-dropdown {
-  transition: all .3s ease;
-  opacity: 0;
-  max-height: 0;
-}
-
-.add-expression:has(textarea.has-text) .add-expression-dropdown {
-  min-height: 2em;
-  transition: all .3s ease-in-out;
-  max-height: 50px;
-  opacity: 1;
-  height: 50px;
-  overflow: auto;
-}
-/* } {
-  background-color: orange;
-  
-} */
-
-/* .add-expression-button {
-} */
-
-.add-expression button {
-  font-size: 10px;
-  padding: 7px 12px;
-  font-weight: bold;
-  border-radius: 6px;
-  background-color: #a6e5eb;
-}
-
-.add-expression button:hover {
-  background-color: #7fd3d9;
-}
-
-.add-expression button:disabled {
-  background-color: #ccc;
-}
-
 .expand-header {
   margin-left: 5px;
 }
@@ -300,10 +166,6 @@
   cursor: pointer;
 }
 
-.add-expression .checkbox {
-  margin-left: 23px;
-}
-
 .expression-container:hover {
   outline: 2px solid var(--highlight);
   transition: none;
@@ -313,10 +175,6 @@
   outline: 2px solid transparent;
   transition: outline .3s ease-out;
 }
-
-/* .expression-container.selected:not(:hover) {
-  outline: 2px solid var(--highlight)
-} */
 
 .copy {
   opacity: 0;
@@ -337,22 +195,6 @@
   transition: opacity .1s ease-in
 }
 
-/* .expression-container {
-  &:hover {
-    .copy {
-      opacity: 1;
-    }
-    & button {
-      opacity: 1;
-      transition: opacity .1s ease-in
-    }
-  }
-  & button {
-    opacity: 0;
-    transition: opacity .1s ease-in
-  }
-} */
-
 .delete button {
   font-size: 7px;
 }
@@ -365,7 +207,6 @@
 .expression-name-container {
   display: flex;
   flex-direction: row;
-  /* margin-right: auto; */
   flex: 1;
 }
 
@@ -375,10 +216,6 @@
 
 .dropdown .visualization {
   margin-left: 5px;
-}
-
-.add-expression-tex {
-  width: 60%;
 }
 
 .expression-tex {
@@ -396,4 +233,76 @@
   margin: 0;
   vertical-align: bottom;
   margin-left: 1px;
+}
+
+/* Rulesets related to "Add an expression" area */
+.add-expression {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  margin-top: auto;
+  background-color: #1f1c18;
+  padding: 10px 20px 15px;
+
+  box-shadow: 0px 2px 2px 0px #ccc;
+  clip-path: inset(0px 0px -4px 0px);
+}
+
+.add-expression-dropdown {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  transition: all .3s ease;
+  opacity: 0;
+  max-height: 0;
+}
+
+.add-expression-tex {
+  width: 60%;
+  padding-left: '5px';
+}
+
+.add-expression-top {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.add-expression textarea {
+  font-family: 'Ruda';
+  font-weight: 600;
+  height: 1em;
+  flex-grow: 1;
+  border-radius: 6px;
+  transition: all .3s ease;
+}
+
+.add-expression textarea:focus-visible, textarea.has-text {
+  height: 5em;
+  transition: all .3s ease;
+}
+
+.add-expression:has(textarea.has-text) .add-expression-dropdown {
+  height: 5em;
+  max-height: 5em;
+  overflow: auto;
+  transition: all .3s ease-in-out;
+  opacity: 1;
+}
+
+.add-expression button {
+  font-size: smaller;
+  font-weight: bold;
+  padding: 9px 20px;
+  border-radius: 6px;
+  background-color: #a6e5eb;
+}
+
+.add-expression button:hover {
+  background-color: #7fd3d9;
+}
+
+.add-expression button:disabled {
+  background-color: #ccc;
 }

@@ -242,21 +242,6 @@ function ErrorPlot() {
         meanBitsError
       } = analysisData(e) as HerbieTypes.ErrorAnalysisData // we already checked that analysisData(e) exists for all compareExpressions
       
-      // TODO: do bucketting here instead before it gets split
-      const average = (points: OrdinalErrorPoint[]) => ({
-        y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
-        x: points.reduce((acc, e) => e.x + acc, 0) / points.length
-      })
-      
-      // for each set of 10 points
-      for (let i = 0; i < width; i += 10) {
-        const ordSlice = ordinalSample.slice(i, i + 10);
-        const errSlice = errors.slice(i, i + 10);
-        // average
-      }
-        // avg over set per variable
-        // put that into resulting error thing
-      
       return vars.map((v, i) => {
         return ordinalSample.reduce((acc, p, j) => {
           acc.push({

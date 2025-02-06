@@ -1,0 +1,88 @@
+name: Build Herbie Binaries in Odyssey
+
+on:
+  workflow_dispatch  # Allows manual triggering of the workflow
+
+jobs:
+  build-herbie:
+    name: Build Herbie Binaries
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            os-name: linux
+            arch: x64
+          - os: macos-latest
+            os-name: macos
+            arch: x64
+          - os: windows-latest
+            os-name: windows
+            arch: x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Checkout Odyssey repository
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      # Clone Herbie repository inside Odyssey
+      - name: Clone Herbie repository
+        run: git clone https://github.com/herbie-fp/herbie.git
+
+      # Install Racket (Required for Herbie)
+      - name: Install Racket
+        uses: Bogdanp/setup-racket@v1.11
+        with:
+          version: 8.11
+          architecture: ${{ matrix.arch }}
+
+      # Install Rust Compiler (For egg-herbie)
+      - name: Install Rust compiler
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      # Build egg-herbie (Rust Backend for Herbie)
+      - name: Build egg-herbie
+        run: |
+          cd herbie/egg-herbie
+          cargo build --release
+
+      # Create Tarball for Distribution
+      - name: Create tarball
+        run: |
+          cd herbie
+          raco pkg create --format zip egg-herbie
+
+      # Rename Tarballs and Checksums
+      - name: Rename tarballs
+        run: |
+          cd herbie
+          mv egg-herbie.zip egg-herbie-${{ matrix.os-name }}.zip
+          mv egg-herbie.zip.CHECKSUM egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
+
+      # Upload Pre-built Tarball
+      - name: Upload pre-built egg-herbie
+        uses: actions/upload-artifact@v4
+        with:
+          path: herbie/egg-herbie-${{ matrix.os-name }}.zip
+          name: egg-herbie-${{ matrix.os-name }}.zip
+          if-no-files-found: error
+
+      # Upload Pre-built Checksum
+      - name: Upload pre-built egg-herbie checksum
+        uses: actions/upload-artifact@v4
+        with:
+          path: herbie/egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
+          name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
+          if-no-files-found: error
+
+      # Upload the Binary to Release
+      - name: Upload Herbie Binary to Odyssey Artifacts
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: herbie/target/release/herbie
+          asset_name: herbie-${{ matrix.os-name }}.tar.gz
+          tag: ${{ github.ref }}

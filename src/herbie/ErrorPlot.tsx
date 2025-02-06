@@ -21,6 +21,10 @@ import { brushX } from 'd3-brush';
 
 type varname = string
 
+// Useful comparator for sorting data points: accepts fn that defines what to sort on
+// (e.g. field of an object)
+const keyFn = <T,>(fn: (u: T) => number) => (a: T, b: T) => fn(a) - fn(b)
+
 interface OrdinalErrorPoint {
   x: ordinal,
   y: expressionError,
@@ -33,7 +37,7 @@ interface PlotArgs {
 
   /** For each function being plotted, for each `x` in the input, a `y` for the error. */
   data: OrdinalErrorPoint[][]
-
+  
   /** styles for each function */
   styles: { line: { stroke: string }, dot: { stroke: string } }[]
 
@@ -69,7 +73,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
   const zip = (arr1: any[], arr2: any[], arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [])
 
   /** Compress `arr` to length `outLen` by dividing into chunks and applying `chunkCompressor` to each chunk. */
-  function compress(arr : any[], outLen: number, chunkCompressor = (points :any[]) => points[0]) {
+  function compress(arr : any[], outLen: number, chunkCompressor = (points: any[]) => points[0]) {
     return arr.reduce((acc, pt, i) =>
       i % Math.floor(arr.length / outLen) !== 0 ? acc
       : (acc.push(chunkCompressor(arr.slice(i, i + Math.floor(arr.length / outLen)))), acc)
@@ -108,12 +112,18 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
       x: points.reduce((acc, e) => e.x + acc, 0) / points.length
     })
+
+    // Average data points and compress for error plot line
     const compressedSlidingWindow = compress(
-      slidingWindow(data, binSize), width, average)
-    
+      slidingWindow(data.sort(keyFn(p => p.x)), binSize), width, average)
     const percentageCompressedSlidingWindow = compressedSlidingWindow.map(({x,y}:{x:any,y:any})=>({x,y:(100-(y/64*100))}))
-    const percentageData = compress(data,width).map(({x,y,orig}:{x:any,y:any,orig:any})=>({x,y:(100-(y/64*100)),orig}))
-    return [
+
+    const percentageData = data.sort(keyFn(p => p.orig[0]))      // Consistently sort by same variable for bucketting (first one)
+      .filter((p, i) => i % (data.length / width) === 0)         // Make size (8000 / 800) buckets by taking bucket at that point
+      .sort(keyFn(p => p.x))                                     // Re-sort by current variable so points are plotted in order
+      .map(({x, y, orig}) => ({x, y: (100-(y/64*100)), orig}))   // format error
+    
+      return [
         Plot.line(percentageCompressedSlidingWindow, {
             x: "x",
             y: "y",
@@ -227,7 +237,6 @@ function ErrorPlot() {
   }
 
   /* We want to get the data for each expression and put it into an array. */
-  const keyFn = <T,>(fn: (u: T) => number) => (a: T, b: T) => fn(a) - fn(b)
   const exprData = compareExpressions
     // draw the data for the selected expression last
     .sort(keyFn(e => e.id === selectedExprId ? 1 : 0))
@@ -250,7 +259,7 @@ function ErrorPlot() {
             orig: p
           })
           return acc
-        }, [] as OrdinalErrorPoint[]).sort(keyFn(p => p.x))
+        }, [] as OrdinalErrorPoint[])
       })
     })
 
@@ -314,25 +323,6 @@ function ErrorPlot() {
 
   // Only want to show resample button if the range has changed
   const showResample = JSON.stringify(inputRanges) !== JSON.stringify(myInputRanges)
-
-  // Compare buckets of 2 points
-  const compareBuckets = (
-      selected: HerbieTypes.ordinalPoint, given: HerbieTypes.ordinalPoint, 
-      dataPoints: number[][], expId: number, varIdx: number
-    ) => {
-    if (selected === given) {
-      return true;
-    }
-
-    const expIdx = compareExpressions.map((e, _) => ([e, _] as [Expression, number])).filter(([e, _]) => e.id === expId)[0][1];
-    const pIdx = dataPoints[expIdx].indexOf(given[varIdx]);
-    const selectedIdx = dataPoints[expIdx].indexOf(selected[varIdx]);
-
-    // Make sure selected value exists in this expression before comparing
-    return selectedIdx !== -1 && 
-      // Compare idx of point to idx of head of bucket that would contain selected point
-      pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
-  }
 
   // Creates a new "d" attr for a <path> element based on given "d" bounded by bounds
   const calculatePath = (bounds: number[], d: string): string => {
@@ -399,6 +389,7 @@ function ErrorPlot() {
               // get the data for the current variable
               // data is stored as exprData -> varData -> Point[], so:
               data,
+              exprData,
               bits,
               styles,
               width: width,
@@ -446,10 +437,8 @@ function ErrorPlot() {
               .catch(error => console.error('Request failed:', error));
             }
 
-            // See if the current point is selected, if not check if it belongs to the same bucket
-            if (selectedPoint && 
-                (point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString())
-                  || compareBuckets(selectedPoint, point, dataPoints, id, i))) {
+            // See if the current point is selected
+            if (selectedPoint && (point.every((v, i) =>  v === selectedPoint?.[i]))) {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression
@@ -657,9 +646,8 @@ function ErrorPlot() {
             
             circles.forEach((c) => {
               const givenPoint = c.o.map((v: ordinal) => ordinals.ordinalToFloat(v))
-              const pos = Number(c.circle.getAttribute("cx"));
-              // For all "given" points in circles, determine if selected point is in given's bucket
-              if (selPoints.some(p => compareBuckets(p, givenPoint, dataPoints, c.id, i))) { 
+              // For all "given" circles, determine if it's one of the selected subset
+              if (selPoints.some(p => p.every((v, i) =>  v === givenPoint?.[i]))) { 
                 c.circle.setAttribute("class", "brushed");
                 // bit of a a hack to get circle on top of unbrushed circles:
                 c.parent?.removeChild(c.circle)

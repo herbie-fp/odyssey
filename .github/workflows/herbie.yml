@@ -1,7 +1,12 @@
 name: Build Herbie Binaries in Odyssey
 
 on:
-  workflow_dispatch  # Allows manual triggering of the workflow
+    push:
+        branches: 
+            - main
+            - '*'
+    
+    workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   build-herbie:

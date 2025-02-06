@@ -415,7 +415,7 @@ function ErrorPlot() {
               // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
               setSelectedSubset(undefined)
 
-              fetch('http://localhost:8003/log', {
+              fetch('https://herbie.uwplse.org/odyssey-log/log', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

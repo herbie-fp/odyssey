@@ -1,43 +1,43 @@
 // Also want to fix build -- maybe switch to vite, but most important is to move webview to subfolder
 import {useState, useEffect} from "react";
-import { SelectedExprIdContext, ExpressionsContext, AnalysesContext, SpecContext, CompareExprIdsContext } from './HerbieContext'
+import { Tooltip } from "react-tooltip";
+
 import * as HerbieContext from './HerbieContext'
+import * as HerbieTypes from './HerbieTypes'
+import { Expression, ordinal, expressionError } from './HerbieTypes'
 
 import * as fpcorejs from './lib/fpcore'
 import * as ordinals from './lib/ordinals'
 import * as herbiejs from './lib/herbiejs'
+import { nextId } from "./lib/utils";
 
-import { Expression, ordinal, expressionError } from './HerbieTypes'
-import * as HerbieTypes from './HerbieTypes'
-import * as contexts from './HerbieContext'
 import { InputRangeEditor1 } from "./InputRangesEditor";
 
 import './ErrorPlot.css'
-import { nextId } from "./lib/utils";
-import { Tooltip } from "react-tooltip";
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
-
-import { select } from 'd3-selection';  // Required for brushing
+import { select } from 'd3-selection';      // Required for brushing
 import { brushX } from 'd3-brush';
 
-// Brushing still in progress, disable currently
-const BRUSHING = false;
-
 type varname = string
+
+// Useful comparator for sorting data points: accepts fn that defines what to sort on
+// (e.g. field of an object)
+const keyFn = <T,>(fn: (u: T) => number) => (a: T, b: T) => fn(a) - fn(b)
 
 interface OrdinalErrorPoint {
   x: ordinal,
   y: expressionError,
   orig: ordinal[]  // the original point associated with this input
 }
+
 interface PlotArgs {
   /** A list of variable names for the original points. */
   varnames: varname[];
 
   /** For each function being plotted, for each `x` in the input, a `y` for the error. */
   data: OrdinalErrorPoint[][]
-
+  
   /** styles for each function */
   styles: { line: { stroke: string }, dot: { stroke: string } }[]
 
@@ -52,6 +52,7 @@ interface PlotArgs {
 
   [propName: string]: any  // could have other properties
 }
+
 /**
  * Plot the error of a function.
  * @param varnames A list of variable names for the original points.
@@ -72,7 +73,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
   const zip = (arr1: any[], arr2: any[], arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [])
 
   /** Compress `arr` to length `outLen` by dividing into chunks and applying `chunkCompressor` to each chunk. */
-  function compress(arr : any[], outLen: number, chunkCompressor = (points :any[]) => points[0]) {
+  function compress(arr : any[], outLen: number, chunkCompressor = (points: any[]) => points[0]) {
     return arr.reduce((acc, pt, i) =>
       i % Math.floor(arr.length / outLen) !== 0 ? acc
       : (acc.push(chunkCompressor(arr.slice(i, i + Math.floor(arr.length / outLen)))), acc)
@@ -111,15 +112,18 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       y: points.reduce((acc, e) => e.y + acc, 0) / points.length,
       x: points.reduce((acc, e) => e.x + acc, 0) / points.length
     })
-    // console.log(data)
-    // console.log(slidingWindow(data, binSize))
+
+    // Average data points and compress for error plot line
     const compressedSlidingWindow = compress(
-      slidingWindow(data, binSize), width, average)
-    //console.log(compressedSlidingWindow)
-    
+      slidingWindow(data.sort(keyFn(p => p.x)), binSize), width, average)
     const percentageCompressedSlidingWindow = compressedSlidingWindow.map(({x,y}:{x:any,y:any})=>({x,y:(100-(y/64*100))}))
-    const percentageData = compress(data,width).map(({x,y,orig}:{x:any,y:any,orig:any})=>({x,y:(100-(y/64*100)),orig}))
-    return [
+
+    const percentageData = data.sort(keyFn(p => p.orig[0]))      // Consistently sort by same variable for bucketting (first one)
+      .filter((p, i) => i % (data.length / width) === 0)         // Make size (8000 / 800) buckets by taking bucket at that point
+      .sort(keyFn(p => p.x))                                     // Re-sort by current variable so points are plotted in order
+      .map(({x, y, orig}) => ({x, y: (100-(y/64*100)), orig}))   // format error
+    
+      return [
         Plot.line(percentageCompressedSlidingWindow, {
             x: "x",
             y: "y",
@@ -129,13 +133,12 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       Plot.dot(percentageData, {
         x: "x", y: "y", r: 3,
           // HACK pass stuff out in the title attribute, we will update titles afterward
-        title: (d: {orig: any} ) => JSON.stringify({ o: d.orig, id }), //.map((v, i) => `${varnames[i]}: ${displayNumber(ordinalsjs.ordinalToFloat(v))}`).join('\n'),
-          // @ts-ignore
-            //"data-id": d => id,//() => window.api.select('Expressions', id),
+        title: (d: {orig: any} ) => JSON.stringify({ o: d.orig, id }),
             ...dot
         })
     ]
   }
+
   const out = Plot.plot({
     width: width,
     height: height,
@@ -143,7 +146,7 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
       tickFormat: (d: number) => tickStrings[tickOrdinals.indexOf(d)],
       line: true, grid: true,
         ticks: tickOrdinals, label: `value of ${varnames[varidx]}`,  // LATER axis label
-      labelAnchor: 'left', labelOffset: 40, /* tickRotate: 70, */
+      labelAnchor: 'left', labelOffset: 40,
         domain
     },
     y: {
@@ -152,12 +155,6 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
         ticks: new Array(100 / 5 + 1).fill(0).map((_, i) => i * 5),
         tickFormat: (d: number) => d % 50 !== 0 ? '' : d
     },
-    // y: {
-    //     line: true,
-    //     label: "% Accuracy", domain: [0, 100],
-    //     ticks: new Array(100 / 25 + 1).fill(0).map((_, i) => i * 25),
-    //     tickFormat: '%' //(d: number) => d % 25 !== 0 ? '' : `%`
-    // },
     marks: [
       ...[ // Vertical bars ("rules")
         // The splitpoints
@@ -173,21 +170,21 @@ async function plotError({ varnames, varidx, ticks, splitpoints, data, bits, sty
   return out as SVGElement
 }
 
-// const zip =  <T1,T2,T3>(arr1: T1[], arr2: T2[], arr3=[] as T3[])  : [T1, T2, T3][] => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [] as [T1, T2, T3][])
-
 // need to get varnames from expression, varidx
 // varnames, varidx, ticks, splitpoints, data, bits, styles, width=800, height=400
 function ErrorPlot() {
-  const [spec, ] = contexts.useGlobal(SpecContext)
-  const [selectedExprId, setSelectedExprId] = contexts.useGlobal(SelectedExprIdContext)
-  const [analyses, ] = contexts.useGlobal(AnalysesContext)
-  const [allExpressions, ] = contexts.useGlobal(ExpressionsContext)
-  const [compareExprIds, ] = contexts.useGlobal(CompareExprIdsContext)
-  const [expressionStyles, ] = contexts.useGlobal(HerbieContext.ExpressionStylesContext)
-  const [selectedSampleId, ] = contexts.useGlobal(HerbieContext.SelectedSampleIdContext)
-  const [selectedPoint, setSelectedPoint] = contexts.useGlobal(HerbieContext.SelectedPointContext)
-  const [samples, ] = contexts.useGlobal(HerbieContext.SamplesContext)
-  const [inputRangesTable, setInputRangesTable] = contexts.useGlobal(HerbieContext.InputRangesTableContext)
+  const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
+  const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
+  const [allExpressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [compareExprIds, ] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
+  const [expressionStyles, ] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
+  const [selectedSampleId, ] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
+  const [selectedPoint, setSelectedPoint] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext)
+  const [selectedSubset, setSelectedSubset] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetRangeContext)
+  const [_, setSelectedAnalysis] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetAnalysesContext)
+  const [samples, ] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [jobCount, ] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   const sample = samples.find(s => s.id === selectedSampleId)
   const width = 800;
@@ -205,14 +202,12 @@ function ErrorPlot() {
   }
 
   const [myInputRanges, setMyInputRanges] = useState(inputRanges)
-  const [archivedExpressions, ] = contexts.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [archivedExpressions, ] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
 
   // Update myInputRanges when the sample changes
   useEffect(() => {setMyInputRanges(inputRanges)}, [sample])
 
   const expressions = allExpressions.filter(e => !archivedExpressions.includes(e.id))
-
-  // console.log('selectedExprId', selectedExprId)
   
   // get the expression
   const selectedExpr = expressions.find(e => e.id === selectedExprId)
@@ -234,19 +229,14 @@ function ErrorPlot() {
   if (!sample) {
     return <div className="empty-error-plot">Could not find sample with id {selectedSampleId}</div>
   }
-  // if (!inputRanges) {
-  //   return <div>Could not find input ranges with id {sample.inputRangesId}</div>
-  // }
 
   const analysisData = (expression: Expression) => analyses.find((analysis) => analysis.expressionId === expression.id && analysis.sampleId === selectedSampleId)?.data
   const compareExpressions = expressions.filter(e => compareExprIds.includes(e.id) && analysisData(e))
-
   if (compareExpressions.length === 0) {
     return <div className="empty-error-plot"></div>
   }
 
   /* We want to get the data for each expression and put it into an array. */
-  const keyFn = <T,>(fn: (u: T) => number) => (a: T, b: T) => fn(a) - fn(b)
   const exprData = compareExpressions
     // draw the data for the selected expression last
     .sort(keyFn(e => e.id === selectedExprId ? 1 : 0))
@@ -260,6 +250,7 @@ function ErrorPlot() {
         errors,
         meanBitsError
       } = analysisData(e) as HerbieTypes.ErrorAnalysisData // we already checked that analysisData(e) exists for all compareExpressions
+      
       return vars.map((v, i) => {
         return ordinalSample.reduce((acc, p, j) => {
           acc.push({
@@ -268,10 +259,12 @@ function ErrorPlot() {
             orig: p
           })
           return acc
-        }, [] as OrdinalErrorPoint[]).sort(keyFn(p => p.x))
+        }, [] as OrdinalErrorPoint[])
       })
     })
 
+  // We need to get some variables for setting up the graph from one of the expressions,
+  // so we define a default.
   let defaultData = analysisData(selectedExpr) as HerbieTypes.ErrorAnalysisData
 
   if (!defaultData) {
@@ -292,6 +285,8 @@ function ErrorPlot() {
     errors,
     meanBitsError
   } = defaultData
+
+
 
   const styles = compareExpressions.map(e => {
     const style = (expressionStyles.find(e1 => e1.expressionId === e.id) as HerbieTypes.ExpressionStyle).style
@@ -315,10 +310,6 @@ function ErrorPlot() {
     throw new Error(`Missing a style for one of the expressions`)
   }
 
-  // create state for the input ranges
-  // just use a list that looks like input ranges
-
-
   // resample the data using the updated input ranges on click
   function resample() {
     // Add a new inputRangesTable entry
@@ -333,19 +324,34 @@ function ErrorPlot() {
   // Only want to show resample button if the range has changed
   const showResample = JSON.stringify(inputRanges) !== JSON.stringify(myInputRanges)
 
+  // Creates a new "d" attr for a <path> element based on given "d" bounded by bounds
+  const calculatePath = (bounds: number[], d: string): string => {
+    // Create new path bounded to selection: "M"ove to the beginning of line in region
+    let newD = "M";
+    // Trim off initial "M" then divide path of original line into each point component
+    const linePoints = d.slice(1).split("L");
+    for (const lp of linePoints) {
+      const x = Number(lp.split(",")[0]);
+      // If this part of original path is within bounds, add to new path
+      if (x >= bounds[0] && x <= bounds[1]) {
+        newD += (lp + "L");
+      }
+    }
+    return newD.slice(0, newD.length - 1); // slice off last fencepost L
+  }
+
   return <div className="error-plot">
-    {/* <ResampleComponent /> */}
-    {/* Plot all vars */}
-    
-    {vars.map((v, i) => [v, i] as [string, number]).sort((a, b) => a[0].localeCompare(b[0])).map(([v, i]) => {
-      const range = inputRanges?.find(r => r.variable === v)
-      // if (!range) {
-      //   return <div>Could not find range for variable {v}, which should be in {JSON.stringify(inputRanges)}</div>
-      // }
+    {/* Plot each var */}
+    {vars.map((v, i) => [v, i] as [string, number])
+        // display vars alphabetically
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([v, i]) => {
+      const range = inputRanges?.find(r => r.variable === v);
+      // TODO: handle case when range cannot be found?
 
       const data = exprData.map(varData => varData[i]);
       const dataPoints: number[][] = [];
-      if (selectedPoint) {
+      if (selectedPoint || selectedSubset) {
         // Picking out x-axis data (variable values) for each expression
         data.forEach(e => {
           dataPoints.push(e.map((d: OrdinalErrorPoint) => ordinals.ordinalToFloat(d.x)));
@@ -377,53 +383,62 @@ function ErrorPlot() {
           svg.innerHTML = ''
           const plot = await plotError({
             varnames,
-            varidx: i,
-            ticks: ticksByVarIdx[i],
-            splitpoints: splitpointsByVarIdx[i],
-            // get the data for the current variable
-            // data is stored as exprData -> varData -> Point[], so:
-            data,
-            bits,
-            styles,
-            width: width,
-            height: 300
-          });
+              varidx: i,
+              ticks: ticksByVarIdx[i],
+              splitpoints: splitpointsByVarIdx[i],
+              // get the data for the current variable
+              // data is stored as exprData -> varData -> Point[], so:
+              data,
+              exprData,
+              bits,
+              styles,
+              width: width,
+              height: 300
+            });
 
-          // Prepping variables to layer selected point label on top of graph
-          let labelContainer, labelPoint, labelPointBorder: undefined | SVGElement = undefined;
+            // Prepping variables to layer selected point label on top of graph
+            let labelContainer, labelPoint, labelPointBorder: undefined | SVGElement = undefined;
 
-          plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
-            const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
+            plot.querySelectorAll('[aria-label="dot"] circle title').forEach((t: any) => {
+              const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent)
 
-            // t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n')
-
-            const c = t.parentNode
-            const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
-            t.parentNode.onclick = async () => {
+              const c = t.parentNode
+              const point = o.map((v: ordinal) => ordinals.ordinalToFloat(v))
+            c.onclick = async () => {
               if (jobCount > 0) { // there are pending jobs
                 return;
               }
+
               setSelectedPoint(point)
               setSelectedExprId(id)
+              // remove brushing, 
+              // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
+              setSelectedSubset(undefined)
+
+              fetch('http://localhost:8003/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sessionId: sessionStorage.getItem('sessionId'),
+                  SelectedPoint: point,
+                  SelectedExpression: expressions.find(e => e.id === id)?.text,
+                  Description: `Selected Point: ${point} on Expression: ${expressions.find(e => e.id === id)?.text}in the Error Plot Graph`,
+                  timestamp: new Date().toLocaleString(),
+                }),
+              })
+              .then(response => {
+                if (response.ok) {
+                  console.log('Server is running and log saved');
+                }
+                else {
+                  console.error('Server responded with an error:', response.status);
+                }
+              })
+              .catch(error => console.error('Request failed:', error));
             }
 
-            // Compare the selectedPoint's bucket to that of the given point
-            const compareBuckets = () => {
-              if (selectedPoint) {
-                const expIdx = compareExpressions.map((e, i) => ([e,i] as [Expression, number])).filter(([e,i]) => e.id === id)[0][1];
-
-                const pIdx = dataPoints[expIdx].indexOf(point[i]);
-                const selectedIdx = dataPoints[expIdx].indexOf(selectedPoint[i]);
-
-                // Make sure selected value exists in this expression before comparing
-                return selectedIdx !== -1 && 
-                  // Compare idx of point to idx of head of bucket that would contain selected point
-                  pIdx === selectedIdx - (selectedIdx % Math.floor(dataPoints[expIdx].length / width));
-              }
-            }
-
-            // See if the current point is selected, if not check if it belongs to the same bucket
-            if (selectedPoint && (point.every((v, i) =>  v.toString() === selectedPoint?.[i].toString()) || compareBuckets())) {
+            // See if the current point is selected
+            if (selectedPoint && (point.every((v, i) =>  v === selectedPoint?.[i]))) {
               // Increase size of selected point on all expressions,
               c.setAttribute('r', '15px');
               if (selectedExprId === id) { // only make opaque that of selected expression
@@ -450,7 +465,7 @@ function ErrorPlot() {
               // Handle overlap around edge of plot
               const xAdjusted = (x < 66) ? 66 : (x > 774) ? 774 : x;
 
-              // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach, will consider alternatives
+              // Adding Nodes to svg is so bulky! hence this kind of disturbing (&buggy?) approach
               labelContainer.innerHTML = `
                 <rect class="selected-label" x=${xAdjusted - 70 + ""} y=${-27 + ""} height="22px"></rect>
                 <text class="full-num-anchor" x=${xAdjusted - 66 + ""} y=${-10 + ""}>${v}: ${herbiejs.displayNumber(selectedPoint[i])}</text>
@@ -487,7 +502,7 @@ function ErrorPlot() {
           // Map from expression id --> data about line for expression (only includes currently selected lines)
           const highlightMap: Map<number, {line: Element, stroke: string, d: string, newPath: Element, pathG: Node}> = new Map();
           plot.querySelectorAll('[aria-label="line"] ').forEach((line) => {
-            const stroke = line.getAttribute("stroke") ?? "#a6a6a6";
+            const stroke = line.getAttribute("stroke") ?? "#d2d2d2";
             // Little hack for getting line's expression's id
             const text = line.querySelector("title")?.textContent;
             const expId = text && text !== null ? JSON.parse(text).id : 0;
@@ -498,7 +513,6 @@ function ErrorPlot() {
             g.setAttribute("stroke-width", expId === selectedExprId ? "4px" : "2px");
             g.setAttribute("class", "highlight-line");
             const newPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            newPath.setAttribute("d", "");
             g.appendChild(newPath);
 
             highlightMap.set(expId, 
@@ -507,88 +521,90 @@ function ErrorPlot() {
           
 
           // Grab all the plot circles to color them differently
-          const circles: {circle: Element, o: ordinal[], id: number}[] = [];
+          const circles: {circle: Element, parent: ParentNode | null, o: ordinal[], id: number}[] = [];
           plot.querySelectorAll('[aria-label="dot"] circle').forEach(circle => {
             const t: any = circle.querySelector("title"); // `any` feels like a HACK, but very resistant to work otherwise
             const { o, id }: {o :  ordinal[], id: number} = JSON.parse(t.textContent);
-            circles.push({circle, o, id})
+            const parent = circle.parentNode;
+            circles.push({circle, parent, o, id})
 
             // Done using circle ordinal & id info, reset textContent so onHover of points gives useful info for user
             t.textContent = o.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n');
           });
+          let brushedPoints: ordinal[][] = [];
 
-          // Only allow brushing if developing it
-          if (BRUSHING) {
-            // Layering brushing on top of plot
-            const brush = brushX()
+          // Layering brushing on top of plot
+          const brush = brushX()
             // Bounds brushing is enabled in, rectangle in svg created by x+y axes
             .extent([[39, 17], [782, 269]]) 
-            .on('brush end', (event: any) => { // TODO: decide if 'end' or 'brush end' should be used for highlighting
-              // TODO: Selected subset and selected point cannot exist simultaneously, remove selected point
-
+            .on('brush end', (event: any) => {
               const selection = event.selection;
               if (selection) {
-                // x bounds of brushed selection
-                const [x1, x2] = selection;
+                const [x1, x2] = selection; // x bounds
                 
                 // To store ordinal values of all points within brushed region
-                const brushedPoints: ordinal[][] = [];
+                brushedPoints = [];
                 // For each circle, highlight if within brushed area
-                circles.forEach(({circle, o, id}) => {
-                  // Get the position of the circle
-                  const xPos = Number(circle.getAttribute("cx"));
+                circles.forEach((c) => {
+                  const xPos = Number(c.circle.getAttribute("cx"));
 
-                  // grey out points if point is outside of brushed bounds
-                  // this will remove the styling from selected point that makes it appear selected
-                  if (!(xPos >= x1 && xPos <= x2)) {
-                    circle.setAttribute("class", "unbrushed"); // grey out
+                  // grey out points outside of brushed bounds, remove styling from selected points
+                  if (!(x1 <= xPos && xPos <= x2)) { 
+                    c.circle.setAttribute("class", "unbrushed"); // grey out
                   } else {
-                    circle.setAttribute("class", "brushed");
-                    brushedPoints.push(o);
+                    c.circle.setAttribute("class", "brushed");
+                    brushedPoints.push(c.o);
                   }
                 });
-                // TODO: Store selected points in global variable
                 
                 // For each line, highlight portion within brushed region
-                highlightMap.forEach(({line, stroke, d, newPath}) => {
-                  // grey out existing line
-                  line.setAttribute("stroke", "#a6a6a6");
+                highlightMap.forEach((hLine) => {
+                  hLine.line.setAttribute("class", "unbrushed-line"); // grey out
 
-                  // Create new path tracing brushed region: "M"ove to the beginning of line in region
-                  let newD = "M";
-                  // Trim off initial "M" then divide path of original line into each point component
-                  const linePoints = d.slice(1).split("L");
-                  for (const lp of linePoints) {
-                    const [x, _y] = lp.split(",");
-                    // If this part of original path is within brushed region, add to new path
-                    if (x >= x1 && x <= x2) {
-                      newD += (lp + "L");
-                    }
-                  }
-
-                  // Set path of highlight line to be rendered on top of greyed original lines
-                  newPath.setAttribute('d', newD.slice(0, newD.length - 1)) // slice off last fencepost L
+                  // Calculate highlight line path, render on top of greyed original lines
+                  hLine.newPath.setAttribute('d', calculatePath(selection, hLine.d));
+                  svg.appendChild(hLine.pathG);
                 })
               } 
+            })
+            .on('end', (event: any) => {
+              if (event.selection){
+                // store selected points subset in global variable, triggers re-render
+                setSelectedSubset({
+                  selection: event.selection,
+                  varIdx: i, 
+                  ordinalPoints: brushedPoints,
+                  points: brushedPoints.map(p => p.map((v: ordinal) => ordinals.ordinalToFloat(v)))
+                });
+
+                // Selected points & selected subset cannot exist simultaneously
+                setSelectedPoint(undefined);
+              } else { // empty selection, revert brush styling
+                circles.forEach((c) => { c.circle.removeAttribute("class"); });
+                highlightMap.forEach((highlightLine) => {
+                  highlightLine.line.removeAttribute("class");
+                  highlightLine.newPath.removeAttribute("d");
+                })
+              }
             });
 
-            select(svg).append('g')
-              .attr('class', 'brush')
-              .call(brush)
-              .on("dblclick", () => {
-                // TODO: replicate this so it works for single click
-                brush.clear(select(svg).select('g'));
-                // Reset points to original colors (no greyed out) 
-                circles.forEach(({circle, o, id}) => { circle.removeAttribute("class"); });
-                // TODO: Reset selected subset of points to empty
+          select(svg).append('g')
+            .attr('class', 'brush')
+            .attr('id', 'brush')
+            .call(brush)
+            .on("click dblclick", () => {
+              brush.clear(select(svg).select('g'));
+              // Returns lines & points to original colors
+              circles.forEach((c) => { c.circle.removeAttribute("class"); });
+              highlightMap.forEach((highlightLine) => {
+                highlightLine.line.removeAttribute("class");
+                highlightLine.newPath.removeAttribute("d");
+              })
 
-                // Remove highlights and reset old lines to original color
-                highlightMap.forEach(({line, stroke, d, newPath}) => {
-                  line.setAttribute("stroke", stroke);
-                  newPath.setAttribute("d", "")
-                })
-              });
-          }
+              // un-set global selected subset & analysis states, triggers re-render
+              setSelectedSubset(undefined);
+              setSelectedAnalysis(undefined);
+            });
 
           // Append all plot components to svg
           [...plot.children].map(c => svg.appendChild(c));
@@ -598,17 +614,54 @@ function ErrorPlot() {
             svg.appendChild(labelPointBorder);
             svg.appendChild(labelContainer);
             svg.appendChild(labelPoint);
-          } else if (BRUSHING) { // maybe brushing is happening, append highlight lines
-            highlightMap.forEach((highlightLine, lineExpIdx) => {
-              if (lineExpIdx !== selectedExprId) {
-                svg.appendChild(highlightLine.pathG);
+          } else if (selectedSubset) { // maybe brushing is happening
+            // This styling only appears for plot where brushing originally appeared (adj points)
+            if (selectedSubset.varIdx === i) {
+              // set shading rectangle
+              const selectionRect = svg.getElementById('brush').querySelector('.selection');
+              selectionRect?.removeAttribute("style"); // remove style="display: none;"
+              selectionRect?.setAttribute("x", `${selectedSubset.selection[0]}`);
+              selectionRect?.setAttribute("y", "17");
+              selectionRect?.setAttribute("width", `${selectedSubset.selection[1] - selectedSubset.selection[0]}`);
+              selectionRect?.setAttribute("height", "252");
+
+              // append highlight lines
+              highlightMap.forEach((highlightLine, lineExpIdx) => {
+                highlightLine.line.setAttribute("class", "unbrushed-line");
+
+                // Calculate highlight line path, render on top of greyed original lines
+                highlightLine.newPath.setAttribute('d', calculatePath(selectedSubset.selection, highlightLine.d));
+                if (lineExpIdx !== selectedExprId) {
+                  svg.appendChild(highlightLine.pathG);
+                }
+              })
+              // append line for selected expression last so it's on top:
+              const selectedHighlight = highlightMap.get(selectedExprId);
+              if (selectedHighlight) {
+                svg.appendChild(selectedHighlight.pathG);
+              }
+            } else {
+              // Just grey out lines
+              highlightMap.forEach((highlightLine, _) => {
+                highlightLine.line.setAttribute("class", "unbrushed-line");
+              });
+            }
+
+            // grey out unbrushed circles
+            const selPoints = selectedSubset.points;
+            
+            circles.forEach((c) => {
+              const givenPoint = c.o.map((v: ordinal) => ordinals.ordinalToFloat(v))
+              // For all "given" circles, determine if it's one of the selected subset
+              if (selPoints.some(p => p.every((v, i) =>  v === givenPoint?.[i]))) { 
+                c.circle.setAttribute("class", "brushed");
+                // bit of a a hack to get circle on top of unbrushed circles:
+                c.parent?.removeChild(c.circle)
+                c.parent?.appendChild(c.circle)
+              } else {
+                c.circle.setAttribute("class", "unbrushed"); // grey out
               }
             })
-            // append line for selected expression last so it's on top:
-            const selectedHighlight = highlightMap.get(selectedExprId);
-            if (selectedHighlight) {
-              svg.appendChild(selectedHighlight.pathG);
-            }
           }
         }} />
         {/* Tooltip for full selected value on selected point label*/}

@@ -3,6 +3,7 @@ import { LocalError } from './LocalError/LocalError';
 import { ErrorPlot } from './ErrorPlot';
 import { DerivationComponent } from './DerivationComponent';
 import * as Contexts from './HerbieContext'
+
 import './SelectableVisualization.css';
 
 // Define SelectableVisualization component

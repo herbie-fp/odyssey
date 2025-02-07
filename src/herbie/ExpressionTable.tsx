@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react';
+import { DebounceInput } from 'react-debounce-input';
+import { Tooltip } from 'react-tooltip'
+
 import { Derivation, Expression } from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
+
+import { addJobRecorder } from './HerbieUI';
 import { nextId } from './lib/utils'
-import { SelectableVisualization } from './SelectableVisualization';
-import { Tooltip } from 'react-tooltip'
 import * as herbiejsImport from './lib/herbiejs'
 import * as fpcore from './lib/fpcore'
+
+import { SelectableVisualization } from './SelectableVisualization';
 import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
 import ExpressionExport from './ExpressionExport';
+
 import KaTeX from 'katex';
-import { DebounceInput } from 'react-debounce-input';
 import { GPU_FPX } from './GPU_FPX';
 
-import { addJobRecorder } from './HerbieUI';
-
 import './ExpressionTable.css';
-import LinkToReports from './LinkToReports';
 
 // Make server call to get tex version of expression
 export const expressionToTex = async (expression: fpcore.mathjs, numVars: number, serverUrl: string) => {
@@ -41,9 +43,7 @@ function ExpressionTable() {
   const [showMath, setShowMath] = useState(false);
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
-  // const [alternativesJobresponse,]
-  // const AlternativesJobResponse
-  const [alternativesJobResponse, setAlternativesJobResponse] = HerbieContext.useGlobal(HerbieContext.AlternativesJobResponseContext)
+  const [, setAlternativesJobResponse] = HerbieContext.useGlobal(HerbieContext.AlternativesJobResponseContext)
   const [analyses, ] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [cost, ] = HerbieContext.useGlobal(HerbieContext.CostContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
@@ -52,6 +52,7 @@ function ExpressionTable() {
   const [spec,] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
   const [samples,] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
+  const [selectedSubsetAnalyses, ] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetAnalysesContext)
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
   const [addExpressionTex, setAddExpressionTex] = useState('');
@@ -193,6 +194,7 @@ function ExpressionTable() {
       body: JSON.stringify({
         sessionId: sessionStorage.getItem('sessionId'),
         expression: addExpression,
+        Description: "Added Expression by clicking Add button",
         timestamp: new Date().toLocaleString(),
       }),
     })
@@ -245,7 +247,26 @@ function ExpressionTable() {
       const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
-
+       
+      fetch('http://localhost:8003/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionStorage.getItem('sessionId'),
+          expression: fPCoreToMathJS,
+          Description: "Added Expression by clicking improve",
+          timestamp: new Date().toLocaleString(),
+        }),
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log('Server is running and log saved');
+        }
+        else {
+          console.error('Server responded with an error:', response.status);
+        }
+      })
+      .catch(error => console.error('Request failed:', error));
       // The following code assumes the HTMLHistory[] returend by Herbie
       // is mapped to the alternatives array 1:1
       const d = histories[i];
@@ -291,20 +312,28 @@ function ExpressionTable() {
         </div>
       </div>
 
-        <div className="expressions-actual">
-          {activeExpressions.map((id) => {
-            const expression = expressions.find((expression) => expression.id === id) as Expression;
-            const isChecked = compareExprIds.includes(expression.id);
-            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data;
-            const analysisResult =
-              !analysisData
-                ? undefined
-                : (analysisData.errors.reduce((acc: number, v: any) => {
+      <div className="expressions">
+        {activeExpressions.map((id) => {
+          const expression = expressions.find((expression) => expression.id === id) as Expression;
+          const isChecked = compareExprIds.includes(expression.id);
+
+          let analysisResult: string | undefined;
+            // use pre-caluclated result for a subset of points (brushing)
+          if (selectedSubsetAnalyses) {
+            const analysisData = selectedSubsetAnalyses.find(analysis => analysis.expressionId === expression.id);
+            analysisResult = analysisData?.subsetErrorResult;
+
+          } else { // otherwise, use full analysis data
+            const analysisData = analyses.find((analysis) => analysis.expressionId === expression.id)?.data; 
+            analysisResult =
+              !analysisData ? undefined // otherwise, use full analysis data
+              : (analysisData.errors.reduce((acc: number, v: any) => {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
+          }
 
-            // cost of the expression
-            const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
+          // cost of the expression
+          const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
 
             const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
             const components = [
@@ -320,92 +349,92 @@ function ExpressionTable() {
                 <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
                   style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
 
-                  {/* expand button [+] */}
-                  <div className="expand action">
-                    <div onClick={() => handleExpandClick(expression.id)}>
-                      {expandedExpressions.includes(expression.id) ?
-                        <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                        : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>}
-                    </div>
-                  </div>
-                  <input type="checkbox" checked={isChecked} onChange={event => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
-                    style={({ accentColor: color })}
-                  />
-                  <div className="expression-name-container" onClick={() => handleExpressionClick(expression.id)}>
-                  {showMath ?
-                    <div className="expression-tex" dangerouslySetInnerHTML={{
-                      __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
-                      }}
-                    />
-                    :
-                    <div className="expression-text" id={`` + expression.id}>
-                      {expression.text}
-                    </div>
-                    }
-                    <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
-                        <a className="copy-anchor">⧉</a>
-                      </div>
-                    </div>
-                  <div className="analysis" id={`` + expression.id}>
-                    {/* TODO: Not To hardcode number of bits*/}
-                    {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
-                  </div>
-                  <div className="speedup" id={`` + expression.id}>
-                    {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
-                  </div>
-                  <div className="herbie">
-                    <button disabled={jobCount > 0} onClick={() => handleImprove(expression)} className={"herbie-button"} id={`` + expression.id}>
-                      Improve
-                    </button>
-                  </div>
-                  <div className="delete">
-                    <button onClick={() =>{
-                      setArchivedExpressions([...archivedExpressions, expression.id]);
-                      const activeExp = activeExpressions.filter(id => id !== expression.id);
-                      if (activeExp.length > 0) {
-                        setSelectedExprId(activeExp[0]);
-                      }
-                      }}>
-                    ╳
-                    </button>
+                {/* expand button [+] */}
+                <div className="expand action">
+                  <div onClick={() => handleExpandClick(expression.id)}>
+                    {expandedExpressions.includes(expression.id) ?
+                      <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                      : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>}
                   </div>
                 </div>
-                {expandedExpressions.includes(expression.id) && (
-                  <div className="dropdown" onClick={() => handleExpressionClick(expression.id)}>
-
-                    <SelectableVisualization components={components} />
+                <input type="checkbox" checked={isChecked} onChange={event => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}
+                  style={({ accentColor: color })}
+                />
+                <div className="expression-name-container" onClick={() => handleExpressionClick(expression.id)}>
+                {showMath ?
+                  <div className="expression-tex" dangerouslySetInnerHTML={{
+                      __html:  KaTeX.renderToString(expression.tex, { throwOnError: false })
+                    }}
+                  />
+                  :
+                  <div className="expression-text" id={`` + expression.id}>
+                    {expression.text}
                   </div>
-                )}
+                }
+                  <div className="copy" onClick={(e) => { navigator.clipboard.writeText(expression.text); e.stopPropagation() }} data-tooltip-id="copy-tooltip" >
+                    <a className="copy-anchor">⧉</a>
+                  </div>
+                </div>
+                <div className="analysis" id={`` + expression.id}>
+                  {/* TODO: Not To hardcode number of bits*/}
+                  {analysisResult ? (100 - (parseFloat(analysisResult)/64)*100).toFixed(1) + "%" : "..."}
+                </div>
+                <div className="speedup" id={`` + expression.id}>
+                  {naiveCost && costResult ? (naiveCost / costResult).toFixed(1) + "x" : "..."}
+                </div>
+                <div className="herbie">
+                  <button disabled={jobCount > 0} onClick={() => handleImprove(expression)} className={"herbie-button"} id={`` + expression.id}>
+                    Improve
+                  </button>
+                </div>
+                <div className="delete">
+                  <button onClick={() =>{
+                    setArchivedExpressions([...archivedExpressions, expression.id]);
+                    const activeExp = activeExpressions.filter(id => id !== expression.id);
+                    if (activeExp.length > 0) {
+                      setSelectedExprId(activeExp[0]);
+                    }
+                    }}>
+                  ╳
+                  </button>
+                </div>
               </div>
-            );
-          })}
-      </div>
-      <div className="expressions" style={{marginTop: 'auto', backgroundColor: "#1f1c18", padding: "10px 15px"}}>
-        <div className="add-expression" style={{ display: "flex", flexDirection: 'column', gap: '5px' }}>
-          <div style={{color: "var(--background-color)", fontSize: "smaller"}}>
-            Add an expression
-          </div>
-          <div className="add-expression-dropdown">
-            <div className="add-expression-tex" style={{color: addExpressionErrors(addExpression).length > 0 ? "salmon" : "white", paddingLeft: '5px'}} dangerouslySetInnerHTML={{
-                __html: addExpressionTex
-              }} />
-          </div>
-          <div className="add-expression-top">
-            <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} onChange={(event) => handleAddExpressionChange(event.target.value)} className={addExpression.trim() ? 'has-text' : ""} placeholder="e.g. sqrt(x + 1) - sqrt(x)" style={{ fontFamily: 'Ruda', fontWeight: 600, flexGrow: 1} } />
-            <div className="add-expression-button" style={{alignSelf: "center", display: 'flex'} }>
-              <button
-                disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
-                onClick={handleAddExpression}
-              >
-                + Add
-              </button>
+              {expandedExpressions.includes(expression.id) && (
+                <div className="dropdown" onClick={() => handleExpressionClick(expression.id)}>
+
+                  <SelectableVisualization components={components} />
+                </div>
+              )}
             </div>
+          );
+        })}
+      </div>
+      <div className="add-expression">
+        <div style={{color: "var(--background-color)", fontSize: "smaller"}}>
+          Add an expression
+        </div>
+        <div className="add-expression-dropdown">
+          <div className="add-expression-tex" style={{color: addExpressionErrors(addExpression).length > 0 ? "salmon" : "white"}} 
+            dangerouslySetInnerHTML={{
+              __html: addExpressionTex
+            }} />
+        </div>
+        <div className="add-expression-top">
+          <DebounceInput debounceTimeout={300} element="textarea" value={addExpression} placeholder="e.g. sqrt(x + 1) - sqrt(x)"
+            onChange={(event) => handleAddExpressionChange(event.target.value)} className={addExpression.trim() ? 'has-text' : ""}/>
+          <div className="add-expression-button">
+            <button
+              disabled={addExpression.trim() === '' || addExpressionErrors(addExpression).length !== 0}
+              onClick={handleAddExpression}
+            >
+              + Add
+            </button>
           </div>
         </div>
       </div>
-        < Tooltip anchorSelect=".copy-anchor" place="top" >
-          Copy to clipboard
-        </Tooltip>
+      < Tooltip anchorSelect=".copy-anchor" place="top" >
+        Copy to clipboard
+      </Tooltip>
     </div>
   )
 }

@@ -114,7 +114,7 @@ const logCallback = async (req, res) => {
   const logData = req.body;
   const logEntry = JSON.stringify(logData) + '\n';
 
-  fs.appendFile('logs.txt', logEntry, (err) => {
+  fs.appendFile('/home/pavpan/odyssey/server/logs.txt', logEntry, (err) => {
     if (err) {
       console.error('Failed to write to log file', err);
       res.status(500).json({ error: 'Failed to log data' });

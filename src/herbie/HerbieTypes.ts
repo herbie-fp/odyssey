@@ -71,6 +71,17 @@ export class CostAnalysis {
   }
 }
 
+export class SelectedSubset {
+  constructor(public readonly selection: number[], public readonly varIdx: number, public readonly ordinalPoints: ordinal[][], public readonly points: number[][]) {
+    this.selection = selection;
+    this.varIdx = varIdx;
+    this.ordinalPoints = ordinalPoints;
+    this.points = points;
+  }
+}
+
+export type SubsetErrorAnalysis = {expressionId: number, subsetErrorResult: string};
+
 export class SpecRange {
   constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number) {
     this.variable = variable;

@@ -78,7 +78,6 @@ body {
   font-family: "IBM Plex Serif", serif;
   padding: 0px;
   margin: 0px;
-  overflow: hidden; /* Inner components manual set scroll, if needed */
 }
 
 
@@ -159,6 +158,7 @@ input[type="text"]:focus, select:focus {
   height: 100vh; 
   grid-template-rows: 40px 50px 1fr 3em;
   grid-template-columns: 4fr 6fr; /*min(70%, 600px);*/
+  overflow: hidden; /* Inner components manual set scroll, if needed */
 }
 
 .help-buttons {
@@ -235,7 +235,7 @@ input[type="text"]:focus, select:focus {
   box-shadow: 5px 0 10px rgba(0, 0, 0, 0.07);
   display: flex;
   flex-direction: column;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .grid-container > .visualization > select {

@@ -87,7 +87,11 @@ jobs:
           path: herbie/egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           if-no-files-found: error
-
+      - name: Check if Herbie is a script or binary
+        run: file /home/runner/.local/share/racket/8.11/bin/herbie
+      - name: Test Herbie Execution
+        run: /home/runner/.local/share/racket/8.11/bin/herbie --help
+        
       # Upload Herbie Binary to Odyssey Artifacts
       - name: Upload Herbie Binary to Odyssey
         uses: actions/upload-artifact@v4

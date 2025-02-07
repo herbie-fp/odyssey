@@ -87,15 +87,23 @@ jobs:
           path: herbie/egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           if-no-files-found: error
-      - name: Check if Herbie is a script or binary
-        run: file /home/runner/.local/share/racket/8.11/bin/herbie
-      - name: Test Herbie Execution
-        run: /home/runner/.local/share/racket/8.11/bin/herbie --help
-        
-      # Upload Herbie Binary to Odyssey Artifacts
-      - name: Upload Herbie Binary to Odyssey
+      - name: Package Herbie for Distribution
+        run: |
+            mkdir -p herbie-package/bin
+            cp /home/runner/.local/share/racket/8.11/bin/herbie herbie-package/bin/
+            tar -czvf herbie-${{ matrix.os-name }}.tar.gz -C herbie-package .
+
+      - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4
         with:
-          path: /home/runner/.local/share/racket/8.11/bin/herbie
-          name: herbie-binary-${{ matrix.os-name }}.tar.gz
-          if-no-files-found: error
+            path: herbie-${{ matrix.os-name }}.tar.gz
+            name: herbie-package-${{ matrix.os-name }}.tar.gz
+            if-no-files-found: error
+      # Upload Herbie Binary to Odyssey Artifacts
+      - name: Upload Herbie Package to Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: herbie-${{ matrix.os-name }}.tar.gz
+          asset_name: herbie-${{ matrix.os-name }}.tar.gz
+          tag: ${{ github.ref }}

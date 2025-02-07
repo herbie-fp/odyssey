@@ -4,6 +4,7 @@ import * as contexts from './HerbieContext';
 import './GPU_FPX.css';
 import './ExpressionExport';
 import { ExpressionExportResponse } from './lib/herbiejs';
+import { mathjs, mathjsToFPCore } from './lib/fpcore';
 
 const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   //Get expressions
@@ -41,7 +42,7 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const handleRunAnalysis = async () => {
         try {
         //   // First get current FPCore expression
-        //   const fpCoreExpr = current_expression;
+        //   const fpCoreExpr = mathjsToFPCore(current_expression as unknown as mathjs);
         //   console.log("Starting FPBench conversion for expression:", fpCoreExpr);
         //   // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
         //   const fpbenchResponse = await fetch('https://herbie.uwplse.org/fpbench/exec', {
@@ -58,7 +59,7 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
 
         // const fpbenchResult = await fpbenchResponse.json();
         // console.log("Raw FPBench result:", fpbenchResult);
-        // Extract just the expression from the function body
+        // //Extract just the expression from the function body
         // const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
         // const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
         // console.log("Extracted CUDA expression:", cudaExpr);

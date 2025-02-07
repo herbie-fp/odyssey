@@ -46,60 +46,51 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+          components: rustfmt, clippy
 
-      # Build egg-herbie (Rust Backend for Herbie)
-      - name: Build egg-herbie
-        run: cargo build --release --manifest-path=herbie/egg-herbie/Cargo.toml
+      # Cache Dependencies (Speeds up future builds)
+      - name: Cache Racket and Rust dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-herbie-cache
+          path: |
+            ~/.cache/racket
+            ~/.local/share/racket
+            ~/Library/Racket/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            herbie/egg-herbie/target/
+            ${{ env.APPDATA }}/Racket
 
-      # Create Tarball for Distribution
-      - name: Create tarball
+      # Install Herbie dependencies
+      - name: Install Herbie Dependencies
         run: |
           cd herbie
-          raco pkg create --format zip egg-herbie
+          make install
 
-      # Rename Tarballs and Checksums
-      - name: Rename tarballs
+      # Build Standalone Herbie Binary
+      - name: Build Standalone Herbie Executable
         run: |
           cd herbie
-          mv egg-herbie.zip egg-herbie-${{ matrix.os-name }}.zip
-          mv egg-herbie.zip.CHECKSUM egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
+          make distribution
 
-      # Upload Pre-built Egg-Herbie Package
-      - name: Upload pre-built egg-herbie
+      # Remove Herbie Launcher (Avoid conflicts)
+      - name: Remove Herbie Launcher
+        run: raco pkg remove herbie egg-herbie
+
+      # Verify the built Herbie binary exists
+      - name: Verify Herbie Binary
+        run: |
+          ls -lh herbie-compiled/bin/
+          ls -lh herbie-compiled/
+
+      # Upload Herbie Binary to Odyssey Artifacts
+      - name: Upload Herbie Binary to Odyssey Artifacts
         uses: actions/upload-artifact@v4
         with:
-          path: herbie/egg-herbie-${{ matrix.os-name }}.zip
-          name: egg-herbie-${{ matrix.os-name }}.zip
+          path: |
+            herbie/herbie-compiled/bin/herbie
+            herbie/herbie-compiled/herbie.exe
+          name: herbie-binary-${{ matrix.os-name }}.tar.gz
           if-no-files-found: error
-
-      # Upload Pre-built Egg-Herbie Checksum
-      - name: Upload pre-built egg-herbie checksum
-        uses: actions/upload-artifact@v4
-        with:
-          path: herbie/egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
-          name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
-          if-no-files-found: error
-
-  release:
-    name: Create Initial Release
-    runs-on: ubuntu-latest
-    needs: build-herbie
-
-    steps:
-      - name: Download pre-built artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          pattern: egg-herbie-*
-          merge-multiple: true
-
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ github.ref }}
-          name: ${{ github.ref }}
-          commit: ${{ github.sha }}
-          draft: false
-          prerelease: false
-          artifactErrorsFailBuild: true
-          artifacts: "artifacts/*"

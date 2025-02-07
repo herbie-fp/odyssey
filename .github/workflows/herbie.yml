@@ -47,46 +47,26 @@ jobs:
         with:
           toolchain: stable
 
-      # Build egg-herbie (Rust Backend for Herbie)
-      - name: Build egg-herbie
-        run: |
-          cd herbie/egg-herbie
-          cargo build --release
-
-            
       - name: Build Herbie
         run: |
           cd herbie
           make install
-          
-      # Create Tarball for Distribution
-      - name: Create tarball
+      
+      - name: Check Installed Herbie Binary
+        run: which herbie
+      
+      - name: List Installed Racket Packages
+        run: raco pkg show
+      
+      - name: Check Herbie Collects Directory
+        run: ls -R /home/runner/.local/share/racket/8.11/collects/
+
+      - name: Find Herbie in Other Paths
         run: |
-          cd herbie
-          raco pkg create --format zip egg-herbie
-
-      # Rename Tarballs and Checksums
-      - name: Rename tarballs
-        run: |
-          cd herbie
-          mv egg-herbie.zip egg-herbie-${{ matrix.os-name }}.zip
-          mv egg-herbie.zip.CHECKSUM egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
-
-      # Upload Pre-built Tarball
-      - name: Upload pre-built egg-herbie
-        uses: actions/upload-artifact@v4
-        with:
-          path: herbie/egg-herbie-${{ matrix.os-name }}.zip
-          name: egg-herbie-${{ matrix.os-name }}.zip
-          if-no-files-found: error
-
-      # Upload Pre-built Checksum
-      - name: Upload pre-built egg-herbie checksum
-        uses: actions/upload-artifact@v4
-        with:
-          path: herbie/egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
-          name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
-          if-no-files-found: error
+          echo "Checking alternative paths..."
+          ls -R /usr/share/racket/collects/ || echo "Not found in /usr/share/racket/collects"
+          ls -R /home/runner/.racket/collects/ || echo "Not found in /home/runner/.racket/collects"
+          ls -R /home/runner/.local/share/racket/collects/ || echo "Not found in /home/runner/.local/share/racket/collects"
       - name: Package Herbie for Distribution
         run: |
             mkdir -p herbie-package/bin
@@ -101,6 +81,8 @@ jobs:
             path: herbie-${{ matrix.os-name }}.tar.gz
             name: herbie-package-${{ matrix.os-name }}.tar.gz
             if-no-files-found: error
+
+
       # Upload Herbie Binary to Odyssey Artifacts
       - name: Upload Herbie Package to Release
         uses: svenstaro/upload-release-action@v2

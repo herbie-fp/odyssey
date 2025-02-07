@@ -1,12 +1,11 @@
 name: Build Herbie Binaries in Odyssey
 
 on:
-    push:
-        branches: 
-            - main
-            - '*'
-    
-    workflow_dispatch:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - '*'
 jobs:
   build-herbie:
     name: Build Herbie Binaries

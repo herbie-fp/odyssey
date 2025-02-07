@@ -82,11 +82,14 @@ jobs:
           name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           if-no-files-found: error
 
-      # Upload the Binary to Release
-      - name: Upload Herbie Binary to Odyssey Artifacts
-        uses: svenstaro/upload-release-action@v2
+      # Debug to Check if Binary Exists
+      - name: Debug Build Directory
+        run: ls -R herbie/target/release
+
+      # Upload Herbie Binary to Odyssey Artifacts
+      - name: Upload Herbie Binary to Odyssey
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: herbie/target/release/herbie
-          asset_name: herbie-${{ matrix.os-name }}.tar.gz
-          tag: ${{ github.ref }}
+          path: herbie/target/release/herbie
+          name: herbie-binary-${{ matrix.os-name }}.tar.gz
+          if-no-files-found: error

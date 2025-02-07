@@ -579,6 +579,12 @@ function ErrorPlot() {
 
                 // Selected points & selected subset cannot exist simultaneously
                 setSelectedPoint(undefined);
+              } else { // empty selection, revert brush styling
+                circles.forEach((c) => { c.circle.removeAttribute("class"); });
+                highlightMap.forEach((highlightLine) => {
+                  highlightLine.line.removeAttribute("class");
+                  highlightLine.newPath.removeAttribute("d");
+                })
               }
             });
 
@@ -591,7 +597,7 @@ function ErrorPlot() {
               // Returns lines & points to original colors
               circles.forEach((c) => { c.circle.removeAttribute("class"); });
               highlightMap.forEach((highlightLine) => {
-                highlightLine.line.setAttribute("stroke", highlightLine.stroke);
+                highlightLine.line.removeAttribute("class");
                 highlightLine.newPath.removeAttribute("d");
               })
 

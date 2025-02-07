@@ -58,11 +58,7 @@ jobs:
         run: |
           cd herbie
           make install
-      - name: Locate Installed Herbie Binary
-        run: |
-          echo "Checking installed Herbie binary..."
-          find / -type f -name "herbie" -executable 2>/dev/null || echo "No binary found!"
-
+          
       # Create Tarball for Distribution
       - name: Create tarball
         run: |
@@ -92,14 +88,10 @@ jobs:
           name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           if-no-files-found: error
 
-      - name: Find Herbie Executables
-        run: find herbie -type f -executable
-
-
       # Upload Herbie Binary to Odyssey Artifacts
       - name: Upload Herbie Binary to Odyssey
         uses: actions/upload-artifact@v4
         with:
-          path: herbie/target/release/herbie
+          path: /home/runner/.local/share/racket/8.11/bin/herbie
           name: herbie-binary-${{ matrix.os-name }}.tar.gz
           if-no-files-found: error

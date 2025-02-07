@@ -49,34 +49,57 @@ jobs:
 
       # Build egg-herbie (Rust Backend for Herbie)
       - name: Build egg-herbie
-        run: |
-          cd herbie/egg-herbie
-          cargo build --release
+        run: cargo build --release --manifest-path=herbie/egg-herbie/Cargo.toml
 
-      # Install Herbie
-      - name: Install Herbie
+      # Create Tarball for Distribution
+      - name: Create tarball
         run: |
           cd herbie
-          make install
+          raco pkg create --format zip egg-herbie
 
-      # Verify Herbie Installation
-      - name: Check installed Herbie binary
+      # Rename Tarballs and Checksums
+      - name: Rename tarballs
         run: |
-          echo "Checking installed Herbie binary..."
-          file /home/runner/.local/share/racket/8.11/bin/herbie || echo "No binary found!"
-          /home/runner/.local/share/racket/8.11/bin/herbie --help || echo "Herbie command not found!"
+          cd herbie
+          mv egg-herbie.zip egg-herbie-${{ matrix.os-name }}.zip
+          mv egg-herbie.zip.CHECKSUM egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
 
-      # Package Herbie Binary
-      - name: Package Herbie Binary
-        run: |
-          mkdir -p herbie-package/bin
-          cp /home/runner/.local/share/racket/8.11/bin/herbie herbie-package/bin/herbie-${{ matrix.os-name }}
-          tar -czf herbie-${{ matrix.os-name }}.tar.gz -C herbie-package .
-
-      # Upload Herbie Binary to Odyssey Artifacts
-      - name: Upload Herbie Binary to Odyssey Artifacts
+      # Upload Pre-built Egg-Herbie Package
+      - name: Upload pre-built egg-herbie
         uses: actions/upload-artifact@v4
         with:
-          path: herbie-${{ matrix.os-name }}.tar.gz
-          name: herbie-binary-${{ matrix.os-name }}.tar.gz
+          path: herbie/egg-herbie-${{ matrix.os-name }}.zip
+          name: egg-herbie-${{ matrix.os-name }}.zip
           if-no-files-found: error
+
+      # Upload Pre-built Egg-Herbie Checksum
+      - name: Upload pre-built egg-herbie checksum
+        uses: actions/upload-artifact@v4
+        with:
+          path: herbie/egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
+          name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
+          if-no-files-found: error
+
+  release:
+    name: Create Initial Release
+    runs-on: ubuntu-latest
+    needs: build-herbie
+
+    steps:
+      - name: Download pre-built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: egg-herbie-*
+          merge-multiple: true
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref }}
+          name: ${{ github.ref }}
+          commit: ${{ github.sha }}
+          draft: false
+          prerelease: false
+          artifactErrorsFailBuild: true
+          artifacts: "artifacts/*"

@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - '*'
+
 jobs:
   build-herbie:
     name: Build Herbie Binaries
@@ -46,47 +47,36 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Build Herbie
+      # Build egg-herbie (Rust Backend for Herbie)
+      - name: Build egg-herbie
+        run: |
+          cd herbie/egg-herbie
+          cargo build --release
+
+      # Install Herbie
+      - name: Install Herbie
         run: |
           cd herbie
           make install
-      
-      - name: Check Installed Herbie Binary
-        run: which herbie
-      
-      - name: List Installed Racket Packages
-        run: raco pkg show
-      
-      - name: Check Herbie Collects Directory
-        run: ls -R /home/runner/.local/share/racket/8.11/collects/
 
-      - name: Find Herbie in Other Paths
+      # Verify Herbie Installation
+      - name: Check installed Herbie binary
         run: |
-          echo "Checking alternative paths..."
-          ls -R /usr/share/racket/collects/ || echo "Not found in /usr/share/racket/collects"
-          ls -R /home/runner/.racket/collects/ || echo "Not found in /home/runner/.racket/collects"
-          ls -R /home/runner/.local/share/racket/collects/ || echo "Not found in /home/runner/.local/share/racket/collects"
-      - name: Package Herbie for Distribution
-        run: |
-            mkdir -p herbie-package/bin
-            cp /home/runner/.local/share/racket/8.11/bin/herbie herbie-package/bin/
-            cp -r /home/runner/.local/share/racket/8.11/collects/herbie herbie-package/herbie-collects/
-            cp -r /home/runner/.local/share/racket/8.11/lib herbie-package/racket-lib/
-            tar -czvf herbie-${{ matrix.os-name }}.tar.gz -C herbie-package .
-            
-      - name: Upload Packaged Herbie
-        uses: actions/upload-artifact@v4
-        with:
-            path: herbie-${{ matrix.os-name }}.tar.gz
-            name: herbie-package-${{ matrix.os-name }}.tar.gz
-            if-no-files-found: error
+          echo "Checking installed Herbie binary..."
+          file /home/runner/.local/share/racket/8.11/bin/herbie || echo "No binary found!"
+          /home/runner/.local/share/racket/8.11/bin/herbie --help || echo "Herbie command not found!"
 
+      # Package Herbie Binary
+      - name: Package Herbie Binary
+        run: |
+          mkdir -p herbie-package/bin
+          cp /home/runner/.local/share/racket/8.11/bin/herbie herbie-package/bin/herbie-${{ matrix.os-name }}
+          tar -czf herbie-${{ matrix.os-name }}.tar.gz -C herbie-package .
 
       # Upload Herbie Binary to Odyssey Artifacts
-      - name: Upload Herbie Package to Release
-        uses: svenstaro/upload-release-action@v2
+      - name: Upload Herbie Binary to Odyssey Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: herbie-${{ matrix.os-name }}.tar.gz
-          asset_name: herbie-${{ matrix.os-name }}.tar.gz
-          tag: ${{ github.ref }}
+          path: herbie-${{ matrix.os-name }}.tar.gz
+          name: herbie-binary-${{ matrix.os-name }}.tar.gz
+          if-no-files-found: error

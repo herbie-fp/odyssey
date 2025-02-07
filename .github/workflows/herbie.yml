@@ -83,8 +83,13 @@ jobs:
           if-no-files-found: error
 
       # Debug to Check if Binary Exists
-      - name: Debug Build Directory
-        run: ls -R herbie/target/release
+      - name: Check build directory contents
+        run: ls -R herbie/
+
+        
+      - name: Find Herbie binary
+        run: find herbie -type f
+
 
       # Upload Herbie Binary to Odyssey Artifacts
       - name: Upload Herbie Binary to Odyssey

@@ -91,8 +91,10 @@ jobs:
         run: |
             mkdir -p herbie-package/bin
             cp /home/runner/.local/share/racket/8.11/bin/herbie herbie-package/bin/
+            cp -r /home/runner/.local/share/racket/8.11/collects/herbie herbie-package/herbie-collects/
+            cp -r /home/runner/.local/share/racket/8.11/lib herbie-package/racket-lib/
             tar -czvf herbie-${{ matrix.os-name }}.tar.gz -C herbie-package .
-
+            
       - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4
         with:

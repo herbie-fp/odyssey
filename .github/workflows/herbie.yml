@@ -53,6 +53,12 @@ jobs:
           cd herbie/egg-herbie
           cargo build --release
 
+            
+      - name: Build Herbie
+        run: |
+          cd herbie
+          make
+        
       # Create Tarball for Distribution
       - name: Create tarball
         run: |
@@ -82,11 +88,6 @@ jobs:
           name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           if-no-files-found: error
 
-      # Debug to Check if Binary Exists
-      - name: Check build directory contents
-        run: ls -R herbie/
-
-        
       - name: Find Herbie binary
         run: find herbie -type f
 

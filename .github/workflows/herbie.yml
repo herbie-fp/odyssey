@@ -57,7 +57,7 @@ jobs:
       - name: Build Herbie
         run: |
           cd herbie
-          make
+          make install
         
       # Create Tarball for Distribution
       - name: Create tarball
@@ -88,8 +88,8 @@ jobs:
           name: egg-herbie-${{ matrix.os-name }}.zip.CHECKSUM
           if-no-files-found: error
 
-      - name: Find Herbie binary
-        run: find herbie -type f
+      - name: Find Herbie Executables
+        run: find herbie -type f -executable
 
 
       # Upload Herbie Binary to Odyssey Artifacts

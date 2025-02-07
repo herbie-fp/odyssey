@@ -6,8 +6,7 @@ on:
             - main
             - '*'
     
-    workflow_dispatch:  # Allows manual triggering of the workflow
-
+    workflow_dispatch:
 jobs:
   build-herbie:
     name: Build Herbie Binaries

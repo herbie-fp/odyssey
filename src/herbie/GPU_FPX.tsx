@@ -4,7 +4,8 @@ import * as contexts from './HerbieContext';
 import './GPU_FPX.css';
 import './ExpressionExport';
 import { ExpressionExportResponse } from './lib/herbiejs';
-import { mathjs, mathjsToFPCore } from './lib/fpcore';
+import { FPCoreGetBody, FPCorePreconditionFromRanges, getVarnamesFPCore, getVarnamesMathJS, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
+import { FPTaylorComponent } from './FPTaylorComponent';
 
 const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   //Get expressions
@@ -41,29 +42,35 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
 
   const handleRunAnalysis = async () => {
         try {
-        //   // First get current FPCore expression
-        //   const fpCoreExpr = mathjsToFPCore(current_expression as unknown as mathjs);
-        //   console.log("Starting FPBench conversion for expression:", fpCoreExpr);
-        //   // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
-        //   const fpbenchResponse = await fetch('https://herbie.uwplse.org/fpbench/exec', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json', 
-        //     },
-        //     body: JSON.stringify({
-        //         formulas: [fpCoreExpr],
-        //         // Specify CUDA as target language
-        //         language: 'c'
-        //     })
-        // });
+          //convert mathjs to fpcore
+          const fpCoreExpr = mathjsToFPCore(current_expression?.text as unknown as mathjs);
+          const fpBenchExpr = makeFPCore2({
+            vars: getVarnamesFPCore(fpCoreExpr),
+            pre: "(<= 0 x 10)",
+            body: FPCoreGetBody(fpCoreExpr) 
+          });
+          // console.log("Current Expression format before FpBench:", current_expression);
+          console.log("Starting FPBench conversion for expression:", fpBenchExpr);
+          // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
+          const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+            body: JSON.stringify({
+                formulas: [fpBenchExpr],
+                // Specify CUDA as target language
+                language: 'c'
+            })
+        });
 
-        // const fpbenchResult = await fpbenchResponse.json();
-        // console.log("Raw FPBench result:", fpbenchResult);
-        // //Extract just the expression from the function body
-        // const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
-        // const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
-        // console.log("Extracted CUDA expression:", cudaExpr);
-        const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
+        const fpbenchResult = await fpbenchResponse.json();
+        console.log("Raw FPBench result:", fpbenchResult);
+        //Extract just the expression from the function body
+        const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
+        const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
+        console.log("Extracted CUDA expression:", cudaExpr);
+        // const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
         
         // Now we can run GPU-FPX with the extracted expression
             const analyzerResponse = await fetch('http://155.98.69.61:8001/exec', {
@@ -76,6 +83,7 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
                 })
             });
             const analyzerData = await analyzerResponse.json();
+            console.log(analyzerData);
             setAnalyzerResult(analyzerData.stdout);
 
             // Then run detector
@@ -89,6 +97,8 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
                 })
             });
             const detectorData = await detectorResponse.json();
+            console.log(detectorData);
+
             setDetectorResult(detectorData.stdout);
 
         } catch (error) {
@@ -97,9 +107,13 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
         }
     };
     
-
+  const resetResults = () =>{
+    setAnalyzerResult("")
+    setDetectorResult("")
+  }
   // Button to trigger analysis
   const handleRunAnalyzerClick = () => {
+    resetResults();
     setRunAnalyzer(!runAnalyzer);
     handleRunAnalysis();
 };
@@ -170,14 +184,9 @@ const AnalyzerReport = extractAnalyzerReport(analyzerResult);
     <div>
       <p>Current expression:</p>
       <p>{current_expression?.text}</p> 
-      <p>The total number of exceptions are: 2</p>
+      {/* <p>The total number of exceptions are: 2</p> */}
       <button onClick={handleReportClick}>See Full Report</button>
       <button onClick={handleRunAnalyzerClick}>Run GPU-FPX</button>
-      
-      {/* <p>Should run cuda translate and send to GPU-FPX Server?</p>
-      <p>
-        {gpuFpxSelected ? "yes" : "no"}
-      </p> */}    
 
       {showReport ? 
       <div>

@@ -537,7 +537,7 @@ function ErrorPlot() {
           const brush = brushX()
             // Bounds brushing is enabled in, rectangle in svg created by x+y axes
             .extent([[39, 17], [782, 269]]) 
-            .on('brush end', (event: any) => {
+            .on('brush', (event: any) => {
               const selection = event.selection;
               if (selection) {
                 const [x1, x2] = selection; // x bounds
@@ -589,21 +589,22 @@ function ErrorPlot() {
             });
 
           select(svg).append('g')
-            .attr('class', 'brush')
             .attr('id', 'brush')
             .call(brush)
-            .on("click dblclick", () => {
-              brush.clear(select(svg).select('g'));
-              // Returns lines & points to original colors
-              circles.forEach((c) => { c.circle.removeAttribute("class"); });
-              highlightMap.forEach((highlightLine) => {
-                highlightLine.line.removeAttribute("class");
-                highlightLine.newPath.removeAttribute("d");
-              })
+            .on("click dblclick", (event) => {
+              if (event.selection) {
+                brush.clear(select(svg).select('g'));
+                // Returns lines & points to original colors
+                circles.forEach((c) => { c.circle.removeAttribute("class"); });
+                highlightMap.forEach((highlightLine) => {
+                  highlightLine.line.removeAttribute("class");
+                  highlightLine.newPath.removeAttribute("d");
+                })
 
-              // un-set global selected subset & analysis states, triggers re-render
-              setSelectedSubset(undefined);
-              setSelectedAnalysis(undefined);
+                // un-set global selected subset & analysis states, triggers re-render
+                setSelectedSubset(undefined);
+                setSelectedAnalysis(undefined);
+              }
             });
 
           // Append all plot components to svg

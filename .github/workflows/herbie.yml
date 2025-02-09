@@ -1,0 +1,113 @@
+name: Build Herbie Binaries in Odyssey
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - '*'
+
+jobs:
+  build-herbie:
+    name: Build Herbie Binaries
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os-name: linux
+            arch: x64
+          - os: macos-latest
+            os-name: macos
+            arch: x64
+          - os: windows-latest
+            os-name: windows
+            arch: x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Checkout Odyssey repository
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      # Clone Herbie repository inside Odyssey
+      - name: Clone Herbie repository
+        run: git clone https://github.com/herbie-fp/herbie.git
+
+      # Install Racket (Required for Herbie)
+      - name: Install Racket
+        uses: Bogdanp/setup-racket@v1.11
+        with:
+          version: 8.11
+          architecture: ${{ matrix.arch }}
+
+      # Install Rust Compiler (For egg-herbie)
+      - name: Install Rust compiler
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      # Cache Dependencies (Speeds up future builds)
+      - name: Cache Racket and Rust dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-herbie-cache
+          path: |
+            ~/.cache/racket
+            ~/.local/share/racket
+            ~/Library/Racket/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            herbie/egg-herbie/target/
+            ${{ env.APPDATA }}/Racket
+
+      # Install Herbie dependencies
+      - name: Install Herbie Dependencies
+        shell: bash
+        run: |
+          cd herbie
+          make install || { echo "❌ Failed to install dependencies!"; exit 1; }
+
+      # Build Standalone Herbie Binary
+      - name: Build Standalone Herbie Executable
+        shell: bash
+        run: |
+          cd herbie
+          make distribution || { echo "❌ Make distribution failed!"; exit 1; }
+          rm -rf herbie-compiled/bench
+          
+      # Create final Herbie package (Linux/macOS)
+      - name: Create final Herbie package
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cd herbie
+          if [ ! -d "herbie-compiled" ]; then
+            echo "❌ No compiled files to package!"
+            exit 1
+          fi
+          tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
+
+      # Create final Herbie package (Windows)
+      - name: Create final Herbie package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cd herbie
+          if (!(Test-Path -Path "herbie-compiled")) {
+            Write-Host "❌ No compiled files to package!"
+            exit 1
+          }
+          Compress-Archive -Path "herbie-compiled\*" -DestinationPath "herbie-${{ matrix.os-name }}.zip"
+
+      # Upload the Final Packaged Herbie Distribution
+      - name: Upload Packaged Herbie
+        uses: actions/upload-artifact@v4
+        with:
+          name: herbie-distribution-${{ matrix.os-name }}
+          path: |
+            herbie/herbie-${{ matrix.os-name }}.zip
+            herbie/herbie-${{ matrix.os-name }}.tar.gz
+          if-no-files-found: error

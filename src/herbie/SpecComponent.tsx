@@ -103,7 +103,7 @@ function SpecConfigComponent() {
       sessionStorage.setItem('sessionId', sessionId);
     }
     
-    fetch('http://localhost:8003/log', {
+    fetch('https://herbie.uwplse.org/odyssey-log/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

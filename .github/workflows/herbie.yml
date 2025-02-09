@@ -75,22 +75,19 @@ jobs:
           cd herbie
           make distribution
 
-      # Remove Herbie Launcher (Avoid conflicts)
-      - name: Remove Herbie Launcher
-        run: raco pkg remove herbie egg-herbie
+      # Ensure the package exists
+      - name: List Herbie compiled files
+        run: ls -R herbie-compiled/ || echo "No files found!"
 
-      # Verify the built Herbie binary exists
-      - name: Verify Herbie Binary
-        run: |
-          ls -lh herbie-compiled/bin/
-          ls -lh herbie-compiled/
+      # Package the entire `herbie-compiled` directory
+      - name: Create final Herbie package
+        run: 
+          tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
 
-      # Upload Herbie Binary to Odyssey Artifacts
-      - name: Upload Herbie Binary to Odyssey Artifacts
+      # Upload the Final Packaged Herbie Distribution
+      - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4
         with:
-          path: |
-            herbie/herbie-compiled/bin/herbie
-            herbie/herbie-compiled/herbie.exe
-          name: herbie-binary-${{ matrix.os-name }}.tar.gz
+          path: herbie-${{ matrix.os-name }}.tar.gz
+          name: herbie-distribution-${{ matrix.os-name }}
           if-no-files-found: error

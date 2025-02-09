@@ -84,7 +84,7 @@ jobs:
               echo "❌ No compiled files to package!"
               exit 1
             fi
-            tar -czvf herbie-${{ matrix.os-name }}.tar.gz -C herbie/herbie-compiled .
+            tar -czvf herbie-${{ matrix.os-name }}.tar.gz /herbie-compiled .
 
       # Create final Herbie package (Windows)
       - name: Create final Herbie package (Windows)
@@ -101,6 +101,6 @@ jobs:
       - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ runner.os == 'Windows' && 'herbie/herbie-${{ matrix.os-name }}.zip' || 'herbie-${{ matrix.os-name }}.tar.gz' }}
+          path: ${{ runner.os == 'Windows' && 'herbie/herbie-${{ matrix.os-name }}.zip' || 'herbie/herbie-${{ matrix.os-name }}.tar.gz' }}
           name: herbie-distribution-${{ matrix.os-name }}
           if-no-files-found: error

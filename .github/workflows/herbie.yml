@@ -76,7 +76,8 @@ jobs:
         run: |
           cd herbie
           make distribution || { echo "❌ Make distribution failed!"; exit 1; }
-
+          rm -rf herbie-compiled/bench
+          
       # Create final Herbie package (Linux/macOS)
       - name: Create final Herbie package
         if: runner.os != 'Windows'

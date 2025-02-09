@@ -1,11 +1,7 @@
 name: Build Herbie Binaries in Odyssey
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-      - '*'
+  workflow_dispatch
 
 jobs:
   build-herbie:
@@ -68,16 +64,16 @@ jobs:
         shell: bash
         run: |
           cd herbie
-          make install || { echo "❌ Failed to install dependencies!"; exit 1; }
+          make install || { echo "Failed to install dependencies!"; exit 1; }
 
       # Build Standalone Herbie Binary
       - name: Build Standalone Herbie Executable
         shell: bash
         run: |
           cd herbie
-          make distribution || { echo "❌ Make distribution failed!"; exit 1; }
+          make distribution || { echo "Make distribution failed!"; exit 1; }
           rm -rf herbie-compiled/bench
-          
+
       # Create final Herbie package (Linux/macOS)
       - name: Create final Herbie package
         if: runner.os != 'Windows'
@@ -85,7 +81,7 @@ jobs:
         run: |
           cd herbie
           if [ ! -d "herbie-compiled" ]; then
-            echo "❌ No compiled files to package!"
+            echo "No compiled files to package!"
             exit 1
           fi
           tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
@@ -97,7 +93,7 @@ jobs:
         run: |
           cd herbie
           if (!(Test-Path -Path "herbie-compiled")) {
-            Write-Host "❌ No compiled files to package!"
+            Write-Host "No compiled files to package!"
             exit 1
           }
           Compress-Archive -Path "herbie-compiled\*" -DestinationPath "herbie-${{ matrix.os-name }}.zip"

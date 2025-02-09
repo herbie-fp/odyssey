@@ -75,14 +75,6 @@ jobs:
           cd herbie
           make distribution || (echo "❌ Make distribution failed!" && exit 1)
 
-      # Ensure the package exists
-      - name: Ensure Herbie compiled directory exists
-        run: |
-          if [ ! -d "herbie/herbie-compiled" ]; then
-            echo "❌ herbie-compiled/ directory missing!"
-            exit 1
-          fi
-
       # Package the entire `herbie-compiled` directory
       - name: Create final Herbie package
         run: |

@@ -75,16 +75,29 @@ jobs:
           cd herbie
           make distribution || (echo "❌ Make distribution failed!" && exit 1)
 
-      # Package the entire `herbie-compiled` directory
       - name: Create final Herbie package
+        shell: bash
         run: |
-          cd herbie
-          if [ ! -d "herbie-compiled" ]; then
-            echo "❌ No compiled files to package!"
-            exit 1
-          fi
-          tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
-
+            if [ "$RUNNER_OS" == "Windows" ]; then
+              echo "❌ Running Windows commands in Bash! Fixing..."
+              exit 1
+            fi
+            if [ ! -d "herbie/herbie-compiled" ]; then
+              echo "❌ No compiled files to package!"
+              exit 1
+            fi
+            tar -czvf herbie-${{ matrix.os-name }}.tar.gz -C herbie/herbie-compiled .
+        
+      - name: Create final Herbie package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+              if (!(Test-Path -Path "herbie/herbie-compiled")) {
+                echo "❌ No compiled files to package!"
+                exit 1
+              }
+              Compress-Archive -Path herbie/herbie-compiled/* -DestinationPath herbie/herbie-${{ matrix.os-name }}.zip
+          
       # Upload the Final Packaged Herbie Distribution
       - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4

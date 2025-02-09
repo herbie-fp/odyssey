@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             os-name: linux
             arch: x64
           - os: macos-latest
@@ -65,42 +65,48 @@ jobs:
 
       # Install Herbie dependencies
       - name: Install Herbie Dependencies
+        shell: bash
         run: |
           cd herbie
-          make install || (echo "❌ Failed to install dependencies!" && exit 1)
+          make install || { echo "❌ Failed to install dependencies!"; exit 1; }
 
       # Build Standalone Herbie Binary
       - name: Build Standalone Herbie Executable
+        shell: bash
         run: |
           cd herbie
-          make distribution || (echo "❌ Make distribution failed!" && exit 1)
+          make distribution || { echo "❌ Make distribution failed!"; exit 1; }
 
       # Create final Herbie package (Linux/macOS)
       - name: Create final Herbie package
         if: runner.os != 'Windows'
         shell: bash
         run: |
-            if [ ! -d "herbie/herbie-compiled" ]; then
-              echo "❌ No compiled files to package!"
-              exit 1
-            fi
-            tar -czvf herbie-${{ matrix.os-name }}.tar.gz /herbie-compiled .
+          cd herbie
+          if [ ! -d "herbie-compiled" ]; then
+            echo "❌ No compiled files to package!"
+            exit 1
+          fi
+          tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
 
       # Create final Herbie package (Windows)
       - name: Create final Herbie package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-            if (!(Test-Path -Path "herbie/herbie-compiled")) {
-              Write-Host "❌ No compiled files to package!"
-              exit 1
-            }
-            Compress-Archive -Path herbie/herbie-compiled\* -DestinationPath herbie\herbie-${{ matrix.os-name }}.zip
+          cd herbie
+          if (!(Test-Path -Path "herbie-compiled")) {
+            Write-Host "❌ No compiled files to package!"
+            exit 1
+          }
+          Compress-Archive -Path "herbie-compiled\*" -DestinationPath "herbie-${{ matrix.os-name }}.zip"
 
       # Upload the Final Packaged Herbie Distribution
       - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ runner.os == 'Windows' && 'herbie/herbie-${{ matrix.os-name }}.zip' || 'herbie/herbie-${{ matrix.os-name }}.tar.gz' }}
           name: herbie-distribution-${{ matrix.os-name }}
+          path: |
+            herbie/herbie-${{ matrix.os-name }}.zip
+            herbie/herbie-${{ matrix.os-name }}.tar.gz
           if-no-files-found: error

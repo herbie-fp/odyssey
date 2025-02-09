@@ -314,7 +314,7 @@ function HerbieUIInner() {
   // Whenever a subset of points is selected (brushing completes)
   // * perform an analysis for the points in the selected range
   // * do NOT change the input range component
-  useEffect(updateSubsetAnalyses, [selectedSubsetRange])
+  useEffect(updateSubsetAnalyses, [selectedSubsetRange, analyses])
   function updateSubsetAnalyses() {
     if (selectedSubsetRange) {
       // Get analyses for active expressions

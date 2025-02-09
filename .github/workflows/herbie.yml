@@ -67,27 +67,36 @@ jobs:
       - name: Install Herbie Dependencies
         run: |
           cd herbie
-          make install
+          make install || (echo "❌ Failed to install dependencies!" && exit 1)
 
       # Build Standalone Herbie Binary
       - name: Build Standalone Herbie Executable
         run: |
           cd herbie
-          make distribution
+          make distribution || (echo "❌ Make distribution failed!" && exit 1)
 
       # Ensure the package exists
-      - name: List Herbie compiled files
-        run: ls -R herbie-compiled/ || echo "No files found!"
+      - name: Ensure Herbie compiled directory exists
+        run: |
+          if [ ! -d "herbie/herbie-compiled" ]; then
+            echo "❌ herbie-compiled/ directory missing!"
+            exit 1
+          fi
 
       # Package the entire `herbie-compiled` directory
       - name: Create final Herbie package
-        run: 
+        run: |
+          cd herbie
+          if [ ! -d "herbie-compiled" ]; then
+            echo "❌ No compiled files to package!"
+            exit 1
+          fi
           tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
 
       # Upload the Final Packaged Herbie Distribution
       - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4
         with:
-          path: herbie-${{ matrix.os-name }}.tar.gz
+          path: herbie/herbie-${{ matrix.os-name }}.tar.gz
           name: herbie-distribution-${{ matrix.os-name }}
           if-no-files-found: error

@@ -592,19 +592,17 @@ function ErrorPlot() {
             .attr('id', 'brush')
             .call(brush)
             .on("click dblclick", (event) => {
-              if (event.selection) {
-                brush.clear(select(svg).select('g'));
-                // Returns lines & points to original colors
-                circles.forEach((c) => { c.circle.removeAttribute("class"); });
-                highlightMap.forEach((highlightLine) => {
-                  highlightLine.line.removeAttribute("class");
-                  highlightLine.newPath.removeAttribute("d");
-                })
+              brush.clear(select(svg).select('g'));
+              // Returns lines & points to original colors
+              circles.forEach((c) => { c.circle.removeAttribute("class"); });
+              highlightMap.forEach((highlightLine) => {
+                highlightLine.line.removeAttribute("class");
+                highlightLine.newPath.removeAttribute("d");
+              })
 
-                // un-set global selected subset & analysis states, triggers re-render
-                setSelectedSubset(undefined);
-                setSelectedAnalysis(undefined);
-              }
+              // un-set global selected subset & analysis states, triggers re-render
+              setSelectedSubset(undefined);
+              setSelectedAnalysis(undefined);
             });
 
           // Append all plot components to svg

@@ -188,7 +188,7 @@ function ExpressionTable() {
     setCompareExprIds([...compareExprIds, selectedId])
     setAddExpression('')
     
-    fetch('http://localhost:8003/log', {
+    fetch('https://herbie.uwplse.org/odyssey-log/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -248,7 +248,7 @@ function ExpressionTable() {
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
        
-      fetch('http://localhost:8003/log', {
+      fetch('https://herbie.uwplse.org/odyssey-log/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

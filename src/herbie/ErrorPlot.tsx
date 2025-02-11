@@ -415,7 +415,7 @@ function ErrorPlot() {
               // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
               setSelectedSubset(undefined)
 
-              fetch('http://localhost:8003/log', {
+              fetch('https://herbie.uwplse.org/odyssey-log/log', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -537,7 +537,7 @@ function ErrorPlot() {
           const brush = brushX()
             // Bounds brushing is enabled in, rectangle in svg created by x+y axes
             .extent([[39, 17], [782, 269]]) 
-            .on('brush end', (event: any) => {
+            .on('brush', (event: any) => {
               const selection = event.selection;
               if (selection) {
                 const [x1, x2] = selection; // x bounds
@@ -589,10 +589,9 @@ function ErrorPlot() {
             });
 
           select(svg).append('g')
-            .attr('class', 'brush')
             .attr('id', 'brush')
             .call(brush)
-            .on("click dblclick", () => {
+            .on("click dblclick", (event) => {
               brush.clear(select(svg).select('g'));
               // Returns lines & points to original colors
               circles.forEach((c) => { c.circle.removeAttribute("class"); });

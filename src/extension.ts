@@ -808,7 +808,41 @@ export function activate(context: vscode.ExtensionContext) {
 		addMessageHandler(panel)
 	})
 
-	context.subscriptions.push(disposable)
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	let disposable2 = vscode.commands.registerCommand(`${extensionName}.updateBinaries`, async () => {
+		const updateConfirmed = await vscode.window.showWarningMessage(
+			"Are you sure you want to update all binaries?",
+			{ modal: true },
+			"Update"
+		);
+	
+		if (updateConfirmed !== "Update") {
+			return;
+		}
+	
+		try {
+			if (fs.existsSync(herbiePath)) {
+				fs.rmSync(herbiePath, { recursive: true, force: true });
+			}
+			if (fs.existsSync(fpbenchPath)) {
+				fs.rmSync(fpbenchPath, { recursive: true, force: true });
+			}
+			if (fs.existsSync(fptaylorPath)) {
+				fs.rmSync(fptaylorPath, { recursive: true, force: true });
+			}
+			downloadAndRunHerbie()
+			downloadFPBench();
+			downloadFPTaylor();
+			vscode.window.showInformationMessage("Binaries updated successfully.");
+		} catch (error) {
+			console.error("Error updating binaries:", error);
+			vscode.window.showErrorMessage("Failed to update binaries. Check console for details.");
+		}
+	});
+	
+	context.subscriptions.push(disposable, disposable2)
 }
 
 const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionContext) => {

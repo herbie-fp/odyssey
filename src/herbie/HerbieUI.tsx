@@ -571,7 +571,7 @@ function HerbieUIInner() {
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
         <SpecComponent {...{ showOverlay, setShowOverlay }} />
-        <a href="https://github.com/herbie-fp/odyssey" target="_blank"
+        <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank"
           style={{color: "var(--background-color)", fontFamily: "Ruda"}}
         >
           Documentation

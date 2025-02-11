@@ -5,7 +5,7 @@ import { join } from 'path';
 import { spawn } from 'child_process';
 
 import * as fs from 'fs';
-import 'import("mathjs11")';
+// import 'import("mathjs11")';
 const lnk = require('lnk');
 const http = require('http');
 const https = require('https');

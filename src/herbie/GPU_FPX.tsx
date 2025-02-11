@@ -17,8 +17,6 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const [showReport, setShowReport] = useState(false);
   const [runAnalyzer, setRunAnalyzer] = useState(false);
 
-  /* ---------------------------------------------------  */
-
   //State for results from Analyzer and Detector
   const [analyzerResult, setAnalyzerResult] = useState<string>("");
   const [detectorResult, setDetectorResult] = useState<string>("");
@@ -26,19 +24,7 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   // State for loading/error handling
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
 
-  /****************************************************************/ 
-
-//   // Extract the expression from FPBench's CUDA (for now it's C) output
-//   const extractExpression = (cudaExpression: string): string => {
-//     // Look for the return statements
-//     const returnMatch = cudaExpression.match(/return\s+(.*?);/);
-//     if (returnMatch && returnMatch[1]) {
-//         return returnMatch[1].trim();
-//     }
-//     throw new Error("Could not parse CUDA function body");
-// };
 
   const handleRunAnalysis = async () => {
         try {

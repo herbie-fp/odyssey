@@ -571,14 +571,14 @@ function HerbieUIInner() {
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
         <SpecComponent {...{ showOverlay, setShowOverlay }} />
-        <a href="https://github.com/herbie-fp/odyssey" style={{
-          color: "var(--background-color)", fontFamily: "Ruda"
-        }}>
+        <a href="https://github.com/herbie-fp/odyssey" target="_blank"
+          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
+        >
           Documentation
         </a>
-        <a href="https://github.com/herbie-fp/odyssey/issues/new" style={{
-          color: "var(--background-color)", fontFamily: "Ruda"
-        }}>
+        <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank"
+          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
+        >
           Issues
         </a>
         <SerializeStateComponent specPage={showOverlay}/>

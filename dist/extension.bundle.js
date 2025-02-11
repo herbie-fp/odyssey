@@ -692,12 +692,16 @@ function activate(context) {
             return;
         }
         try {
+            if (fs.existsSync(herbiePath)) {
+                fs.rmSync(herbiePath, { recursive: true, force: true });
+            }
             if (fs.existsSync(fpbenchPath)) {
                 fs.rmSync(fpbenchPath, { recursive: true, force: true });
             }
             if (fs.existsSync(fptaylorPath)) {
                 fs.rmSync(fptaylorPath, { recursive: true, force: true });
             }
+            downloadAndRunHerbie();
             downloadFPBench();
             downloadFPTaylor();
             vscode.window.showInformationMessage("Binaries updated successfully.");

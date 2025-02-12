@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import * as Contexts from './HerbieContext';
 import { FPTaylorRange, SpecRange } from './HerbieTypes';
 import { getVarnamesMathJS } from './lib/fpcore';

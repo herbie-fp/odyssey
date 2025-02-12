@@ -12,7 +12,6 @@ import { expressionToTex } from './ExpressionTable';
 import * as utils from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
-import { getApi } from './lib/servercalls';
 
 import './sliders.css';
 import './SpecComponent.css';

@@ -16,7 +16,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
 
     // Get the expression text
     const expressionText = expressions.find(expr => expr.id === expressionId.expressionId);
-    if (expressionText == null) {
+    if (expressionText === undefined) {
         return <div>Expression not found</div>
     }
     // Get user choice

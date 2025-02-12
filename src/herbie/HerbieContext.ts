@@ -1,6 +1,5 @@
 import React, { createContext } from 'react';
 import * as types from './HerbieTypes';
-import * as herbiejs from './lib/herbiejs';
 
 type setter<T> = React.Dispatch<T>
 

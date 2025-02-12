@@ -1,8 +1,6 @@
-import * as contexts from './HerbieContext';
 import Latex from 'react-latex-next';
-
+import * as contexts from './HerbieContext';
 import './DerivationComponent.css';
-import { Derivation } from './HerbieTypes';
 
 const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)

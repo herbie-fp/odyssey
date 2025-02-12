@@ -369,7 +369,7 @@ function ErrorPlot() {
             (value: { lower: string, upper: string }) => {
               if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
               console.debug('set input range', v, value)
-              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
+              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper), parseFloat(value.minAbsValue)) : r))
             }
           } />
         )}

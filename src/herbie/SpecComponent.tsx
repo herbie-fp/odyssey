@@ -367,7 +367,8 @@ function SpecConfigComponent() {
                               ? new SpecRange(
                                   v,
                                   parseFloat(value.lower),
-                                  parseFloat(value.upper)
+                                  parseFloat(value.upper),
+                                  parseFloat(value.minAbsValue)
                                 )
                               : r
                           )
@@ -583,7 +584,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
-    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))))
+    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper), parseFloat(range.minAbsVal))))
     // setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
   }
 

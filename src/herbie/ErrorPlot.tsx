@@ -3,8 +3,8 @@ import {useState, useEffect} from "react";
 import { Tooltip } from "react-tooltip";
 
 import * as HerbieContext from './HerbieContext'
-import * as HerbieTypes from './HerbieTypes'
-import { Expression, ordinal, expressionError } from './HerbieTypes'
+import { Expression, ordinal, expressionError, SpecRange, InputRanges,
+  ErrorAnalysisData, ExpressionStyle } from './HerbieTypes'
 
 import * as fpcorejs from './lib/fpcore'
 import * as ordinals from './lib/ordinals'
@@ -189,10 +189,10 @@ function ErrorPlot() {
   const sample = samples.find(s => s.id === selectedSampleId)
   const width = 800;
 
-  let inputRanges : HerbieTypes.SpecRange[] | undefined;
+  let inputRanges : SpecRange[] | undefined;
   if (sample) {
     const foundRange = inputRangesTable.find(r => sample.inputRangesId === r.id);
-    if (foundRange instanceof HerbieTypes.InputRanges) {
+    if (foundRange instanceof InputRanges) {
       inputRanges = foundRange ? foundRange.ranges : undefined;
     } else {
       inputRanges = undefined;
@@ -249,7 +249,7 @@ function ErrorPlot() {
         vars,
         errors,
         meanBitsError
-      } = analysisData(e) as HerbieTypes.ErrorAnalysisData // we already checked that analysisData(e) exists for all compareExpressions
+      } = analysisData(e) as ErrorAnalysisData // we already checked that analysisData(e) exists for all compareExpressions
       
       return vars.map((v, i) => {
         return ordinalSample.reduce((acc, p, j) => {
@@ -265,7 +265,7 @@ function ErrorPlot() {
 
   // We need to get some variables for setting up the graph from one of the expressions,
   // so we define a default.
-  let defaultData = analysisData(selectedExpr) as HerbieTypes.ErrorAnalysisData
+  let defaultData = analysisData(selectedExpr) as ErrorAnalysisData
 
   if (!defaultData) {
     // Look through the expressions to find the first one with analysis data
@@ -273,7 +273,7 @@ function ErrorPlot() {
     if (!firstExpr) {
       return <div className="empty-error-plot">No analysis data for any expressions yet.</div>
     }
-    defaultData = analysisData(firstExpr) as HerbieTypes.ErrorAnalysisData
+    defaultData = analysisData(firstExpr) as ErrorAnalysisData
   }
 
   const {
@@ -289,7 +289,7 @@ function ErrorPlot() {
 
 
   const styles = compareExpressions.map(e => {
-    const style = (expressionStyles.find(e1 => e1.expressionId === e.id) as HerbieTypes.ExpressionStyle).style
+    const style = (expressionStyles.find(e1 => e1.expressionId === e.id) as ExpressionStyle).style
     const selected = selectedExpr.id === e.id
     const dotAlpha = selected ? 'b5' : '25'
     const color = style.dot.stroke
@@ -318,7 +318,7 @@ function ErrorPlot() {
     if (!myInputRanges) {
       console.log('Doing nothing because myInputRanges is undefined')
       return }
-    setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(myInputRanges, spec.id, inputRangesId)])
+    setInputRangesTable([...inputRangesTable, new InputRanges(myInputRanges, spec.id, inputRangesId)])
   }
 
   // Only want to show resample button if the range has changed
@@ -369,7 +369,7 @@ function ErrorPlot() {
             (value: { lower: string, upper: string }) => {
               if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
               console.debug('set input range', v, value)
-              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
+              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
             }
           } />
         )}
@@ -580,7 +580,7 @@ function ErrorPlot() {
                 // Selected points & selected subset cannot exist simultaneously
                 setSelectedPoint(undefined);
               } else { // empty selection, revert brush styling
-                circles.forEach((c) => { c.circle.removeAttribute("class"); });
+                circles.forEach((c) => c.circle.removeAttribute("class"));
                 highlightMap.forEach((highlightLine) => {
                   highlightLine.line.removeAttribute("class");
                   highlightLine.newPath.removeAttribute("d");
@@ -591,10 +591,10 @@ function ErrorPlot() {
           select(svg).append('g')
             .attr('id', 'brush')
             .call(brush)
-            .on("click dblclick", (event) => {
+            .on("click dblclick", () => {
               brush.clear(select(svg).select('g'));
               // Returns lines & points to original colors
-              circles.forEach((c) => { c.circle.removeAttribute("class"); });
+              circles.forEach((c) => c.circle.removeAttribute("class"));
               highlightMap.forEach((highlightLine) => {
                 highlightLine.line.removeAttribute("class");
                 highlightLine.newPath.removeAttribute("d");

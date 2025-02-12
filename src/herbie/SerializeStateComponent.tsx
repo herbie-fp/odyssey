@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import Modal from 'react-modal';
 
-import { SpecRange } from './HerbieTypes';
-import * as HerbieTypes from './HerbieTypes';
+import { SpecRange, InputRanges, RangeInSpecFPCore } from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
-import * as utils from './lib/utils';
+import { nextId } from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
 
@@ -82,7 +81,7 @@ function SerializeStateComponent(props: exportStateProps) {
     // Get ranges associated with spec - ids (will be recomputed on import), 
     // (meaning undefined, don't jsonify, if RangeInSpecFPCore)
     const inputRange = inputRangesTable.findLast(r => r.specId === spec.id);
-    const specRanges = (inputRange instanceof HerbieTypes.InputRanges) ? inputRange.ranges : undefined;
+    const specRanges = (inputRange instanceof InputRanges) ? inputRange.ranges : undefined;
 
     const state = {
       serverUrl,
@@ -105,15 +104,15 @@ function SerializeStateComponent(props: exportStateProps) {
   const initializeSpec = async (serverUrl: string, expression: string, fpcore?: string, specRanges?: SpecRange[]) => {    
     // Set new spec and inputRangs ids (based on previous ids of session) for imported spec
     const specId = spec.id + 1;
-    const inputRangeId = utils.nextId(inputRangesTable);
+    const inputRangeId = nextId(inputRangesTable);
 
     setArchivedExpressions(expressions.map(e => e.id))
 
     const mathJSExpression = await ensureMathJS(expression, serverUrl); // TODO: probably unnecessary, should parse, but elsewhere
 
     const inputRanges = specRanges
-      ? new HerbieTypes.InputRanges(specRanges, specId, inputRangeId)
-      : new HerbieTypes.RangeInSpecFPCore(specId, inputRangeId);
+      ? new InputRanges(specRanges, specId, inputRangeId)
+      : new RangeInSpecFPCore(specId, inputRangeId);
 
     setInputRangesTable([...inputRangesTable, inputRanges])
     setSpec({expression: mathJSExpression, id: specId, fpcore});

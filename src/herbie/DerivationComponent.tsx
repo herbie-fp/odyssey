@@ -1,9 +1,9 @@
 import Latex from 'react-latex-next';
-import * as contexts from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 import './DerivationComponent.css';
 
 const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
-  const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
+  const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
 
   let selectedDerivation = derivations.find(d => d.id === expressionId)
   if (!selectedDerivation) {

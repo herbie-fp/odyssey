@@ -3,13 +3,12 @@ import Modal from 'react-modal';
 import { DebounceInput } from 'react-debounce-input';
 import KaTeX from 'katex';
 
-import * as HerbieTypes from './HerbieTypes';
-import { SpecRange, Spec } from './HerbieTypes';
+import { SpecRange, Spec, InputRanges, RangeInSpecFPCore } from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
 import { InputRange, InputRangeEditor1 } from './InputRangesEditor';
 import { expressionToTex } from './ExpressionTable';
 
-import * as utils from './lib/utils';
+import { nextId } from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
 
@@ -64,7 +63,7 @@ function SpecConfigComponent() {
   // Wait until submit click to set the spec
   const handleSubmitClick = async () => {
     const specId = value.id + 1;
-    const inputRangeId = utils.nextId(inputRangesTable)
+    const inputRangeId = nextId(inputRangesTable)
     const variables = await getVariables(spec)
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
@@ -73,7 +72,7 @@ function SpecConfigComponent() {
 
     let inputRanges, mySpec;
     if (spec.expression.includes("FPCore")) {
-      inputRanges = new HerbieTypes.RangeInSpecFPCore(
+      inputRanges = new RangeInSpecFPCore(
         specId,
         inputRangeId
       )
@@ -81,7 +80,7 @@ function SpecConfigComponent() {
       mySpec = new Spec(mathJSExpression, specId, spec.expression);
 
     } else {
-      inputRanges = new HerbieTypes.InputRanges(
+      inputRanges = new InputRanges(
         mySpecRanges.filter((range) => variables.includes(range.variable)),
         specId,
         inputRangeId
@@ -511,7 +510,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   // Wait until submit click to set the spec
   const handleSubmitClick = async () => {
     const specId = value.id + 1;
-    const inputRangeId = utils.nextId(inputRangesTable)
+    const inputRangeId = nextId(inputRangesTable)
     const variables = await getVariables(spec)
     // Reset the expressions list if we are truly switching specs
     if (spec.expression !== value.expression) { setArchivedExpressions(expressions.map(e => e.id)) }
@@ -520,7 +519,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
 
     let inputRanges, mySpec;
     if (spec.expression.includes("FPCore")) {
-      inputRanges = new HerbieTypes.RangeInSpecFPCore(
+      inputRanges = new RangeInSpecFPCore(
         specId,
         inputRangeId
       )
@@ -528,7 +527,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
       mySpec = new Spec(mathJSExpression, specId, spec.expression);
 
     } else {
-      inputRanges = new HerbieTypes.InputRanges(
+      inputRanges = new InputRanges(
         mySpecRanges.filter((range) => variables.includes(range.variable)),
         specId,
         inputRangeId

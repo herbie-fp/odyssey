@@ -7,8 +7,8 @@ import * as HerbieContext from './HerbieContext';
 
 import { addJobRecorder } from './HerbieUI';
 import { nextId } from './lib/utils'
-import * as herbiejsImport from './lib/herbiejs'
-import * as fpcore from './lib/fpcore'
+import * as herbiejs from './lib/herbiejs'
+import * as fpcorejs from './lib/fpcore'
 
 import { SelectableVisualization } from './SelectableVisualization';
 import { LocalError } from './LocalError/LocalError';
@@ -21,10 +21,10 @@ import KaTeX from 'katex';
 import './ExpressionTable.css';
 
 // Make server call to get tex version of expression
-export const expressionToTex = async (expression: fpcore.mathjs, numVars: number, serverUrl: string) => {
+export const expressionToTex = async (expression: fpcorejs.mathjs, numVars: number, serverUrl: string) => {
   try {
-    const response = await herbiejsImport.analyzeExpressionExport(
-      fpcore.mathjsToFPCore(expression),
+    const response = await herbiejs.analyzeExpressionExport(
+      fpcorejs.mathjsToFPCore(expression),
       "tex",
       serverUrl
     );
@@ -65,7 +65,7 @@ function ExpressionTable() {
   // get cost of naive expression
   const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
 
-  const herbiejs = addJobRecorder(herbiejsImport)
+  const herbiejsJobs = addJobRecorder(herbiejs)
 
   const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
 
@@ -123,15 +123,15 @@ function ExpressionTable() {
   }
 
   const extraVariables = (expression: string) => {
-    const specVariables = fpcore.getVarnamesMathJS(spec.expression);
-    const expressionVariables = fpcore.getVarnamesMathJS(expression);
+    const specVariables = fpcorejs.getVarnamesMathJS(spec.expression);
+    const expressionVariables = fpcorejs.getVarnamesMathJS(expression);
 
     return expressionVariables.filter((symbol) => !specVariables.includes(symbol));
   };
 
   const addExpressionErrors = (expression: string) : string[] => {
     try {
-      fpcore.getVarnamesMathJS(expression);
+      fpcorejs.getVarnamesMathJS(expression);
     } catch (e:any) {
       return [(e as Error).message];
     }
@@ -145,8 +145,8 @@ function ExpressionTable() {
       return [errorMessage];
     }
 
-    const functionNames = Object.keys(fpcore.SECRETFUNCTIONS).concat(Object.keys(fpcore.FUNCTIONS));
-    const expressionVariables = fpcore.getVarnamesMathJS(expression);
+    const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
+    const expressionVariables = fpcorejs.getVarnamesMathJS(expression);
     const functionNamedVariables = expressionVariables.filter((symbol) => functionNames.includes(symbol));
     if (functionNamedVariables.length !== 0) {
       const functionVariableString = functionNamedVariables.join(", ");
@@ -173,7 +173,7 @@ function ExpressionTable() {
   const handleAddExpression = async () => {
     validateExpression(addExpression);
     const selectedId = nextId(expressions);
-    const tex = await expressionToTex(addExpression, fpcore.getVarnamesMathJS(addExpression).length, serverUrl);
+    const tex = await expressionToTex(addExpression, fpcorejs.getVarnamesMathJS(addExpression).length, serverUrl);
     const newExpressions = [
       new Expression(addExpression, selectedId, spec.id, tex),
       ...expressions,
@@ -214,7 +214,7 @@ function ExpressionTable() {
     try {
       validateExpression(expression);
       const tex = expression === '' ? ''
-        : KaTeX.renderToString(await expressionToTex(expression, fpcore.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
+        : KaTeX.renderToString(await expressionToTex(expression, fpcorejs.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
       setAddExpressionTex(tex);
     } catch (e) {
       setAddExpressionTex((e as Error).toString());
@@ -226,7 +226,7 @@ function ExpressionTable() {
       return
     }
     // get suggested expressions with Herbie and put them in the expressions table
-    const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
+    const suggested = await herbiejsJobs.suggestExpressions(fpcorejs.mathjsToFPCore(expression.text, spec.expression, fpcorejs.getVarnamesMathJS(spec.expression)), sample, serverUrl)
 
 
     const histories = suggested.histories;
@@ -242,8 +242,8 @@ function ExpressionTable() {
       const newId = nextId(expressions) + i;
 
       const s = alternatives[i];
-      const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-      const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
+      const fPCoreToMathJS = await herbiejsJobs.fPCoreToMathJS(s, serverUrl);
+      const tex = await expressionToTex(fPCoreToMathJS, fpcorejs.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
        

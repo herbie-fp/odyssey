@@ -1,14 +1,13 @@
-import * as fpcorejs from './fpcore';
-import * as ordinalsjs from './ordinals';
-import * as types from '../HerbieTypes';
-import { ErrorExpressionResponse, Sample } from '../HerbieTypes';
+import { getVarnamesFPCore } from './fpcore';
+import * as ordinals from './ordinals';
+import { ErrorExpressionResponse, Sample, LocalErrorTree } from '../HerbieTypes';
 import { getApi } from './servercalls';
 
 interface HerbieResponse {
   error?: string;
   mathjs?: string;
   points: any[];
-  tree?: types.LocalErrorTree;
+  tree?: LocalErrorTree;
 }
 
 const getHerbieApiAsync = async (
@@ -147,7 +146,7 @@ export const suggestExpressions = async (
 };
 
 interface LocalErrorResponse {
-  tree: types.LocalErrorTree;
+  tree: LocalErrorTree;
 }
 
 interface CostResponse {
@@ -158,7 +157,7 @@ export const analyzeLocalError = async (
   fpcore: string,
   sample: Sample,
   host: string
-): Promise<types.LocalErrorTree> => {
+): Promise<LocalErrorTree> => {
   return (await getHerbieApi(host, 'localerror', { formula: fpcore, sample: sample.points, seed: 5 }, true) as LocalErrorResponse).tree;
 };
 
@@ -229,12 +228,12 @@ export const analyzeExpression = async (
 
 
   const pointsAndErrors = ((await getHerbieApi(host, 'analyze', { formula: fpcore, sample: sample.points, seed: 5 }, true)) as AnalyzeResponse).points;
-  const ordinalSample = pointsAndErrors.map(p => p[0].map((v: number) => ordinalsjs.floatToApproximateOrdinal(v)));
+  const ordinalSample = pointsAndErrors.map(p => p[0].map((v: number) => ordinals.floatToApproximateOrdinal(v)));
 
-  const vars = fpcorejs.getVarnamesFPCore(fpcore);
+  const vars = getVarnamesFPCore(fpcore);
   const ticksByVarIdx: [string, number][][] = vars.map((v, i) => {
     const values = sample.points.map(p => p[0][i]);
-    return ordinalsjs.chooseTicks(fastMin(values), fastMax(values)).map(v => [displayNumber(v), ordinalsjs.floatToApproximateOrdinal(v)]);
+    return ordinals.chooseTicks(fastMin(values), fastMax(values)).map(v => [displayNumber(v), ordinals.floatToApproximateOrdinal(v)]);
   });
 
   const splitpointsByVarIdx = vars.map(v => []);  // HACK no splitpoints for now

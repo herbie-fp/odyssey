@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React from "react";
 const mermaid = require( "mermaid").default;
 
 const DEFAULT_CONFIG = {
@@ -87,22 +87,3 @@ export default class Mermaid extends React.Component<{ chart: string }, { id: st
     );
   }
 }
-
-// export interface MermaidProps {
-//   name?: any;
-//   children: any;
-// }
-
-// export const Mermaid: FC<MermaidProps> = ({ children }) => {
-//   mermaid.initialize(DEFAULT_CONFIG);
-
-//   useEffect(() => {
-//     mermaid.contentLoaded();
-//   }, [children]);
-
-//   return (
-//     <div className="mermaid" style={{ textAlign: 'center' }}>
-//       {children}
-//     </div>
-//   );
-// };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import * as Contexts from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 import { ExpressionStyle } from './HerbieTypes';
 
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
@@ -93,19 +93,19 @@ async function makeExampleSVG(color: string) {
 
 const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (props) => {
     // Access ExpressionStylesContext
-    const [expressionStyles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext);
+    const [expressionStyles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext);
     const [color, setColor] = React.useState('red');
     // Access the global expressions field
-    const [allExpressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
+    const [allExpressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
     // get the spec
-    const [spec, setSpec] = Contexts.useGlobal(Contexts.SpecContext);
+    const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext);
     // get the costs and errors for each expression
-    const [costs, setCosts] = Contexts.useGlobal(Contexts.CostContext);
-    const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext);
+    const [costs, setCosts] = HerbieContext.useGlobal(HerbieContext.CostContext);
+    const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext);
     // convert error to percent accuracy
     const errorToAccuracy = (error: number) => error// 1 - error / 64;
     //get archived expressions
-    const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext);
+    const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
     
     // get the spec's expression
     const naiveExpression = allExpressions.find(e => e.text === spec.expression);
@@ -120,12 +120,12 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     }
     const naiveAccuracy = errorToAccuracy(naiveError);
     // get the ids of the selected expressions
-    const [selectedExprIds, setSelectedExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext);
+    const [selectedExprIds, setSelectedExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
     // get the selected expression id
     const naiveExpressionId = selectedExprIds.find(id => id === naiveExpression.id) || 0;
 
     // get the clicked on expression
-    const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
+    const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
 
     //filter selected expressions 
     const filteredExpressionIds = selectedExprIds.filter(e => !archivedExpressions.includes(e));

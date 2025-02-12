@@ -1,9 +1,3 @@
-import * as fpcorejs from './fpcore';
-import * as ordinalsjs from './ordinals';
-import { Sample } from '../HerbieTypes';
-import * as types from '../HerbieTypes';
-
-
 export const getApi = async (
     endpoint: string,
     data: object,

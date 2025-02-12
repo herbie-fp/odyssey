@@ -1,16 +1,16 @@
 import React from 'react';
-import * as Contexts from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 
 interface LinkToReportsProps {
     expressionId: number;
 }
 
 const LinkToReports: React.FC<LinkToReportsProps> = ({ expressionId }) => {
-    const [serverUrl] = Contexts.useGlobal(Contexts.ServerContext);
-    const [samples,] = Contexts.useGlobal(Contexts.SamplesContext);
-    const [selectedSampleId,] = Contexts.useGlobal(Contexts.SelectedSampleIdContext);
-    const [expressions, ] = Contexts.useGlobal(Contexts.ExpressionsContext)
-    const [alternativesJobResponse, ] = Contexts.useGlobal(Contexts.AlternativesJobResponseContext);
+    const [serverUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext);
+    const [samples,] = HerbieContext.useGlobal(HerbieContext.SamplesContext);
+    const [selectedSampleId,] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext);
+    const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+    const [alternativesJobResponse, ] = HerbieContext.useGlobal(HerbieContext.AlternativesJobResponseContext);
     // get the path from the alternativesJobResponse using find
     const path = alternativesJobResponse.path;
 

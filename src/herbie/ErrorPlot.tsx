@@ -411,9 +411,10 @@ function ErrorPlot() {
 
               setSelectedPoint(point)
               setSelectedExprId(id)
-              // remove brushing, 
-              // TODO: would we rather layer? (unselect point would return to whatever previous state was: un/brushed)
+
+              // remove brushing and revert back to full sample analysis
               setSelectedSubset(undefined)
+              setSelectedAnalysis(undefined)
 
               fetch('https://herbie.uwplse.org/odyssey-log/log', {
                 method: 'POST',

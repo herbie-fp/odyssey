@@ -15,6 +15,35 @@ const cors = require('cors');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
+async function getLatestHerbieBinary(): Promise<string> {
+    const repo = "herbie-fp/odyssey";
+    const url = `https://api.github.com/repos/${repo}/releases/latest`;
+
+    try {
+        const response = await fetch(url, { headers: { "Accept": "application/vnd.github.v3+json" } });
+        if (!response.ok) {throw new Error(`GitHub API error: ${response.statusText}`);}
+
+        const data = await response.json();
+        const asset = data.assets.find((a: any) => a.name.includes("herbie-dist.zip"));
+
+        if (asset) {
+            return asset.browser_download_url;
+        } else {
+            throw new Error("Binary not found in latest release.");
+        }
+    } catch (error) {
+        console.error("Failed to fetch latest Herbie binary:", error);
+        return HERBIE_SERVER_ADDRESS; // Fallback to hardcoded version
+    }
+}
+
+
+// Usage example:
+getLatestHerbieBinary().then(url => {
+    const HERBIE_SERVER_ADDRESS_1 = url;
+    console.log("Updated Herbie binary URL:", HERBIE_SERVER_ADDRESS_1);
+});
+
 const HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/v1.1.0-bin/herbie-dist.zip"
 const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"

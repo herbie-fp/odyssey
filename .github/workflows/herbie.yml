@@ -72,38 +72,62 @@ jobs:
         run: |
           cd herbie
           make distribution || { echo "Make distribution failed!"; exit 1; }
-          rm -rf herbie-compiled/bench
+          rm -rf herbie-compiled/bench  # Remove unnecessary files
 
-      # Create final Herbie package (Linux/macOS)
-      - name: Create final Herbie package
+      # Organize Files for Linux/macOS
+      - name: Organize files for packaging (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          cd herbie
-          if [ ! -d "herbie-compiled" ]; then
-            echo "No compiled files to package!"
-            exit 1
-          fi
-          tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
+          mkdir -p herbie-dist/${{ matrix.os-name }}/herbie-compiled
+          mv herbie/herbie-compiled/bin herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          mv herbie/herbie-compiled/lib herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          cp herbie/herbie-compiled/license herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          cp herbie/herbie-compiled/logo herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          cp herbie/herbie-compiled/readme herbie-dist/${{ matrix.os-name }}/herbie-compiled/
 
-      # Create final Herbie package (Windows)
-      - name: Create final Herbie package (Windows)
+      # Organize Files for Windows
+      - name: Organize files for packaging (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cd herbie
-          if (!(Test-Path -Path "herbie-compiled")) {
-            Write-Host "No compiled files to package!"
-            exit 1
-          }
-          Compress-Archive -Path "herbie-compiled\*" -DestinationPath "herbie-${{ matrix.os-name }}.zip"
+          mkdir -p herbie-dist/windows/herbie-compiled
+          Move-Item -Path herbie/herbie-compiled/lib -Destination herbie-dist/windows/herbie-compiled/
+          Move-Item -Path herbie/herbie-compiled/herbie.exe -Destination herbie-dist/windows/herbie-compiled/
+          Copy-Item -Path herbie/herbie-compiled/license -Destination herbie-dist/windows/herbie-compiled/
+          Copy-Item -Path herbie/herbie-compiled/logo -Destination herbie-dist/windows/herbie-compiled/
+          Copy-Item -Path herbie/herbie-compiled/readme -Destination herbie-dist/windows/herbie-compiled/
 
-      # Upload the Final Packaged Herbie Distribution
-      - name: Upload Packaged Herbie
+      # Upload OS-Specific Files as Artifacts
+      - name: Upload OS-Specific Herbie Distribution
         uses: actions/upload-artifact@v4
         with:
-          name: herbie-distribution-${{ matrix.os-name }}
-          path: |
-            herbie/herbie-${{ matrix.os-name }}.zip
-            herbie/herbie-${{ matrix.os-name }}.tar.gz
+          name: herbie-dist-${{ matrix.os-name }}
+          path: herbie-dist/${{ matrix.os-name }}
+          if-no-files-found: error
+
+  # Merge Binaries Into a Single Zip
+  merge-binaries:
+    name: Merge Binaries into a Single Zip
+    runs-on: ubuntu-latest
+    needs: build-herbie
+    steps:
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      - name: Download All OS Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: herbie-dist
+
+      - name: Create Unified ZIP
+        shell: bash
+        run: |
+          zip -r herbie-dist.zip herbie-dist/*
+
+      - name: Upload Final Unified ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: herbie-dist
+          path: herbie-dist.zip
           if-no-files-found: error

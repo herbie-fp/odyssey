@@ -84,6 +84,7 @@ jobs:
             echo "No compiled files to package!"
             exit 1
           fi
+          mkdir -p herbie-dist/${{ matrix.os-name }}/
           mv herbie-compiled ../herbie-dist/${{ matrix.os-name }}/
 
       # Create final Herbie package (Windows)
@@ -96,6 +97,7 @@ jobs:
             Write-Host "No compiled files to package!"
             exit 1
           }
+          New-Item -ItemType Directory -Path herbie-dist\${{ matrix.os-name }} -Force
           Move-Item -Path "herbie-compiled" -Destination "../herbie-dist/windows/"
 
       # Upload the Final Packaged Herbie Distribution

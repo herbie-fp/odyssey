@@ -98,36 +98,10 @@ jobs:
           Copy-Item -Path herbie/herbie-compiled/logo -Destination herbie-dist/windows/herbie-compiled/
           Copy-Item -Path herbie/herbie-compiled/readme -Destination herbie-dist/windows/herbie-compiled/
 
-      # Upload OS-Specific Files as Artifacts
+      # Upload OS-Specific Folders as Artifacts
       - name: Upload OS-Specific Herbie Distribution
         uses: actions/upload-artifact@v4
         with:
           name: herbie-dist-${{ matrix.os-name }}
           path: herbie-dist/${{ matrix.os-name }}
-          if-no-files-found: error
-
-  # Merge Binaries Into a Single Zip
-  merge-binaries:
-    name: Merge Binaries into a Single Zip
-    runs-on: ubuntu-latest
-    needs: build-herbie
-    steps:
-      - name: Checkout Odyssey repository
-        uses: actions/checkout@v4
-
-      - name: Download All OS Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: herbie-dist
-
-      - name: Create Unified ZIP
-        shell: bash
-        run: |
-          zip -r herbie-dist.zip herbie-dist/*
-
-      - name: Upload Final Unified ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: herbie-dist
-          path: herbie-dist.zip
           if-no-files-found: error

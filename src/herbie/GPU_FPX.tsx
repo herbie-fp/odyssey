@@ -7,6 +7,12 @@ import { ExpressionExportResponse } from './lib/herbiejs';
 import { FPCoreGetBody, FPCorePreconditionFromRanges, getVarnamesFPCore, getVarnamesMathJS, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
 import { FPTaylorComponent } from './FPTaylorComponent';
 
+/**
+ * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
+ * then sends those CUDA expressions to GPU-FPX, runs GPU-FPX, and then outputs it's results 
+ * @param param0 
+ * @returns 
+ */
 const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   //Get expressions
   const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
@@ -25,7 +31,9 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-
+  /**
+   * FPBench and GPU-FPX Fetch Calls
+   */
   const handleRunAnalysis = async () => {
         try {
           //convert mathjs to fpcore
@@ -103,11 +111,17 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
     setRunAnalyzer(!runAnalyzer);
     handleRunAnalysis();
 };
-
+  /**
+   * Report click handler
+   */
   const handleReportClick = () => {
     setShowReport(!showReport);
   }
-
+  /**
+   * Helper to format the detector results from GPU-FPX to be more readable
+   * @param report the output of the extract detector report function call
+   * @returns a formatted string
+   */
   const formatDetectorReport = (report: string) => {
     // Split on newlines and filter out empty lines and headers
     return report.split(/\r?\n/)
@@ -119,6 +133,11 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
       )
   }
 
+  /**
+   * Helper which extracts the detector report from the rest of the GPU-FPX output
+   * @param log the original raw output from GPU-FPX
+   * @returns just the detector info
+   */
   const extractDetectorReport = (log: string): string => {
     const startMarker = "------------ GPU-FPX Report -----------";
     const endMarker = "The total number of exceptions are:";
@@ -129,6 +148,11 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
     return log.slice(start, endLineStart + endLine.length);
 };
 
+/**
+ * Helper which extracts the analyzer report from the rest of the GPU-FPX output
+ * @param log the original raw output from GPU-FPX
+ * @returns just the analyzer info
+ */
 const extractAnalyzerReport = (log: string): string => {
   const startMarker = "#GPU-FPX-ANA SHARED REGISTER:";
   const endMarker = "This completes the analyzer report.";
@@ -136,6 +160,7 @@ const extractAnalyzerReport = (log: string): string => {
   const endLineStart = log.indexOf(endMarker);  
   return log.slice(start, endLineStart);
 };
+
 
 const formattedDectectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
 

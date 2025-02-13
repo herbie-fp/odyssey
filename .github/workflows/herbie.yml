@@ -89,9 +89,9 @@ jobs:
           New-Item -ItemType Directory -Path herbie-dist\${{ matrix.os-name }} -Force
           Move-Item -Path herbie\herbie-compiled -Destination herbie-dist\${{ matrix.os-name }}\
 
-      # Wait for all OS jobs to complete before creating final ZIP
-      - name: Create Final Herbie Distribution ZIP
-        if: always()
+      # Create Final Herbie Distribution ZIP
+      - name: Create Final Herbie Distribution ZIP (Linux/macOS)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           if [ ! -d "herbie-dist" ]; then
@@ -99,6 +99,16 @@ jobs:
             exit 1
           fi
           zip -r herbie-dist.zip herbie-dist/
+
+      - name: Create Final Herbie Distribution ZIP (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (!(Test-Path -Path "herbie-dist")) {
+            Write-Host "No compiled files found!"
+            exit 1
+          }
+          Compress-Archive -Path herbie-dist\* -DestinationPath herbie-dist.zip
 
       # Upload the Final Packaged Herbie Distribution
       - name: Upload Final Herbie Distribution ZIP

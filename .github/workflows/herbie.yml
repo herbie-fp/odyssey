@@ -72,36 +72,36 @@ jobs:
         run: |
           cd herbie
           make distribution || { echo "Make distribution failed!"; exit 1; }
-          rm -rf herbie-compiled/bench  # Remove unnecessary files
+          rm -rf herbie-compiled/bench
 
-      # Organize Files for Linux/macOS
-      - name: Organize files for packaging (Linux/macOS)
+      # Create final Herbie package (Linux/macOS)
+      - name: Create final Herbie package
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          mkdir -p herbie-dist/${{ matrix.os-name }}/herbie-compiled
-          mv herbie/herbie-compiled/bin herbie-dist/${{ matrix.os-name }}/herbie-compiled/
-          mv herbie/herbie-compiled/lib herbie-dist/${{ matrix.os-name }}/herbie-compiled/
-          cp herbie/herbie-compiled/license.md herbie-dist/${{ matrix.os-name }}/herbie-compiled/
-          cp herbie/herbie-compiled/logo.png herbie-dist/${{ matrix.os-name }}/herbie-compiled/
-          cp herbie/herbie-compiled/readme.md herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          cd herbie
+          if [ ! -d "herbie-compiled" ]; then
+            echo "No compiled files to package!"
+            exit 1
+          fi
+          mv herbie-compiled ../herbie-dist/${{ matrix.os-name }}/
 
-      # Organize Files for Windows
-      - name: Organize files for packaging (Windows)
+      # Create final Herbie package (Windows)
+      - name: Create final Herbie package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          mkdir -p herbie-dist/windows/herbie-compiled
-          Move-Item -Path herbie/herbie-compiled/lib -Destination herbie-dist/windows/herbie-compiled/
-          Move-Item -Path herbie/herbie-compiled/herbie.exe -Destination herbie-dist/windows/herbie-compiled/
-          Copy-Item -Path herbie/herbie-compiled/license.md -Destination herbie-dist/windows/herbie-compiled/
-          Copy-Item -Path herbie/herbie-compiled/logo.png -Destination herbie-dist/windows/herbie-compiled/
-          Copy-Item -Path herbie/herbie-compiled/readme.md -Destination herbie-dist/windows/herbie-compiled/
+          cd herbie
+          if (!(Test-Path -Path "herbie-compiled")) {
+            Write-Host "No compiled files to package!"
+            exit 1
+          }
+          Move-Item -Path "herbie-compiled" -Destination "../herbie-dist/windows/"
 
-      # Upload OS-Specific Folders as Artifacts
-      - name: Upload OS-Specific Herbie Distribution
+      # Upload the Final Packaged Herbie Distribution
+      - name: Upload Packaged Herbie
         uses: actions/upload-artifact@v4
         with:
-          name: herbie-dist-${{ matrix.os-name }}
-          path: herbie-dist/${{ matrix.os-name }}
+          name: herbie-distribution-${{ matrix.os-name }}
+          path: herbie-dist/${{ matrix.os-name }}/
           if-no-files-found: error

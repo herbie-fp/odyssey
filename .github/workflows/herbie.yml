@@ -74,7 +74,7 @@ jobs:
           make distribution || { echo "Make distribution failed!"; exit 1; }
           rm -rf herbie-compiled/bench
 
-      # Create final Herbie package (Linux/macOS)
+      # Move compiled files into herbie-dist directory
       - name: Move Herbie Compiled Folder (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
@@ -82,7 +82,6 @@ jobs:
           mkdir -p herbie-dist/${{ matrix.os-name }}/
           mv herbie/herbie-compiled herbie-dist/${{ matrix.os-name }}/
 
-      # Create final Herbie package (Windows)
       - name: Move Herbie Compiled Folder (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -90,10 +89,21 @@ jobs:
           New-Item -ItemType Directory -Path herbie-dist\${{ matrix.os-name }} -Force
           Move-Item -Path herbie\herbie-compiled -Destination herbie-dist\${{ matrix.os-name }}\
 
+      # Wait for all OS jobs to complete before creating final ZIP
+      - name: Create Final Herbie Distribution ZIP
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -d "herbie-dist" ]; then
+            echo "No compiled files found!"
+            exit 1
+          fi
+          zip -r herbie-dist.zip herbie-dist/
+
       # Upload the Final Packaged Herbie Distribution
-      - name: Upload Packaged Herbie
+      - name: Upload Final Herbie Distribution ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: herbie-distribution-${{ matrix.os-name }}
-          path: herbie-dist/${{ matrix.os-name }}/
+          name: herbie-dist
+          path: herbie-dist.zip
           if-no-files-found: error

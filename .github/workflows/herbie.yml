@@ -75,30 +75,20 @@ jobs:
           rm -rf herbie-compiled/bench
 
       # Create final Herbie package (Linux/macOS)
-      - name: Create final Herbie package
+      - name: Move Herbie Compiled Folder (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          cd herbie
-          if [ ! -d "herbie-compiled" ]; then
-            echo "No compiled files to package!"
-            exit 1
-          fi
           mkdir -p herbie-dist/${{ matrix.os-name }}/
-          mv herbie-compiled ../herbie-dist/${{ matrix.os-name }}/
+          mv herbie/herbie-compiled herbie-dist/${{ matrix.os-name }}/
 
       # Create final Herbie package (Windows)
-      - name: Create final Herbie package (Windows)
+      - name: Move Herbie Compiled Folder (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cd herbie
-          if (!(Test-Path -Path "herbie-compiled")) {
-            Write-Host "No compiled files to package!"
-            exit 1
-          }
           New-Item -ItemType Directory -Path herbie-dist\${{ matrix.os-name }} -Force
-          Move-Item -Path "herbie-compiled" -Destination "../herbie-dist/windows/"
+          Move-Item -Path herbie\herbie-compiled -Destination herbie-dist\${{ matrix.os-name }}\
 
       # Upload the Final Packaged Herbie Distribution
       - name: Upload Packaged Herbie

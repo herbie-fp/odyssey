@@ -82,9 +82,9 @@ jobs:
           mkdir -p herbie-dist/${{ matrix.os-name }}/herbie-compiled
           mv herbie/herbie-compiled/bin herbie-dist/${{ matrix.os-name }}/herbie-compiled/
           mv herbie/herbie-compiled/lib herbie-dist/${{ matrix.os-name }}/herbie-compiled/
-          cp herbie/herbie-compiled/license herbie-dist/${{ matrix.os-name }}/herbie-compiled/
-          cp herbie/herbie-compiled/logo herbie-dist/${{ matrix.os-name }}/herbie-compiled/
-          cp herbie/herbie-compiled/readme herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          cp herbie/herbie-compiled/license.md herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          cp herbie/herbie-compiled/logo.png herbie-dist/${{ matrix.os-name }}/herbie-compiled/
+          cp herbie/herbie-compiled/readme.md herbie-dist/${{ matrix.os-name }}/herbie-compiled/
 
       # Organize Files for Windows
       - name: Organize files for packaging (Windows)
@@ -94,9 +94,9 @@ jobs:
           mkdir -p herbie-dist/windows/herbie-compiled
           Move-Item -Path herbie/herbie-compiled/lib -Destination herbie-dist/windows/herbie-compiled/
           Move-Item -Path herbie/herbie-compiled/herbie.exe -Destination herbie-dist/windows/herbie-compiled/
-          Copy-Item -Path herbie/herbie-compiled/license -Destination herbie-dist/windows/herbie-compiled/
-          Copy-Item -Path herbie/herbie-compiled/logo -Destination herbie-dist/windows/herbie-compiled/
-          Copy-Item -Path herbie/herbie-compiled/readme -Destination herbie-dist/windows/herbie-compiled/
+          Copy-Item -Path herbie/herbie-compiled/license.md -Destination herbie-dist/windows/herbie-compiled/
+          Copy-Item -Path herbie/herbie-compiled/logo.png -Destination herbie-dist/windows/herbie-compiled/
+          Copy-Item -Path herbie/herbie-compiled/readme.md -Destination herbie-dist/windows/herbie-compiled/
 
       # Upload OS-Specific Folders as Artifacts
       - name: Upload OS-Specific Herbie Distribution

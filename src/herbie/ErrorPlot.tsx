@@ -364,9 +364,10 @@ function ErrorPlot() {
           <InputRangeEditor1 value={{
             varname: v,
             lower: range.lowerBound.toString(),
-            upper: range.upperBound.toString()
+            upper: range.upperBound.toString(),
+            minAbsVal: range.minAbsValue.toString()
           }} setValue={
-            (value: { lower: string, upper: string }) => {
+            (value: { lower: string, upper: string, minAbsVal: string }) => {
               if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
               console.debug('set input range', v, value)
               setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper), parseFloat(value.minAbsValue)) : r))

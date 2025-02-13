@@ -285,7 +285,7 @@ function SpecConfigComponent() {
   useEffect(() => {
     const vars = variables;
     const newRanges = vars.map((v) => {
-      const range = mySpecRanges.find((r) => r.variable === v) || new SpecRange(v, -1e308, 1e308);
+      const range = mySpecRanges.find((r) => r.variable === v) || new SpecRange(v, -1e308, 1e308, 0);
       return range;
     });
     setMySpecRanges(newRanges);
@@ -348,7 +348,7 @@ function SpecConfigComponent() {
             {variables.map((v, i) => {
               const range =
                 mySpecRanges.find((r) => r.variable === v) ||
-                new SpecRange(v, -1e308, 1e308);
+                new SpecRange(v, -1e308, 1e308, 0);
               return (
                 <div className="spec-range-input" key={v}>
                   <div className="varname">{v}:</div>
@@ -358,7 +358,7 @@ function SpecConfigComponent() {
                       lower: range.lowerBound.toString(),
                       upper: range.upperBound.toString(),
                     }}
-                    setValue={(value: { lower: string; upper: string }) => {
+                    setValue={(value: { lower: string; upper: string, minAbsValue: string }) => {
                       console.debug("set input range", v, value);
                       if (mySpecRanges.map((r) => r.variable).includes(v)) {
                         setMySpecRanges(

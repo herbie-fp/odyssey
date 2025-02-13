@@ -4,7 +4,6 @@ interface InputRange {
   varname: string;
   lower: string;
   upper: string;
-
   minAbsVal?: string;
 }
 

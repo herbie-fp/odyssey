@@ -105,11 +105,11 @@ g[aria-label="y-axis label"] {
 }
 
 .unbrushed-line {
-  stroke: #d2d2d2;
+  stroke: #dddbdb92;
 }
 
 .unbrushed, rect.selection {
-  fill: #d2d2d2;
+  fill: #dddbdb92;
 }
 
 .highlight-line {

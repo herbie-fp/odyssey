@@ -66,9 +66,6 @@ async function plotVarError(varidx: number, data: OrdinalErrorPoint[][], varname
   const tickZeroIndex = tickLabels.indexOf("0")
   const domain = [Math.min(...tickOrdinals), Math.max(...tickOrdinals)]
 
-  // Creates array containing, for every idx, i, of given arrs, a tuple with value at i of each
-  const zip = (arr1: any[], arr2: any[], arr3=[]) => arr1.reduce((acc, _, i) => (acc.push([arr1[i], arr2[i], arr3?.[i]]), acc), [])
-
   // Compress `arr` to length `outLen` by dividing into chunks and applying `chunkCompressor` to each chunk.
   const compress = (arr : any[], outLen: number, chunkCompressor = (points: any[]) => points[0]) => {
     return arr.reduce((acc, pt, i) =>
@@ -169,9 +166,8 @@ async function plotVarError(varidx: number, data: OrdinalErrorPoint[][], varname
         // The 0-rule
         ...(tickZeroIndex > -1 ? [Plot.ruleX([tickOrdinals[tickZeroIndex]])] : []),
       ],
-      // Combine data points and styles for each expression
-      ...zip(data, styles).map(([data, style]: [OrdinalErrorPoint[], LineAndDotStyle]) => 
-        lineAndDotGraphs(data, style.expId, style)).flat() // create graphs for each
+      // Create graphs for each expression, data should be 1:1 with styles
+      ...data.map((data: OrdinalErrorPoint[], i: number) => lineAndDotGraphs(data, styles[i].expId, styles[i])).flat()
     ]
   })
   out.setAttribute('viewBox', `0 0 ${width} ${height + 30}`)
@@ -387,7 +383,7 @@ function ErrorPlot() {
             const plot = await plotVarError(
               i, // varIdx              
               data, // data for the current variable
-            varnames,
+              varnames,
               ticksByVarIdx[i],
               splitpointsByVarIdx[i],
               styles,
@@ -505,7 +501,7 @@ function ErrorPlot() {
             const stroke = line.getAttribute("stroke") ?? "#d2d2d2";
             // Little hack for getting line's expression's id
             const text = line.querySelector("title")?.textContent;
-            const expId = text && text !== null ? JSON.parse(text).id : 0;
+            const expId = text && text !== null ? JSON.parse(text).expId : 0;
 
             // Create a new a highlight line with an empty path (for now)
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -573,8 +569,7 @@ function ErrorPlot() {
                 setSelectedSubset({
                   selection: event.selection,
                   varIdx: i, 
-                  ordinalPoints: brushedPoints,
-                  points: brushedPoints.map(p => p.map((v: ordinal) => ordinals.ordinalToFloat(v)))
+                  points: brushedPoints,
                 });
 
                 // Selected points & selected subset cannot exist simultaneously
@@ -647,12 +642,9 @@ function ErrorPlot() {
             }
 
             // grey out unbrushed circles
-            const selPoints = selectedSubset.points;
-            
             circles.forEach((c) => {
-              const givenPoint = c.orig.map((v: ordinal) => ordinals.ordinalToFloat(v))
-              // For all "given" circles, determine if it's one of the selected subset
-              if (selPoints.some(p => p.every((v, i) =>  v === givenPoint?.[i]))) { 
+              // determine if it's one of the selected subset
+              if (selectedSubset.points.some(p => p.every((v, i) =>  v === c.orig?.[i]))) { 
                 c.circle.setAttribute("class", "brushed");
                 // bit of a a hack to get circle on top of unbrushed circles:
                 c.parent?.removeChild(c.circle)

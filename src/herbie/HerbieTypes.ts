@@ -72,10 +72,9 @@ export class CostAnalysis {
 }
 
 export class SelectedSubset {
-  constructor(public readonly selection: number[], public readonly varIdx: number, public readonly ordinalPoints: ordinal[][], public readonly points: number[][]) {
+  constructor(public readonly selection: number[], public readonly varIdx: number, public readonly points: ordinal[][]) {
     this.selection = selection;
     this.varIdx = varIdx;
-    this.ordinalPoints = ordinalPoints;
     this.points = points;
   }
 }

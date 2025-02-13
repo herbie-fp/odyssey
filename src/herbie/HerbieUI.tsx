@@ -319,16 +319,16 @@ function HerbieUIInner() {
       const activeAnalyses = analyses.filter(a => !archivedExpressions.includes(a.expressionId))
 
       const brushedVar = selectedSubsetRange.varIdx;
-      const brushedSize = selectedSubsetRange.ordinalPoints.length;
+      const brushedSize = selectedSubsetRange.points.length;
 
       const subsetAnalyses: HerbieTypes.SubsetErrorAnalysis[] = [];
       for (const a of activeAnalyses) {
         const subsetErrors = [];
         // Don't resample/analyze for any expressions, take subset of existing
         for (const [i, ordSamplePoint] of a.data.ordinalSample.entries()) {
-          if (ordSamplePoint[brushedVar] >= selectedSubsetRange.ordinalPoints[0][brushedVar] 
-            && ordSamplePoint[brushedVar] <= selectedSubsetRange.ordinalPoints[brushedSize - 1][brushedVar]) {
-              subsetErrors.push(a.data.errors[i]); // DANGEROUS ? assuming indicies of errors and ordinalPoints align 1:1
+          if (ordSamplePoint[brushedVar] >= selectedSubsetRange.points[0][brushedVar] 
+            && ordSamplePoint[brushedVar] <= selectedSubsetRange.points[brushedSize - 1][brushedVar]) {
+              subsetErrors.push(a.data.errors[i]); // Indicies of errors and ordinalPoints align 1:1
           }
         }
 

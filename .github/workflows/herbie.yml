@@ -153,22 +153,35 @@ jobs:
       - name: Checkout Odyssey repository
         uses: actions/checkout@v4
 
-      # Download the packaged ZIP file
+      # Download the artifact (this might be a folder instead of a ZIP)
       - name: Download Packaged Herbie Distribution
         uses: actions/download-artifact@v4
         with:
           name: herbie-dist
-          path: .
+          path: herbie-dist
 
-      # Create GitHub Release & Upload Folder
+      # Check the contents of the downloaded artifact
+      - name: List Downloaded Files
+        shell: bash
+        run: ls -R herbie-dist
+
+      # Zip only the contents of herbie-dist, not the folder itself
+      - name: Zip Herbie Distribution Correctly
+        shell: bash
+        run: |
+          cd herbie-dist
+          zip -r ../herbie-dist.zip *  # This ensures linux, macos, windows are top-level in the zip
+
+      # Upload the zip file as a release asset
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: herbie_binaries  # You can dynamically set this if needed
+          tag_name: herbie_binaries  # Change this dynamically if needed
           name: "Herbie Binaries"
           body: "Automated release of Herbie binaries for Linux, macOS, and Windows."
           draft: false
           prerelease: false
-          files: herbie-dist
+          files: herbie-dist.zip  # Make sure this file actually exists!
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

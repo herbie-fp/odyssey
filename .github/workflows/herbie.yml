@@ -169,6 +169,6 @@ jobs:
           body: "Automated release of Herbie binaries for Linux, macOS, and Windows."
           draft: false
           prerelease: false
-          files: herbie-dist.zip
+          files: herbie-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

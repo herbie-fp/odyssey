@@ -89,47 +89,62 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path herbie-dist\${{ matrix.os-name }} -Force
           Move-Item -Path herbie\herbie-compiled -Destination herbie-dist\${{ matrix.os-name }}\
-
-  package-binaries:
-    name: Package Herbie Binaries
-    needs: build-herbie
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checkout repository to access the built binaries
-      - name: Checkout Odyssey repository
-        uses: actions/checkout@v4
-
-      # Download all OS-specific artifacts
-      - name: Download all OS binaries
-        uses: actions/download-artifact@v4
-        with:
-          path: herbie-dist
-
-      # Verify that all OS builds exist
-      - name: Verify built binaries
-        shell: bash
-        run: |
-          ls -R herbie-dist
-          if [ ! -d "herbie-dist/linux" ] || [ ! -d "herbie-dist/macos" ] || [ ! -d "herbie-dist/windows" ]; then
-            echo "❌ Missing OS folders in herbie-dist!"
-            exit 1
-          fi
-
-      # Create single Herbie distribution ZIP containing all OS builds
-      - name: Create Single ZIP for Herbie Binaries
-        shell: bash
-        run: |
-          if [ ! -d "herbie-dist" ]; then
-            echo "❌ No compiled files found!"
-            exit 1
-          fi
-          zip -r herbie-dist.zip herbie-dist/
-
-      # Upload the Final Packaged Herbie Distribution
-      - name: Upload Final Packaged Herbie Distribution
+       # Upload individual OS binaries as artifacts
+      - name: Upload OS-Specific Herbie Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: herbie-dist
-          path: herbie-dist.zip
+          name: herbie-dist-${{ matrix.os-name }}
+          path: herbie-dist/${{ matrix.os-name }}
           if-no-files-found: error
+
+  package-binaries:
+   name: Package Herbie Binaries
+   needs: build-herbie
+   runs-on: ubuntu-latest
+
+   steps:
+     - name: Checkout Odyssey repository
+       uses: actions/checkout@v4
+
+     # Download all OS-specific artifacts
+     - name: Download Linux Binary
+       uses: actions/download-artifact@v4
+       with:
+         name: herbie-dist-linux
+         path: herbie-dist/linux
+
+     - name: Download macOS Binary
+       uses: actions/download-artifact@v4
+       with:
+         name: herbie-dist-macos
+         path: herbie-dist/macos
+
+     - name: Download Windows Binary
+       uses: actions/download-artifact@v4
+       with:
+         name: herbie-dist-windows
+         path: herbie-dist/windows
+
+     # Verify that all OS builds exist
+     - name: Verify built binaries
+       shell: bash
+       run: |
+         ls -R herbie-dist
+         if [ ! -d "herbie-dist/linux" ] || [ ! -d "herbie-dist/macos" ] || [ ! -d "herbie-dist/windows" ]; then
+           echo "❌ Missing OS folders in herbie-dist!"
+           exit 1
+         fi
+
+     # Create a single ZIP file containing all binaries
+     - name: Create Single ZIP for Herbie Binaries
+       shell: bash
+       run: |
+         zip -r herbie-dist.zip herbie-dist/
+
+     # Upload the Final Packaged Herbie Distribution
+     - name: Upload Final Packaged Herbie Distribution
+       uses: actions/upload-artifact@v4
+       with:
+         name: herbie-dist
+         path: herbie-dist.zip
+         if-no-files-found: error

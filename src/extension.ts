@@ -15,6 +15,11 @@ const cors = require('cors');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
+let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/v1.1.0-bin/herbie-dist.zip"
+const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
+const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
+
+
 async function getLatestHerbieBinary(): Promise<string> {
     const repo = "herbie-fp/odyssey";
     const url = `https://api.github.com/repos/${repo}/releases/latest`;
@@ -37,16 +42,10 @@ async function getLatestHerbieBinary(): Promise<string> {
     }
 }
 
-
-// Usage example:
 getLatestHerbieBinary().then(url => {
-    const HERBIE_SERVER_ADDRESS_1 = url;
-    console.log("Updated Herbie binary URL:", HERBIE_SERVER_ADDRESS_1);
+    HERBIE_SERVER_ADDRESS = url;
+	console.log("Using Herbie binary from:", HERBIE_SERVER_ADDRESS);
 });
-
-const HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/v1.1.0-bin/herbie-dist.zip"
-const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
-const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
 
 // TODO remove this server code/server and use the server code from server/tool-server.js
 // Port for plugins

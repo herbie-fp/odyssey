@@ -64,46 +64,124 @@ jobs:
         shell: bash
         run: |
           cd herbie
-          make install || { echo "Failed to install dependencies!"; exit 1; }
+          make install || { echo "❌ Failed to install dependencies!"; exit 1; }
 
       # Build Standalone Herbie Binary
       - name: Build Standalone Herbie Executable
         shell: bash
         run: |
           cd herbie
-          make distribution || { echo "Make distribution failed!"; exit 1; }
+          make distribution || { echo "❌ Make distribution failed!"; exit 1; }
           rm -rf herbie-compiled/bench
 
-      # Create final Herbie package (Linux/macOS)
-      - name: Create final Herbie package
+      # Move Herbie Compiled Folder (Linux/macOS)
+      - name: Move Herbie Compiled Folder (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          cd herbie
-          if [ ! -d "herbie-compiled" ]; then
-            echo "No compiled files to package!"
-            exit 1
-          fi
-          tar -czvf herbie-${{ matrix.os-name }}.tar.gz herbie-compiled/
+          mkdir -p herbie-dist/${{ matrix.os-name }}
+          mv herbie/herbie-compiled herbie-dist/${{ matrix.os-name }}/
 
-      # Create final Herbie package (Windows)
-      - name: Create final Herbie package (Windows)
+      # Move Herbie Compiled Folder (Windows)
+      - name: Move Herbie Compiled Folder (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cd herbie
-          if (!(Test-Path -Path "herbie-compiled")) {
-            Write-Host "No compiled files to package!"
-            exit 1
-          }
-          Compress-Archive -Path "herbie-compiled\*" -DestinationPath "herbie-${{ matrix.os-name }}.zip"
+          New-Item -ItemType Directory -Path herbie-dist\${{ matrix.os-name }} -Force
+          Move-Item -Path herbie\herbie-compiled -Destination herbie-dist\${{ matrix.os-name }}\
 
-      # Upload the Final Packaged Herbie Distribution
-      - name: Upload Packaged Herbie
+      # Upload individual OS binaries as artifacts
+      - name: Upload OS-Specific Herbie Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: herbie-distribution-${{ matrix.os-name }}
-          path: |
-            herbie/herbie-${{ matrix.os-name }}.zip
-            herbie/herbie-${{ matrix.os-name }}.tar.gz
+          name: herbie-dist-${{ matrix.os-name }}
+          path: herbie-dist/${{ matrix.os-name }}
           if-no-files-found: error
+
+  package-binaries:
+    name: Package Herbie Binaries
+    needs: build-herbie
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      # Download all OS-specific artifacts
+      - name: Download Linux Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist-linux
+          path: herbie-dist/linux
+
+      - name: Download macOS Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist-macos
+          path: herbie-dist/macos
+
+      - name: Download Windows Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist-windows
+          path: herbie-dist/windows
+
+      # Verify that all OS builds exist
+      - name: Verify built binaries
+        shell: bash
+        run: |
+          ls -R herbie-dist
+          if [ ! -d "herbie-dist/linux" ] || [ ! -d "herbie-dist/macos" ] || [ ! -d "herbie-dist/windows" ]; then
+            echo "❌ Missing OS folders in herbie-dist!"
+            exit 1
+          fi
+
+      # Upload the Final Packaged Herbie Distribution
+      - name: Upload Final Packaged Herbie Distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: herbie-dist
+          path: herbie-dist
+          if-no-files-found: error
+
+  release:
+    name: Create Herbie Release
+    needs: package-binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      # Download the artifact (this might be a folder instead of a ZIP)
+      - name: Download Packaged Herbie Distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist
+          path: herbie-dist
+
+      # Check the contents of the downloaded artifact
+      - name: List Downloaded Files
+        shell: bash
+        run: ls -R herbie-dist
+
+      # Zip only the contents of herbie-dist, not the folder itself
+      - name: Zip Herbie Distribution Correctly
+        shell: bash
+        run: |
+          cd herbie-dist
+          zip -r ../herbie-dist.zip *  # This ensures linux, macos, windows are top-level in the zip
+
+      # Upload the zip file as a release asset
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: herbie_binaries  # Change this dynamically if needed
+          name: "Herbie Binaries"
+          body: "Automated release of Herbie binaries for Linux, macOS, and Windows."
+          draft: false
+          prerelease: false
+          files: herbie-dist.zip  # Make sure this file actually exists!
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

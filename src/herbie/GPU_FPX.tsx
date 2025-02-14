@@ -9,9 +9,9 @@ import { FPTaylorComponent } from './FPTaylorComponent';
 
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
- * then sends those CUDA expressions to GPU-FPX, runs GPU-FPX, and then outputs it's results 
- * @param param0 
- * @returns 
+ * then sends those CUDA expressions to GPU-FPX, runs GPU-FPX, and then outputs it's results in this component 
+ * @param param0 the current expression ID to run the component with
+ * @returns the GPU-FPX component
  */
 const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   //Get expressions
@@ -100,13 +100,19 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
             // Handle error appropriately
         }
     };
-    
+  
+  /**
+   * Resets the results for the analyzer and detector so that it can be populated with a new expressions results
+   */
   const resetResults = () =>{
     setAnalyzerResult("")
     setDetectorResult("")
   }
-  // Button to trigger analysis
-  const handleRunAnalyzerClick = () => {
+  
+  /**
+   * Button handler for "Run GPU-FPX"
+   */
+  const handleRunGPUFPXClick = () => {
     resetResults();
     setRunAnalyzer(!runAnalyzer);
     handleRunAnalysis();
@@ -118,9 +124,9 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
     setShowReport(!showReport);
   }
   /**
-   * Helper to format the detector results from GPU-FPX to be more readable
+   * Helper to format the raw detector results from GPU-FPX raw output
    * @param report the output of the extract detector report function call
-   * @returns a formatted string
+   * @returns a formatted expression detector results
    */
   const formatDetectorReport = (report: string) => {
     // Split on newlines and filter out empty lines and headers
@@ -134,9 +140,9 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   }
 
   /**
-   * Helper which extracts the detector report from the rest of the GPU-FPX output
+   * Helper which extracts the detector report from the rest of the GPU-FPX raw output
    * @param log the original raw output from GPU-FPX
-   * @returns just the detector info
+   * @returns just the raw detector output
    */
   const extractDetectorReport = (log: string): string => {
     const startMarker = "------------ GPU-FPX Report -----------";
@@ -151,7 +157,7 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
 /**
  * Helper which extracts the analyzer report from the rest of the GPU-FPX output
  * @param log the original raw output from GPU-FPX
- * @returns just the analyzer info
+ * @returns just the raw analyzer output
  */
 const extractAnalyzerReport = (log: string): string => {
   const startMarker = "#GPU-FPX-ANA SHARED REGISTER:";
@@ -161,9 +167,14 @@ const extractAnalyzerReport = (log: string): string => {
   return log.slice(start, endLineStart);
 };
 
-
+//final formatted report to be displayed in the DetectorReport component
 const formattedDectectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
 
+/**
+ *  Creates the JSX element to display results from runnning GPU-FPX on the selected expression
+ * @param param0 the formatted detector report to be displayed in the main component
+ * @returns the detector report JSX element
+ */
 const DetectorReport = ({ formattedDectectorReport }: { formattedDectectorReport: string[] }) => (
   <div>
     <h3>Detector Results</h3>
@@ -197,7 +208,7 @@ const AnalyzerReport = extractAnalyzerReport(analyzerResult);
       <p>{current_expression?.text}</p> 
       {/* <p>The total number of exceptions are: 2</p> */}
       <button onClick={handleReportClick}>See Full Report</button>
-      <button onClick={handleRunAnalyzerClick}>Run GPU-FPX</button>
+      <button onClick={handleRunGPUFPXClick}>Run GPU-FPX</button>
 
       {showReport ? 
       <div>

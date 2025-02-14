@@ -44,7 +44,7 @@ const bodyParser = __webpack_require__(35);
 const cors = __webpack_require__(203);
 const util = __webpack_require__(16);
 const exec = util.promisify((__webpack_require__(205).exec));
-let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/v1.1.0-bin/herbie-dist.zip";
+let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/herbie_binaries/herbie-dist.zip";
 const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip";
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip";
 async function getLatestHerbieBinary() {

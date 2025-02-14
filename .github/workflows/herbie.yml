@@ -139,7 +139,8 @@ jobs:
      - name: Create Single ZIP for Herbie Binaries
        shell: bash
        run: |
-         zip -r herbie-dist.zip herbie-dist/
+         cd herbie-dist
+         zip -r ../herbie-dist.zip *
 
      # Upload the Final Packaged Herbie Distribution
      - name: Upload Final Packaged Herbie Distribution

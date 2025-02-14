@@ -6,19 +6,27 @@ export type ordinalPoint = ordinal[]
 export type FPCore = string
 
 export class Derivation {
-  // derivation: The HTMLHistory object containing the derivation (as HTML) for an expression.
-  // id: The id of this derivation.
-  // parentId: The id of this derivation's parent, or undefined if this derivation has no parent.
-  constructor(public readonly derivation: HTMLHistory, public readonly id: number, public readonly parentId: number | undefined) {
+  /**
+   * @param derivation: The HTMLHistory object containing the derivation (as HTML) for an alternative expression
+   * @param id: The id of this derivation, the same id as the expression this derivation is for
+   * @param origExpId: The id of the expression that was improved resulting in the alternative this derivation is for
+   */
+  constructor(public readonly derivation: HTMLHistory, public readonly id: number, public readonly origExpId: number | undefined) {
     this.derivation = derivation;
     this.id = id;
-    this.parentId = parentId;
+    this.origExpId = origExpId;
   }
 }
 
 export class Expression {
   /**
-   *  @param {string} text - mathjs expression */
+   * @param {string} text - mathjs expression 
+   * @param {number} id - unique id for this expression
+   * @param {number} specId - unique id of the specification this expression is associated with
+   *  (could be an alternative for the spec or the naive expression, spec expression itself. in the later case
+   *   ids and specIds are totally distinct)
+   * @param {string} tex - the display latex for this expression
+   */
   constructor(public readonly text: string, public readonly id: number, public readonly specId: number, public readonly tex: string) {
     this.text = text;
     this.id = id;
@@ -26,13 +34,6 @@ export class Expression {
     this.tex = tex;
   }
 }
-
-// export class ExpressionIdsForSpec {
-//   constructor(public readonly expressionIds: number[], public readonly specId: number) {
-//     this.expressionIds = expressionIds;
-//     this.specId = specId;
-//   }
-// }
 
 export class ExpressionStyle {
   // expressions have a color

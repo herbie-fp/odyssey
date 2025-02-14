@@ -27,7 +27,7 @@ const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
     expressionAncestry.push(nextDerivation.id)
 
     // Examine the parent as the next expression
-    currentExpressionId = nextDerivation.parentId
+    currentExpressionId = nextDerivation.origExpId
   }
 
   return (

@@ -140,7 +140,7 @@ jobs:
        shell: bash
        run: |
          cd herbie-dist
-         zip -r ../herbie-dist.zip ./*
+         zip -r ../herbie-dist.zip .
 
      # Upload the Final Packaged Herbie Distribution
      - name: Upload Final Packaged Herbie Distribution

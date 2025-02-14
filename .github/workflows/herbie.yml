@@ -139,13 +139,24 @@ jobs:
      - name: Create Single ZIP for Herbie Binaries
        shell: bash
        run: |
-         cd herbie-dist
-         zip -r ../herbie-dist.zip .
+        cd herbie-dist
+        zip -r ../herbie-dist.zip .
 
-     # Upload the Final Packaged Herbie Distribution
+     - name: Extract Inner ZIP (Fix Nested Issue)
+       shell: bash
+       run: |
+        unzip herbie-dist.zip -d extracted
+        mv extracted/herbie-dist/* .
+        rm -rf extracted herbie-dist.zip
+
+     - name: Repackage Correct Herbie ZIP
+       shell: bash
+       run: |
+        zip -r herbie-dist.zip linux macos windows
+
      - name: Upload Final Packaged Herbie Distribution
        uses: actions/upload-artifact@v4
        with:
-         name: herbie-dist
-         path: herbie-dist.zip
-         if-no-files-found: error
+        name: herbie-dist
+        path: herbie-dist.zip
+        if-no-files-found: error

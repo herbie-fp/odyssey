@@ -15,7 +15,7 @@ const cors = require('cors');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
-let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/v1.1.0-bin/herbie-dist.zip"
+let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/herbie_binaries/herbie-dist.zip"
 const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
 

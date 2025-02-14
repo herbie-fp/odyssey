@@ -10,7 +10,7 @@ import { FPTaylorComponent } from './FPTaylorComponent';
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
  * then sends those CUDA expressions to GPU-FPX, runs GPU-FPX, and then outputs it's results in this component 
- * @param param0 
+ * @param param0 the current expression ID to run the component with
  * @returns the GPU-FPX component
  */
 const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
@@ -167,7 +167,7 @@ const extractAnalyzerReport = (log: string): string => {
   return log.slice(start, endLineStart);
 };
 
-
+//final formatted report to be displayed in the DetectorReport component
 const formattedDectectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
 
 /**

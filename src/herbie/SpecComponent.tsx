@@ -24,17 +24,6 @@ async function ensureMathJS(expression: string, serverUrl: string): Promise<stri
 }
 
 function SpecConfigComponent() {
-  const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
-  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
-  const [expressions,] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
-  const [mySpecRanges, setMySpecRanges] = useState(() => {
-    const foundRange = inputRangesTable.findLast(r => r.specId === spec.id);
-    if (foundRange && 'ranges' in foundRange) { return foundRange.ranges || []; }
-    else { return []; }
-  });
-  const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
-  const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
-
   // If this is running on the web, allow URL to pass in default expression
   // TODO: this currently only fills the spec entry area, need to trigger "explore"
   let urlExpr;
@@ -45,6 +34,16 @@ function SpecConfigComponent() {
   const [spec, setSpec] = useState(new Spec(urlExpr ?? '', 0));
   const [specTextInput, setSpecTextInput] = useState(spec.expression);
 
+  const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
+  const [expressions,] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [mySpecRanges, setMySpecRanges] = useState(() => {
+    const foundRange = inputRangesTable.findLast(r => r.specId === spec.id);
+    if (foundRange && 'ranges' in foundRange) { return foundRange.ranges || []; }
+    else { return []; }
+  });
+  const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
 
   const specExpressionErrors = (expression: string) => {
     const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));

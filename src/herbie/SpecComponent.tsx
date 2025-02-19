@@ -634,7 +634,6 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     setInitialized(true)
   }, [value])
 
-  debugger
   return (
     <div className="spec-container">
       <div className="spec-title">

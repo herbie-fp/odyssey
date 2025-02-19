@@ -298,7 +298,6 @@ function SpecConfigComponent() {
     setMySpecRanges(newRanges);
   }, [variables]);
 
-  debugger
   return (
     <div className="spec-page">
       <div className="spec-overlay-logo">

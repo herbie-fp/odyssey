@@ -365,12 +365,17 @@ function ErrorPlot() {
             varname: v,
             lower: range.lowerBound.toString(),
             upper: range.upperBound.toString(),
-            minAbsVal: range.minAbsValue.toString()
+            minAbsValue: range.minAbsValue.toString()
           }} setValue={
-            (value: { lower: string, upper: string, minAbsVal: string }) => {
+            (value: { lower: string, upper: string, minAbsValue?: string }) => {
               if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
               console.debug('set input range', v, value)
-              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(v, parseFloat(value.lower), parseFloat(value.upper), parseFloat(value.minAbsVal)) : r))
+              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new HerbieTypes.SpecRange(
+                v, 
+                parseFloat(value.lower), 
+                parseFloat(value.upper), 
+                value.minAbsValue !== undefined ? parseFloat(value.minAbsValue) : undefined) : r)
+              )
             }
           } />
         )}

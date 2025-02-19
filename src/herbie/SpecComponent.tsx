@@ -357,9 +357,9 @@ function SpecConfigComponent() {
                       varname: v,
                       lower: range.lowerBound.toString(),
                       upper: range.upperBound.toString(),
-                      minAbsVal: range.minAbsValue.toString()
+                      minAbsValue: range.minAbsValue.toString()
                     }}
-                    setValue={(value: { lower: string; upper: string, minAbsValue: string }) => {
+                    setValue={(value: { lower: string; upper: string, minAbsValue?: string }) => {
                       console.debug("set input range", v, value);
                       if (mySpecRanges.map((r) => r.variable).includes(v)) {
                         setMySpecRanges(
@@ -369,7 +369,7 @@ function SpecConfigComponent() {
                                   v,
                                   parseFloat(value.lower),
                                   parseFloat(value.upper),
-                                  parseFloat(value.minAbsValue)
+                                  value.minAbsValue !== undefined ? parseFloat(value.minAbsValue) : undefined
                                 )
                               : r
                           )
@@ -585,7 +585,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
   }
 
   const handleRangesUpdate = (value: { ranges: { [key: string]: InputRange } }) => {
-    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper), parseFloat(range.minAbsVal))))
+    setMySpecRanges(Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper), range.minAbsValue !== undefined ? parseFloat(range.minAbsValue) : undefined)))
     // setSpec(new Spec(spec.expression, /*Object.entries(value.ranges).map(([variable, range], id) => new SpecRange(variable, parseFloat(range.lower), parseFloat(range.upper))),*/ spec.id));
   }
 

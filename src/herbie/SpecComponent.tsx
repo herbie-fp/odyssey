@@ -357,6 +357,7 @@ function SpecConfigComponent() {
                       varname: v,
                       lower: range.lowerBound.toString(),
                       upper: range.upperBound.toString(),
+                      minAbsVal: range.minAbsValue.toString()
                     }}
                     setValue={(value: { lower: string; upper: string, minAbsValue: string }) => {
                       console.debug("set input range", v, value);

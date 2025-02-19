@@ -26,8 +26,6 @@ async function ensureMathJS(expression: string, serverUrl: string): Promise<stri
 function SpecConfigComponent() {
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
-  const [spec, setSpec] = useState(new Spec('', 0));
-  const [specTextInput, setSpecTextInput] = useState(spec.expression);
   const [expressions,] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [mySpecRanges, setMySpecRanges] = useState(() => {
     const foundRange = inputRangesTable.findLast(r => r.specId === spec.id);
@@ -36,6 +34,17 @@ function SpecConfigComponent() {
   });
   const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
+
+  // If this is running on the web, allow URL to pass in default expression
+  // TODO: this currently only fills the spec entry area, need to trigger "explore"
+  let urlExpr;
+  if (typeof window !== 'undefined') {
+    const queryParams = new URLSearchParams(window.location.search);
+    urlExpr = queryParams.get('expr');
+  }
+  const [spec, setSpec] = useState(new Spec(urlExpr ?? '', 0));
+  const [specTextInput, setSpecTextInput] = useState(spec.expression);
+
 
   const specExpressionErrors = (expression: string) => {
     const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
@@ -289,6 +298,7 @@ function SpecConfigComponent() {
     setMySpecRanges(newRanges);
   }, [variables]);
 
+  debugger
   return (
     <div className="spec-page">
       <div className="spec-overlay-logo">
@@ -458,8 +468,6 @@ function SpecConfigComponent() {
 }
 
 function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, setShowOverlay: (showOverlay: boolean) => void }) {
-  // const { spec: value, setSpec: setValue } = useContext(SpecContext);
-  // const { inputRangesTable, setInputRangesTable } = useContext(InputRangesTableContext);
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [spec, setSpec] = useState(value || new Spec('sqrt(x + 1) - sqrt(x)', 0));
@@ -627,6 +635,7 @@ function SpecComponent({ showOverlay, setShowOverlay }: { showOverlay: boolean, 
     setInitialized(true)
   }, [value])
 
+  debugger
   return (
     <div className="spec-container">
       <div className="spec-title">

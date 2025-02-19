@@ -5,7 +5,7 @@ import './HerbieUI.css';
 import * as HerbieTypes from './HerbieTypes'
 import * as HerbieContext from './HerbieContext';
 
-import { SpecComponent, SpecConfigComponent } from './SpecComponent';
+import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { SerializeStateComponent } from './SerializeStateComponent';
 import { ExpressionTable } from './ExpressionTable';
@@ -133,7 +133,7 @@ function HerbieUIInner() {
 
   const herbiejsJobs = addJobRecorder(herbiejs)
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showSpecEntry, setShowSpecEntry] = useState(true);
 
   // // When the spec changes, we need to re-add any expressions that were related to it.
   // useEffect(removeSpecFromArchivedExpressions, [spec, archivedExpressions])
@@ -563,12 +563,10 @@ function HerbieUIInner() {
   function myHeader() {
     return (
       <div className="header" style={{ fontSize: '11px', backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "10px 27px", alignItems: 'center'}}>
-        {/* removed header-top */}
-        <div className="app-name" onClick={() => setShowOverlay(true)}>
+        <div className="app-name" onClick={() => setShowSpecEntry(true)}>
           <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
-        <SpecComponent {...{ showOverlay, setShowOverlay }} />
         <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank"
           style={{color: "var(--background-color)", fontFamily: "Ruda"}}
         >
@@ -579,7 +577,7 @@ function HerbieUIInner() {
         >
           Issues
         </a>
-        <SerializeStateComponent specPage={showOverlay}/>
+        <SerializeStateComponent specPage={showSpecEntry}/>
         <ServerStatusComponent />
       </div>
     )
@@ -591,7 +589,7 @@ function HerbieUIInner() {
         <a
           href="#"
           className="left-item action"
-          onClick={() => setShowOverlay(true)}
+          onClick={() => setShowSpecEntry(true)}
         >
           &larr; Back to Spec Entry
         </a>
@@ -611,15 +609,12 @@ function HerbieUIInner() {
 
   return (
     <div>
-      {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
-        <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
+      {showSpecEntry ?
+        <div className="spec-container" style={ {display: "flex", flexDirection: 'column'} }>
           {myHeader()}
-          <div className="overlay-content">
-            <SpecConfigComponent />
-          </div>
-          </div>
-      }
-      {!showOverlay &&
+          <SpecComponent setShowExplore={() => setShowSpecEntry(false)}/>
+        </div>
+      :
         <div className="grid-container">
           {myHeader()}
           {mySubHeader()}
@@ -631,7 +626,6 @@ function HerbieUIInner() {
             <h4>Other Comparisons</h4>
             <SelectableVisualization components={components2} />
           </div>
-
         </div>
       }
       </div>

@@ -173,6 +173,7 @@ input[type="text"]:focus, select:focus {
   display:flex;
   grid-area: header; /*Place the header in the "header" grid area */
   justify-content: space-between; /* Align the components at the start and end of the header */
+  
   .app-name {
     cursor: pointer;
     display: flex;
@@ -180,6 +181,7 @@ input[type="text"]:focus, select:focus {
     font-size: 1em;
     font-family: 'Ruda';
     font-weight: 500;
+    margin-right: 64%; /* To fill space in header */
   }
 
   .serverStatus {
@@ -209,14 +211,6 @@ input[type="text"]:focus, select:focus {
   display:flex;
   flex-direction: column;
   height: 100%;
-}
-
-.header-top {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  border-bottom: 2px solid #a2b9c8;
-  padding-left: 5px;
 }
 
 .expression-table {

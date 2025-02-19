@@ -1,44 +1,3 @@
-.spec-title {
-  margin-left: 5px;
-  cursor: pointer;
-}
-.spec-container {
-  width: 60%;
-}
-.spec-container .rewriting {
-  font-size: 10px;
-  margin-left: 5px;
-}
-
-/* The spec overlay */
-.spec-overlay {
-  position: absolute; /* Position the overlay relative to the parent */
-  top: 0; /* Position the overlay at the top of the parent */
-  left: 0; /* Position the overlay at the left of the parent */
-  width: 100%; /* Make the overlay as wide as the parent */
-  height: 100%; /* Make the overlay as tall as the parent */
-  background-color: rgba(0, 0, 0, 0.5); /* Make the overlay semi-transparent */
-  display: flex; /* Use flexbox to position the components */
-  justify-content: center; /* Align the components at the center of the overlay */
-  align-items: center; /* Align the components at the center of the overlay */
-  z-index: 2; /* Make sure the overlay is on top of the other components */
-}
-
-.spec-overlay-content {
-  /* background-color: #fefefe; White background */
-  background-color: var(--background-color);
-  border: 1px solid #888; /* Gray border */
-  border-radius: 5px; /* Rounded corners */
-  padding: 20px; /* Add some padding */
-  width: 80%; /* Make the content 80% of the overlay */
-}
-
-.spec-overlay-header {
-  /* display: flex; /* Use flexbox to position the components */
-  justify-content: space-between; /* Align the components at the start and end of the header */
-  /* margin-bottom: 10px; */
-}
-
 .function-list dt {
   font-weight: bold;
   float: left;
@@ -47,26 +6,6 @@
   margin: 0 2em 0em 4em;
   font-family: "IBM Plex Mono", sans-serif;
   line-height: 1em;
-}
-
-.spec-textarea-container {
-  width: 100%; /* Make the textarea as wide as the container */
-}
-
-.spec-title {
-  display: flex;
-  flex-direction: row;
-  /* center items horizontally */
-  justify-content: center;
-}
-
-.spec-text {
-  font-family: "Ruda", serif;
-  font-size: 1em;
-  /* overflow should be ... */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .spec-textarea {
@@ -96,10 +35,6 @@
   font-weight: bold;
 }
 
-.spec-overlay-logo {
-  font: bold 1.5em "Ruda", sans-serif;
-}
-
 .separator, .separator-math {
   font-family: "Ruda", sans-serif;
 }
@@ -114,21 +49,17 @@
   margin-left: var(--left-indent);
 }
 
-.submit {
-  text-align: center;
-}
-
-.spec-overlay-content {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
 .explore-button {
+  align-self: flex-end;
+  padding: 10px 20px;
   margin-top: 6px;
+  background-color: #a6e5eb;
   font-size: 15px;
+  font-weight: bold;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  border-radius: 7px;
+  border: none,
 }
 
 .explore-button:hover {
@@ -172,11 +103,12 @@
   font-size: 18.4px;
 }
 
-.spec-overlay-logo {
+.spec-logo {
   align-self: center;
   display: flex;
   flex-direction: column;
   text-align: center;
+  font: bold 1.5em "Ruda", sans-serif;
   gap: 1em;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -188,10 +120,9 @@
   justify-content: space-between;
   align-items: center;
   font-size: small;
-  /* margin-top: 5px; */
 }
 
 .spec-page hr {
-    width: 100%;
-    border-top: 1px solid lightgray;
+  width: 100%;
+  border-top: 1px solid lightgray;
 }

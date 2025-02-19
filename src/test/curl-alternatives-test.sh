@@ -5,4 +5,4 @@ BODY='{ "formula": "(FPCore (x) :spec (sqrt (* x x)) (sqrt (* x x)))", "sample":
 
 curl -X POST "$URL" \
      -H "Content-Type: application/json" \
-     -d "$BODY"
+     -d "$BODY" | jq .

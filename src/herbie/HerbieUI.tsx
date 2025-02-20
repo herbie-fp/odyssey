@@ -383,6 +383,7 @@ function HerbieUIInner() {
   function addSpecToExpressions() {
     async function add() {
 <<<<<<< HEAD
+<<<<<<< HEAD
       if (spec.expression === '' || expressions.find(e =>
         e.specId === spec.id)) { return }
       const expressionId = utils.nextId(expressions)
@@ -392,6 +393,10 @@ function HerbieUIInner() {
 =======
       const expressionId = nextId(expressions)
       const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
+=======
+      const expressionId = nextId(expressions)
+      const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
+>>>>>>> 83ee33660a8ba137507acefb00372e75b8892119
       
       if (spec.expression === '' || expressions.find(e => e.specId === spec.id)) {
         setDerivations(derivations)

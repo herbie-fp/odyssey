@@ -114,7 +114,7 @@ function HerbieUIInner() {
   const [fpbenchServerUrl,] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext)
   const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [cost, setCosts] = HerbieContext.useGlobal(HerbieContext.CostContext)
-  const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
   const [styles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
@@ -127,7 +127,7 @@ function HerbieUIInner() {
   const [selectedPointsErrorExp, setSelectedPointsErrorExp] = HerbieContext.useGlobal(HerbieContext.SelectedPointsErrorExpContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = HerbieContext.useGlobal(HerbieContext.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = HerbieContext.useGlobal(HerbieContext.FPTaylorRangeContext);
-  const [inputRangesTable,] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [expandedExpressions,] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext)
 
@@ -135,13 +135,48 @@ function HerbieUIInner() {
 
   const [showSpecEntry, setShowSpecEntry] = useState(true);
 
-  // // When the spec changes, we need to re-add any expressions that were related to it.
-  // useEffect(removeSpecFromArchivedExpressions, [spec, archivedExpressions])
-  // function removeSpecFromArchivedExpressions() {
-  //   if (archivedExpressions.includes(spec.id)) {
-  //     setArchivedExpressions(archivedExpressions.filter(e => e !== spec.id))
-  //   }
-  // }
+  // onLoad of Odyssey, check if any url params have been passed in specifying
+  // expression to load. Explore that immediately instead of showing spec page
+  useEffect(loadSpecByURL, []);
+  function loadSpecByURL() {
+    const submitURLSpec = (urlExpr: string | undefined) => {
+      // Manually trigger explore with default values
+      if (urlExpr) { 
+        const specId = spec.id + 1;
+        const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
+        const variables = fpcorejs.getVarnamesMathJS(urlExpr);
+
+        // TODO: do expression validation, see SpecComponent
+        setSpec(urlSpec);
+
+        const defaultRanges = [];
+        for (const v of variables) {
+          defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308))
+        }
+
+        setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
+          defaultRanges,
+          specId,
+          utils.nextId(inputRangesTable)
+        )]);
+
+        // TODO: add logging
+
+        // Skip showing spec entry page, go straight to main page
+        setShowSpecEntry(false);
+      }
+    }
+
+    // If this is running on the web, allow URL to pass in default expression
+    if (typeof window !== 'undefined') {
+      const queryParams = new URLSearchParams(window.location.search);
+      const urlExpr = queryParams.get('spec');
+
+      if (urlExpr !== null) {
+        submitURLSpec(urlExpr);
+      }
+    }
+  }
 
   // Data relationships
 
@@ -583,13 +618,22 @@ function HerbieUIInner() {
     )
   }
 
+  const handleBackToSpecEntry = () => {
+    // Remove expr query param from url so navigation behaves as normal
+    const url = new URL(window.location.href);
+    url.searchParams.delete("expr");
+    window.history.pushState({}, '', url);
+
+    setShowSpecEntry(true);
+  }
+
   function mySubHeader() {
     return (
       <div className="subheader">
         <a
           href="#"
           className="left-item action"
-          onClick={() => setShowSpecEntry(true)}
+          onClick={handleBackToSpecEntry}
         >
           &larr; Back to Spec Entry
         </a>

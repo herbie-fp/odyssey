@@ -7,7 +7,6 @@ import * as HerbieContext from './HerbieContext';
 import { nextId } from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
-import { nextId } from './lib/utils';
 
 
 type exportStateProps = {
@@ -79,12 +78,6 @@ function SerializeStateComponent(props: exportStateProps) {
   const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext);
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
-  const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
-  const [ , setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
-  const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
-  const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext);
-  const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
-  const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
 
   const stateToJson = (e: React.FormEvent) => {
     e.preventDefault(); 
@@ -94,28 +87,6 @@ function SerializeStateComponent(props: exportStateProps) {
     // (meaning undefined, don't jsonify, if RangeInSpecFPCore)
     const inputRange = inputRangesTable.findLast(r => r.specId === spec.id);
     const specRanges = (inputRange instanceof HerbieTypes.InputRanges) ? inputRange.ranges : undefined;
-    
-    // Removing ids from export state
-    // Selected Expressions
-    const newExpressions: Expression[] = [];
-    for (const expression of expressions) {
-      if (expression.specId === spec.id) {
-        newExpressions.push(expression);
-      }
-    }
-    
-    // list of HTMLHistory derivations
-    const newDerivations: Derivation[] = [];
-    for (const derivation of derivations) {
-      if (expressions.find(e => e.id === derivation.id && e.specId === spec.id) !== undefined) {
-        newDerivations.push(derivation)
-      }
-        // LESSON LEARNED: derivation.parentId is NOT same as spec.id
-        // derivation.parentId represents the expression that the 
-        // derivation belongs to
-        // derivation.parentId == expression.id
-        // confusing naming...
-    }
     
     // Removing ids from export state
     // Selected Expressions

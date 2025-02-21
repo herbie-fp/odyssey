@@ -21,6 +21,10 @@
   font-family: 'Ruda', sans-serif;
 }
 
+.input-ranges-editor input:focus-visible {
+  outline: var(--action-color) auto 1px;
+}
+
 .error-plot svg text {
   font-size: 22px;
   fill: var(--foreground-deemphasize-color);

@@ -167,6 +167,7 @@ const extractAnalyzerReport = (log: string): string => {
   return log.slice(start, endLineStart);
 };
 
+
 //final formatted report to be displayed in the DetectorReport component
 const formattedDectectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
 

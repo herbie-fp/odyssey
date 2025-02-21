@@ -70,6 +70,7 @@
   },
   "dependencies": {
     "@observablehq/plot": "^0.6.9",
+    "@tailwindcss/cli": "^4.0.8",
     "@vscode/test-web": "^0.0.62",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "adm-zip": "^0.5.10",
@@ -92,6 +93,7 @@
     "react-tooltip": "^5.18.1",
     "serve-index": "^1.9.1",
     "simplebar-react": "^3.2.4",
+    "tailwindcss": "^4.0.8",
     "util": "^0.12.5"
   }
 }

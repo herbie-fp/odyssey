@@ -23,7 +23,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     const [language, setLanguage] = useState(supportedLanguages[0]);
     const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const gpuFpxSelected = Contexts.useGlobal(Contexts.gpuFpxSelected);
+    const gpuFpxSelected = HerbieContext.useGlobal(HerbieContext.gpuFpxSelected);
 
     // Make server call to get translation when user submits
     const translateExpression = async () => {

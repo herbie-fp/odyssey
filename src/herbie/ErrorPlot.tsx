@@ -405,7 +405,7 @@ function ErrorPlot() {
               }
 
               setSelectedPoint(point)
-                setSelectedExprId(expId)
+              setSelectedExprId(expId)
 
               // remove brushing and revert back to full sample analysis
               setSelectedSubset(undefined)
@@ -566,12 +566,34 @@ function ErrorPlot() {
             .on('end', (event: any) => {
               if (event.selection){
                 // store selected points subset in global variable, triggers re-render
+                const firstPoint = brushedPoints.length > 0 ? brushedPoints[0] : null;
+                const lastPoint = brushedPoints.length > 0 ? brushedPoints[brushedPoints.length - 1] : null;
+                const range = firstPoint !== null && lastPoint !== null ? `${firstPoint} - ${lastPoint}` : "N/A";
+
                 setSelectedSubset({
                   selection: event.selection,
                   varIdx: i, 
                   points: brushedPoints,
                 });
-
+                fetch('https://herbie.uwplse.org/odyssey-log/log', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    sessionId: sessionStorage.getItem('sessionId'),
+                    BrushedPoints: range,
+                    Description: `Brushed Points: ${range} on Expression: ${expressions.find(e => e.id === selectedExprId)?.text}in the Error Plot Graph`,
+                    timestamp: new Date().toLocaleString(),
+                  }),
+                })
+                .then(response => {
+                  if (response.ok) {
+                    console.log('Server is running and log saved');
+                  }
+                  else {
+                    console.error('Server responded with an error:', response.status);
+                  }
+                })
+                .catch(error => console.error('Request failed:', error));
                 // Selected points & selected subset cannot exist simultaneously
                 setSelectedPoint(undefined);
               } else { // empty selection, revert brush styling
@@ -582,7 +604,7 @@ function ErrorPlot() {
                 })
               }
             });
-
+          
           select(svg).append('g')
             .attr('id', 'brush')
             .call(brush)

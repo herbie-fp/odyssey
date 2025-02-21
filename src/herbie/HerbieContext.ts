@@ -1,6 +1,5 @@
 import React, { createContext } from 'react';
-import * as types from './HerbieTypes';
-import * as herbiejs from './lib/herbiejs';
+import * as HerbieTypes from './HerbieTypes';
 
 type setter<T> = React.Dispatch<T>
 
@@ -61,30 +60,30 @@ if (typeof window !== 'undefined') {
 export const hoveredExpressionId = makeGlobal(0)
 export const SelectedExprIdContext = makeGlobal(-1)
 export const CompareExprIdsContext = makeGlobal([] as number[]) //createContext({} as { compareExprIds: number[], setCompareExprIds: React.Dispatch<number[]> });
-export const ExpressionsContext = makeGlobal([] as types.Expression[])//new types.Expression(defaultExpression2, 1, 0)] as types.Expression[]);//[new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[])
-export const DerivationsContext = makeGlobal([] as types.Derivation[])
-export const AlternativesJobResponseContext = makeGlobal({} as types.AlternativesJobResponse)
-export const AnalysesContext = makeGlobal([] as types.ErrorAnalysis[])
-export const CostContext = makeGlobal([] as types.CostAnalysis[])
-export const SpecContext = makeGlobal(new types.Spec('', 0) as types.Spec)
+export const ExpressionsContext = makeGlobal([] as HerbieTypes.Expression[])//new types.Expression(defaultExpression2, 1, 0)] as types.Expression[]);//[new types.Expression('x', 1), new types.Expression('sqrt(x + 1)', 2)] as types.Expression[])
+export const DerivationsContext = makeGlobal([] as HerbieTypes.Derivation[])
+export const AlternativesJobResponseContext = makeGlobal({} as HerbieTypes.AlternativesJobResponse)
+export const AnalysesContext = makeGlobal([] as HerbieTypes.ErrorAnalysis[])
+export const CostContext = makeGlobal([] as HerbieTypes.CostAnalysis[])
+export const SpecContext = makeGlobal(new HerbieTypes.Spec('', 0) as HerbieTypes.Spec)
 //@ts-ignore
 export const ServerContext = makeGlobal(localStorage.getItem('herbie-server-url') || 'https://herbie.uwplse.org/demo')//makeGlobal('http://127.0.0.1:8000')//window.acquireVsCodeApi ? '' : 'https://herbie.uwplse.org/demo')
 //@ts-ignore
 export const FPTaylorServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:8888/fptaylor' : 'https://herbie.uwplse.org/fptaylor')
 //@ts-ignore
 export const FPBenchServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:8888/fpbench' : 'https://herbie.uwplse.org/fpbench')
-export const ExpressionStylesContext = makeGlobal([] as types.ExpressionStyle[])
+export const ExpressionStylesContext = makeGlobal([] as HerbieTypes.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(undefined as number | undefined);// undefined as number | undefined)
-export const SamplesContext = makeGlobal([] as types.Sample[])
-export const SelectedPointContext = makeGlobal(undefined as types.ordinalPoint | undefined)
-export const SelectedSubsetRangeContext = makeGlobal(undefined as types.SelectedSubset | undefined)
-export const SelectedSubsetAnalysesContext = makeGlobal(undefined as types.SubsetErrorAnalysis[] | undefined)
-export const SelectedPointsLocalErrorContext = makeGlobal([] as types.PointLocalErrorAnalysis[])
-export const SelectedPointsErrorExpContext = makeGlobal([] as types.PointErrorExpAnalysis[])
-export const AverageLocalErrorsContext = makeGlobal([] as types.AverageLocalErrorAnalysis[])
-export const FPTaylorAnalysisContext = makeGlobal([] as types.FPTaylorAnalysis[])
-export const FPTaylorRangeContext = makeGlobal([] as types.FPTaylorRange[])
-export const InputRangesTableContext = makeGlobal([] as (types.InputRanges | types.RangeInSpecFPCore) [])
+export const SamplesContext = makeGlobal([] as HerbieTypes.Sample[])
+export const SelectedPointContext = makeGlobal(undefined as HerbieTypes.ordinalPoint | undefined)
+export const SelectedSubsetRangeContext = makeGlobal(undefined as HerbieTypes.SelectedSubset | undefined)
+export const SelectedSubsetAnalysesContext = makeGlobal(undefined as HerbieTypes.SubsetErrorAnalysis[] | undefined)
+export const SelectedPointsLocalErrorContext = makeGlobal([] as HerbieTypes.PointLocalErrorAnalysis[])
+export const SelectedPointsErrorExpContext = makeGlobal([] as HerbieTypes.PointErrorExpAnalysis[])
+export const AverageLocalErrorsContext = makeGlobal([] as HerbieTypes.AverageLocalErrorAnalysis[])
+export const FPTaylorAnalysisContext = makeGlobal([] as HerbieTypes.FPTaylorAnalysis[])
+export const FPTaylorRangeContext = makeGlobal([] as HerbieTypes.FPTaylorRange[])
+export const InputRangesTableContext = makeGlobal([] as (HerbieTypes.InputRanges | HerbieTypes.RangeInSpecFPCore) [])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
 export const ExpandedExpressionsContext = makeGlobal([] as number[])  // Spec IDs

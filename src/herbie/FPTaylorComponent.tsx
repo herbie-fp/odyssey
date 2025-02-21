@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import * as Contexts from './HerbieContext';
+import { useState } from 'react';
+import * as HerbieContext from './HerbieContext';
 import { FPTaylorRange, SpecRange } from './HerbieTypes';
 import { getVarnamesMathJS } from './lib/fpcore';
 
 const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
-  const [expressions, ] = Contexts.useGlobal(Contexts.ExpressionsContext);
-  const [FPTaylorAnalyses, ] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
-  const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
+  const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
+  const [FPTaylorAnalyses, ] = HerbieContext.useGlobal(HerbieContext.FPTaylorAnalysisContext);
+  const [FPTaylorRanges, setFPTaylorRanges] = HerbieContext.useGlobal(HerbieContext.FPTaylorRangeContext);
 
   const expression = expressions.find(expression => expression.id === expressionId);
   if (!expression) {

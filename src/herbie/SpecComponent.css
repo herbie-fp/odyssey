@@ -36,6 +36,7 @@
 .spec-overlay-header {
   /* display: flex; /* Use flexbox to position the components */
   justify-content: space-between; /* Align the components at the start and end of the header */
+  /* margin-bottom: 10px; */
 }
 
 .function-list dt {
@@ -69,7 +70,8 @@
 }
 
 .spec-textarea {
-  width: 94%; /* Make the textarea as wide as the container */
+  width: -webkit-fill-available;
+  width: -moz-available;
   font-family: "Ruda", sans-serif;
   font-size: 1em;
   font-weight: bold;
@@ -124,7 +126,7 @@
 
 .explore-button {
   margin-top: 6px;
-  font-size: 1em;
+  font-size: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 }
@@ -186,6 +188,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: small;
+  /* margin-top: 5px; */
 }
 
 .spec-page hr {

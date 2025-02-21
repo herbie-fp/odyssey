@@ -62,8 +62,6 @@ g[aria-label="y-axis label"] {
   r: 15px;
   fill-opacity: 1;
   transition: r 0s ease-in-out;
-  /* TODO: fix so doesn't look weird with multiple colors in line - brushing
-    this vv doesn't work bc circles are in svg which stacks in DOM order unless foreignObject is used (which seems messy here) */
   z-index: 100; 
 }
 .selected-circle {
@@ -107,13 +105,20 @@ g[aria-label="y-axis label"] {
 }
 
 .unbrushed-line {
-  stroke: #d2d2d2;
+  stroke: #dddbdb92;
 }
 
 .unbrushed, rect.selection {
-  fill: #d2d2d2;
+  fill: #dddbdb92;
 }
 
 .highlight-line {
   fill: none;
+}
+
+.selection {
+  /* Prevents .selection area from intercepting clicks that should be handled
+    by parent */
+  pointer-events: none;
+  cursor: default;
 }

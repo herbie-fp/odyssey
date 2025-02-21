@@ -1,0 +1,187 @@
+name: Build Herbie Binaries in Odyssey
+
+on:
+  workflow_dispatch
+
+jobs:
+  build-herbie:
+    name: Build Herbie Binaries
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os-name: linux
+            arch: x64
+          - os: macos-latest
+            os-name: macos
+            arch: x64
+          - os: windows-latest
+            os-name: windows
+            arch: x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Checkout Odyssey repository
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      # Clone Herbie repository inside Odyssey
+      - name: Clone Herbie repository
+        run: git clone https://github.com/herbie-fp/herbie.git
+
+      # Install Racket (Required for Herbie)
+      - name: Install Racket
+        uses: Bogdanp/setup-racket@v1.11
+        with:
+          version: 8.11
+          architecture: ${{ matrix.arch }}
+
+      # Install Rust Compiler (For egg-herbie)
+      - name: Install Rust compiler
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      # Cache Dependencies (Speeds up future builds)
+      - name: Cache Racket and Rust dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-herbie-cache
+          path: |
+            ~/.cache/racket
+            ~/.local/share/racket
+            ~/Library/Racket/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            herbie/egg-herbie/target/
+            ${{ env.APPDATA }}/Racket
+
+      # Install Herbie dependencies
+      - name: Install Herbie Dependencies
+        shell: bash
+        run: |
+          cd herbie
+          make install || { echo "❌ Failed to install dependencies!"; exit 1; }
+
+      # Build Standalone Herbie Binary
+      - name: Build Standalone Herbie Executable
+        shell: bash
+        run: |
+          cd herbie
+          make distribution || { echo "❌ Make distribution failed!"; exit 1; }
+          rm -rf herbie-compiled/bench
+
+      # Move Herbie Compiled Folder (Linux/macOS)
+      - name: Move Herbie Compiled Folder (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p herbie-dist/${{ matrix.os-name }}
+          mv herbie/herbie-compiled herbie-dist/${{ matrix.os-name }}/
+
+      # Move Herbie Compiled Folder (Windows)
+      - name: Move Herbie Compiled Folder (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path herbie-dist\${{ matrix.os-name }} -Force
+          Move-Item -Path herbie\herbie-compiled -Destination herbie-dist\${{ matrix.os-name }}\
+
+      # Upload individual OS binaries as artifacts
+      - name: Upload OS-Specific Herbie Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: herbie-dist-${{ matrix.os-name }}
+          path: herbie-dist/${{ matrix.os-name }}
+          if-no-files-found: error
+
+  package-binaries:
+    name: Package Herbie Binaries
+    needs: build-herbie
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      # Download all OS-specific artifacts
+      - name: Download Linux Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist-linux
+          path: herbie-dist/linux
+
+      - name: Download macOS Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist-macos
+          path: herbie-dist/macos
+
+      - name: Download Windows Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist-windows
+          path: herbie-dist/windows
+
+      # Verify that all OS builds exist
+      - name: Verify built binaries
+        shell: bash
+        run: |
+          ls -R herbie-dist
+          if [ ! -d "herbie-dist/linux" ] || [ ! -d "herbie-dist/macos" ] || [ ! -d "herbie-dist/windows" ]; then
+            echo "❌ Missing OS folders in herbie-dist!"
+            exit 1
+          fi
+
+      # Upload the Final Packaged Herbie Distribution
+      - name: Upload Final Packaged Herbie Distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: herbie-dist
+          path: herbie-dist
+          if-no-files-found: error
+
+  release:
+    name: Create Herbie Release
+    needs: package-binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Odyssey repository
+        uses: actions/checkout@v4
+
+      # Download the artifact (this might be a folder instead of a ZIP)
+      - name: Download Packaged Herbie Distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: herbie-dist
+          path: herbie-dist
+
+      # Check the contents of the downloaded artifact
+      - name: List Downloaded Files
+        shell: bash
+        run: ls -R herbie-dist
+
+      # Zip only the contents of herbie-dist, not the folder itself
+      - name: Zip Herbie Distribution Correctly
+        shell: bash
+        run: |
+          cd herbie-dist
+          zip -r ../herbie-dist.zip *  # This ensures linux, macos, windows are top-level in the zip
+
+      # Upload the zip file as a release asset
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: herbie_binaries  # Change this dynamically if needed
+          name: "Herbie Binaries"
+          body: "Automated release of Herbie binaries for Linux, macOS, and Windows."
+          draft: false
+          prerelease: false
+          files: herbie-dist.zip  # Make sure this file actually exists!
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

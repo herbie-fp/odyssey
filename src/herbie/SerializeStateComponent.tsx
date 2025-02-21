@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import Modal from 'react-modal';
 
-import { SpecRange } from './HerbieTypes';
+import { Derivation, Expression, InputRanges, RangeInSpecFPCore, SpecRange } from './HerbieTypes';
 import * as HerbieTypes from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
-import * as utils from './lib/utils';
+import { nextId } from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
 
@@ -72,8 +72,12 @@ function SerializeStateComponent(props: exportStateProps) {
   const [fpbenchServerUrl, setFPBenchServerUrl] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext);
   const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext);
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext);
-  const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
-  const [, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
+  const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
+  const [ , setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
+  const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
+  const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext);
+  const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
+  const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
 
   const stateToJson = (e: React.FormEvent) => {
     e.preventDefault(); 
@@ -83,19 +87,57 @@ function SerializeStateComponent(props: exportStateProps) {
     // (meaning undefined, don't jsonify, if RangeInSpecFPCore)
     const inputRange = inputRangesTable.findLast(r => r.specId === spec.id);
     const specRanges = (inputRange instanceof HerbieTypes.InputRanges) ? inputRange.ranges : undefined;
+    
+    // Removing ids from export state
+    // Selected Expressions
+    const newExpressions: Expression[] = [];
+    for (const expression of expressions) {
+      if (expression.specId === spec.id) {
+        newExpressions.push(expression);
+      }
+    }
+    
+    // list of HTMLHistory derivations
+    const newDerivations: Derivation[] = [];
+    for (const derivation of derivations) {
+      if (expressions.find(e => e.id === derivation.id && e.specId === spec.id) !== undefined) {
+        newDerivations.push(derivation)
+      }
+        // LESSON LEARNED: derivation.parentId is NOT same as spec.id
+        // derivation.parentId represents the expression that the 
+        // derivation belongs to
+        // derivation.parentId == expression.id
+        // confusing naming...
+    }
 
     const state = {
       serverUrl,
       fptaylorServerUrl,
       fpbenchServerUrl,
-      spec: {
-        expression: spec.expression,
-        fpCore: spec.fpcore,
-      },
+      spec,
       specRanges,
+      expressions: newExpressions,
+      derivations: newDerivations,
+      selectedExprId,
+      compareExprIds,
+      expandedExpressions,
+    }
+
+      // TODO: Revisit potential idea of storing each individual expression object
+      // expression: {
+      //   this.text = text;
+      //   this.id = id;
+      //   this.specId = specId;
+      //   this.tex = tex;
+      // }
+      // selectedExpressions: {
+      //   // array of expression
+      // }
       
       // TODO: add more states
-    }
+      // - All expressions
+      //   - selected expression (id)
+      // - selectedPoint
 
     navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
 
@@ -105,22 +147,65 @@ function SerializeStateComponent(props: exportStateProps) {
   const initializeSpec = async (serverUrl: string, expression: string, fpcore?: string, specRanges?: SpecRange[]) => {    
     // Set new spec and inputRangs ids (based on previous ids of session) for imported spec
     const specId = spec.id + 1;
-    const inputRangeId = utils.nextId(inputRangesTable);
+    const inputRangeId = nextId(inputRangesTable);
 
     setArchivedExpressions(expressions.map(e => e.id))
 
     const mathJSExpression = await ensureMathJS(expression, serverUrl); // TODO: probably unnecessary, should parse, but elsewhere
 
     const inputRanges = specRanges
-      ? new HerbieTypes.InputRanges(specRanges, specId, inputRangeId)
-      : new HerbieTypes.RangeInSpecFPCore(specId, inputRangeId);
+      ? new InputRanges(specRanges, specId, inputRangeId)
+      : new RangeInSpecFPCore(specId, inputRangeId);
 
     setInputRangesTable([...inputRangesTable, inputRanges])
     setSpec({expression: mathJSExpression, id: specId, fpcore});
 
-    // TODO: add logging as in SpecContext.tsx
-
     return specId;
+  }
+
+  // initialize expressions on IMPORT 
+  const initializeExpressions = (oldExpressions: Expression[], oldDerivations: Derivation[], 
+    newSpecId: number, oldSelectedExprId: number, oldCompareExprIds: number[], oldExpandedExpressions: number[]) => {
+    
+    const oldIdToNewExpressions: Map<number, Expression> = new Map();
+    const newExpressions: Expression[] = [];
+    const newDerivations: Derivation[] = [];
+    
+    // re-assign ids to expressions.
+    for (let i = 0; i < oldExpressions.length; i++) {
+      const expression = oldExpressions[i];          
+      const newId = nextId(expressions) + i;
+
+      const newExpression = new Expression(expression.text, newId, newSpecId, expression.tex);
+      oldIdToNewExpressions.set(expression.id, newExpression);
+      newExpressions.push(newExpression);
+    }
+
+    for (let i = 0; i < oldDerivations.length; i++) {
+      const deriv = oldDerivations[i];
+      
+      const newExpression = oldIdToNewExpressions.get(deriv.id);
+
+      const newParent = deriv.origExpId !== undefined 
+              ? oldIdToNewExpressions.get(deriv.origExpId) 
+              : undefined;
+      const newExpressionId = newExpression?.id;
+      const newParentId = newParent?.id;
+
+      // this shouldn't happen, newId and newParentId should always exist
+      if (newExpressionId === undefined) {
+        continue;
+      }
+      newDerivations.push(new Derivation(deriv.derivation, newExpressionId, newParentId));
+    }
+
+    setExpressions([...oldIdToNewExpressions.values(), ...expressions]);
+    setDerivations([...newDerivations, ...derivations]);
+
+    setSelectedExprId(oldIdToNewExpressions.get(oldSelectedExprId)?.id ?? -1);
+    // Shouldn't get any -1s in this result, just dealing with possible undefined from .get
+    setExpandedExpressions(oldExpandedExpressions.map((id) => oldIdToNewExpressions.get(id)?.id ?? -1));
+    setCompareExprIds(oldCompareExprIds.map((id) => oldIdToNewExpressions.get(id)?.id ?? -1));
   }
 
   const jsonToState = async (e: React.FormEvent) => {
@@ -128,6 +213,7 @@ function SerializeStateComponent(props: exportStateProps) {
     e.stopPropagation(); 
 
     const jsonState = JSON.parse(importState);
+    
     // TODO: Really have error handling here to make sure all fields of
     // jsonState exist as expected
 
@@ -136,10 +222,18 @@ function SerializeStateComponent(props: exportStateProps) {
     setFPBenchServerUrl(jsonState.fpbenchServerUrl);
 
     // Sets spec and input ranges for initial table, gets back new ID for spec
-    const newSpecId = initializeSpec(jsonState.serverUrl, jsonState.spec.expression, 
-        jsonState.spec.fpcore, jsonState.specRanges);
+    const newSpecId = await initializeSpec(jsonState.serverUrl, jsonState.spec.expression, 
+      jsonState.spec.fpcore, jsonState.specRanges);
+
+    // Initializes and sets IDs of each new expression
+    initializeExpressions(jsonState.expressions, jsonState.derivations, newSpecId, 
+      jsonState.selectedExprId, jsonState.compareExprIds, jsonState.expandedExpressions);
 
     // TODO: setting more states
+    // High level vision for now: OUR history > Alice's history
+    // - selected point (last one?)
+    // High level vision for now: OUR history > Alice's history
+    // - selected point (last one?)
 
     setIsModalOpen(false);
   }

@@ -1,11 +1,15 @@
 import React from 'react';
+
+import * as HerbieContext from './HerbieContext';
+import { ExpressionStyle } from './HerbieTypes';
+
 const Plot = require('@observablehq/plot')  // have to do this for ES modules for now
 import './SpeedVersusAccuracyPareto.css';
 
 interface SpeedVersusAccuracyParetoProps {
     // Define your component props here
 }
-// type Point = [number, number]
+
 type Point = {
     cost: number
     accuracy: number
@@ -46,15 +50,13 @@ async function plotParetoPoints (bits: number, initial_pt: Point, rest_pts: Poin
             Plot.dot(rest_pts, {
                 x: (d: Point) => initial_pt.cost/d.cost,
                 y: (d: Point) => 1 - d.accuracy/bits,
-                // if the id of the selected expression is equal to the id of the current point, set the radius to 15, otherwise set it to 9
-                // fill: "#00a",
                 // fill the point with its respective color in ExpressionsStyleContext
                 fill: (d: Point) => {
                     const style = expressionStyles.find(s => s.expressionId === d.id);
                     return style?.color || 'black';
                 },
+                // Larger radius for selected expression
                 r: (d: Point) => d.id === clickedExpressionId ? 10 : 4,
-                // fill: "#00a", r: 9,
                 title: (d: Point) => d.id, // HACK to pass expression id 
             }),
         ].filter(x=>x),
@@ -89,29 +91,23 @@ async function makeExampleSVG(color: string) {
     return svg;
 }
 
-import * as Contexts from './HerbieContext';
-import { debug } from 'console';
-import { ExpressionStyle } from './HerbieTypes';
-
 const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (props) => {
     // Access ExpressionStylesContext
-    const [expressionStyles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext);
+    const [expressionStyles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext);
     const [color, setColor] = React.useState('red');
     // Access the global expressions field
-    const [allExpressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
+    const [allExpressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
     // get the spec
-    const [spec, setSpec] = Contexts.useGlobal(Contexts.SpecContext);
+    const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext);
     // get the costs and errors for each expression
-    const [costs, setCosts] = Contexts.useGlobal(Contexts.CostContext);
-    const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext);
+    const [costs, setCosts] = HerbieContext.useGlobal(HerbieContext.CostContext);
+    const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext);
     // convert error to percent accuracy
     const errorToAccuracy = (error: number) => error// 1 - error / 64;
-    // get the spec's expression
-
-    
     //get archived expressions
-    const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext);
+    const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext);
     
+    // get the spec's expression
     const naiveExpression = allExpressions.find(e => e.text === spec.expression);
     if (naiveExpression === undefined) {
         return <div></div>//Naive expression not found</div>
@@ -124,13 +120,12 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
     }
     const naiveAccuracy = errorToAccuracy(naiveError);
     // get the ids of the selected expressions
-    const [selectedExprIds, setSelectedExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext);
+    const [selectedExprIds, setSelectedExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
     // get the selected expression id
-    // const naiveExpressionId = naiveExpression?.id || 0;
     const naiveExpressionId = selectedExprIds.find(id => id === naiveExpression.id) || 0;
 
     // get the clicked on expression
-    const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext);
+    const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext);
 
     //filter selected expressions 
     const filteredExpressionIds = selectedExprIds.filter(e => !archivedExpressions.includes(e));
@@ -140,7 +135,6 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
         const cost = costs.find(c => c.expressionId === id)?.cost;
         const error = analyses.find(a => a.expressionId === id)?.data.meanBitsError;
         if (cost === undefined || error === undefined) {
-            // throw new Error(`Cost or error not found for expression ${id}`);
             return undefined;
         }
         const accuracy = errorToAccuracy(error);
@@ -157,8 +151,6 @@ const SpeedVersusAccuracyPareto: React.FC<SpeedVersusAccuracyParetoProps> = (pro
                   svg.innerHTML = ''
                 const plot = await plotParetoPoints(64, { cost: naiveCost, accuracy: naiveAccuracy, id: naiveExpressionId }, points, selectedExprId, expressionStyles);
                 
-
-
                 plot.querySelectorAll('[aria-label="dot"] circle').forEach((t: any) => {
                     // if a point if clicked (onclick), set its clickedExpressionID
                     t.onclick = async() => {

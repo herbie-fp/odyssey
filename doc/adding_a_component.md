@@ -26,7 +26,7 @@ The following is a basic template for a skeleton React component (this will go i
 // External imports (libraries, etc.) will go here
 import React from 'react';
 
-import * as contexts from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 import './YourComponent.css'; // If you have a CSS file associated with the component
 // Other local imports (Herbie types, Contexts, etc) will go here
 
@@ -109,13 +109,13 @@ You may find that your component requires access to some of the global state sha
 To use these Contexts, simply add
 
 ```
-import * as contexts from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 ```
 
 to your component, which will then allow you to work with React hooks for any context as follows:
 
 ```
-const [sampleContext, setSampleContext] = contexts.useGlobal(contexts.SampleContext)
+const [sampleContext, setSampleContext] = HerbieContext.useGlobal(HerbieContext.SampleContext)
 ```
 
 which will then allow you to work with that state like any other React state.

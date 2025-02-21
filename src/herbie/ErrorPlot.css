@@ -21,6 +21,10 @@
   font-family: 'Ruda', sans-serif;
 }
 
+.input-ranges-editor input:focus-visible {
+  outline: var(--action-color) auto 1px;
+}
+
 .error-plot svg text {
   font-size: 22px;
   fill: var(--foreground-deemphasize-color);
@@ -105,11 +109,11 @@ g[aria-label="y-axis label"] {
 }
 
 .unbrushed-line {
-  stroke: #d2d2d2;
+  stroke: #dddbdb92;
 }
 
 .unbrushed, rect.selection {
-  fill: #d2d2d2;
+  fill: #dddbdb92;
 }
 
 .highlight-line {

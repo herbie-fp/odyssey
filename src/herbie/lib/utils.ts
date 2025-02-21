@@ -1,4 +1,4 @@
-import * as contexts from '../HerbieContext'
+import * as HerbieContext from '../HerbieContext'
 
 
 export function nextId(table: { id: number }[]) {
@@ -11,19 +11,19 @@ export function nextId(table: { id: number }[]) {
   }, 0);
 }
 
-export function getGlobals(): contexts.Global<any>[]{
-  return Object.keys(contexts).map((key) => {
-    if ((contexts as any)[key].isGlobal === true) {
-      return (contexts as any)[key];
+export function getGlobals(): HerbieContext.Global<any>[]{
+  return Object.keys(HerbieContext).map((key) => {
+    if ((HerbieContext as any)[key].isGlobal === true) {
+      return (HerbieContext as any)[key];
     }
     return undefined
   }).filter((x) => x !== undefined)
 }
 
-export function getReducerGlobals(): contexts.ReducerGlobal<any>[] {
-  return Object.keys(contexts).map((key) => {
-    if ((contexts as any)[key].isReducerGlobal === true) {
-      return (contexts as any)[key];
+export function getReducerGlobals(): HerbieContext.ReducerGlobal<any>[] {
+  return Object.keys(HerbieContext).map((key) => {
+    if ((HerbieContext as any)[key].isReducerGlobal === true) {
+      return (HerbieContext as any)[key];
     }
     return undefined
   }).filter((x) => x !== undefined)

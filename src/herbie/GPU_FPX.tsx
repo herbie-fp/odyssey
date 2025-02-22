@@ -5,7 +5,8 @@ import './GPU_FPX.css';
 import './ExpressionExport';
 import { ExpressionExportResponse } from './lib/herbiejs';
 import { FPCoreGetBody, FPCorePreconditionFromRanges, getVarnamesFPCore, getVarnamesMathJS, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
-import { FPTaylorComponent } from './FPTaylorComponent';
+import '@coreui/coreui/dist/css/coreui.min.css';
+import { CTable } from '@coreui/react'
 
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
@@ -17,19 +18,13 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   //Get expressions
   const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
   const current_expression = expressions.find(expression => expression.id === expressionId);
-  const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);
   const [gpuFpxSelected] = contexts.useGlobal(contexts.gpuFpxSelected);
-
   const [showReport, setShowReport] = useState(false);
   const [runAnalyzer, setRunAnalyzer] = useState(false);
-
   //State for results from Analyzer and Detector
   const [analyzerResult, setAnalyzerResult] = useState<string>("");
   const [detectorResult, setDetectorResult] = useState<string>("");
 
-  // State for loading/error handling
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   /**
    * FPBench and GPU-FPX Fetch Calls
@@ -178,22 +173,22 @@ const formattedDectectorReport = formatDetectorReport(extractDetectorReport(dete
  */
 const DetectorReport = ({ formattedDectectorReport }: { formattedDectectorReport: string[] }) => (
   <div>
-    <h3>Detector Results</h3>
-    <h4>FP64 Operations</h4>
+    <h5>Detector Results</h5>
+    <h5>FP64 Operations</h5>
     <p>
       {formattedDectectorReport[0]}<br />
       {formattedDectectorReport[1]}<br />
       {formattedDectectorReport[2]}<br />
       {formattedDectectorReport[3]}<br />
     </p>
-    <h4>FP32 Operations</h4>
+    <h5>FP32 Operations</h5>
     <p>
       {formattedDectectorReport[4]}<br />
       {formattedDectectorReport[5]}<br />
       {formattedDectectorReport[6]}<br />
       {formattedDectectorReport[7]}<br />
     </p>
-    <h4>Other Stats</h4>
+    <h5>Other Stats</h5>
     <p>
       {formattedDectectorReport[8]}<br />
       {formattedDectectorReport[9]}<br />
@@ -201,19 +196,75 @@ const DetectorReport = ({ formattedDectectorReport }: { formattedDectectorReport
   </div>
 );
 
+const DetectorResultTable = ({ formattedDectectorReport }: { formattedDectectorReport: string[] }) => {
+  const items = [{id: 'Total NaN Found:',class:formattedDectectorReport[0],_cellProps: { id: { scope: 'row' } },},
+    {id: "Total INF Found:",class: formattedDectectorReport[1],_cellProps: { id: { scope: 'row' } },},
+    {id: "Total underflow:",class: formattedDectectorReport[2],_cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },},
+  ]
+  return <CTable hover bordered small items={items} />
+}
+const TableExample = () => {
+  const columns = [
+    {
+      key: 'id',
+      label: '#',
+      _props: { scope: 'col' },
+    },
+    {
+      key: 'class',
+      _props: { scope: 'col' },
+    },
+    {
+      key: 'heading_1',
+      label: 'Heading',
+      _props: { scope: 'col' },
+    },
+    {
+      key: 'heading_2',
+      label: 'Heading',
+      _props: { scope: 'col' },
+    },
+  ]
+  const items = [
+    {
+      id: 1,
+      class: 'Mark',
+      heading_1: 'Otto',
+      heading_2: '@mdo',
+      _cellProps: { id: { scope: 'row' } },
+    },
+    {
+      id: 2,
+      class: 'Jacob',
+      heading_1: 'Thornton',
+      heading_2: '@fat',
+      _cellProps: { id: { scope: 'row' } },
+    },
+    {
+      id: 3,
+      class: 'Larry the Bird',
+      heading_2: '@twitter',
+      _cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },
+    },
+  ]
+
+  return <CTable hover bordered small columns={columns} items={items} />
+}
+
 const AnalyzerReport = extractAnalyzerReport(analyzerResult);
 
   return (
     <div>
-      <p>Current expression:</p>
-      <p>{current_expression?.text}</p> 
+      {/* <p>Current expression:</p>
+      <p>{current_expression?.text}</p>  */}
       {/* <p>The total number of exceptions are: 2</p> */}
-      <button onClick={handleReportClick}>See Full Report</button>
-      <button onClick={handleRunGPUFPXClick}>Run GPU-FPX</button>
+      <button onClick={handleReportClick}>Show Results</button>
+      <button onClick={handleRunGPUFPXClick}>Detect & Analyze Expression on GPU's</button>
 
       {showReport ? 
       <div>
          <DetectorReport formattedDectectorReport={formattedDectectorReport} />
+         <DetectorResultTable formattedDectectorReport={formattedDectectorReport}></DetectorResultTable>
          <h3>Analyzer Results:</h3>
          <p>{AnalyzerReport}</p>
       </div> : ""}

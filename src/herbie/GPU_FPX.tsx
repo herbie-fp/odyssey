@@ -25,6 +25,12 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const [analyzerResult, setAnalyzerResult] = useState<string>("");
   const [detectorResult, setDetectorResult] = useState<string>("");
 
+  interface DetectorReportTableProps {
+    formattedDetectorReport: string[];
+    startResultToDisplay: number;
+    endResultToDisplay: number;
+  }
+
 
   /**
    * FPBench and GPU-FPX Fetch Calls
@@ -32,34 +38,34 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const handleRunAnalysis = async () => {
         try {
           //convert mathjs to fpcore
-          const fpCoreExpr = mathjsToFPCore(current_expression?.text as unknown as mathjs);
-          const fpBenchExpr = makeFPCore2({
-            vars: getVarnamesFPCore(fpCoreExpr),
-            pre: "(<= 0 x 10)",
-            body: FPCoreGetBody(fpCoreExpr) 
-          });
-          // console.log("Current Expression format before FpBench:", current_expression);
-          console.log("Starting FPBench conversion for expression:", fpBenchExpr);
-          // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
-          const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', 
-            },
-            body: JSON.stringify({
-                formulas: [fpBenchExpr],
-                // Specify CUDA as target language
-                language: 'c'
-            })
-        });
+        //   const fpCoreExpr = mathjsToFPCore(current_expression?.text as unknown as mathjs);
+        //   const fpBenchExpr = makeFPCore2({
+        //     vars: getVarnamesFPCore(fpCoreExpr),
+        //     pre: "(<= 0 x 10)",
+        //     body: FPCoreGetBody(fpCoreExpr) 
+        //   });
+        //   // console.log("Current Expression format before FpBench:", current_expression);
+        //   console.log("Starting FPBench conversion for expression:", fpBenchExpr);
+        //   // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
+        //   const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json', 
+        //     },
+        //     body: JSON.stringify({
+        //         formulas: [fpBenchExpr],
+        //         // Specify CUDA as target language
+        //         language: 'c'
+        //     })
+        // });
 
-        const fpbenchResult = await fpbenchResponse.json();
-        console.log("Raw FPBench result:", fpbenchResult);
-        //Extract just the expression from the function body
-        const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
-        const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
-        console.log("Extracted CUDA expression:", cudaExpr);
-        // const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
+        // const fpbenchResult = await fpbenchResponse.json();
+        // console.log("Raw FPBench result:", fpbenchResult);
+        // //Extract just the expression from the function body
+        // const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
+        // const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
+        // console.log("Extracted CUDA expression:", cudaExpr);
+        const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
         
         // Now we can run GPU-FPX with the extracted expression
             const analyzerResponse = await fetch('http://155.98.69.61:8001/exec', {
@@ -134,6 +140,10 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
       )
   }
 
+  const formatAnalyzerReport = (report: string) => {
+
+  }
+
   /**
    * Helper which extracts the detector report from the rest of the GPU-FPX raw output
    * @param log the original raw output from GPU-FPX
@@ -164,43 +174,40 @@ const extractAnalyzerReport = (log: string): string => {
 
 
 //final formatted report to be displayed in the DetectorReport component
-const formattedDectectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
+const formattedDetectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
 
 /**
  *  Creates the JSX element to display results from runnning GPU-FPX on the selected expression
  * @param param0 the formatted detector report to be displayed in the main component
  * @returns the detector report JSX element
  */
-const DetectorReport = ({ formattedDectectorReport }: { formattedDectectorReport: string[] }) => (
+const DetectorReport = ({ formattedDetectorReport }: { formattedDetectorReport: string[] }) => (
   <div>
     <h5>Detector Results</h5>
     <h5>FP64 Operations</h5>
-    <p>
-      {formattedDectectorReport[0]}<br />
-      {formattedDectectorReport[1]}<br />
-      {formattedDectectorReport[2]}<br />
-      {formattedDectectorReport[3]}<br />
-    </p>
+    <div>
+      {/* Populate a table with FP64 Operations */}
+      <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={0} endResultToDisplay={4}></DetectorResultTable>
+
+    </div>
     <h5>FP32 Operations</h5>
-    <p>
-      {formattedDectectorReport[4]}<br />
-      {formattedDectectorReport[5]}<br />
-      {formattedDectectorReport[6]}<br />
-      {formattedDectectorReport[7]}<br />
-    </p>
+      {/* Populate a table with FP32 Operations */}
+      <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={4} endResultToDisplay={8}></DetectorResultTable>
+    
     <h5>Other Stats</h5>
-    <p>
-      {formattedDectectorReport[8]}<br />
-      {formattedDectectorReport[9]}<br />
-    </p>
+    <div> 
+      {/* Populate with other stats */}
+      <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={8} endResultToDisplay={10}></DetectorResultTable>
+
+    </div>
   </div>
 );
 
-const DetectorResultTable = ({ formattedDectectorReport }: { formattedDectectorReport: string[] }) => {
-  const items = [{id: 'Total NaN Found:',class:formattedDectectorReport[0],_cellProps: { id: { scope: 'row' } },},
-    {id: "Total INF Found:",class: formattedDectectorReport[1],_cellProps: { id: { scope: 'row' } },},
-    {id: "Total underflow:",class: formattedDectectorReport[2],_cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },},
-  ]
+const DetectorResultTable = ({formattedDetectorReport, startResultToDisplay, endResultToDisplay}:DetectorReportTableProps) => {
+  const items = []
+  for (let i = startResultToDisplay; i < endResultToDisplay; i++){
+    items.push({class: formattedDetectorReport[i],_cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },})
+  }
   return <CTable hover bordered small items={items} />
 }
 const TableExample = () => {
@@ -263,8 +270,7 @@ const AnalyzerReport = extractAnalyzerReport(analyzerResult);
 
       {showReport ? 
       <div>
-         <DetectorReport formattedDectectorReport={formattedDectectorReport} />
-         <DetectorResultTable formattedDectectorReport={formattedDectectorReport}></DetectorResultTable>
+         <DetectorReport formattedDetectorReport={formattedDetectorReport} />
          <h3>Analyzer Results:</h3>
          <p>{AnalyzerReport}</p>
       </div> : ""}

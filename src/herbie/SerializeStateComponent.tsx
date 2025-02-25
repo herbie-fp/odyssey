@@ -115,12 +115,12 @@ function SerializeStateComponent(props: exportStateProps) {
       fptaylorServerUrl,
       fpbenchServerUrl,
       spec,
-      specRanges,
-      expressions: newExpressions,
-      derivations: newDerivations,
-      selectedExprId,
-      compareExprIds,
-      expandedExpressions,
+      // specRanges,
+      // expressions: newExpressions,
+      // derivations: newDerivations,
+      // selectedExprId,
+      // compareExprIds,
+      // expandedExpressions,
     }
 
       // TODO: Revisit potential idea of storing each individual expression object
@@ -138,6 +138,66 @@ function SerializeStateComponent(props: exportStateProps) {
       // - All expressions
       //   - selected expression (id)
       // - selectedPoint
+
+    const createGist = async() => {
+      const url = "https://api.github.com/gists";
+      // WARNING: DELETE ACCESS TOKEN AFTER TESTING
+      //          DO NOT COMMIT ACCESS TOKEN
+      //          PLEASE!!!
+      const token = "ACCESS TOKEN";
+      const content = JSON.stringify(state, undefined, 2);
+      const gistDataBody = {
+        description: "test gist in code",
+        public: true,
+        files: {
+          "example.txt": {
+            content: content
+          }
+        }
+      }
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+            "accept": "application/vnd.github+json",
+            "Authorization": token  
+          },
+          body: JSON.stringify(gistDataBody)
+        });
+
+        const responseJson = await response.json();
+        console.log("Successful gist created:", responseJson)
+        
+      } catch(error) {
+        console.log("Error creating gist:", error)
+      }
+    }
+
+    /*
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Accept": "application/vnd.github.v3+json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(gistData)
+        });
+
+        const data = await response.json();
+        console.log("Gist Created:", data.html_url);
+    } catch (error) {
+        console.error("Error creating Gist:", error);
+    }
+};
+
+// Call the function
+createGist();
+
+
+    */
 
     navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
 

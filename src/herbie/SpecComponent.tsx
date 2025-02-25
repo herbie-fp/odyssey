@@ -23,17 +23,9 @@ async function ensureMathJS(expression: string, serverUrl: string): Promise<stri
 }
 
 function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
-  // If this is running on the web, allow URL to pass in default expression
-  // TODO: this currently only fills the spec entry area, need to trigger "explore"
-  let urlExpr;
-  if (typeof window !== 'undefined') {
-    const queryParams = new URLSearchParams(window.location.search);
-    urlExpr = queryParams.get('expr');
-  }
-  const [spec, setSpec] = useState(new Spec(urlExpr ?? '', 0));
-  const [specTextInput, setSpecTextInput] = useState(spec.expression);
-
   const [value, setValue] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [spec, setSpec] = useState(new Spec('', 0));
+  const [specTextInput, setSpecTextInput] = useState(spec.expression);
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [expressions,] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [mySpecRanges, setMySpecRanges] = useState(() => {
@@ -131,7 +123,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
     setShowExplore();
   }
 
-  const specValid = async () => {
+  const specValid = async (spec: Spec) => {
     if (spec.expression.length === 0) {
       return false
     }
@@ -155,7 +147,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
 
   async function getVariables(spec: Spec): Promise<string[]> {
     const expr = await ensureMathJS(spec.expression, serverUrl)
-    return await specValid() ? fpcorejs.getVarnamesMathJS(expr) : []
+    return await specValid(spec) ? fpcorejs.getVarnamesMathJS(expr) : []
   }
 
   const handleSpecTextUpdate: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
@@ -210,7 +202,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
   const [disabled, setDisabled] = useState(true)
   useEffect(() => {
     async function getResult() {
-      const valid = await specValid()
+      const valid = await specValid(spec)
       setDisabled(!valid)
     }
     setDisabled(true)
@@ -228,7 +220,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
     <div className="expression-input-header">
       <a
         className="showExample action"
-        href="javascript:;"
+        href="#"
         onClick={handleShowExample}
       >
         Show an example expression

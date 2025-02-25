@@ -4,7 +4,7 @@ import { Tooltip } from 'react-tooltip'
 
 import { Derivation, Expression } from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
-
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import { addJobRecorder } from './HerbieUI';
 import { nextId } from './lib/utils'
 import * as herbiejs from './lib/herbiejs'
@@ -325,7 +325,7 @@ function ExpressionTable() {
         const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
         if (!naiveCost || !costResult || costResult === 0) return 0; // Handle missing values or division by zero
   
-        return parseFloat((naiveCost / costResult).toFixed(1)); // Convert to number for sorting
+    return parseFloat((naiveCost / costResult).toFixed(1)); // Convert to number for sorting
       };
   
       // Select sorting field (Accuracy or Cost)
@@ -359,13 +359,21 @@ function ExpressionTable() {
         <div className="error-header">
           Accuracy
           <button onClick={() => toggleSortOrder('accuracy')} className="sort-button">
-            {sortField === 'accuracy' ? (sortOrder === 'asc' ? '↑' : sortOrder === 'desc' ? '↓' : '↔') : '↔'}
+            {sortField === 'accuracy' ? (
+              sortOrder === 'asc' ? <i className="fas">&#xf151;</i> : // Up Arrow (fa-angle-up)
+              sortOrder === 'desc' ? <i className="fas">&#xf150;</i> : // Down Arrow (fa-angle-down)
+              <i className="fas">&#xf0dc;</i> // Sort Icon (fa-sort)
+            ) : <i className="fas">&#xf0dc;</i>}
           </button>
         </div>
+
         <div className="speedup-header">
           Speedup
           <button onClick={() => toggleSortOrder('cost')} className="sort-button">
-            {sortField === 'cost' ? (sortOrder === 'asc' ? '↑' : sortOrder === 'desc' ? '↓' : '↔') : '↔'}
+            {sortField === 'cost' ? (sortOrder === 'asc' ? <i className="fas">&#xf151;</i> : // Up Arrow (fa-angle-up)
+              sortOrder === 'desc' ? <i className="fas">&#xf150;</i> : // Down Arrow (fa-angle-down)
+              <i className="fas">&#xf0dc;</i> // Sort Icon (fa-sort)
+            ) : <i className="fas">&#xf0dc;</i>}
           </button>
         </div>
         <div className="buttons-header">

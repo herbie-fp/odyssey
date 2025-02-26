@@ -1,11 +1,9 @@
-import * as contexts from './HerbieContext';
 import Latex from 'react-latex-next';
-
+import * as HerbieContext from './HerbieContext';
 import './DerivationComponent.css';
-import { Derivation } from './HerbieTypes';
 
 const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
-  const [derivations, setDerivations] = contexts.useGlobal(contexts.DerivationsContext)
+  const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
 
   let selectedDerivation = derivations.find(d => d.id === expressionId)
   if (!selectedDerivation) {
@@ -29,7 +27,7 @@ const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
     expressionAncestry.push(nextDerivation.id)
 
     // Examine the parent as the next expression
-    currentExpressionId = nextDerivation.parentId
+    currentExpressionId = nextDerivation.origExpId
   }
 
   return (

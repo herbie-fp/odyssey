@@ -15,9 +15,37 @@ const cors = require('cors');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
-const HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/v1.1.0-bin/herbie-dist.zip"
+let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/herbie_binaries/herbie-dist.zip"
 const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
+
+
+async function getLatestHerbieBinary(): Promise<string> {
+    const repo = "herbie-fp/odyssey";
+    const url = `https://api.github.com/repos/${repo}/releases/latest`;
+
+    try {
+        const response = await fetch(url, { headers: { "Accept": "application/vnd.github.v3+json" } });
+        if (!response.ok) {throw new Error(`GitHub API error: ${response.statusText}`);}
+
+        const data = await response.json();
+        const asset = data.assets.find((a: any) => a.name.includes("herbie-dist.zip"));
+
+        if (asset) {
+            return asset.browser_download_url;
+        } else {
+            throw new Error("Binary not found in latest release.");
+        }
+    } catch (error) {
+        console.error("Failed to fetch latest Herbie binary:", error);
+        return HERBIE_SERVER_ADDRESS; // Fallback to hardcoded version
+    }
+}
+
+getLatestHerbieBinary().then(url => {
+    HERBIE_SERVER_ADDRESS = url;
+	console.log("Using Herbie binary from:", HERBIE_SERVER_ADDRESS);
+});
 
 // TODO remove this server code/server and use the server code from server/tool-server.js
 // Port for plugins
@@ -695,7 +723,41 @@ export function activate(context: vscode.ExtensionContext) {
 		addMessageHandler(panel)
 	})
 
-	context.subscriptions.push(disposable)
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	let disposable2 = vscode.commands.registerCommand(`${extensionName}.updateBinaries`, async () => {
+		const updateConfirmed = await vscode.window.showWarningMessage(
+			"Are you sure you want to update all binaries?",
+			{ modal: true },
+			"Update"
+		);
+	
+		if (updateConfirmed !== "Update") {
+			return;
+		}
+	
+		try {
+			if (fs.existsSync(herbiePath)) {
+				fs.rmSync(herbiePath, { recursive: true, force: true });
+			}
+			if (fs.existsSync(fpbenchPath)) {
+				fs.rmSync(fpbenchPath, { recursive: true, force: true });
+			}
+			if (fs.existsSync(fptaylorPath)) {
+				fs.rmSync(fptaylorPath, { recursive: true, force: true });
+			}
+			downloadAndRunHerbie()
+			downloadFPBench();
+			downloadFPTaylor();
+			vscode.window.showInformationMessage("Binaries updated successfully.");
+		} catch (error) {
+			console.error("Error updating binaries:", error);
+			vscode.window.showErrorMessage("Failed to update binaries. Check console for details.");
+		}
+	});
+	
+	context.subscriptions.push(disposable, disposable2)
 }
 
 const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionContext) => {

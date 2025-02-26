@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import * as Contexts from './HerbieContext';
+import * as HerbieContext from './HerbieContext';
 import * as fpcorejs from './lib/fpcore';
 import { analyzeExpressionExport, ExpressionExportResponse } from './lib/herbiejs';
 
@@ -11,12 +11,12 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
 
     // Export the expression to a language of the user's choice
-    const [expressions] = Contexts.useGlobal(Contexts.ExpressionsContext);
-    const [serverUrl] = Contexts.useGlobal(Contexts.ServerContext);
+    const [expressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
+    const [serverUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext);
 
     // Get the expression text
     const expressionText = expressions.find(expr => expr.id === expressionId.expressionId);
-    if (expressionText == null) {
+    if (expressionText === undefined) {
         return <div>Expression not found</div>
     }
     // Get user choice

@@ -2,11 +2,10 @@ import React, { useReducer, useState, createContext, useContext, useEffect } fro
 
 import './HerbieUI.css';
 
-import * as Types from './HerbieTypes'
-import { Derivation, Expression, ErrorAnalysis, CostAnalysis, Sample } from './HerbieTypes';
-import * as Contexts from './HerbieContext';
+import * as HerbieTypes from './HerbieTypes'
+import * as HerbieContext from './HerbieContext';
 
-import { SpecComponent, SpecConfigComponent } from './SpecComponent';
+import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { SerializeStateComponent } from './SerializeStateComponent';
 import { ExpressionTable } from './ExpressionTable';
@@ -17,10 +16,9 @@ import SpeedVersusAccuracyPareto from './SpeedVersusAccuracyPareto';
 import { expressionToTex } from './ExpressionTable';
 
 import * as utils from './lib/utils';
-import { nextId } from './lib/utils';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
-import * as herbiejsImport from './lib/herbiejs';
+import * as herbiejs from './lib/herbiejs';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -88,8 +86,8 @@ function hslToRgb(h: number, s: number, l: number) {
   return rgbToHex(round(r * 255), round(g * 255), round(b * 255));
 }
 
-export function addJobRecorder(herbiejs: typeof herbiejsImport) {
-  const [, setJobCount] = Contexts.useReducerGlobal(Contexts.JobCountContext)
+export function addJobRecorder(_: typeof herbiejs) {
+  const [, setJobCount] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   function jobRecorder<P extends any[], Q>(f: (...args: P) => Q) {
     return async function run(...args: P) {
       console.debug('Running job', f.name, 'with args', args)
@@ -103,47 +101,82 @@ export function addJobRecorder(herbiejs: typeof herbiejsImport) {
     }
   }
   // HACK apply the decorator to all functions in the module
-  return utils.applyDecoratorToAllModuleFunctions(herbiejsImport, jobRecorder)
+  return utils.applyDecoratorToAllModuleFunctions(herbiejs, jobRecorder)
 }
 
 function HerbieUIInner() {
   // use declarations
-  const [expressions, setExpressions] = Contexts.useGlobal(Contexts.ExpressionsContext)
-  const [derivations, setDerivations] = Contexts.useGlobal(Contexts.DerivationsContext)
-  const [samples, setSamples] = Contexts.useGlobal(Contexts.SamplesContext)
-  const [serverUrl,] = Contexts.useGlobal(Contexts.ServerContext)
-  const [fptaylorServerUrl,] = Contexts.useGlobal(Contexts.FPTaylorServerContext)
-  const [fpbenchServerUrl,] = Contexts.useGlobal(Contexts.FPBenchServerContext)
-  const [analyses, setAnalyses] = Contexts.useGlobal(Contexts.AnalysesContext)
-  const [cost, setCosts] = Contexts.useGlobal(Contexts.CostContext)
-  const [spec, ] = Contexts.useGlobal(Contexts.SpecContext)
-  const [compareExprIds, setCompareExprIds] = Contexts.useGlobal(Contexts.CompareExprIdsContext)
-  const [styles, setExpressionStyles] = Contexts.useGlobal(Contexts.ExpressionStylesContext)
-  const [selectedExprId, setSelectedExprId] = Contexts.useGlobal(Contexts.SelectedExprIdContext)
-  const [selectedSampleId, setSelectedSampleId] = Contexts.useGlobal(Contexts.SelectedSampleIdContext)
-  const [averageLocalErrors, setAverageLocalErrors] = Contexts.useGlobal(Contexts.AverageLocalErrorsContext)
-  const [selectedPoint, setSelectedPoint] = Contexts.useGlobal(Contexts.SelectedPointContext)
-  const [selectedSubsetRange, setSelectedSubset] = Contexts.useGlobal(Contexts.SelectedSubsetRangeContext);
-  const [selectedSubsetAnalyses, setSelectedSubsetAnalyses] = Contexts.useGlobal(Contexts.SelectedSubsetAnalysesContext);
-  const [selectedPointsLocalError, setSelectedPointsLocalError] = Contexts.useGlobal(Contexts.SelectedPointsLocalErrorContext);
-  const [selectedPointsErrorExp, setSelectedPointsErrorExp] = Contexts.useGlobal(Contexts.SelectedPointsErrorExpContext);
-  const [FPTaylorAnalysis, setFPTaylorAnalysis] = Contexts.useGlobal(Contexts.FPTaylorAnalysisContext);
-  const [FPTaylorRanges, setFPTaylorRanges] = Contexts.useGlobal(Contexts.FPTaylorRangeContext);
-  const [inputRangesTable,] = Contexts.useGlobal(Contexts.InputRangesTableContext)
-  const [archivedExpressions, setArchivedExpressions] = Contexts.useGlobal(Contexts.ArchivedExpressionsContext)
-  const [expandedExpressions,] = Contexts.useGlobal(Contexts.ExpandedExpressionsContext)
+  const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
+  const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
+  const [samples, setSamples] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
+  const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
+  const [fptaylorServerUrl,] = HerbieContext.useGlobal(HerbieContext.FPTaylorServerContext)
+  const [fpbenchServerUrl,] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext)
+  const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
+  const [cost, setCosts] = HerbieContext.useGlobal(HerbieContext.CostContext)
+  const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
+  const [styles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
+  const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
+  const [selectedSampleId, setSelectedSampleId] = HerbieContext.useGlobal(HerbieContext.SelectedSampleIdContext)
+  const [averageLocalErrors, setAverageLocalErrors] = HerbieContext.useGlobal(HerbieContext.AverageLocalErrorsContext)
+  const [selectedPoint, setSelectedPoint] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext)
+  const [selectedSubsetRange, setSelectedSubset] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetRangeContext);
+  const [selectedSubsetAnalyses, setSelectedSubsetAnalyses] = HerbieContext.useGlobal(HerbieContext.SelectedSubsetAnalysesContext);
+  const [selectedPointsLocalError, setSelectedPointsLocalError] = HerbieContext.useGlobal(HerbieContext.SelectedPointsLocalErrorContext);
+  const [selectedPointsErrorExp, setSelectedPointsErrorExp] = HerbieContext.useGlobal(HerbieContext.SelectedPointsErrorExpContext);
+  const [FPTaylorAnalysis, setFPTaylorAnalysis] = HerbieContext.useGlobal(HerbieContext.FPTaylorAnalysisContext);
+  const [FPTaylorRanges, setFPTaylorRanges] = HerbieContext.useGlobal(HerbieContext.FPTaylorRangeContext);
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
+  const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
+  const [expandedExpressions,] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext)
 
-  const herbiejs = addJobRecorder(herbiejsImport)
+  const herbiejsJobs = addJobRecorder(herbiejs)
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showSpecEntry, setShowSpecEntry] = useState(true);
 
-  // // When the spec changes, we need to re-add any expressions that were related to it.
-  // useEffect(removeSpecFromArchivedExpressions, [spec, archivedExpressions])
-  // function removeSpecFromArchivedExpressions() {
-  //   if (archivedExpressions.includes(spec.id)) {
-  //     setArchivedExpressions(archivedExpressions.filter(e => e !== spec.id))
-  //   }
-  // }
+  // onLoad of Odyssey, check if any url params have been passed in specifying
+  // expression to load. Explore that immediately instead of showing spec page
+  useEffect(loadSpecByURL, []);
+  function loadSpecByURL() {
+    const submitURLSpec = (urlExpr: string | undefined) => {
+      // Manually trigger explore with default values
+      if (urlExpr) { 
+        const specId = spec.id + 1;
+        const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
+        const variables = fpcorejs.getVarnamesMathJS(urlExpr);
+
+        // TODO: do expression validation, see SpecComponent
+        setSpec(urlSpec);
+
+        const defaultRanges = [];
+        for (const v of variables) {
+          defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308))
+        }
+
+        setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
+          defaultRanges,
+          specId,
+          utils.nextId(inputRangesTable)
+        )]);
+
+        // TODO: add logging
+
+        // Skip showing spec entry page, go straight to main page
+        setShowSpecEntry(false);
+      }
+    }
+
+    // If this is running on the web, allow URL to pass in default expression
+    if (typeof window !== 'undefined') {
+      const queryParams = new URLSearchParams(window.location.search);
+      const urlExpr = queryParams.get('spec');
+
+      if (urlExpr !== null) {
+        submitURLSpec(urlExpr);
+      }
+    }
+  }
 
   // Data relationships
 
@@ -187,7 +220,7 @@ function HerbieUIInner() {
 
         let result = analyses.find(a => a.expressionId === expression.id && a.sampleId === sample.id)
         if (result) {
-          return result as ErrorAnalysis
+          return result as HerbieTypes.ErrorAnalysis
         }
 
         // Only get analyses for the current spec
@@ -199,10 +232,10 @@ function HerbieUIInner() {
         try {
           // HACK to make sampling work on Herbie side
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-          const analysis = await herbiejs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), sample, serverUrl)
+          const analysis = await herbiejsJobs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), sample, serverUrl)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
-          return new ErrorAnalysis(analysis, expression.id, sample.id)
+          return new HerbieTypes.ErrorAnalysis(analysis, expression.id, sample.id)
         } catch (e) {
           const throwError = (e: any) => () => {
             throw Error(`Analysis failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
@@ -210,7 +243,7 @@ function HerbieUIInner() {
           setTimeout(throwError(e))
           return;
         }
-      }))).filter(e => e) as ErrorAnalysis[]);
+      }))).filter(e => e) as HerbieTypes.ErrorAnalysis[]);
     }
     updateAnalysesAsync();
   }
@@ -228,7 +261,7 @@ function HerbieUIInner() {
 
         let result = cost.find(a => a.expressionId === expression.id)
         if (result) {
-          return result as CostAnalysis
+          return result as HerbieTypes.CostAnalysis
         }
 
         // Only get analyses for the current spec
@@ -238,9 +271,9 @@ function HerbieUIInner() {
 
         try {
           const formula = fpcorejs.mathjsToFPCore(expression.text);
-          const costData = await herbiejs.getCost(formula, sample, serverUrl);
+          const costData = await herbiejsJobs.getCost(formula, sample, serverUrl);
 
-          return new CostAnalysis(expression.id, costData);
+          return new HerbieTypes.CostAnalysis(expression.id, costData);
         } catch (e) {
           const throwError = (e: any) => () => {
             throw Error(`Cost analysis failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
@@ -248,7 +281,7 @@ function HerbieUIInner() {
           setTimeout(throwError(e))
           return;
         }
-      }))).filter(e => e) as CostAnalysis[]);
+      }))).filter(e => e) as HerbieTypes.CostAnalysis[]);
     }
     updateCostAsync();
   }
@@ -264,7 +297,7 @@ function HerbieUIInner() {
       const color = '#' + hslToRgb((expression.id + 7) * 100 % 360 / 360, 1, .4)
       //`hsl(${(expression.id + 7) * 100 % 360}, 100%, 40%)`
       console.debug('color for expression', expression.id, 'is', color)
-      return new Types.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
+      return new HerbieTypes.ExpressionStyle(color, { line: { stroke: color }, dot: { stroke: color } }, expression.id)
     }))
   }
 
@@ -285,10 +318,10 @@ function HerbieUIInner() {
         return;
       }
       console.debug(`Sampling spec ${spec.id} for input ranges ${inputRanges.id}...`)
-      console.debug(herbiejs.getSample)
+      console.debug(herbiejsJobs.getSample)
 
       const fpCore =
-        (inputRanges instanceof Types.InputRanges) ?
+        (inputRanges instanceof HerbieTypes.InputRanges) ?
           fpcorejs.makeFPCore2({
             vars: fpcorejs.getVarnamesMathJS(spec.expression),
             pre: fpcorejs.FPCorePreconditionFromRanges(
@@ -302,9 +335,9 @@ function HerbieUIInner() {
         return  // should never get here
       }
 
-      const sample_points = (await herbiejs.getSample(fpCore, serverUrl)).points;
+      const sample_points = (await herbiejsJobs.getSample(fpCore, serverUrl)).points;
       // always create a new sample with this spec and these input ranges
-      const sample = new Sample(sample_points, spec.id, inputRanges.id, nextId(samples))
+      const sample = new HerbieTypes.Sample(sample_points, spec.id, inputRanges.id, utils.nextId(samples))
       setSamples([...samples, sample]);
       console.debug(`Sampled spec ${spec.id} for input ranges ${inputRanges.id}:`, sample)
     }
@@ -314,23 +347,23 @@ function HerbieUIInner() {
   // Whenever a subset of points is selected (brushing completes)
   // * perform an analysis for the points in the selected range
   // * do NOT change the input range component
-  useEffect(updateSubsetAnalyses, [selectedSubsetRange])
+  useEffect(updateSubsetAnalyses, [selectedSubsetRange, analyses])
   function updateSubsetAnalyses() {
     if (selectedSubsetRange) {
       // Get analyses for active expressions
       const activeAnalyses = analyses.filter(a => !archivedExpressions.includes(a.expressionId))
 
       const brushedVar = selectedSubsetRange.varIdx;
-      const brushedSize = selectedSubsetRange.ordinalPoints.length;
+      const brushedSize = selectedSubsetRange.points.length;
 
-      const subsetAnalyses: Types.SubsetErrorAnalysis[] = [];
+      const subsetAnalyses: HerbieTypes.SubsetErrorAnalysis[] = [];
       for (const a of activeAnalyses) {
         const subsetErrors = [];
         // Don't resample/analyze for any expressions, take subset of existing
         for (const [i, ordSamplePoint] of a.data.ordinalSample.entries()) {
-          if (ordSamplePoint[brushedVar] >= selectedSubsetRange.ordinalPoints[0][brushedVar] 
-            && ordSamplePoint[brushedVar] <= selectedSubsetRange.ordinalPoints[brushedSize - 1][brushedVar]) {
-              subsetErrors.push(a.data.errors[i]); // DANGEROUS ? assuming indicies of errors and ordinalPoints align 1:1
+          if (ordSamplePoint[brushedVar] >= selectedSubsetRange.points[0][brushedVar] 
+            && ordSamplePoint[brushedVar] <= selectedSubsetRange.points[brushedSize - 1][brushedVar]) {
+              subsetErrors.push(a.data.errors[i]); // Indicies of errors and ordinalPoints align 1:1
           }
         }
 
@@ -349,14 +382,22 @@ function HerbieUIInner() {
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
     async function add() {
+
       if (spec.expression === '' || expressions.find(e =>
         e.specId === spec.id)) { return }
-      const expressionId = nextId(expressions)
+      const expressionId = utils.nextId(expressions)
       const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
       console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
-      setExpressions([new Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
+      setExpressions([new HerbieTypes.Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
+      
+      if (spec.expression === '' || expressions.find(e => e.specId === spec.id)) {
+        setDerivations(derivations)
+        setExpressions(expressions) // HACK: to avoid mess with multiple threads
+        return;
+      }
+
       setDerivations([
-        new Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
+        new HerbieTypes.Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
         ...derivations,
       ]);
     } 
@@ -383,21 +424,21 @@ function HerbieUIInner() {
   function updateAverageLocalErrors() {
     /* A little tricky. We have to make sure that we've collected our responses and then update the state in one pass. */
     async function getLocalErrorUpdates() {
-      async function getLocalError(expression: Expression, sample: Sample) {
+      async function getLocalError(expression: HerbieTypes.Expression, sample: HerbieTypes.Sample) {
         try {
           // HACK to make sampling work on Herbie side
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-          const modSample = new Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
-          const localErrorTree = (await herbiejs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl))
-          return new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)
+          const modSample = new HerbieTypes.Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
+          const localErrorTree = (await herbiejsJobs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl))
+          return new HerbieTypes.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)
           // updates.push(new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree))
         } catch (e: any) {
           return Error(`Local error failed for expression with id ${expression.id} (${expression.text}) and sample ${sample.id}: ${e}`)
         }
       }
       const updates = await Promise.all((await Promise.all(expressions.map(e => samples.map(s => getLocalError(e, s))))).flat())
-      const nonErrors = updates.filter(e => !(e instanceof Error)) as Types.AverageLocalErrorAnalysis[];
+      const nonErrors = updates.filter(e => !(e instanceof Error)) as HerbieTypes.AverageLocalErrorAnalysis[];
       const errors = updates.filter(e => e instanceof Error)
       setAverageLocalErrors([...averageLocalErrors, ...nonErrors])
       if (errors.length > 0) {
@@ -420,12 +461,12 @@ function HerbieUIInner() {
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
           localErrors.push(
-            new Types.PointLocalErrorAnalysis(
+            new HerbieTypes.PointLocalErrorAnalysis(
               expression.id,
               selectedPoint,
-              await herbiejs.analyzeLocalError(
+              await herbiejsJobs.analyzeLocalError(
                 fpcorejs.mathjsToFPCore(expression.text),
-                { points: [[modSelectedPoint, 1e308]] } as Sample,
+                { points: [[modSelectedPoint, 1e308]] } as HerbieTypes.Sample,
                 serverUrl
               )
             )
@@ -452,12 +493,12 @@ function HerbieUIInner() {
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
           errorExp.push(
-            new Types.PointErrorExpAnalysis(
+            new HerbieTypes.PointErrorExpAnalysis(
               expression.id,
               selectedPoint,
-              await herbiejs.analyzeErrorExpression(
+              await herbiejsJobs.analyzeErrorExpression(
                 fpcorejs.mathjsToFPCore(expression.text),
-                { points: [[modSelectedPoint, 1e308]] } as Sample,
+                { points: [[modSelectedPoint, 1e308]] } as HerbieTypes.Sample,
                 serverUrl
               )
             )
@@ -473,7 +514,7 @@ function HerbieUIInner() {
   useEffect(updateFPTaylorAnalysis, [FPTaylorRanges, serverUrl, expressions, archivedExpressions])
   function updateFPTaylorAnalysis() {
     async function getFPTaylorAnalysis() {
-      const FPTaylorAnalyses: Types.FPTaylorAnalysis[] = []
+      const FPTaylorAnalyses: HerbieTypes.FPTaylorAnalysis[] = []
       const activeExpressions = expressions.filter(e => !archivedExpressions.includes(e.id))
       for (const expression of activeExpressions) {
         if (expression && FPTaylorRanges) {
@@ -532,7 +573,7 @@ function HerbieUIInner() {
         ).stdout)
 
           FPTaylorAnalyses.splice(index, 0,
-            new Types.FPTaylorAnalysis(
+            new HerbieTypes.FPTaylorAnalysis(
               index,
               fptaylorResult
             )
@@ -565,26 +606,33 @@ function HerbieUIInner() {
   function myHeader() {
     return (
       <div className="header" style={{ fontSize: '11px', backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "10px 27px", alignItems: 'center'}}>
-        {/* removed header-top */}
-        <div className="app-name" onClick={() => setShowOverlay(true)}>
+        <div className="app-name" onClick={() => setShowSpecEntry(true)}>
           <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
-        <SpecComponent {...{ showOverlay, setShowOverlay }} />
-        <a href="https://github.com/herbie-fp/odyssey" style={{
-          color: "var(--background-color)", fontFamily: "Ruda"
-        }}>
+        <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank"
+          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
+        >
           Documentation
         </a>
-        <a href="https://github.com/herbie-fp/odyssey/issues/new" style={{
-          color: "var(--background-color)", fontFamily: "Ruda"
-        }}>
+        <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank"
+          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
+        >
           Issues
         </a>
-        <SerializeStateComponent specPage={showOverlay}/>
+        <SerializeStateComponent specPage={showSpecEntry}/>
         <ServerStatusComponent />
       </div>
     )
+  }
+
+  const handleBackToSpecEntry = () => {
+    // Remove expr query param from url so navigation behaves as normal
+    const url = new URL(window.location.href);
+    url.searchParams.delete("expr");
+    window.history.pushState({}, '', url);
+
+    setShowSpecEntry(true);
   }
 
   function mySubHeader() {
@@ -593,7 +641,7 @@ function HerbieUIInner() {
         <a
           href="#"
           className="left-item action"
-          onClick={() => setShowOverlay(true)}
+          onClick={handleBackToSpecEntry}
         >
           &larr; Back to Spec Entry
         </a>
@@ -613,15 +661,12 @@ function HerbieUIInner() {
 
   return (
     <div>
-      {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
-        <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
+      {showSpecEntry ?
+        <div className="spec-container" style={ {display: "flex", flexDirection: 'column'} }>
           {myHeader()}
-          <div className="overlay-content">
-            <SpecConfigComponent />
-          </div>
-          </div>
-      }
-      {!showOverlay &&
+          <SpecComponent setShowExplore={() => setShowSpecEntry(false)}/>
+        </div>
+      :
         <div className="grid-container">
           {myHeader()}
           {mySubHeader()}
@@ -633,7 +678,6 @@ function HerbieUIInner() {
             <h4>Other Comparisons</h4>
             <SelectableVisualization components={components2} />
           </div>
-
         </div>
       }
       </div>

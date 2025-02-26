@@ -4,11 +4,11 @@ import { Tooltip } from 'react-tooltip'
 
 import { Derivation, Expression } from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
-
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import { addJobRecorder } from './HerbieUI';
 import { nextId } from './lib/utils'
-import * as herbiejsImport from './lib/herbiejs'
-import * as fpcore from './lib/fpcore'
+import * as herbiejs from './lib/herbiejs'
+import * as fpcorejs from './lib/fpcore'
 
 import { SelectableVisualization } from './SelectableVisualization';
 import { LocalError } from './LocalError/LocalError';
@@ -21,10 +21,10 @@ import KaTeX from 'katex';
 import './ExpressionTable.css';
 
 // Make server call to get tex version of expression
-export const expressionToTex = async (expression: fpcore.mathjs, numVars: number, serverUrl: string) => {
+export const expressionToTex = async (expression: fpcorejs.mathjs, numVars: number, serverUrl: string) => {
   try {
-    const response = await herbiejsImport.analyzeExpressionExport(
-      fpcore.mathjsToFPCore(expression),
+    const response = await herbiejs.analyzeExpressionExport(
+      fpcorejs.mathjsToFPCore(expression),
       "tex",
       serverUrl
     );
@@ -55,7 +55,8 @@ function ExpressionTable() {
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
   const [addExpressionTex, setAddExpressionTex] = useState('');
-  
+  const [sortField, setSortField] = useState<'accuracy' | 'cost' | 'none'>('none');
+
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [jobCount,] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
 
@@ -64,8 +65,8 @@ function ExpressionTable() {
   const naiveExpression = expressions.find(e => e.text === spec.expression);
   // get cost of naive expression
   const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
-
-  const herbiejs = addJobRecorder(herbiejsImport)
+  const [sortOrder, setSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
+  const herbiejsJobs = addJobRecorder(herbiejs)
 
   const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
 
@@ -76,6 +77,17 @@ function ExpressionTable() {
     }
   }
 
+  function toggleSortOrder(field: 'accuracy' | 'cost') {
+    setSortField(field); // Set which field to sort
+    setSortOrder((prevOrder) => {
+      if (sortField !== field) return 'asc'; // If switching fields, start with ascending order
+      if (prevOrder === 'none') return 'asc';
+      if (prevOrder === 'asc') return 'desc';
+      return 'none';
+    });
+  }
+  
+     
   function toggleShowMath() {
     setShowMath(!showMath);
   }
@@ -123,15 +135,15 @@ function ExpressionTable() {
   }
 
   const extraVariables = (expression: string) => {
-    const specVariables = fpcore.getVarnamesMathJS(spec.expression);
-    const expressionVariables = fpcore.getVarnamesMathJS(expression);
+    const specVariables = fpcorejs.getVarnamesMathJS(spec.expression);
+    const expressionVariables = fpcorejs.getVarnamesMathJS(expression);
 
     return expressionVariables.filter((symbol) => !specVariables.includes(symbol));
   };
 
   const addExpressionErrors = (expression: string) : string[] => {
     try {
-      fpcore.getVarnamesMathJS(expression);
+      fpcorejs.getVarnamesMathJS(expression);
     } catch (e:any) {
       return [(e as Error).message];
     }
@@ -145,8 +157,8 @@ function ExpressionTable() {
       return [errorMessage];
     }
 
-    const functionNames = Object.keys(fpcore.SECRETFUNCTIONS).concat(Object.keys(fpcore.FUNCTIONS));
-    const expressionVariables = fpcore.getVarnamesMathJS(expression);
+    const functionNames = Object.keys(fpcorejs.SECRETFUNCTIONS).concat(Object.keys(fpcorejs.FUNCTIONS));
+    const expressionVariables = fpcorejs.getVarnamesMathJS(expression);
     const functionNamedVariables = expressionVariables.filter((symbol) => functionNames.includes(symbol));
     if (functionNamedVariables.length !== 0) {
       const functionVariableString = functionNamedVariables.join(", ");
@@ -173,7 +185,7 @@ function ExpressionTable() {
   const handleAddExpression = async () => {
     validateExpression(addExpression);
     const selectedId = nextId(expressions);
-    const tex = await expressionToTex(addExpression, fpcore.getVarnamesMathJS(addExpression).length, serverUrl);
+    const tex = await expressionToTex(addExpression, fpcorejs.getVarnamesMathJS(addExpression).length, serverUrl);
     const newExpressions = [
       new Expression(addExpression, selectedId, spec.id, tex),
       ...expressions,
@@ -187,7 +199,7 @@ function ExpressionTable() {
     setCompareExprIds([...compareExprIds, selectedId])
     setAddExpression('')
     
-    fetch('http://localhost:8003/log', {
+    fetch('https://herbie.uwplse.org/odyssey-log/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -214,7 +226,7 @@ function ExpressionTable() {
     try {
       validateExpression(expression);
       const tex = expression === '' ? ''
-        : KaTeX.renderToString(await expressionToTex(expression, fpcore.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
+        : KaTeX.renderToString(await expressionToTex(expression, fpcorejs.getVarnamesMathJS(expression).length, serverUrl), { throwOnError: false });
       setAddExpressionTex(tex);
     } catch (e) {
       setAddExpressionTex((e as Error).toString());
@@ -226,7 +238,7 @@ function ExpressionTable() {
       return
     }
     // get suggested expressions with Herbie and put them in the expressions table
-    const suggested = await herbiejs.suggestExpressions(fpcore.mathjsToFPCore(expression.text, spec.expression, fpcore.getVarnamesMathJS(spec.expression)), sample, serverUrl)
+    const suggested = await herbiejsJobs.suggestExpressions(fpcorejs.mathjsToFPCore(expression.text, spec.expression, fpcorejs.getVarnamesMathJS(spec.expression)), sample, serverUrl)
 
 
     const histories = suggested.histories;
@@ -242,12 +254,12 @@ function ExpressionTable() {
       const newId = nextId(expressions) + i;
 
       const s = alternatives[i];
-      const fPCoreToMathJS = await herbiejs.fPCoreToMathJS(s, serverUrl);
-      const tex = await expressionToTex(fPCoreToMathJS, fpcore.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
+      const fPCoreToMathJS = await herbiejsJobs.fPCoreToMathJS(s, serverUrl);
+      const tex = await expressionToTex(fPCoreToMathJS, fpcorejs.getVarnamesMathJS(fPCoreToMathJS).length, serverUrl);
       const newExpression = new Expression(fPCoreToMathJS, newId, spec.id, tex);
       newExpressions.push(newExpression);
        
-      fetch('http://localhost:8003/log', {
+      fetch('https://herbie.uwplse.org/odyssey-log/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -281,7 +293,51 @@ function ExpressionTable() {
     setDerivations([...newDerivations, ...derivations]);
     setCompareExprIds([...compareExprIds, ...newExpressions.map(e => e.id)]);
   }
+  
 
+  const getSortedActiveExpressions = () => {
+    if (sortOrder === 'none') return activeExpressions; // Return original order
+  
+    return [...activeExpressions].sort((idA, idB) => {
+      const exprA = expressions.find(exp => exp.id === idA);
+      const exprB = expressions.find(exp => exp.id === idB);
+  
+      if (!exprA || !exprB) return 0;
+  
+      // Compute Accuracy using original method
+      const getAccuracy = (expression: Expression) => {
+        let analysisResult: string | undefined;
+        
+        if (selectedSubsetAnalyses) {
+          const analysisData = selectedSubsetAnalyses.find(analysis => analysis.expressionId === expression.id);
+          analysisResult = analysisData?.subsetErrorResult;
+        } else {
+          const analysisData = analyses.find(analysis => analysis.expressionId === expression.id)?.data;
+          analysisResult = !analysisData ? undefined 
+            : (analysisData.errors.reduce((acc: number, v: any) => acc + v, 0) / 8000).toFixed(2);
+        }
+        
+        return analysisResult ? 100 - (parseFloat(analysisResult) / 64) * 100 : 0;
+      };
+  
+      // Compute Cost
+      const getCost = (expression: Expression) => {
+        const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
+        if (!naiveCost || !costResult || costResult === 0) return 0; // Handle missing values or division by zero
+  
+    return parseFloat((naiveCost / costResult).toFixed(1)); // Convert to number for sorting
+      };
+  
+      // Select sorting field (Accuracy or Cost)
+      let valueA = sortField === 'accuracy' ? getAccuracy(exprA) : getCost(exprA);
+      let valueB = sortField === 'accuracy' ? getAccuracy(exprB) : getCost(exprB);
+  
+      return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+    });
+  };
+  
+  // Get sorted active expressions (IDs only)
+  const sortedActiveExpressions = getSortedActiveExpressions();
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -302,20 +358,33 @@ function ExpressionTable() {
         </div>
         <div className="error-header">
           Accuracy
+          <button onClick={() => toggleSortOrder('accuracy')} className="sort-button">
+            {sortField === 'accuracy' ? (
+              sortOrder === 'asc' ? <i className="fas">&#xf151;</i> : // Up Arrow (fa-angle-up)
+              sortOrder === 'desc' ? <i className="fas">&#xf150;</i> : // Down Arrow (fa-angle-down)
+              <i className="fas">&#xf0dc;</i> // Sort Icon (fa-sort)
+            ) : <i className="fas">&#xf0dc;</i>}
+          </button>
         </div>
+
         <div className="speedup-header">
           Speedup
+          <button onClick={() => toggleSortOrder('cost')} className="sort-button">
+            {sortField === 'cost' ? (sortOrder === 'asc' ? <i className="fas">&#xf151;</i> : // Up Arrow (fa-angle-up)
+              sortOrder === 'desc' ? <i className="fas">&#xf150;</i> : // Down Arrow (fa-angle-down)
+              <i className="fas">&#xf0dc;</i> // Sort Icon (fa-sort)
+            ) : <i className="fas">&#xf0dc;</i>}
+          </button>
         </div>
         <div className="buttons-header">
 
         </div>
       </div>
-
+      
       <div className="expressions">
-        {activeExpressions.map((id) => {
+        {sortedActiveExpressions.map((id) => {
           const expression = expressions.find((expression) => expression.id === id) as Expression;
           const isChecked = compareExprIds.includes(expression.id);
-
           let analysisResult: string | undefined;
             // use pre-caluclated result for a subset of points (brushing)
           if (selectedSubsetAnalyses) {
@@ -330,7 +399,6 @@ function ExpressionTable() {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
           }
-
           // cost of the expression
           const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
 

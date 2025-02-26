@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Tooltip } from "react-tooltip";
 
 import * as HerbieContext from '../HerbieContext';
-import * as types from '../HerbieTypes';
+import { LocalErrorTree } from '../HerbieTypes';
 import { ErrorExpressionResponse } from '../HerbieTypes';
 
 import * as fpcore from '../lib/fpcore';
@@ -13,13 +13,13 @@ import Mermaid from './Mermaid';
 
 import './LocalError.css';
 
-function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, currentLocation: Array<number>,  targetLocation: Array<number> ,explanation: string) {
+function localErrorTreeAsMermaidGraph(tree: LocalErrorTree, bits: number, currentLocation: Array<number>,  targetLocation: Array<number> ,explanation: string) {
   // See examples + doc at https://github.com/mermaid-js/mermaid
   let edges = [] as string[]
   let colors = {} as Record<string, string>
   let counter = 0
 
-  const isLeaf = (n: types.LocalErrorTree ) => n['children'].length === 0
+  const isLeaf = (n: LocalErrorTree ) => n['children'].length === 0
 
   function makeNodeInfo(id: string, name: string, 
     exact_err: string, approx_value: string, 
@@ -59,7 +59,7 @@ function localErrorTreeAsMermaidGraph(tree: types.LocalErrorTree, bits: number, 
   const locationsMatch = (loc1: Array<number>, loc2: Array<number>) =>
     JSON.stringify(loc1) === JSON.stringify(loc2);
 
-  function loop(n : types.LocalErrorTree,currentLoc: Array<number>) {
+  function loop(n : LocalErrorTree,currentLoc: Array<number>) {
     const name = n['e']
     const children = n['children']
     const avg_error = n['avg-error']

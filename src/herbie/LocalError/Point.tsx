@@ -1,12 +1,4 @@
 import './Point.css'
-// React component
-// encapsulates: 
-// varnames.map((varname, i) => (
-//   <div className="selected-point-variable" key={i}>
-//   <div className="selected-point-variable-name">{varname}:</div>
-//   <div className="selected-point-variable-value">{selectedPoint?.[i]}</div>
-// </div>
-// ))
 
 // takes a dictionary of variable names to values
 // and renders them as x: 1, y: 2, z: 3 etc.

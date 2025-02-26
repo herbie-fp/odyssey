@@ -1,14 +1,13 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { ServerContext } from './HerbieContext';
-import * as HerbieContext from './HerbieContext';
+import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
+
+import * as HerbieContext from './HerbieContext';
 
 import './ServerStatus.css';
 
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
 
 function ServerStatusComponent() {
-  // const { serverUrl, setServerUrl } = useContext(ServerContext);
   const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [fptaylorServerUrl, setFPTaylorServerUrl] = HerbieContext.useGlobal(HerbieContext.FPTaylorServerContext)
   const [fpbenchServerUrl, setFPBenchServerUrl] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext)

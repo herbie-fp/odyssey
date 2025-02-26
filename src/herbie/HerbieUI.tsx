@@ -139,41 +139,57 @@ function HerbieUIInner() {
   // expression to load. Explore that immediately instead of showing spec page
   useEffect(loadSpecByURL, []);
   function loadSpecByURL() {
-    const submitURLSpec = (urlExpr: string | undefined) => {
+    const submitURLSpec = async (urlExpr: string, urlAlts: string | null) => {
       // Manually trigger explore with default values
-      if (urlExpr) { 
-        const specId = spec.id + 1;
-        const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
-        const variables = fpcorejs.getVarnamesMathJS(urlExpr);
+      const specId = spec.id + 1;
+      const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
+      const variables = fpcorejs.getVarnamesMathJS(urlExpr);
 
-        // TODO: do expression validation, see SpecComponent
-        setSpec(urlSpec);
+      // TODO: do expression validation, see SpecComponent
+      setSpec(urlSpec);
 
-        const defaultRanges = [];
-        for (const v of variables) {
-          defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308))
+      const defaultRanges = [];
+      for (const v of variables) {
+        defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308))
+      }
+
+      setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
+        defaultRanges,
+        specId,
+        utils.nextId(inputRangesTable)
+      )]);
+
+      if (urlAlts !== null) {    
+        const alts: HerbieTypes.Expression[] = [];    
+        let expId = 0;
+        // alternatives given in , separated list under "alts"
+        for (const alt of urlAlts.split(',')) {
+          alts.push(new HerbieTypes.Expression(
+            alt, ++expId, specId, await expressionToTex(alt, variables.length, serverUrl)))
         }
 
-        setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
-          defaultRanges,
-          specId,
-          utils.nextId(inputRangesTable)
-        )]);
+         // Manually add spec to expressions list so ids line up nicely
+        alts.push(new HerbieTypes.Expression(
+          urlExpr, 0, specId, await expressionToTex(urlExpr, variables.length, serverUrl)));
 
-        // TODO: add logging
-
-        // Skip showing spec entry page, go straight to main page
-        setShowSpecEntry(false);
+        setExpressions(alts)
       }
+
+      // TODO: add logging
+
+      // Skip showing spec entry page, go straight to main page
+      setShowSpecEntry(false);
     }
 
     // If this is running on the web, allow URL to pass in default expression
     if (typeof window !== 'undefined') {
       const queryParams = new URLSearchParams(window.location.search);
       const urlExpr = queryParams.get('spec');
+      const urlAlts = queryParams.get('alts');
 
       if (urlExpr !== null) {
-        submitURLSpec(urlExpr);
+        // It only makes sense to have alternatives if there was a spec given
+        submitURLSpec(urlExpr, urlAlts);
       }
     }
   }

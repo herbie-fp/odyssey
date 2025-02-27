@@ -5,7 +5,7 @@ import './HerbieUI.css';
 import * as HerbieTypes from './HerbieTypes'
 import * as HerbieContext from './HerbieContext';
 
-import { SpecComponent, SpecConfigComponent } from './SpecComponent';
+import { SpecComponent } from './SpecComponent';
 import { ServerStatusComponent } from './ServerStatus';
 import { SerializeStateComponent } from './SerializeStateComponent';
 import { ExpressionTable } from './ExpressionTable';
@@ -114,7 +114,7 @@ function HerbieUIInner() {
   const [fpbenchServerUrl,] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext)
   const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [cost, setCosts] = HerbieContext.useGlobal(HerbieContext.CostContext)
-  const [spec, ] = HerbieContext.useGlobal(HerbieContext.SpecContext)
+  const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext)
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext)
   const [styles, setExpressionStyles] = HerbieContext.useGlobal(HerbieContext.ExpressionStylesContext)
   const [selectedExprId, setSelectedExprId] = HerbieContext.useGlobal(HerbieContext.SelectedExprIdContext)
@@ -127,21 +127,56 @@ function HerbieUIInner() {
   const [selectedPointsErrorExp, setSelectedPointsErrorExp] = HerbieContext.useGlobal(HerbieContext.SelectedPointsErrorExpContext);
   const [FPTaylorAnalysis, setFPTaylorAnalysis] = HerbieContext.useGlobal(HerbieContext.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = HerbieContext.useGlobal(HerbieContext.FPTaylorRangeContext);
-  const [inputRangesTable,] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
+  const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [expandedExpressions,] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext)
 
   const herbiejsJobs = addJobRecorder(herbiejs)
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showSpecEntry, setShowSpecEntry] = useState(true);
 
-  // // When the spec changes, we need to re-add any expressions that were related to it.
-  // useEffect(removeSpecFromArchivedExpressions, [spec, archivedExpressions])
-  // function removeSpecFromArchivedExpressions() {
-  //   if (archivedExpressions.includes(spec.id)) {
-  //     setArchivedExpressions(archivedExpressions.filter(e => e !== spec.id))
-  //   }
-  // }
+  // onLoad of Odyssey, check if any url params have been passed in specifying
+  // expression to load. Explore that immediately instead of showing spec page
+  useEffect(loadSpecByURL, []);
+  function loadSpecByURL() {
+    const submitURLSpec = (urlExpr: string | undefined) => {
+      // Manually trigger explore with default values
+      if (urlExpr) { 
+        const specId = spec.id + 1;
+        const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
+        const variables = fpcorejs.getVarnamesMathJS(urlExpr);
+
+        // TODO: do expression validation, see SpecComponent
+        setSpec(urlSpec);
+
+        const defaultRanges = [];
+        for (const v of variables) {
+          defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308))
+        }
+
+        setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
+          defaultRanges,
+          specId,
+          utils.nextId(inputRangesTable)
+        )]);
+
+        // TODO: add logging
+
+        // Skip showing spec entry page, go straight to main page
+        setShowSpecEntry(false);
+      }
+    }
+
+    // If this is running on the web, allow URL to pass in default expression
+    if (typeof window !== 'undefined') {
+      const queryParams = new URLSearchParams(window.location.search);
+      const urlExpr = queryParams.get('spec');
+
+      if (urlExpr !== null) {
+        submitURLSpec(urlExpr);
+      }
+    }
+  }
 
   // Data relationships
 
@@ -347,12 +382,20 @@ function HerbieUIInner() {
   useEffect(addSpecToExpressions, [spec, expressions])
   function addSpecToExpressions() {
     async function add() {
+
       if (spec.expression === '' || expressions.find(e =>
         e.specId === spec.id)) { return }
       const expressionId = utils.nextId(expressions)
       const tex = await expressionToTex(spec.expression, fpcorejs.getVarnamesMathJS(spec.expression).length,serverUrl);
       console.debug(`Adding spec ${spec.expression} to expressions with id ${expressionId}...`)
       setExpressions([new HerbieTypes.Expression(spec.expression, expressionId, spec.id, tex), ...expressions])
+      
+      if (spec.expression === '' || expressions.find(e => e.specId === spec.id)) {
+        setDerivations(derivations)
+        setExpressions(expressions) // HACK: to avoid mess with multiple threads
+        return;
+      }
+
       setDerivations([
         new HerbieTypes.Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
         ...derivations,
@@ -563,12 +606,10 @@ function HerbieUIInner() {
   function myHeader() {
     return (
       <div className="header" style={{ fontSize: '11px', backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "10px 27px", alignItems: 'center'}}>
-        {/* removed header-top */}
-        <div className="app-name" onClick={() => setShowOverlay(true)}>
+        <div className="app-name" onClick={() => setShowSpecEntry(true)}>
           <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
-        <SpecComponent {...{ showOverlay, setShowOverlay }} />
         <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank"
           style={{color: "var(--background-color)", fontFamily: "Ruda"}}
         >
@@ -579,10 +620,19 @@ function HerbieUIInner() {
         >
           Issues
         </a>
-        <SerializeStateComponent specPage={showOverlay}/>
+        <SerializeStateComponent specPage={showSpecEntry}/>
         <ServerStatusComponent />
       </div>
     )
+  }
+
+  const handleBackToSpecEntry = () => {
+    // Remove expr query param from url so navigation behaves as normal
+    const url = new URL(window.location.href);
+    url.searchParams.delete("expr");
+    window.history.pushState({}, '', url);
+
+    setShowSpecEntry(true);
   }
 
   function mySubHeader() {
@@ -591,7 +641,7 @@ function HerbieUIInner() {
         <a
           href="#"
           className="left-item action"
-          onClick={() => setShowOverlay(true)}
+          onClick={handleBackToSpecEntry}
         >
           &larr; Back to Spec Entry
         </a>
@@ -611,15 +661,12 @@ function HerbieUIInner() {
 
   return (
     <div>
-      {showOverlay && // HACK to show the spec config component. Not a true overlay now, needs to be refactored.
-        <div className="overlay" style={ {display: "flex", flexDirection: 'column'} }>
+      {showSpecEntry ?
+        <div className="spec-container" style={ {display: "flex", flexDirection: 'column'} }>
           {myHeader()}
-          <div className="overlay-content">
-            <SpecConfigComponent />
-          </div>
-          </div>
-      }
-      {!showOverlay &&
+          <SpecComponent setShowExplore={() => setShowSpecEntry(false)}/>
+        </div>
+      :
         <div className="grid-container">
           {myHeader()}
           {mySubHeader()}
@@ -631,7 +678,6 @@ function HerbieUIInner() {
             <h4>Other Comparisons</h4>
             <SelectableVisualization components={components2} />
           </div>
-
         </div>
       }
       </div>

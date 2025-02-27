@@ -173,6 +173,7 @@ input[type="text"]:focus, select:focus {
   display:flex;
   grid-area: header; /*Place the header in the "header" grid area */
   justify-content: space-between; /* Align the components at the start and end of the header */
+  
   .app-name {
     cursor: pointer;
     display: flex;
@@ -180,6 +181,7 @@ input[type="text"]:focus, select:focus {
     font-size: 1em;
     font-family: 'Ruda';
     font-weight: 500;
+    margin-right: 64%; /* To fill space in header */
   }
 
   .serverStatus {
@@ -211,14 +213,6 @@ input[type="text"]:focus, select:focus {
   height: 100%;
 }
 
-.header-top {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  border-bottom: 2px solid #a2b9c8;
-  padding-left: 5px;
-}
-
 .expression-table {
   grid-area: expressions; /*Place the expression table in the "expressions" grid area
 
@@ -232,7 +226,7 @@ input[type="text"]:focus, select:focus {
 .grid-container > .visualizations {
   grid-area: visualizations; /* Place the visualization section in the "visualizations" grid area */
   margin-left: 10px;
-  box-shadow: 5px 0 10px rgba(0, 0, 0, 0.07);
+  box-shadow: 3px 0 8px rgba(0, 0, 0, 0.07);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -303,7 +297,9 @@ a.action:focus {
   font-size: 20px;
   background-color: var(--background-color);
   color: var(--foreground-color);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+  /* Enables box shadow to show up over exp table (has background color) */
+  position: relative;
 }
 
 .subheader .left-item {

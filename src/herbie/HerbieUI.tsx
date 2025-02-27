@@ -167,12 +167,12 @@ function HerbieUIInner() {
           alts.push(new HerbieTypes.Expression(
             alt, ++expId, specId, await expressionToTex(alt, variables.length, serverUrl)))
         }
-
-         // Manually add spec to expressions list so ids line up nicely
+        // Manually add spec to expressions list so ids line up nicely
         alts.push(new HerbieTypes.Expression(
           urlExpr, 0, specId, await expressionToTex(urlExpr, variables.length, serverUrl)));
 
         setExpressions(alts)
+        setCompareExprIds(alts.map(a => a.id))
       }
 
       // TODO: add logging

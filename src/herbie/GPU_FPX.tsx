@@ -19,7 +19,8 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
   const current_expression = expressions.find(expression => expression.id === expressionId);
   const [gpuFpxSelected] = contexts.useGlobal(contexts.gpuFpxSelected);
-  const [showReport, setShowReport] = useState(false);
+  const [showDetectorReport, setShowDetectorReport] = useState(false);
+  const [showAnalyzerReport, setShowAnalyzerReport] = useState(false);
   const [runAnalyzer, setRunAnalyzer] = useState(false);
   //State for results from Analyzer and Detector
   const [analyzerResult, setAnalyzerResult] = useState<string>("");
@@ -120,13 +121,24 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const handleRunGPUFPXClick = () => {
     resetResults();
     setRunAnalyzer(!runAnalyzer);
+    setShowAnalyzerReport(!showAnalyzerReport);
+    setShowDetectorReport(!showDetectorReport);
     handleRunAnalysis();
 };
+
+
   /**
-   * Report click handler
+   * Report click handler for detector
    */
-  const handleReportClick = () => {
-    setShowReport(!showReport);
+  const handleShowDetectorReportClick = () => {
+    setShowDetectorReport(!showDetectorReport);
+  }
+
+  /**
+   * Report click handler for analyzer
+   */
+  const handleShowAnalyzerReportClick = () => {
+    setShowAnalyzerReport(!showAnalyzerReport);
   }
 
   /**
@@ -289,23 +301,37 @@ const TableExample = () => {
   return <CTable hover bordered small columns={columns} items={items} />
 }
 
-// const AnalyzerReport = formatAnalyzerReport(extractAnalyzerReport(analyzerResult));
-const AnalyzerReport = formatAnalyzerReport(extractAnalyzerReport(analyzerResult));
+const cleanedAnalyzerReport = formatAnalyzerReport(extractAnalyzerReport(analyzerResult));
+
+const AnalyzerResultTable = ({formattedAnalyzerReport}:analyzerReportTableProps) => {
+  const items = []
+  for (let i = 0; i < formattedAnalyzerReport.length; i++){
+    items.push({class: formattedAnalyzerReport[i],_cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },})
+  }
+  return <CTable hover bordered small items={items} />
+}
+const AnalyzerReport = ({ formattedAnalyzerReport }: analyzerReportTableProps) => (
+  <div>
+    <h6>Analyzer Results</h6>
+    <div>
+      {/* Populate a table with FP64 Operations */}
+      <AnalyzerResultTable formattedAnalyzerReport={formattedAnalyzerReport}></AnalyzerResultTable>
+    </div>
+  </div>
+);
 
   return (
     <div>
       {/* <p>Current expression:</p>
       <p>{current_expression?.text}</p>  */}
       {/* <p>The total number of exceptions are: 2</p> */}
-      <button onClick={handleReportClick}>Show Results</button>
       <button onClick={handleRunGPUFPXClick}>Detect & Analyze Expression on GPU's</button>
-
-      {showReport ? 
       <div>
-         <DetectorReport formattedDetectorReport={formattedDetectorReport} />
-         <h3>Analyzer Results:</h3>
-         <p>{AnalyzerReport}</p>
-      </div> : ""}
+        <button onClick={handleShowDetectorReportClick}>Show/Hide Detector Results</button>
+        {showDetectorReport ? <DetectorReport formattedDetectorReport={formattedDetectorReport} /> : ""}
+        <button onClick={handleShowAnalyzerReportClick}>Show/Hide Analyzer Results</button>
+        {showAnalyzerReport ? <AnalyzerReport formattedAnalyzerReport={cleanedAnalyzerReport} /> : ""}
+      </div> 
     </div>
   );
 };

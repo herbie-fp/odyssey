@@ -620,24 +620,29 @@ function HerbieUIInner() {
   ];
 
   function myHeader() {
+    const rawUrlBase = "https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/"
     return (
-      <div className="header" style={{ fontSize: '11px', backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "10px 27px", alignItems: 'center'}}>
+      <div className="header">
         <div className="app-name" onClick={() => setShowSpecEntry(true)}>
-          <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
+          <img src={rawUrlBase + "odyssey-icon.png"} style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
-        <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank"
-          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
-        >
-          Documentation
-        </a>
-        <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank"
-          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
-        >
-          Issues
-        </a>
-        <SerializeStateComponent specPage={showSpecEntry}/>
-        <ServerStatusComponent />
+        <div className="tabs">
+          <div>
+            <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank">
+              Documentation
+            </a>
+            <img className={"icon"}  src={rawUrlBase + "open-new-tab.png"} alt="Open in external tab icon"></img>
+          </div>
+          <div>
+            <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank">
+              Issues
+            </a>
+            <img className={"icon"} src={rawUrlBase + "open-new-tab.png"} alt="Open in external tab icon"></img>
+          </div>
+          <SerializeStateComponent specPage={showSpecEntry}/>
+          <ServerStatusComponent />
+        </div>
       </div>
     )
   }

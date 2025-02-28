@@ -261,8 +261,11 @@ function SerializeStateComponent(props: exportStateProps) {
   // Export page
   if (props.specPage) {
     return (
-      <div className="import-export" style={{paddingBottom: "2px"}}>
-        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Import</a>
+      <div className="import-export">
+        <div>
+          <a onClick={() => setIsModalOpen(true)}>Import</a>
+          <img className={"icon"} src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/import.png" alt="Import state icon"></img>
+        </div>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}
@@ -280,8 +283,11 @@ function SerializeStateComponent(props: exportStateProps) {
     );
   } else {
     return (
-      <div className="import-export" style={{paddingBottom: "2px"}}>
-        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Export</a>
+      <div className="import-export">
+        <div>
+          <a onClick={() => setIsModalOpen(true)}>Export</a>
+          <img className={"icon"} src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/export.png" alt="Export state icon"></img>
+        </div>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}

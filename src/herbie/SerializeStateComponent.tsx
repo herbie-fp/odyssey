@@ -264,7 +264,6 @@ function SerializeStateComponent(props: exportStateProps) {
       <div className="import-export">
         <a onClick={() => setIsModalOpen(true)}>
           Import
-          <img className={"icon"} src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/import.png" alt="Import state icon"></img>
         </a>
         <Modal 
           isOpen={isModalOpen}
@@ -286,7 +285,6 @@ function SerializeStateComponent(props: exportStateProps) {
       <div className="import-export">
         <a onClick={() => setIsModalOpen(true)}>
           Export
-          <img className={"icon"} src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/export.png" alt="Export state icon"></img>
         </a>
         <Modal 
           isOpen={isModalOpen}

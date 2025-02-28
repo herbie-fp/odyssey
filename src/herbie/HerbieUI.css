@@ -209,9 +209,15 @@ input[type="text"]:focus, select:focus {
   }
 
   .icon {
-    width: 12px;
-    margin: 0 5px -2px 2px;
-    filter: invert(1);
+    width: 1em; 
+    height: 1em;
+    fill: var(--foreground-color);
+    margin: 0 5px -1px 3px;
+  }
+
+  a:hover .icon { 
+    /* Open in external tab icon only shows on hover of link */
+    fill: var(--background-color);
   }
 }
 

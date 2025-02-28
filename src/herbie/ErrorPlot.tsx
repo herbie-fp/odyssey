@@ -415,10 +415,10 @@ function ErrorPlot() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                  actionType: "PointSelection",
                   sessionId: sessionStorage.getItem('sessionId'),
                   SelectedPoint: point,
-                    SelectedExpression: expressions.find(e => e.id === expId)?.text,
-                    Description: `Selected Point: ${point} on Expression: ${expressions.find(e => e.id === expId)?.text}in the Error Plot Graph`,
+                  SelectedExpression: expressions.find(e => e.id === expId)?.text,
                   timestamp: new Date().toLocaleString(),
                 }),
               })
@@ -568,7 +568,9 @@ function ErrorPlot() {
                 // store selected points subset in global variable, triggers re-render
                 const firstPoint = brushedPoints.length > 0 ? brushedPoints[0] : null;
                 const lastPoint = brushedPoints.length > 0 ? brushedPoints[brushedPoints.length - 1] : null;
-                const range = firstPoint !== null && lastPoint !== null ? `${firstPoint} - ${lastPoint}` : "N/A";
+
+                const firstFloat = firstPoint !== null ? ordinals.ordinalToFloat(firstPoint) : null;
+                const lastFloat = lastPoint !== null ? ordinals.ordinalToFloat(lastPoint) : null;
 
                 setSelectedSubset({
                   selection: event.selection,
@@ -580,9 +582,10 @@ function ErrorPlot() {
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     sessionId: sessionStorage.getItem('sessionId'),
-                    BrushedPoints: range,
-                    Description: `Brushed Points: ${range} on Expression: ${expressions.find(e => e.id === selectedExprId)?.text}in the Error Plot Graph`,
-                    timestamp: new Date().toLocaleString(),
+                    actionType: "BrushedPoints",
+                    start: { ordinal: firstPoint, float: firstFloat },
+                    end: { ordinal: lastPoint, float: lastFloat },
+                    timestamp: new Date().toISOString(),
                   }),
                 })
                 .then(response => {

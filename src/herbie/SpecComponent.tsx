@@ -104,9 +104,9 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        actionType: "SpecEntry",
         sessionId: sessionStorage.getItem('sessionId'),
         expression: spec.expression,
-        Description: "Added Expression from the home page",
         timestamp: new Date().toLocaleString(),
       }),
     })

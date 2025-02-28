@@ -31,6 +31,10 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
     endResultToDisplay: number;
   }
 
+  interface analyzerReportTableProps{
+    formattedAnalyzerReport: string[];
+  }
+
 
   /**
    * FPBench and GPU-FPX Fetch Calls
@@ -124,6 +128,7 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   const handleReportClick = () => {
     setShowReport(!showReport);
   }
+
   /**
    * Helper to format the raw detector results from GPU-FPX raw output
    * @param report the output of the extract detector report function call
@@ -140,9 +145,35 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
       )
   }
 
+  /**
+   * Begin the parsing of the entire analyzer output into individual instruction results
+   * @param report 
+   * @returns 
+   */
   const formatAnalyzerReport = (report: string) => {
 
+    //split on the :0 to isolate the different function results
+    let instructionSplit = report.split(":0")
+    for (var result of instructionSplit){
+      result = result.split(/\r?\n/)[0]
+    }
+    //delete the header index - text that is removed: 
+    // \n\n#GPU-FPX-ANA SHARED REGISTER: After executing the instruction  @ /unknown_path in [kernel_function]
+    let parsedInstructionSplit = []
+    for (let i = 1; i < instructionSplit.length ;i++){
+      parsedInstructionSplit.push(instructionSplit[i])
+    }
+
+    //isolate just the instruction info from the report
+    let cleanedReport = []
+    for(let i = 0; i < parsedInstructionSplit.length;i++){
+      cleanedReport.push(parsedInstructionSplit[i].split('#GPU')[0])
+
+    }
+    return cleanedReport
   }
+
+
 
   /**
    * Helper which extracts the detector report from the rest of the GPU-FPX raw output
@@ -183,18 +214,18 @@ const formattedDetectorReport = formatDetectorReport(extractDetectorReport(detec
  */
 const DetectorReport = ({ formattedDetectorReport }: { formattedDetectorReport: string[] }) => (
   <div>
-    <h5>Detector Results</h5>
-    <h5>FP64 Operations</h5>
+    <h6>Detector Results</h6>
+    <p>FP64 Operations</p>
     <div>
       {/* Populate a table with FP64 Operations */}
       <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={0} endResultToDisplay={4}></DetectorResultTable>
 
     </div>
-    <h5>FP32 Operations</h5>
+    <p>FP32 Operations</p>
       {/* Populate a table with FP32 Operations */}
       <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={4} endResultToDisplay={8}></DetectorResultTable>
     
-    <h5>Other Stats</h5>
+    <p>Other Stats</p>
     <div> 
       {/* Populate with other stats */}
       <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={8} endResultToDisplay={10}></DetectorResultTable>
@@ -258,7 +289,8 @@ const TableExample = () => {
   return <CTable hover bordered small columns={columns} items={items} />
 }
 
-const AnalyzerReport = extractAnalyzerReport(analyzerResult);
+// const AnalyzerReport = formatAnalyzerReport(extractAnalyzerReport(analyzerResult));
+const AnalyzerReport = formatAnalyzerReport(extractAnalyzerReport(analyzerResult));
 
   return (
     <div>

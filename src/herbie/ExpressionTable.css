@@ -145,11 +145,20 @@
 }
 .error-header {
   margin-right: 20px;
+  display: flex;
+  align-items: center; /* Ensures text and button align properly */
+  gap: 8px; /* Adjust the spacing */
 }
 .speedup-header {
   margin-right: 86px;
+  display: flex;
+  align-items: center; /* Ensures text and button align properly */
+  gap: 8px; /* Adjust the spacing */
 }
 
+.sort-button {
+  margin-left: 8px; /* Adjust spacing as needed */
+}
 .expand-header {
   margin-left: 5px;
 }

@@ -628,18 +628,14 @@ function HerbieUIInner() {
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
         <div className="tabs">
-          <div>
-            <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank">
-              Documentation
-            </a>
+          <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank">
+            Documentation
             <img className={"icon"}  src={rawUrlBase + "open-new-tab.png"} alt="Open in external tab icon"></img>
-          </div>
-          <div>
-            <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank">
-              Issues
-            </a>
+          </a>
+          <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank">
+            Issues
             <img className={"icon"} src={rawUrlBase + "open-new-tab.png"} alt="Open in external tab icon"></img>
-          </div>
+          </a>
           <SerializeStateComponent specPage={showSpecEntry}/>
           <ServerStatusComponent />
         </div>

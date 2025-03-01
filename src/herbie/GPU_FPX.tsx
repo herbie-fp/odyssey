@@ -6,7 +6,8 @@ import './ExpressionExport';
 import { ExpressionExportResponse } from './lib/herbiejs';
 import { FPCoreGetBody, FPCorePreconditionFromRanges, getVarnamesFPCore, getVarnamesMathJS, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
 import '@coreui/coreui/dist/css/coreui.min.css';
-import { CTable } from '@coreui/react'
+import { CButton, CButtonGroup, CHeaderBrand, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import './ExpressionTable.css';
 
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
@@ -312,8 +313,8 @@ const AnalyzerResultTable = ({formattedAnalyzerReport}:analyzerReportTableProps)
 }
 const AnalyzerReport = ({ formattedAnalyzerReport }: analyzerReportTableProps) => (
   <div>
-    <h6>Analyzer Results</h6>
     <div>
+      <h6>Analyzer Results</h6>
       {/* Populate a table with FP64 Operations */}
       <AnalyzerResultTable formattedAnalyzerReport={formattedAnalyzerReport}></AnalyzerResultTable>
     </div>
@@ -321,17 +322,27 @@ const AnalyzerReport = ({ formattedAnalyzerReport }: analyzerReportTableProps) =
 );
 
   return (
-    <div>
+    <div className='gpu-fpx'>
       {/* <p>Current expression:</p>
       <p>{current_expression?.text}</p>  */}
       {/* <p>The total number of exceptions are: 2</p> */}
-      <button onClick={handleRunGPUFPXClick}>Detect & Analyze Expression on GPU's</button>
-      <div>
-        <button onClick={handleShowDetectorReportClick}>Show/Hide Detector Results</button>
+      <div style={{display: 'flex'}}>
+
+        <CButtonGroup role="group" aria-label="Basic example">
+          <button onClick={handleRunGPUFPXClick}>Detect & Analyze Expression on GPU's</button>
+          <button onClick={handleShowDetectorReportClick}>Show/Hide Detector Results</button>
+          <button onClick={handleShowAnalyzerReportClick}>Show/Hide Analyzer Results</button>
+        </CButtonGroup>
+      </div>
+      <div style={{display : 'flex'}}>
+        <div className="detector" style={{ flex: 1, padding: '5px', borderRadius:"4"}}>
         {showDetectorReport ? <DetectorReport formattedDetectorReport={formattedDetectorReport} /> : ""}
-        <button onClick={handleShowAnalyzerReportClick}>Show/Hide Analyzer Results</button>
+        </div>
+        <div className="analyzer" style={{ flex: 1, padding: '5px', overflow:"scroll", maxHeight:"30vh", borderRadius:"4"  }}>
         {showAnalyzerReport ? <AnalyzerReport formattedAnalyzerReport={cleanedAnalyzerReport} /> : ""}
-      </div> 
+        </div>
+      </div>
+
     </div>
   );
 };

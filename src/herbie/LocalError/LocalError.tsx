@@ -32,7 +32,7 @@ function localErrorTreeAsMermaidGraph(tree: LocalErrorTree, bits: number, curren
     var difference_str = ` <br /> Error R - F : ${displayError(abs_error_difference)}`
     var accuracy_str = ""
     if (!(abs_error_difference === "equal")) {
-      accuracy_str = `Percent Accuracy : ${Number(percent).toPrecision(4)}%${explanation_str}`
+      accuracy_str = `Percent Accuracy : ${Number(percent).toPrecision(4)}%${explanation_str} <br /> `
     }
     if (abs_error_difference === "invalid" 
       || abs_error_difference === "unsamplable" 
@@ -42,7 +42,7 @@ function localErrorTreeAsMermaidGraph(tree: LocalErrorTree, bits: number, curren
       difference_str = ""
       accuracy_str = ""
     }
-    const tooltipContent = `'${accuracy_str} <br /> Correct R : ${displayError(exact_err)} <br /> Approx F : ${displayError(approx_value)}${difference_str}'`;
+    const tooltipContent = `'${accuracy_str}Correct R : ${displayError(exact_err)} <br /> Approx F : ${displayError(approx_value)}${difference_str}'`;
     return id + '[<span class=nodeLocalError data-tooltip-id=node-tooltip data-tooltip-html=' + tooltipContent + '>' + name + '</span>]'
   }
 

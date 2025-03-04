@@ -621,23 +621,23 @@ function HerbieUIInner() {
 
   function myHeader() {
     return (
-      <div className="header" style={{ fontSize: '11px', backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "10px 27px", alignItems: 'center'}}>
+      <div className="header">
         <div className="app-name" onClick={() => setShowSpecEntry(true)}>
           <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
-        <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank"
-          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
-        >
-          Documentation
-        </a>
-        <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank"
-          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
-        >
-          Issues
-        </a>
-        <SerializeStateComponent specPage={showSpecEntry}/>
-        <ServerStatusComponent />
+        <div className="tabs">
+          <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank">
+            Documentation
+            <svg className="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"></path></svg>
+          </a>
+          <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank">
+            Issues
+            <svg className="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"></path></svg>
+          </a>
+          <SerializeStateComponent specPage={showSpecEntry}/>
+          <ServerStatusComponent />
+        </div>
       </div>
     )
   }

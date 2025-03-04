@@ -98,89 +98,63 @@ function SerializeStateComponent(props: exportStateProps) {
     }
     
     // list of HTMLHistory derivations
+    // derivation.id represents the expression the derivation belongs to
     const newDerivations: Derivation[] = [];
     for (const derivation of derivations) {
       if (expressions.find(e => e.id === derivation.id && e.specId === spec.id) !== undefined) {
         newDerivations.push(derivation)
       }
-        // LESSON LEARNED: derivation.parentId is NOT same as spec.id
-        // derivation.parentId represents the expression that the 
-        // derivation belongs to
-        // derivation.parentId == expression.id
-        // confusing naming...
     }
 
     const state = {
-      // serverUrl,
-      // fptaylorServerUrl,
-      // fpbenchServerUrl,
+      serverUrl,
+      fptaylorServerUrl,
+      fpbenchServerUrl,
       spec,
-      // specRanges,
-      // expressions: newExpressions,
-      // derivations: newDerivations,
-      // selectedExprId,
-      // compareExprIds,
-      // expandedExpressions,
+      specRanges,
+      expressions: newExpressions,
+      derivations: newDerivations,
+      selectedExprId,
+      compareExprIds,
+      expandedExpressions,
     }
 
-      // TODO: Revisit potential idea of storing each individual expression object
-      // expression: {
-      //   this.text = text;
-      //   this.id = id;
-      //   this.specId = specId;
-      //   this.tex = tex;
-      // }
-      // selectedExpressions: {
-      //   // array of expression
-      // }
-      
-      // TODO: add more states
-      // - All expressions
-      //   - selected expression (id)
-      // - selectedPoint
+    const { Octokit } = require("@octokit/core");
 
-    console.log("Before creating gist");
-    const createGist = async() => {
-      const url = "https://api.github.com/gists";
-      // WARNING: DELETE ACCESS TOKEN AFTER TESTING
-      //          DO NOT COMMIT ACCESS TOKEN
-      //          PLEASE!!!
-      const token = "";
-      const content = JSON.stringify(state, undefined, 2);
-      const gistDataBody = {
-        description: "test gist in code",
-        public: true,
-        files: {
-          "example.txt": {
-            // content: content
-            content: "hi this is Ben and this is a test: sqrt(x+1)-sqrt(x)"
-          }
-        }
-      }
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
-            "accept": "application/vnd.github+json",
-            "Authorization": token  
-          },
-          body: JSON.stringify(gistDataBody)
+    const createGist = async () => {
+        // WARNING, DO NOT COMMIT AUTH TOKEN!!! 
+        const octokit = new Octokit({
+            auth: "TOKEN"
         });
-        const responseJson = await response.json();
-        console.log("Successful gist created:", responseJson.html_url)
-        // return responseJson.html_url
-      } catch(error) {
-        console.log("Error creating gist:", error)
-        // return null;
-      }
-    }
-    createGist()
-    console.log("after creating gist");
 
+        try {
+            const fileName = `Example_${spec.expression}_.txt`;
+            const response = await octokit.request("POST /gists", {
+                description: "Gist of expression: " + spec.expression,
+                public: true,
+                files: {
+                    [fileName]: {
+                        // put State JSON Here
+                        content: JSON.stringify(state, undefined, 2)
+                    }
+                },
+                headers: {
+                    "X-GitHub-Api-Version": "2022-11-28",
+                    "accept": "application/vnd.github+json",
+                    // "Authorization": token  
+                }
+            });
+
+            console.log("Gist Created:", response.data.html_url);
+        } catch (error) {
+            console.error("Error creating Gist:", error);
+        }
+    };
+
+    createGist();
 
     navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
-    console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
+    // console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
     setIsModalOpen(false);
   }
 

@@ -623,7 +623,7 @@ function HerbieUIInner() {
     return (
       <div className="header">
         <div className="app-name" onClick={() => setShowSpecEntry(true)}>
-          <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
+          <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '18px', marginRight: '8px' }} alt="Odyssey Icon"></img>
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
         <div className="tabs">

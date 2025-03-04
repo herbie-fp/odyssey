@@ -29,7 +29,7 @@
   justify-content: space-between;
   gap: 6px;
   font-size: 16px;
-  padding: 8px 4px 8px 4px;
+  padding: 8px 4px 8px 25px;
   align-items: center;
 }
 
@@ -126,7 +126,7 @@
   flex-direction: row;
   justify-content: flex-start;
   font-weight: bold;
-  padding-left: 4px;
+  padding-left: 25px;
   padding-right: 10px;
   align-items: center;
 }
@@ -158,13 +158,6 @@
 
 .sort-button {
   margin-left: 8px; /* Adjust spacing as needed */
-}
-.expand-header {
-  margin-left: 5px;
-}
-
-.expand {
-  margin-left: 5px;
 }
 
 .dropdown {

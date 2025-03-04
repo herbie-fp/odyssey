@@ -265,7 +265,7 @@ function ExpressionTable() {
         body: JSON.stringify({
           actionType: "ImproveClicked",
           sessionId: sessionStorage.getItem('sessionId'),
-          expression: fPCoreToMathJS,
+          expression: expression.text,
           timestamp: new Date().toLocaleString(),
         }),
       })

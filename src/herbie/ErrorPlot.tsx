@@ -585,7 +585,7 @@ function ErrorPlot() {
                     actionType: "BrushedPoints",
                     start: { ordinal: firstPoint, float: firstFloat },
                     end: { ordinal: lastPoint, float: lastFloat },
-                    timestamp: new Date().toISOString(),
+                    timestamp: new Date().toLocaleString(),
                   }),
                 })
                 .then(response => {

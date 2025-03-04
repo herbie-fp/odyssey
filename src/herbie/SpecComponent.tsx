@@ -70,12 +70,13 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
     const mathJSExpression = await ensureMathJS(spec.expression, serverUrl);
 
     let inputRanges, mySpec;
+    let inpuRangeLowerBound, inputRangeUpperBound;
     if (spec.expression.includes("FPCore")) {
       inputRanges = new RangeInSpecFPCore(
         specId,
         inputRangeId
       )
-
+      
       mySpec = new Spec(mathJSExpression, specId, spec.expression);
 
     } else {
@@ -87,8 +88,8 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
       console.debug('inputRanges', inputRanges)
 
       mySpec = new Spec(mathJSExpression, specId)
+      
     }
-
     console.debug('Adding to inputRangesTable: ', inputRanges)
     setInputRangesTable([...inputRangesTable, inputRanges])
 
@@ -99,7 +100,13 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
       const sessionId = Date.now().toString();
       sessionStorage.setItem('sessionId', sessionId);
     }
-    
+
+    // **Extract Input Ranges for Logging**
+    const inputRangesData = mySpecRanges.map(range => ({
+      variable: range.variable,
+      lowerBound: range.lowerBound,
+      upperBound: range.upperBound
+    }));
     fetch('https://herbie.uwplse.org/odyssey-log/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -107,11 +114,13 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
         actionType: "SpecEntry",
         sessionId: sessionStorage.getItem('sessionId'),
         expression: spec.expression,
+        variableInfo: inputRangesData,
         timestamp: new Date().toLocaleString(),
       }),
     })
     .then(response => {
       if (response.ok) {
+        
         console.log('Server is running and log saved');
       }
       else {

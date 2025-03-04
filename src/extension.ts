@@ -3,8 +3,9 @@
 import * as vscode from 'vscode';
 import { join } from 'path';
 import { spawn } from 'child_process';
-
 import * as fs from 'fs';
+import { toast } from 'react-toastify';
+
 const lnk = require('lnk');
 const http = require('http');
 const https = require('https');
@@ -19,6 +20,11 @@ let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/downl
 const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
 
+// For copying error messages in toasts
+const handleCopy = (e: string) => {
+	navigator.clipboard.writeText(e as string);
+	toast.success('Error copied to clipboard');
+};
 
 async function getLatestHerbieBinary(): Promise<string> {
     const repo = "herbie-fp/odyssey";
@@ -329,6 +335,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 			res.json({ stdout: `<(printf "${stdout}")` });
 		} catch (e) {
+			vscode.window.showErrorMessage('Error running FPTaylor: ' + e, 'Copy to clipboard').then((action) => {
+				if (action === 'Copy to clipboard') {
+					vscode.env.clipboard.writeText(e as string)
+				}
+			}
+			);
 			console.error(e);
 		}
 	})

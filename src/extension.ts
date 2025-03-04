@@ -341,6 +341,15 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			}
 			);
+
+			toast.error('Error running FPBench: ' + e, {
+				position: "top-right",
+				autoClose: 5000,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined
+			});	
 			console.error(e);
 		}
 	})

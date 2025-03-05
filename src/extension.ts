@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
-import { toast } from 'react-toastify';
+import { showErrorToast } from './ErrorToast';
 
 const lnk = require('lnk');
 const http = require('http');
@@ -19,12 +19,6 @@ const exec = util.promisify(require('child_process').exec);
 let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/herbie_binaries/herbie-dist.zip"
 const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
-
-// For copying error messages in toasts
-const handleCopy = (e: string) => {
-	navigator.clipboard.writeText(e as string);
-	toast.success('Error copied to clipboard');
-};
 
 async function getLatestHerbieBinary(): Promise<string> {
     const repo = "herbie-fp/odyssey";
@@ -320,6 +314,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			}
 			);
+			showErrorToast((e as Error).message);
 			console.error(e);
 		}
 	})
@@ -341,15 +336,6 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			}
 			);
-
-			toast.error('Error running FPBench: ' + e, {
-				position: "top-right",
-				autoClose: 5000,
-				closeOnClick: true,
-				pauseOnHover: true,
-				draggable: true,
-				progress: undefined
-			});	
 			console.error(e);
 		}
 	})

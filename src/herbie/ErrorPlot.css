@@ -1,28 +1,19 @@
-.error-plot .input-ranges-editor input {
-  font-size: 13px;
-  font-family: 'Ruda', sans-serif;
-  width: 65px;
-}
 .error-plot .input-ranges-editor {
-  display: inline-block;
+  display: inline-block;  
 }
 
 .variable-name {
+  padding-right: 10px;
+  font-size: 1em;
   font-family: 'Ruda', sans-serif;
-  font-size: 13px;
-}
-
-.separator {
-  font-family: 'Ruda', sans-serif;
-  font-size: 13px;
 }
 
 .input-ranges-editor input {
-  font-family: 'Ruda', sans-serif;
+  width: 65px;
 }
 
-.input-ranges-editor input:focus-visible {
-  outline: var(--action-color) auto 1px;
+.error-plot .input-ranges-editor .separator {
+  padding: 0 10px;
 }
 
 .error-plot svg text {

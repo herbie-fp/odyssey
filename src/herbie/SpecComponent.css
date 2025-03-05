@@ -18,14 +18,11 @@
   align-self: center;
 }
 
+/* Input range editor styling */
 .varname {
   font-family: "Ruda", sans-serif;
   font-size: 1em;
   align-self: center;
-}
-
-.min {
-  margin-left: 2px;
 }
 
 .spec-range-input input {
@@ -35,19 +32,30 @@
   font-weight: bold;
 }
 
+.input-ranges-editor input {
+  font-family: 'Ruda', sans-serif;
+}
+
+.input-ranges-editor input:focus-visible {
+  outline: var(--action-color) auto 1px;
+}
+
 .separator, .separator-math {
+  padding: 0 15px;
+  font-size: 1em;
   font-family: "Ruda", sans-serif;
 }
 
 .spec-range-input {
   display: flex;
-  gap: 5px;
+  gap: 15px;
 }
 
 .spec-range-inputs {
   text-align: center;
   margin-left: var(--left-indent);
 }
+/**/
 
 .explore-button {
   align-self: flex-end;

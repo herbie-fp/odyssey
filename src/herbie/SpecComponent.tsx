@@ -314,7 +314,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
       <div
         className="spec-details"
         style={{
-          marginLeft: "23px",
+          marginLeft: "20px",
           display: "flex",
           flexDirection: "column",
           gap: "7.5px",
@@ -330,6 +330,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
               overflowY: 'hidden',
               // color red if the expression is invalid
               color: htmlContent.includes("Error") ? "red" : "black",
+              padding: "10px 0",
             }}
             dangerouslySetInnerHTML={{
               __html: htmlContent,

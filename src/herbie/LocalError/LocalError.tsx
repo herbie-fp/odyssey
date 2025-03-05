@@ -102,6 +102,7 @@ function localErrorTreeAsMermaidGraph(tree: LocalErrorTree, bits: number, curren
     const approx_value = tree['actual-value']
     const true_error = tree['abs-error-difference']
     const ulps = tree['ulps-error']
+    const percent = tree['percent-accuracy']
 
     edges.push(makeNodeInfo('N0', name, exact_value, approx_value, true_error, percent))
   }

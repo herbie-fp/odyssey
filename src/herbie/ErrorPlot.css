@@ -26,8 +26,7 @@
 }
 
 .error-plot svg {
-  margin-top: 5px;
-  margin-right: 10px;
+  margin: 12px 12px 0 0;
 }
 
 g[aria-label="x-axis tick label"] text {

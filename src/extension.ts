@@ -308,13 +308,13 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 			res.json({ stdout });
 		} catch (e) {
-			vscode.window.showErrorMessage('Error running FPBench: ' + e, 'Copy to clipboard').then((action) => {
-				if (action === 'Copy to clipboard') {
-					vscode.env.clipboard.writeText(e as string)
-				}
-			}
-			);
-			showErrorToast((e as Error).message);
+			// vscode.window.showErrorMessage('Error running FPBench: ' + e, 'Copy to clipboard').then((action) => {
+			// 	if (action === 'Copy to clipboard') {
+			// 		vscode.env.clipboard.writeText(e as string)
+			// 	}
+			// }
+			// );
+			// showErrorToast((e as Error).message);
 			console.error(e);
 		}
 	})
@@ -812,6 +812,7 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		window.vscode = await window.acquireVsCodeApi();
 		window.addEventListener("error", (event) => {
 			console.log('caught error', event)
+			showErrorToast(event)
 			vscode.postMessage(JSON.stringify({ command: 'error', error: event.error?.toString ? event.error.toString() : (JSON.stringify(event.error) + '\\n' + 'Message:' + event.message) }))
 		})
 		window.addEventListener("unhandledrejection", (event) => {

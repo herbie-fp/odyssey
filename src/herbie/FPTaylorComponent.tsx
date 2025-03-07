@@ -20,7 +20,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   useEffect(() => {
     if (expression.text.includes('pow')) {
       toast.error("Error: Expression contains 'pow', which is not allowed.", {
-        position: "top-right",
+        position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
@@ -34,7 +34,6 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
     Object.fromEntries(variables.map(variable => [variable, { min: "0", max: "10" }])));
 
   const handleVariableRangeUpdate = () => {
-    throw new Error("Explode!");
     const specRanges = variables.map(
       variable => new SpecRange(variable, parseFloat(variableRanges[variable].min), parseFloat(variableRanges[variable].max))
     );

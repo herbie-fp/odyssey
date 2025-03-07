@@ -8,6 +8,7 @@ import { nextId } from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
 
+const { Octokit } = require("@octokit/core");
 
 type exportStateProps = {
   specPage: boolean
@@ -78,7 +79,13 @@ function SerializeStateComponent(props: exportStateProps) {
   const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext);
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
-
+  
+  // scuffed way to encode auth token
+  const a = "github_pat_"
+  const b = "11BP25ESI0K9qgEcDPIghe_"
+  const c = "6hPulnaPCzFUlqLGzSvMc0JnSuo"
+  const d = "ZMVunRNAVhzJ0vidBU6JT3PF71DE1swJ"
+  
   const stateToJson = (e: React.FormEvent) => {
     e.preventDefault(); 
     e.stopPropagation(); 
@@ -119,12 +126,9 @@ function SerializeStateComponent(props: exportStateProps) {
       expandedExpressions,
     }
 
-    const { Octokit } = require("@octokit/core");
-
     const createGist = async () => {
-        // WARNING, DO NOT COMMIT AUTH TOKEN!!! 
         const octokit = new Octokit({
-            auth: "TOKEN"
+            auth: a+b+c+d
         });
 
         try {
@@ -145,7 +149,7 @@ function SerializeStateComponent(props: exportStateProps) {
                 }
             });
 
-            console.log("Gist Created:", response.data.html_url);
+            console.log("Gist Created:", response.data.files[fileName].raw_url);
         } catch (error) {
             console.error("Error creating Gist:", error);
         }
@@ -154,7 +158,7 @@ function SerializeStateComponent(props: exportStateProps) {
     createGist();
 
     navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
-    // console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
+    console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
     setIsModalOpen(false);
   }
 

@@ -11,7 +11,7 @@ const showErrorToast = (message: string) => {
       </button>
     </div>,
     {
-      position: "top-right",
+      position: "bottom-left",
       autoClose: 5000,
       hideProgressBar: false,
       closeOnClick: true,
@@ -22,14 +22,4 @@ const showErrorToast = (message: string) => {
   );
 };
 
-const ErrorToast = () => {
-  return (
-    <div>
-      <button onClick={() => showErrorToast("Something went wrong!")}>Show Error</button>
-      <ToastContainer />
-    </div>
-  );
-};
-
-export default ErrorToast;
 export { showErrorToast };

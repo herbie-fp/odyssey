@@ -41,6 +41,7 @@
     "run-tests": "node_modules/.bin/extest run-tests"
   },
   "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
     "@types/chai": "^5.0.0",
     "@types/d3-brush": "^3.0.6",
     "@types/d3-selection": "^3.0.10",

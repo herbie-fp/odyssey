@@ -342,7 +342,7 @@ function ExpressionTable() {
                 { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
                 { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
                 // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />},
-                { value: 'GPU_FPX', label: 'Find NANs', component: <GPU_FPX expressionId={expression.id} /> }
+                { value: 'GPU_FPX', label: 'Check for FP Exceptions', component: <GPU_FPX expressionId={expression.id} /> }
               ];
             return (
               <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>

@@ -8,6 +8,8 @@ import { FPCoreGetBody, FPCorePreconditionFromRanges, getVarnamesFPCore, getVarn
 import '@coreui/coreui/dist/css/coreui.min.css';
 import { CButton, CButtonGroup, CHeaderBrand, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import './ExpressionTable.css';
+import Modal from 'react-modal';
+
 
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
@@ -18,7 +20,9 @@ import './ExpressionTable.css';
 const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
   //Get expressions
   const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
-  const current_expression = expressions.find(expression => expression.id === expressionId);
+  const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
+  
+  const current_expression = expressions.find(expression => expression.id === selectedExprId);
   const [gpuFpxSelected] = contexts.useGlobal(contexts.gpuFpxSelected);
   const [showDetectorReport, setShowDetectorReport] = useState(false);
   const [showAnalyzerReport, setShowAnalyzerReport] = useState(false);
@@ -43,35 +47,33 @@ const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
    */
   const handleRunAnalysis = async () => {
         try {
-          //convert mathjs to fpcore
-        //   const fpCoreExpr = mathjsToFPCore(current_expression?.text as unknown as mathjs);
-        //   const fpBenchExpr = makeFPCore2({
-        //     vars: getVarnamesFPCore(fpCoreExpr),
-        //     pre: "(<= 0 x 10)",
-        //     body: FPCoreGetBody(fpCoreExpr) 
-        //   });
-        //   // console.log("Current Expression format before FpBench:", current_expression);
-        //   console.log("Starting FPBench conversion for expression:", fpBenchExpr);
-        //   // Convert to CUDA (for now it's c) using FPBench, also the URL is beast Network host
-        //   const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json', 
-        //     },
-        //     body: JSON.stringify({
-        //         formulas: [fpBenchExpr],
-        //         // Specify CUDA as target language
-        //         language: 'c'
-        //     })
-        // });
+          // convert mathjs to fpcore
+          const fpCoreExpr = mathjsToFPCore(current_expression?.text as unknown as mathjs);
+          const fpBenchExpr = makeFPCore2({
+            vars: getVarnamesFPCore(fpCoreExpr),
+            pre: "(<= 0 x 10)",
+            body: FPCoreGetBody(fpCoreExpr) 
+          });
+          // console.log("Current Expression format before FpBench:", current_expression);
+          console.log("Starting FPBench conversion for expression:", fpBenchExpr);
+          const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+            body: JSON.stringify({
+                formulas: [fpBenchExpr],
+                language: 'cuda'
+            })
+        });
 
-        // const fpbenchResult = await fpbenchResponse.json();
-        // console.log("Raw FPBench result:", fpbenchResult);
-        // //Extract just the expression from the function body
-        // const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
-        // const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
-        // console.log("Extracted CUDA expression:", cudaExpr);
-        const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
+        const fpbenchResult = await fpbenchResponse.json();
+        console.log("Raw FPBench result:", fpbenchResult);
+        //Extract just the expression from the function body
+        const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
+        const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
+        console.log("Extracted CUDA expression:", cudaExpr);
+        // const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
         
         // Now we can run GPU-FPX with the extracted expression
             const analyzerResponse = await fetch('http://155.98.69.61:8001/exec', {
@@ -323,11 +325,11 @@ const AnalyzerReport = ({ formattedAnalyzerReport }: analyzerReportTableProps) =
 
   return (
     <div className='gpu-fpx'>
-      {/* <p>Current expression:</p>
-      <p>{current_expression?.text}</p>  */}
+      <p>Current expression:</p>
+      <p>{current_expression?.text}</p> 
       {/* <p>The total number of exceptions are: 2</p> */}
-      <div style={{display: 'flex'}}>
-
+      <div style={{/*display: 'flex'*/}}>
+        <p>*This tool only checks for Floating Point Exceptions in NVIDIA GPUs.</p>
         <CButtonGroup role="group" aria-label="Basic example">
           <button onClick={handleRunGPUFPXClick}>Detect & Analyze Expression on GPU's</button>
           <button onClick={handleShowDetectorReportClick}>Show/Hide Detector Results</button>
@@ -336,12 +338,27 @@ const AnalyzerReport = ({ formattedAnalyzerReport }: analyzerReportTableProps) =
       </div>
       <div style={{display : 'flex'}}>
         <div className="detector" style={{ flex: 1, padding: '5px', borderRadius:"4"}}>
-        {showDetectorReport ? <DetectorReport formattedDetectorReport={formattedDetectorReport} /> : ""}
+        {showDetectorReport ? 
+        <div>
+          {/* <img src={'../../images/gpu-fpx-report.svg'} alt="GPU FPX Report" /> */}
+          <DetectorReport formattedDetectorReport={formattedDetectorReport} />
+        </div>   : ""}
         </div>
         <div className="analyzer" style={{ flex: 1, padding: '5px', overflow:"scroll", maxHeight:"30vh", borderRadius:"4"  }}>
-        {showAnalyzerReport ? <AnalyzerReport formattedAnalyzerReport={cleanedAnalyzerReport} /> : ""}
+        {showAnalyzerReport ? 
+        <div>
+          {/* <img src={'../../images/gpu-register-flow.svg'} alt="GPU FPX Report" /> */}
+          <AnalyzerReport formattedAnalyzerReport={cleanedAnalyzerReport} />
+        </div>
+         : ""}
         </div>
       </div>
+      {/* <Modal isOpen={true}
+        onRequestClose={() => isOpen{false}}
+        contentLabel="In-Depth Modal"
+        ariaHideApp={false}>
+
+      </Modal> */}
 
     </div>
   );

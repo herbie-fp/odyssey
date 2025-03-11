@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 ExecStart=node tool-server.js --port 8002 --tool fpbench --path fpbench/linux/fpbench-compiled/bin/fpbench
-WorkingDirectory=odyssey-gpu-fpx/server/fpbench-server.service
+WorkingDirectory=odyssey/server/fpbench-server.service
 Restart=always
 User=nicolas
 Environment=NODE_ENV=production

@@ -19,7 +19,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
 
   useEffect(() => {
     if (expression.text.includes('pow')) {
-      toast.error("Error: Expression contains 'pow', which is not allowed.", {
+      toast.error("Error: FPTaylor does not support the \"pow\" expression.", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -99,7 +99,6 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
       {errorMessages.length === 0 &&
         <button onClick={handleVariableRangeUpdate}>Analyze Ranges with FPTaylor</button>
       }
-    <ToastContainer />
     </div>
   );
 };

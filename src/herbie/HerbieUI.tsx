@@ -19,6 +19,7 @@ import * as utils from './lib/utils';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejs from './lib/herbiejs';
+import { ToastContainer } from 'react-toastify';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -704,6 +705,7 @@ export function HerbieUI() {
   return (
     <GlobalContextProvider>
       <HerbieUIInner />
+      <ToastContainer />
     </GlobalContextProvider>
   )
 }

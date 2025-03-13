@@ -3,9 +3,8 @@
 import * as vscode from 'vscode';
 import { join } from 'path';
 import { spawn } from 'child_process';
-import * as fs from 'fs';
-import { showErrorToast } from './ErrorToast';
 
+import * as fs from 'fs';
 const lnk = require('lnk');
 const http = require('http');
 const https = require('https');
@@ -19,6 +18,7 @@ const exec = util.promisify(require('child_process').exec);
 let HERBIE_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/herbie_binaries/herbie-dist.zip"
 const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fptaylor-dist.zip"
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
+
 
 async function getLatestHerbieBinary(): Promise<string> {
     const repo = "herbie-fp/odyssey";
@@ -308,13 +308,12 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 			res.json({ stdout });
 		} catch (e) {
-			// vscode.window.showErrorMessage('Error running FPBench: ' + e, 'Copy to clipboard').then((action) => {
-			// 	if (action === 'Copy to clipboard') {
-			// 		vscode.env.clipboard.writeText(e as string)
-			// 	}
-			// }
-			// );
-			// showErrorToast((e as Error).message);
+			vscode.window.showErrorMessage('Error running FPBench: ' + e, 'Copy to clipboard').then((action) => {
+				if (action === 'Copy to clipboard') {
+					vscode.env.clipboard.writeText(e as string)
+				}
+			}
+			);
 			console.error(e);
 		}
 	})
@@ -330,12 +329,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 			res.json({ stdout: `<(printf "${stdout}")` });
 		} catch (e) {
-			vscode.window.showErrorMessage('Error running FPTaylor: ' + e, 'Copy to clipboard').then((action) => {
-				if (action === 'Copy to clipboard') {
-					vscode.env.clipboard.writeText(e as string)
-				}
-			}
-			);
 			console.error(e);
 		}
 	})
@@ -812,7 +805,6 @@ const getWebviewContent = (webView: vscode.Webview, context: vscode.ExtensionCon
 		window.vscode = await window.acquireVsCodeApi();
 		window.addEventListener("error", (event) => {
 			console.log('caught error', event)
-			showErrorToast(event)
 			vscode.postMessage(JSON.stringify({ command: 'error', error: event.error?.toString ? event.error.toString() : (JSON.stringify(event.error) + '\\n' + 'Message:' + event.message) }))
 		})
 		window.addEventListener("unhandledrejection", (event) => {

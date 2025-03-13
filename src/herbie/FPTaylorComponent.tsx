@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import * as HerbieContext from './HerbieContext';
 import { FPTaylorRange, SpecRange } from './HerbieTypes';
 import { getVarnamesMathJS } from './lib/fpcore';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);

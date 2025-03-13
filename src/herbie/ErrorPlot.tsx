@@ -358,7 +358,7 @@ function ErrorPlot() {
       }
       
       return <div key={i}>
-        <span className="variable-name">{v}: </span>
+        <span className="variable-name">{v}:</span>
         {range && ( // Do not display if range is undefined, which occurs when there is no InputRanges (expr is FPCore)
           <InputRangeEditor1 value={{
             varname: v,

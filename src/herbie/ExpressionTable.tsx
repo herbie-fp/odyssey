@@ -203,9 +203,9 @@ function ExpressionTable() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        actionType: "AddButton",
         sessionId: sessionStorage.getItem('sessionId'),
         expression: addExpression,
-        Description: "Added Expression by clicking Add button",
         timestamp: new Date().toLocaleString(),
       }),
     })
@@ -263,9 +263,9 @@ function ExpressionTable() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          actionType: "ImproveClicked",
           sessionId: sessionStorage.getItem('sessionId'),
-          expression: fPCoreToMathJS,
-          Description: "Added Expression by clicking improve",
+          expression: expression.text,
           timestamp: new Date().toLocaleString(),
         }),
       })

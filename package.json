@@ -91,6 +91,7 @@
     "react-modal": "^3.16.1",
     "react-split": "^2.0.14",
     "react-split-grid": "^1.0.4",
+    "react-toastify": "^11.0.5",
     "react-tooltip": "^5.18.1",
     "serve-index": "^1.9.1",
     "simplebar-react": "^3.2.4",

@@ -63,7 +63,7 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   border-radius: 7px;
-  border: 0,
+  border: 0;
 }
 
 .explore-button:hover {

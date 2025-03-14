@@ -36,10 +36,6 @@
   font-family: 'Ruda', sans-serif;
 }
 
-.input-ranges-editor input:focus-visible {
-  outline: var(--action-color) auto 1px;
-}
-
 .separator, .separator-math {
   padding: 0 15px;
   font-size: 1em;

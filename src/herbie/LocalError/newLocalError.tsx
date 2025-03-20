@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as HerbieContext from '../HerbieContext';
 import { LocalErrorTree } from "../HerbieTypes";
-import "./NewLocalError.css";
+import "./newLocalError.css";
 
 function TreeRow({ node, depth }: { node: LocalErrorTree; depth: number }) {
   const [isExpanded, setIsExpanded] = useState(true);

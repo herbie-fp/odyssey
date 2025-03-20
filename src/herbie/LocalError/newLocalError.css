@@ -1,21 +1,17 @@
-.table-container {
-    overflow-x: auto;
-    padding: 1rem;
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-  }
-  
-  th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-  }
-  
-  th {
-    background: #f3f3f3;
-    text-align: left;
-  }
-  
+.toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+.local-error {
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.high-error {
+  background-color: rgba(255, 0, 0, 0.2); /* Light red for high errors */
+  color: red;
+}

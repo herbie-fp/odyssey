@@ -638,7 +638,7 @@ function HerbieUIInner() {
 
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
-    // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
+    // { value: '', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
     { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},

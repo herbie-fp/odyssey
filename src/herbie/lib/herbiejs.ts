@@ -67,8 +67,6 @@ const getHerbieApi = async (
     "sample",
     "explanations",
     "analyze",
-    "exacts",
-    "calculate",
     "localerror",
     "alternatives",
     "cost"

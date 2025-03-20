@@ -352,8 +352,39 @@ function ExpressionTable() {
           <input type="checkbox" onChange={ toggleAllChecked } checked={ allChecked }></input>
         </div>
         <div className="expressions-header">
-          Expression
-          (Show TeX<input id="showTexCheckbox" type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>)
+          <p>Expression</p>
+          {/* Toggle for show/don't show tex */}
+          <p style={{color: "gray"}}>Show as: </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1em",
+            }}
+            onClick={toggleShowMath}
+          >
+            <span
+              style={{
+                fontWeight: "bold",
+                color: showMath ? "gray" : "black",
+              }}
+            >
+              Text
+            </span>
+            <label className="switch">
+              <input type="checkbox" disabled checked={showMath} />
+              <span className="slider round"></span>
+            </label>
+            <span
+              style={{
+                fontWeight: "bold",
+                color: showMath ? "black" : "gray",
+              }}
+            >
+              TeX
+            </span>
+          </div>
+          {/* (Show TeX<input id="showTexCheckbox" type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>) */}
         </div>
         <div className="compare-header">
         </div>

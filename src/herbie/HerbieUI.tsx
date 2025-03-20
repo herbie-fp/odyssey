@@ -19,6 +19,9 @@ import * as utils from './lib/utils';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejs from './lib/herbiejs';
+import { ToastContainer } from 'react-toastify';
+
+import 'react-toastify/dist/ReactToastify.css';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -148,9 +151,18 @@ function HerbieUIInner() {
       // TODO: do expression validation, see SpecComponent
       setSpec(urlSpec);
 
+      // Get ranges from URL parameters if they exist
+      const customRanges = getRangesFromURL(variables);
+      
+      // Use custom ranges if provided, otherwise use defaults
       const defaultRanges = [];
       for (const v of variables) {
-        defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308))
+        const customRange = customRanges.find(r => r.variable === v);
+        if (customRange) {
+          defaultRanges.push(customRange);
+        } else {
+          defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308));
+        }
       }
 
       setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
@@ -180,6 +192,28 @@ function HerbieUIInner() {
       // Skip showing spec entry page, go straight to main page
       setShowSpecEntry(false);
     }
+
+    // Helper function to parse ranges from URL
+    const getRangesFromURL = (variables: string[]): HerbieTypes.SpecRange[] => {
+      const ranges: HerbieTypes.SpecRange[] = [];
+      
+      if (typeof window !== 'undefined') {
+        const queryParams = new URLSearchParams(window.location.search);
+        
+        // Check for ranges in URL using format: range_<varname>=min,max
+        variables.forEach(varName => {
+          const rangeParam = queryParams.get(`range_${varName}`);
+          if (rangeParam) {
+            const [min, max] = rangeParam.split(',').map(Number);
+            if (!isNaN(min) && !isNaN(max)) {
+              ranges.push(new HerbieTypes.SpecRange(varName, min, max));
+            }
+          }
+        });
+      }
+      
+      return ranges;
+    };
 
     // If this is running on the web, allow URL to pass in default expression
     if (typeof window !== 'undefined') {
@@ -704,6 +738,7 @@ export function HerbieUI() {
   return (
     <GlobalContextProvider>
       <HerbieUIInner />
+      <ToastContainer />
     </GlobalContextProvider>
   )
 }

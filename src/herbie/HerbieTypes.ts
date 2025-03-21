@@ -7,12 +7,12 @@ export type FPCore = string
 
 export class Derivation {
   /**
-   * @param derivation: The HTMLHistory object containing the derivation (as HTML) for an alternative expression
+   * @param history: The HTMLHistory object containing the derivation (as HTML) for an alternative expression
    * @param id: The id of this derivation, the same id as the expression this derivation is for
    * @param origExpId: The id of the expression that was improved resulting in the alternative this derivation is for
    */
-  constructor(public readonly derivation: HTMLHistory, public readonly id: number, public readonly origExpId: number | undefined) {
-    this.derivation = derivation;
+  constructor(public readonly history: HTMLHistory, public readonly id: number, public readonly origExpId: number | undefined) {
+    this.history = history;
     this.id = id;
     this.origExpId = origExpId;
   }

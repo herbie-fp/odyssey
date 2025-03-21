@@ -142,6 +142,8 @@
 .expressions-header {
   margin-right: auto;
   margin-left: 6px;
+  display: flex;
+  gap: 15px
 }
 .error-header {
   margin-right: 20px;
@@ -222,7 +224,7 @@
 
 .expression-tex {
   max-width: 555px;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
 }
 

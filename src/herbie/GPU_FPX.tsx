@@ -1,6 +1,7 @@
 import * as contexts from './HerbieContext';
 import React, { useState } from 'react';
 import  './GPU_FPX.css';
+import { time } from 'console';
 
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
@@ -12,25 +13,56 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
 
     const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
     const [exceptionFlag, setExeptionFlag] = React.useState(false);
-    
+    const [exceptionStatusMessage, setExceptionStatusMessage] = useState<string>("Unchecked expression");
+    const [exceptionStatusColor, setExceptionStatusColor] = useState<string>("orange");
+    const [runButtonState, setRunButtonState] = React.useState(true);
+
     // Get the expression text to send to GPU-FPX
     const expressionText = expressions.find(expr => expr.id === expressionId);
 
 
+    //TODO : will need to change this to be asyc based on GPU-FPX results
+    function exceptionStatusHandler(){
+        if(exceptionFlag){
+            setExceptionStatusMessage("Exception found")
+            setExceptionStatusColor('red')
+        }
+        setExceptionStatusMessage("No exception found")
+        setExceptionStatusColor('#8ff51b')
+    }
+
+    function handleRunClick(){
+        setRunButtonState(false)
+        runGPUFPX();
+    }
+
+    function runGPUFPX(){
+        setExeptionFlag(false)
+        exceptionStatusHandler();
+    }
+    
+
         return (
         <div className='gpu-fpx'>
-            <p className='p-item'>Click "Run Check" to see if there are floating point exceptions with this expression when run on an Nvidia GPU.</p>
+            {/* <p className='p-item'>Click "Run Check" to see if there are floating point exceptions with this expression when run on an Nvidia GPU.</p> */}
 
-            <button>Run Check</button>
             
-            {!exceptionFlag ?
              <div className="status">
                 <svg width="10" height="10" viewBox="0 0 20 20">
-                    <circle cx="10" cy="10" r="7" fill={'#8ff51b'}/>
+                    <circle cx="10" cy="10" r="7" fill={exceptionStatusColor}/>
                 </svg>
-                <p>No exceptions found</p>
-             </div>   
-            : ""}
+                {exceptionStatusMessage === "Unchecked expression"?
+                <p className='p-item'>{exceptionStatusMessage}</p>
+                : ""}
+                {exceptionStatusMessage === "Exception found"?
+                <p className='p-item-exception-found'>{exceptionStatusMessage}</p>
+                : ""}
+                {exceptionStatusMessage === "No exception found"?
+                <p className='p-item-exception-not-found'>{exceptionStatusMessage}</p>
+                : ""}
+                <button className={runButtonState ?
+                   "run-button" : "disabled-run-button"}  onClick={handleRunClick}>Run Check</button>
+             </div> 
             
         </div>
         );    

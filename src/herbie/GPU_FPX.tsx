@@ -1,15 +1,6 @@
-// External imports (libraries, etc.) will go here
-import React, { useState } from 'react';
 import * as contexts from './HerbieContext';
-import './GPU_FPX.css';
-import './ExpressionExport';
-import { ExpressionExportResponse } from './lib/herbiejs';
-import { FPCoreGetBody, FPCorePreconditionFromRanges, getVarnamesFPCore, getVarnamesMathJS, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
-import '@coreui/coreui/dist/css/coreui.min.css';
-import { CButton, CButtonGroup, CHeaderBrand, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import './ExpressionTable.css';
-import Modal from 'react-modal';
-
+import React, { useState } from 'react';
+import  './GPU_FPX.css';
 
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
@@ -17,351 +8,32 @@ import Modal from 'react-modal';
  * @param param0 the current expression ID to run the component with
  * @returns the GPU-FPX component
  */
-const GPU_FPX = ({ expressionId }: { expressionId: number }) => {
-  //Get expressions
-  const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
-  const [selectedExprId, setSelectedExprId] = contexts.useGlobal(contexts.SelectedExprIdContext)
-  
-  const current_expression = expressions.find(expression => expression.id === selectedExprId);
-  const [gpuFpxSelected] = contexts.useGlobal(contexts.gpuFpxSelected);
-  const [showDetectorReport, setShowDetectorReport] = useState(false);
-  const [showAnalyzerReport, setShowAnalyzerReport] = useState(false);
-  const [runAnalyzer, setRunAnalyzer] = useState(false);
-  //State for results from Analyzer and Detector
-  const [analyzerResult, setAnalyzerResult] = useState<string>("");
-  const [detectorResult, setDetectorResult] = useState<string>("");
+const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
 
-  interface DetectorReportTableProps {
-    formattedDetectorReport: string[];
-    startResultToDisplay: number;
-    endResultToDisplay: number;
-  }
-
-  interface analyzerReportTableProps{
-    formattedAnalyzerReport: string[];
-  }
+    const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
+    const [exceptionFlag, setExeptionFlag] = React.useState(false);
+    
+    // Get the expression text to send to GPU-FPX
+    const expressionText = expressions.find(expr => expr.id === expressionId);
 
 
-  /**
-   * FPBench and GPU-FPX Fetch Calls
-   */
-  const handleRunAnalysis = async () => {
-        try {
-          // convert mathjs to fpcore
-          const fpCoreExpr = mathjsToFPCore(current_expression?.text as unknown as mathjs);
-          const fpBenchExpr = makeFPCore2({
-            vars: getVarnamesFPCore(fpCoreExpr),
-            pre: "(<= 0 x 10)",
-            body: FPCoreGetBody(fpCoreExpr) 
-          });
-          // console.log("Current Expression format before FpBench:", current_expression);
-          console.log("Starting FPBench conversion for expression:", fpBenchExpr);
-          const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', 
-            },
-            body: JSON.stringify({
-                formulas: [fpBenchExpr],
-                language: 'cuda'
-            })
-        });
+        return (
+        <div className='gpu-fpx'>
+            <p className='p-item'>Click "Run Check" to see if there are floating point exceptions with this expression when run on an Nvidia GPU.</p>
 
-        const fpbenchResult = await fpbenchResponse.json();
-        console.log("Raw FPBench result:", fpbenchResult);
-        //Extract just the expression from the function body
-        const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
-        const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
-        console.log("Extracted CUDA expression:", cudaExpr);
-        // const cudaExpr = "pow(e, sin((pow((x + 1.0), 2.0) - 3.0))) / log(x)";
-        
-        // Now we can run GPU-FPX with the extracted expression
-            const analyzerResponse = await fetch('http://155.98.69.61:8001/exec', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    formulas: [cudaExpr]
-                })
-            });
-            const analyzerData = await analyzerResponse.json();
-            console.log(analyzerData);
-            setAnalyzerResult(analyzerData.stdout);
-
-            // Then run detector
-            const detectorResponse = await fetch('http://155.98.69.61:8003/exec', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    formulas: [cudaExpr]
-                })
-            });
-            const detectorData = await detectorResponse.json();
-            console.log(detectorData);
-
-            setDetectorResult(detectorData.stdout);
-
-        } catch (error) {
-            console.error('Error running GPU-FPX:', error);
-            // Handle error appropriately
-        }
+            <button>Run Check</button>
+            
+            {!exceptionFlag ?
+             <div className="status">
+                <svg width="10" height="10" viewBox="0 0 20 20">
+                    <circle cx="10" cy="10" r="7" fill={'#8ff51b'}/>
+                </svg>
+                <p>No exceptions found</p>
+             </div>   
+            : ""}
+            
+        </div>
+        );    
     };
-  
-  /**
-   * Resets the results for the analyzer and detector so that it can be populated with a new expressions results
-   */
-  const resetResults = () =>{
-    setAnalyzerResult("")
-    setDetectorResult("")
-  }
-  
-  /**
-   * Button handler for "Run GPU-FPX"
-   */
-  const handleRunGPUFPXClick = () => {
-    resetResults();
-    setRunAnalyzer(!runAnalyzer);
-    setShowAnalyzerReport(!showAnalyzerReport);
-    setShowDetectorReport(!showDetectorReport);
-    handleRunAnalysis();
-};
-
-
-  /**
-   * Report click handler for detector
-   */
-  const handleShowDetectorReportClick = () => {
-    setShowDetectorReport(!showDetectorReport);
-  }
-
-  /**
-   * Report click handler for analyzer
-   */
-  const handleShowAnalyzerReportClick = () => {
-    setShowAnalyzerReport(!showAnalyzerReport);
-  }
-
-  /**
-   * Helper to format the raw detector results from GPU-FPX raw output
-   * @param report the output of the extract detector report function call
-   * @returns a formatted expression detector results
-   */
-  const formatDetectorReport = (report: string) => {
-    // Split on newlines and filter out empty lines and headers
-    return report.split(/\r?\n/)
-      .map(line => line.trim())
-      .filter(line => 
-        line && 
-        !line.includes('GPU-FPX Report') &&
-        !line.startsWith('---')
-      )
-  }
-
-  /**
-   * Begin the parsing of the entire analyzer output into individual instruction results
-   * @param report 
-   * @returns 
-   */
-  const formatAnalyzerReport = (report: string) => {
-
-    //split on the :0 to isolate the different function results
-    let instructionSplit = report.split(":0")
-    for (var result of instructionSplit){
-      result = result.split(/\r?\n/)[0]
-    }
-    //delete the header index - text that is removed: 
-    // \n\n#GPU-FPX-ANA SHARED REGISTER: After executing the instruction  @ /unknown_path in [kernel_function]
-    let parsedInstructionSplit = []
-    for (let i = 1; i < instructionSplit.length ;i++){
-      parsedInstructionSplit.push(instructionSplit[i])
-    }
-
-    //isolate just the instruction info from the report
-    let cleanedReport = []
-    for(let i = 0; i < parsedInstructionSplit.length;i++){
-      cleanedReport.push(parsedInstructionSplit[i].split('#GPU')[0])
-
-    }
-    return cleanedReport
-  }
-
-
-
-  /**
-   * Helper which extracts the detector report from the rest of the GPU-FPX raw output
-   * @param log the original raw output from GPU-FPX
-   * @returns just the raw detector output
-   */
-  const extractDetectorReport = (log: string): string => {
-    const startMarker = "------------ GPU-FPX Report -----------";
-    const endMarker = "The total number of exceptions are:";
-    const start = log.indexOf(startMarker);
-    const endLineStart = log.indexOf(endMarker);
-    const endLine = log.slice(endLineStart).split('\n')[0];
-    
-    return log.slice(start, endLineStart + endLine.length);
-};
-
-/**
- * Helper which extracts the analyzer report from the rest of the GPU-FPX output
- * @param log the original raw output from GPU-FPX
- * @returns just the raw analyzer output
- */
-const extractAnalyzerReport = (log: string): string => {
-  const startMarker = "#GPU-FPX-ANA SHARED REGISTER:";
-  const endMarker = "This completes the analyzer report.";
-  const start = log.indexOf(startMarker);
-  const endLineStart = log.indexOf(endMarker);  
-  return log.slice(start, endLineStart);
-};
-
-
-//final formatted report to be displayed in the DetectorReport component
-const formattedDetectorReport = formatDetectorReport(extractDetectorReport(detectorResult));
-
-/**
- *  Creates the JSX element to display results from runnning GPU-FPX on the selected expression
- * @param param0 the formatted detector report to be displayed in the main component
- * @returns the detector report JSX element
- */
-const DetectorReport = ({ formattedDetectorReport }: { formattedDetectorReport: string[] }) => (
-  <div>
-    <h6>Detector Results</h6>
-    <p>FP64 Operations</p>
-    <div>
-      {/* Populate a table with FP64 Operations */}
-      <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={0} endResultToDisplay={4}></DetectorResultTable>
-
-    </div>
-    <p>FP32 Operations</p>
-      {/* Populate a table with FP32 Operations */}
-      <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={4} endResultToDisplay={8}></DetectorResultTable>
-    
-    <p>Other Stats</p>
-    <div> 
-      {/* Populate with other stats */}
-      <DetectorResultTable formattedDetectorReport={formattedDetectorReport} startResultToDisplay={8} endResultToDisplay={10}></DetectorResultTable>
-
-    </div>
-  </div>
-);
-
-const DetectorResultTable = ({formattedDetectorReport, startResultToDisplay, endResultToDisplay}:DetectorReportTableProps) => {
-  const items = []
-  for (let i = startResultToDisplay; i < endResultToDisplay; i++){
-    items.push({class: formattedDetectorReport[i],_cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },})
-  }
-  return <CTable hover bordered small items={items} />
-}
-const TableExample = () => {
-  const columns = [
-    {
-      key: 'id',
-      label: '#',
-      _props: { scope: 'col' },
-    },
-    {
-      key: 'class',
-      _props: { scope: 'col' },
-    },
-    {
-      key: 'heading_1',
-      label: 'Heading',
-      _props: { scope: 'col' },
-    },
-    {
-      key: 'heading_2',
-      label: 'Heading',
-      _props: { scope: 'col' },
-    },
-  ]
-  const items = [
-    {
-      id: 1,
-      class: 'Mark',
-      heading_1: 'Otto',
-      heading_2: '@mdo',
-      _cellProps: { id: { scope: 'row' } },
-    },
-    {
-      id: 2,
-      class: 'Jacob',
-      heading_1: 'Thornton',
-      heading_2: '@fat',
-      _cellProps: { id: { scope: 'row' } },
-    },
-    {
-      id: 3,
-      class: 'Larry the Bird',
-      heading_2: '@twitter',
-      _cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },
-    },
-  ]
-
-  return <CTable hover bordered small columns={columns} items={items} />
-}
-
-const cleanedAnalyzerReport = formatAnalyzerReport(extractAnalyzerReport(analyzerResult));
-
-const AnalyzerResultTable = ({formattedAnalyzerReport}:analyzerReportTableProps) => {
-  const items = []
-  for (let i = 0; i < formattedAnalyzerReport.length; i++){
-    items.push({class: formattedAnalyzerReport[i],_cellProps: { id: { scope: 'row' }, class: { colSpan: 2 } },})
-  }
-  return <CTable hover bordered small items={items} />
-}
-const AnalyzerReport = ({ formattedAnalyzerReport }: analyzerReportTableProps) => (
-  <div>
-    <div>
-      <h6>Analyzer Results</h6>
-      {/* Populate a table with FP64 Operations */}
-      <AnalyzerResultTable formattedAnalyzerReport={formattedAnalyzerReport}></AnalyzerResultTable>
-    </div>
-  </div>
-);
-
-  return (
-    <div className='gpu-fpx'>
-      <p>Current expression:</p>
-      <p>{current_expression?.text}</p> 
-      {/* <p>The total number of exceptions are: 2</p> */}
-      <div style={{/*display: 'flex'*/}}>
-        <p>*This tool only checks for Floating Point Exceptions in NVIDIA GPUs.</p>
-        <CButtonGroup role="group" aria-label="Basic example">
-          <button onClick={handleRunGPUFPXClick}>Detect & Analyze Expression on GPU's</button>
-          <button onClick={handleShowDetectorReportClick}>Show/Hide Detector Results</button>
-          <button onClick={handleShowAnalyzerReportClick}>Show/Hide Analyzer Results</button>
-        </CButtonGroup>
-      </div>
-      <div style={{display : 'flex'}}>
-        <div className="detector" style={{ flex: 1, padding: '5px', borderRadius:"4"}}>
-        {showDetectorReport ? 
-        <div>
-          {/* <img src={'../../images/gpu-fpx-report.svg'} alt="GPU FPX Report" /> */}
-          <DetectorReport formattedDetectorReport={formattedDetectorReport} />
-        </div>   : ""}
-        </div>
-        <div className="analyzer" style={{ flex: 1, padding: '5px', overflow:"scroll", maxHeight:"30vh", borderRadius:"4"  }}>
-        {showAnalyzerReport ? 
-        <div>
-          {/* <img src={'../../images/gpu-register-flow.svg'} alt="GPU FPX Report" /> */}
-          <AnalyzerReport formattedAnalyzerReport={cleanedAnalyzerReport} />
-        </div>
-         : ""}
-        </div>
-      </div>
-      {/* <Modal isOpen={true}
-        onRequestClose={() => isOpen{false}}
-        contentLabel="In-Depth Modal"
-        ariaHideApp={false}>
-
-      </Modal> */}
-
-    </div>
-  );
-};
 
 export { GPU_FPX };

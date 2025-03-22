@@ -41,15 +41,15 @@ const fpbenchCallback = async (req, res, binaryPath) => {
   const input = req.body;
   const formulas = input.formulas.join("\n");
   const safe_formulas = formulas.replace(/'/g, "\\'");
-
+  const lang = input.lang.replace(/'/g, "\\'");
+  console.log(lang);
+  
   const { stdout, stderr } = await execPromise(
-    `${binaryPath} export --lang fptaylor <(printf '${safe_formulas}') -`,
+    `${binaryPath} export --lang ${lang} <(printf '${safe_formulas}') -`,
     { shell: '/bin/bash' }
   );
   res.json({ stdout });
 };
-
-
 
 
 /********************************************************/

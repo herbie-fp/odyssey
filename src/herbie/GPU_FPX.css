@@ -2,3 +2,20 @@
     background-color: white;
     border-radius: 10px;
 }
+
+.p-item{
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.status{
+    background-color: black;
+    border-radius: 10px;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: white;
+}

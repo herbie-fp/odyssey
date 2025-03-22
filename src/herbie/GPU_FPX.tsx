@@ -12,33 +12,46 @@ import { time } from 'console';
 const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
 
     const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
-    const [exceptionFlag, setExeptionFlag] = React.useState(false);
+    const [infoFlag, setInfoFlag] = React.useState(false);
+    const [exceptionFlag, setExceptionFlag] = React.useState(false);
+
     const [exceptionStatusMessage, setExceptionStatusMessage] = useState<string>("Unchecked expression");
     const [exceptionStatusColor, setExceptionStatusColor] = useState<string>("orange");
-    const [runButtonState, setRunButtonState] = React.useState(true);
+    // const [runButtonState, setRunButtonState] = React.useState(true);
+    // let exceptionFlag = false
+    let runButtonState = true
 
     // Get the expression text to send to GPU-FPX
     const expressionText = expressions.find(expr => expr.id === expressionId);
 
 
-    //TODO : will need to change this to be asyc based on GPU-FPX results
+    //TODO : will need to change this to be asyc based on GPU-FPX results using useEffect 
     function exceptionStatusHandler(){
         if(exceptionFlag){
             setExceptionStatusMessage("Exception found")
             setExceptionStatusColor('red')
         }
+        else{
         setExceptionStatusMessage("No exception found")
         setExceptionStatusColor('#8ff51b')
+        }
     }
 
     function handleRunClick(){
-        setRunButtonState(false)
+        runButtonState = !runButtonState
         runGPUFPX();
     }
-
+    
     function runGPUFPX(){
-        setExeptionFlag(false)
+        setExceptionFlag(!exceptionFlag)
+        if(exceptionFlag){
+            setInfoFlag(!infoFlag)
+        }
         exceptionStatusHandler();
+    }
+
+    const viewMoreInfoClick = () => {
+        
     }
     
 
@@ -59,6 +72,11 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
                 : ""}
                 {exceptionStatusMessage === "No exception found"?
                 <p className='p-item-exception-not-found'>{exceptionStatusMessage}</p>
+                : ""}
+                {infoFlag ?
+                <div>
+                    <button className="more-info-button" onClick={viewMoreInfoClick}>More Info</button>
+                </div>
                 : ""}
                 <button className={runButtonState ?
                    "run-button" : "disabled-run-button"}  onClick={handleRunClick}>Run Check</button>

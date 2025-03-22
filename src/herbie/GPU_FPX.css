@@ -44,6 +44,16 @@
     opacity: 1!important;
 }
 
+.more-info-button{
+    font-size: 12px;
+    font-weight: bold;
+    padding: 1.25px 5.5px;
+    border-radius: 6px;
+    background-color: white;
+    color: #3a00ff;
+    opacity: 1!important;
+}
+
 .disabled-run-button:hover{
     font-size: 12px;
     font-weight: bold;
@@ -52,15 +62,6 @@
     background-color: grey !important;
     opacity: 1!important;
 }
-
-/* .run-button::disabled{
-    font-size: 12px;
-    font-weight: bold;
-    padding: 6.25px 10.5px;
-    border-radius: 6px;
-    background-color: grey;
-    opacity: 1!important;
-} */
 
 .status{
     background-color: black;

@@ -14,7 +14,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
     const [infoFlag, setInfoFlag] = React.useState(false);
     const [exceptionFlag, setExceptionFlag] = React.useState(false);
-
+    const [displayInfo, setDisplayInfo] = React.useState(false);
     const [exceptionStatusMessage, setExceptionStatusMessage] = useState<string>("Unchecked expression");
     const [exceptionStatusColor, setExceptionStatusColor] = useState<string>("orange");
     // const [runButtonState, setRunButtonState] = React.useState(true);
@@ -51,7 +51,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     }
 
     const viewMoreInfoClick = () => {
-        
+        setDisplayInfo(!displayInfo);
     }
     
 
@@ -81,6 +81,11 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
                 <button className={runButtonState ?
                    "run-button" : "disabled-run-button"}  onClick={handleRunClick}>Run Check</button>
              </div> 
+             {displayInfo ? 
+             <div>
+                <p className='info-header'>The expression {expressionText?.text} is causing floating point exceptions on Nvidia GPU's.</p>
+                <p> --Insert LLM response-- </p>
+             </div>: ""}
             
         </div>
         );    

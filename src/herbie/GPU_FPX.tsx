@@ -1,8 +1,8 @@
 import * as contexts from './HerbieContext';
 import React, { useState } from 'react';
 import  './GPU_FPX.css';
-import { time } from 'console';
-
+import { FPCoreGetBody, getVarnamesFPCore, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
+import "mathjs11"
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
  * then sends those CUDA expressions to GPU-FPX, runs GPU-FPX, and then outputs it's results in this component 
@@ -17,13 +17,15 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     const [displayInfo, setDisplayInfo] = React.useState(false);
     const [exceptionStatusMessage, setExceptionStatusMessage] = useState<string>("Unchecked expression");
     const [exceptionStatusColor, setExceptionStatusColor] = useState<string>("orange");
+    const [analyzerResult, setAnalyzerResult] = useState<string>("");
+    const [detectorResult, setDetectorResult] = useState<string>("");
     // const [runButtonState, setRunButtonState] = React.useState(true);
     // let exceptionFlag = false
     let runButtonState = true
 
+
     // Get the expression text to send to GPU-FPX
     const expressionText = expressions.find(expr => expr.id === expressionId);
-
 
     //TODO : will need to change this to be asyc based on GPU-FPX results using useEffect 
     function exceptionStatusHandler(){
@@ -43,7 +45,10 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     }
     
     function runGPUFPX(){
-        setExceptionFlag(!exceptionFlag)
+        handleRunAnalysis();
+        if (searchForExceptionsInDetectorOutput()){
+            setExceptionFlag(!exceptionFlag)
+        }
         if(exceptionFlag){
             setInfoFlag(!infoFlag)
         }
@@ -53,6 +58,91 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     const viewMoreInfoClick = () => {
         setDisplayInfo(!displayInfo);
     }
+
+    /**
+     * Searches for exception in the output from GPU-FPX for the detector
+     * @returns true if there is an exception found in the detector report, false otherwise
+     */
+    const searchForExceptionsInDetectorOutput = () => {
+        let exceptionString : string = "The total number of exceptions are:"
+        let index : number = detectorResult.search(exceptionString) + 35;
+        let exceptionCountSubstring : string = detectorResult.substring(index,index + 4)
+        
+        if(!exceptionCountSubstring.includes("0")){
+            console.log("In search for exceptions, there was an exception found, this is the number:" + exceptionCountSubstring)
+            return true
+        }
+        return false
+    }
+
+    //----------------- G P U - F P X  C A L L S ------------------//
+
+    const handleRunAnalysis = async () => {
+        try {
+        // convert mathjs to fpcore
+        const fpCoreExpr = mathjsToFPCore(expressionText?.text as unknown as mathjs);
+        const fpBenchExpr = makeFPCore2({
+            vars: getVarnamesFPCore(fpCoreExpr),
+            pre: "(<= 0 x 10)",
+            body: FPCoreGetBody(fpCoreExpr) 
+        });
+        // console.log("Current Expression format before FpBench:", current_expression);
+        console.log("Starting FPBench conversion for expression:", fpBenchExpr);
+        const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+            body: JSON.stringify({
+                formulas: [fpBenchExpr],
+                lang: 'cu'
+            })
+        });
+
+        const fpbenchResult = await fpbenchResponse.json();
+        console.log("Raw FPBench result:", fpbenchResult);
+        //Extract just the expression from the function body
+        const functionMatch = fpbenchResult.stdout.match(/return\s+(.*?);/);
+        const cudaExpr = functionMatch ? functionMatch[1].trim() : fpbenchResult.stdout;
+        console.log("Extracted CUDA expression:", cudaExpr);
+        
+        // Now we can run GPU-FPX with the extracted expression
+            const analyzerResponse = await fetch('http://155.98.69.61:8001/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    formulas: [cudaExpr]
+                })
+            });
+            const analyzerData = await analyzerResponse.json();
+            console.log(analyzerData);
+            setAnalyzerResult(analyzerData.stdout);
+
+            // Then run detector
+            const detectorResponse = await fetch('http://155.98.69.61:8003/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    formulas: [cudaExpr]
+                })
+            });
+            const detectorData = await detectorResponse.json();
+            console.log(detectorData);
+
+            setDetectorResult(detectorData.stdout);
+
+        } catch (error) {
+            console.error('Error running GPU-FPX:', error);
+            // Handle error appropriately
+        }
+    };
+
+
+
     
 
         return (

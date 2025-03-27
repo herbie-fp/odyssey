@@ -2,7 +2,6 @@ import * as contexts from './HerbieContext';
 import React, { useState } from 'react';
 import  './GPU_FPX.css';
 import { FPCoreGetBody, getVarnamesFPCore, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
-import "mathjs11"
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
  * then sends those CUDA expressions to GPU-FPX, runs GPU-FPX, and then outputs it's results in this component 
@@ -88,7 +87,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
         });
         // console.log("Current Expression format before FpBench:", current_expression);
         console.log("Starting FPBench conversion for expression:", fpBenchExpr);
-        const fpbenchResponse = await fetch('http://155.98.69.61:8002/exec', {
+        const fpbenchResponse = await fetch('https://herbie.uwplse.org/fpbench/exec', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json', 

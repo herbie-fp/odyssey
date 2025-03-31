@@ -147,7 +147,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
         return (
         <div className='gpu-fpx'>
             {/* <p className='p-item'>Click "Run Check" to see if there are floating point exceptions with this expression when run on an Nvidia GPU.</p> */}
-
+            <p> *Caution this tool is a work in progress, do not use</p>
             
              <div className="status">
                 <svg width="10" height="10" viewBox="0 0 20 20">

@@ -4,7 +4,7 @@ import { Tooltip } from 'react-tooltip'
 
 import { Derivation, Expression } from './HerbieTypes';
 import * as HerbieContext from './HerbieContext';
-
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import { addJobRecorder } from './HerbieUI';
 import { nextId } from './lib/utils'
 import * as herbiejs from './lib/herbiejs'
@@ -56,7 +56,8 @@ function ExpressionTable() {
   const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [addExpression, setAddExpression] = useState('');
   const [addExpressionTex, setAddExpressionTex] = useState('');
-  
+  const [sortField, setSortField] = useState<'accuracy' | 'cost' | 'none'>('none');
+
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
   const [jobCount,] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
 
@@ -65,7 +66,7 @@ function ExpressionTable() {
   const naiveExpression = expressions.find(e => e.text === spec.expression);
   // get cost of naive expression
   const naiveCost = cost.find(c => c.expressionId === naiveExpression?.id)?.cost;
-
+  const [sortOrder, setSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
   const herbiejsJobs = addJobRecorder(herbiejs)
 
   const activeExpressions = expressions.map(e => e.id).filter(id => !archivedExpressions.includes(id))
@@ -77,6 +78,17 @@ function ExpressionTable() {
     }
   }
 
+  function toggleSortOrder(field: 'accuracy' | 'cost') {
+    setSortField(field); // Set which field to sort
+    setSortOrder((prevOrder) => {
+      if (sortField !== field) return 'asc'; // If switching fields, start with ascending order
+      if (prevOrder === 'none') return 'asc';
+      if (prevOrder === 'asc') return 'desc';
+      return 'none';
+    });
+  }
+  
+     
   function toggleShowMath() {
     setShowMath(!showMath);
   }
@@ -192,9 +204,9 @@ function ExpressionTable() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        actionType: "AddButton",
         sessionId: sessionStorage.getItem('sessionId'),
         expression: addExpression,
-        Description: "Added Expression by clicking Add button",
         timestamp: new Date().toLocaleString(),
       }),
     })
@@ -252,9 +264,9 @@ function ExpressionTable() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          actionType: "ImproveClicked",
           sessionId: sessionStorage.getItem('sessionId'),
-          expression: fPCoreToMathJS,
-          Description: "Added Expression by clicking improve",
+          expression: expression.text,
           timestamp: new Date().toLocaleString(),
         }),
       })
@@ -282,7 +294,51 @@ function ExpressionTable() {
     setDerivations([...newDerivations, ...derivations]);
     setCompareExprIds([...compareExprIds, ...newExpressions.map(e => e.id)]);
   }
+  
 
+  const getSortedActiveExpressions = () => {
+    if (sortOrder === 'none') return activeExpressions; // Return original order
+  
+    return [...activeExpressions].sort((idA, idB) => {
+      const exprA = expressions.find(exp => exp.id === idA);
+      const exprB = expressions.find(exp => exp.id === idB);
+  
+      if (!exprA || !exprB) return 0;
+  
+      // Compute Accuracy using original method
+      const getAccuracy = (expression: Expression) => {
+        let analysisResult: string | undefined;
+        
+        if (selectedSubsetAnalyses) {
+          const analysisData = selectedSubsetAnalyses.find(analysis => analysis.expressionId === expression.id);
+          analysisResult = analysisData?.subsetErrorResult;
+        } else {
+          const analysisData = analyses.find(analysis => analysis.expressionId === expression.id)?.data;
+          analysisResult = !analysisData ? undefined 
+            : (analysisData.errors.reduce((acc: number, v: any) => acc + v, 0) / 8000).toFixed(2);
+        }
+        
+        return analysisResult ? 100 - (parseFloat(analysisResult) / 64) * 100 : 0;
+      };
+  
+      // Compute Cost
+      const getCost = (expression: Expression) => {
+        const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
+        if (!naiveCost || !costResult || costResult === 0) return 0; // Handle missing values or division by zero
+  
+    return parseFloat((naiveCost / costResult).toFixed(1)); // Convert to number for sorting
+      };
+  
+      // Select sorting field (Accuracy or Cost)
+      let valueA = sortField === 'accuracy' ? getAccuracy(exprA) : getCost(exprA);
+      let valueB = sortField === 'accuracy' ? getAccuracy(exprB) : getCost(exprB);
+  
+      return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+    });
+  };
+  
+  // Get sorted active expressions (IDs only)
+  const sortedActiveExpressions = getSortedActiveExpressions();
   return (
     <div className="expression-table">
       <div className="expression-table-header-row">
@@ -296,27 +352,71 @@ function ExpressionTable() {
           <input type="checkbox" onChange={ toggleAllChecked } checked={ allChecked }></input>
         </div>
         <div className="expressions-header">
-          Expression
-          (Show TeX<input id="showTexCheckbox" type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>)
+          <p>Expression</p>
+          {/* Toggle for show/don't show tex */}
+          <p style={{color: "gray"}}>Show as: </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1em",
+            }}
+            onClick={toggleShowMath}
+          >
+            <span
+              style={{
+                fontWeight: "bold",
+                color: showMath ? "gray" : "black",
+              }}
+            >
+              Text
+            </span>
+            <label className="switch">
+              <input type="checkbox" disabled checked={showMath} />
+              <span className="slider round"></span>
+            </label>
+            <span
+              style={{
+                fontWeight: "bold",
+                color: showMath ? "black" : "gray",
+              }}
+            >
+              TeX
+            </span>
+          </div>
+          {/* (Show TeX<input id="showTexCheckbox" type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>) */}
         </div>
         <div className="compare-header">
         </div>
         <div className="error-header">
           Accuracy
+          <button onClick={() => toggleSortOrder('accuracy')} className="sort-button">
+            {sortField === 'accuracy' ? (
+              sortOrder === 'asc' ? <i className="fas">&#xf151;</i> : // Up Arrow (fa-angle-up)
+              sortOrder === 'desc' ? <i className="fas">&#xf150;</i> : // Down Arrow (fa-angle-down)
+              <i className="fas">&#xf0dc;</i> // Sort Icon (fa-sort)
+            ) : <i className="fas">&#xf0dc;</i>}
+          </button>
         </div>
+
         <div className="speedup-header">
           Speedup
+          <button onClick={() => toggleSortOrder('cost')} className="sort-button">
+            {sortField === 'cost' ? (sortOrder === 'asc' ? <i className="fas">&#xf151;</i> : // Up Arrow (fa-angle-up)
+              sortOrder === 'desc' ? <i className="fas">&#xf150;</i> : // Down Arrow (fa-angle-down)
+              <i className="fas">&#xf0dc;</i> // Sort Icon (fa-sort)
+            ) : <i className="fas">&#xf0dc;</i>}
+          </button>
         </div>
         <div className="buttons-header">
 
         </div>
       </div>
-
+      
       <div className="expressions">
-        {activeExpressions.map((id) => {
+        {sortedActiveExpressions.map((id) => {
           const expression = expressions.find((expression) => expression.id === id) as Expression;
           const isChecked = compareExprIds.includes(expression.id);
-
           let analysisResult: string | undefined;
             // use pre-caluclated result for a subset of points (brushing)
           if (selectedSubsetAnalyses) {
@@ -331,7 +431,6 @@ function ExpressionTable() {
                   return acc + v;
                 }, 0) / 8000).toFixed(2);
           }
-
           // cost of the expression
           const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
 

@@ -196,7 +196,7 @@ function SerializeStateComponent(props: exportStateProps) {
       if (newExpressionId === undefined) {
         continue;
       }
-      newDerivations.push(new Derivation(deriv.derivation, newExpressionId, newParentId));
+      newDerivations.push(new Derivation(deriv.history, newExpressionId, newParentId));
     }
 
     setExpressions([...oldIdToNewExpressions.values(), ...expressions]);
@@ -261,8 +261,10 @@ function SerializeStateComponent(props: exportStateProps) {
   // Export page
   if (props.specPage) {
     return (
-      <div className="import-export" style={{paddingBottom: "2px"}}>
-        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Import</a>
+      <div className="import-export">
+        <a onClick={() => setIsModalOpen(true)}>
+          Import
+        </a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}
@@ -280,8 +282,10 @@ function SerializeStateComponent(props: exportStateProps) {
     );
   } else {
     return (
-      <div className="import-export" style={{paddingBottom: "2px"}}>
-        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Export</a>
+      <div className="import-export">
+        <a onClick={() => setIsModalOpen(true)}>
+          Export
+        </a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}

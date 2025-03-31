@@ -32,7 +32,7 @@ const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
 
   return (
     <div>
-      <Latex>{selectedDerivation.derivation}</Latex>
+      <Latex>{selectedDerivation.history}</Latex>
     </div>
   );
 };

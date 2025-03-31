@@ -41,12 +41,12 @@ async function runTest(rowData) {
     const textSelector = await page.locator('.center-item').waitHandle();
     const spec = await textSelector?.evaluate(el => el.textContent);
     console.log('The input specification is', spec);
-    assert(spec === trueSpec);
+    assert(spec === trueSpec, `Expected spec: ${trueSpec}, but got: ${spec}`);
 
     const expressionTableTextSelector = await page.locator('.expression-text[id="0"]').waitHandle();
     const expressionTableSpec = await expressionTableTextSelector?.evaluate(el => el.textContent);
     console.log('The expression table specification is', expressionTableSpec);
-    assert(expressionTableSpec === trueSpec);
+    assert(expressionTableSpec === trueSpec, `Expected expression table spec: ${trueSpec}, but got: ${expressionTableSpec}`);
 
     const analysisSelector = '.analysis[id="0"]'
     const initialValue = '...'
@@ -65,7 +65,7 @@ async function runTest(rowData) {
     const analysisText = (await analysis?.evaluate(el => el.textContent)).replace("%", "");
 
     console.log('The analysis specification is', analysisText);
-    assert(analysisText === trueAnalysis)
+    assert(analysisText === trueAnalysis, `Expected analysis: ${trueAnalysis}, but got: ${analysisText}`);
 
     const speedupSelector = '.speedup[id="0"]'
     const initialValue2 = '...'
@@ -84,7 +84,7 @@ async function runTest(rowData) {
     const speedupText = (await speedup?.evaluate(el => el.textContent)).replace("x", "");
 
     console.log('The speedup specification is', speedupText);
-    assert(speedupText === trueSpeedup)
+    assert(speedupText === trueSpeedup, `Expected speedup: ${trueSpeedup}, but got: ${speedupText}`);
 
     // TODO: Figure out how to make Puppeteer click circle
     // const pointSelector = '.circle[cx="562.1969706704823"]'
@@ -123,14 +123,14 @@ async function runTest(rowData) {
 
     console.log("Best observed Herbie-improved accuracy:", bestObservedHerbieAccuracy);
     // eslint-disable-next-line eqeqeq
-    assert(bestObservedHerbieAccuracy == bestHerbieAnalysis)
+    assert(bestObservedHerbieAccuracy == bestHerbieAnalysis, `Expected best Herbie analysis: ${bestHerbieAnalysis}, but got: ${bestObservedHerbieAccuracy}`);
 
     const bestObservedHerbieExprSelector = await page.locator('.expression-text[id="' + bestObservedHerbieExprID + '"]').waitHandle();
     const bestObservedHerbieExpr = await bestObservedHerbieExprSelector?.evaluate(el => el.textContent);
 
     console.log("Best observed Herbie-improved expression:", bestObservedHerbieExpr);
     // eslint-disable-next-line eqeqeq
-    assert(bestObservedHerbieExpr == bestHerbieAnalysisExpr);
+    assert(bestObservedHerbieExpr == bestHerbieAnalysisExpr, `Expected best Herbie expression: ${bestHerbieAnalysisExpr}, but got: ${bestObservedHerbieExpr}`);
 
   } catch (err) {
     console.log(`Test failure:`);

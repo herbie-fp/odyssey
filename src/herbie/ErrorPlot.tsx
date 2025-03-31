@@ -358,7 +358,7 @@ function ErrorPlot() {
       }
       
       return <div key={i}>
-        <span className="variable-name">{v}: </span>
+        <span className="variable-name">{v}:</span>
         {range && ( // Do not display if range is undefined, which occurs when there is no InputRanges (expr is FPCore)
           <InputRangeEditor1 value={{
             varname: v,
@@ -405,7 +405,7 @@ function ErrorPlot() {
               }
 
               setSelectedPoint(point)
-                setSelectedExprId(expId)
+              setSelectedExprId(expId)
 
               // remove brushing and revert back to full sample analysis
               setSelectedSubset(undefined)
@@ -415,10 +415,10 @@ function ErrorPlot() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                  actionType: "PointSelection",
                   sessionId: sessionStorage.getItem('sessionId'),
                   SelectedPoint: point,
-                    SelectedExpression: expressions.find(e => e.id === expId)?.text,
-                    Description: `Selected Point: ${point} on Expression: ${expressions.find(e => e.id === expId)?.text}in the Error Plot Graph`,
+                  SelectedExpression: expressions.find(e => e.id === expId)?.text,
                   timestamp: new Date().toLocaleString(),
                 }),
               })
@@ -566,12 +566,37 @@ function ErrorPlot() {
             .on('end', (event: any) => {
               if (event.selection){
                 // store selected points subset in global variable, triggers re-render
+                const firstPoint = brushedPoints.length > 0 ? brushedPoints[0] : null;
+                const lastPoint = brushedPoints.length > 0 ? brushedPoints[brushedPoints.length - 1] : null;
+
+                const firstFloat = firstPoint !== null ? ordinals.ordinalToFloat(firstPoint) : null;
+                const lastFloat = lastPoint !== null ? ordinals.ordinalToFloat(lastPoint) : null;
+
                 setSelectedSubset({
                   selection: event.selection,
                   varIdx: i, 
                   points: brushedPoints,
                 });
-
+                fetch('https://herbie.uwplse.org/odyssey-log/log', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    sessionId: sessionStorage.getItem('sessionId'),
+                    actionType: "BrushedPoints",
+                    start: { ordinal: firstPoint, float: firstFloat },
+                    end: { ordinal: lastPoint, float: lastFloat },
+                    timestamp: new Date().toLocaleString(),
+                  }),
+                })
+                .then(response => {
+                  if (response.ok) {
+                    console.log('Server is running and log saved');
+                  }
+                  else {
+                    console.error('Server responded with an error:', response.status);
+                  }
+                })
+                .catch(error => console.error('Request failed:', error));
                 // Selected points & selected subset cannot exist simultaneously
                 setSelectedPoint(undefined);
               } else { // empty selection, revert brush styling
@@ -582,7 +607,7 @@ function ErrorPlot() {
                 })
               }
             });
-
+          
           select(svg).append('g')
             .attr('id', 'brush')
             .call(brush)

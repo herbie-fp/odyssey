@@ -41,14 +41,74 @@ const fpbenchCallback = async (req, res, binaryPath) => {
   const input = req.body;
   const formulas = input.formulas.join("\n");
   const safe_formulas = formulas.replace(/'/g, "\\'");
-
+  const lang = input.lang.replace(/'/g, "\\'");
+  console.log(lang);
+  
   const { stdout, stderr } = await execPromise(
-    `${binaryPath} export --lang fptaylor <(printf '${safe_formulas}') -`,
+    `${binaryPath} export --lang ${lang} <(printf '${safe_formulas}') -`,
     { shell: '/bin/bash' }
   );
   res.json({ stdout });
 };
 
+
+/********************************************************/
+
+//to run GPU-FPX analyzer
+const gpufpxAnalyzerCallback = async (req, res, binaryPath) => {
+  const input = req.body;
+  const formulas = input.formulas.join("\n");
+  const safe_formulas = formulas.replace(/'/g, "\\'");
+
+  try {
+      // First command - compile
+      const { stdout: compileOutput } = await execPromise(
+          `${binaryPath}/compile-odyssey.sh "${safe_formulas}"`,
+          { shell: '/bin/bash', cwd: binaryPath }
+      );
+
+      // Second command - run analyzer with preload
+      const { stdout: analyzerOutput } = await execPromise(
+          `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/analyzer.so ./cuda_program`,
+          { shell: '/bin/bash', cwd:binaryPath }
+      );
+
+      res.json({ stdout: analyzerOutput });
+  } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.toString() });
+  }
+};
+
+//to run GPU-FPX detector
+const gpufpxDetectorCallback = async (req, res, binaryPath) => {
+  const input = req.body;
+  const formulas = input.formulas.join("\n");
+  const safe_formulas = formulas.replace(/'/g, "\\'");
+
+  try {
+      // First command - compile (if not already compiled)
+      const { stdout: compileOutput } = await execPromise(
+        `${binaryPath}/compile-odyssey.sh "${safe_formulas}"`,
+        { shell: '/bin/bash', cwd: binaryPath }
+    );
+    
+      // Second command - run detector with preload
+      const { stdout: detectorOutput } = await execPromise(
+        `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/detector.so ./cuda_program`,
+        { shell: '/bin/bash', cwd:binaryPath }
+    );
+
+      res.json({ stdout: detectorOutput });
+  } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.toString() });
+  }
+};
+
+
+
+/*********************************************************/
 const fs = require('fs');
 const logCallback = async (req, res) => {
   const logData = req.body;
@@ -68,6 +128,8 @@ module.exports = {
   runServer,
   fptaylor: fptaylorCallback,
   fpbench: fpbenchCallback,
+  gpufpxAnalyzer:gpufpxAnalyzerCallback,
+  gpufpxDetector:gpufpxDetectorCallback,
   log: logCallback
 };
 

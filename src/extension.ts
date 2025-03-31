@@ -5,6 +5,7 @@ import { join } from 'path';
 import { spawn } from 'child_process';
 
 import * as fs from 'fs';
+// import 'import("mathjs11")';
 const lnk = require('lnk');
 const http = require('http');
 const https = require('https');
@@ -46,6 +47,9 @@ getLatestHerbieBinary().then(url => {
     HERBIE_SERVER_ADDRESS = url;
 	console.log("Using Herbie binary from:", HERBIE_SERVER_ADDRESS);
 });
+
+//this is a placeholder location until binaries for GPU_FPX is set up
+const GPUFPX_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip"
 
 // TODO remove this server code/server and use the server code from server/tool-server.js
 // Port for plugins
@@ -131,6 +135,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let herbiePath = ''
 	let fpbenchPath = ''
 	let fptaylorPath = ''
+	let gpufpxPath = ''
 
 	switch (process.platform) {
 		case 'win32':
@@ -142,6 +147,8 @@ export function activate(context: vscode.ExtensionContext) {
 			herbiePath = odysseyDir + '/dist/linux/herbie-compiled/bin/herbie'
 			fpbenchPath = odysseyDir + '/dist/linux/fpbench-compiled/bin/fpbench'
 			fptaylorPath = odysseyDir + '/dist/linux/fptaylor-compiled/fptaylor'
+			//placeholder while setting up 
+			gpufpxPath = odysseyDir + '/dist/linux/gpufpx-compiled/gpufpx.exe'
 			break
 		case 'darwin':
 			herbiePath = odysseyDir + '/dist/macos/herbie-compiled/bin/herbie'
@@ -333,6 +340,41 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	})
 
+	//path is assuming the structure will follow the rest of external tools
+	app.post('/gpufpx/analyzer', async (req: any, res: any) => {
+		const input = req.body;
+		const safe_input = input.gpufpxInput.replace(/'/g, "\\'");
+		try {
+			//exec will change to reflect how you execute GPU-FPX
+			const { stdout, stderr } = await exec(
+				`cd ${odysseyDir} && .${gpufpxPath.replace(odysseyDir, '')} <(printf '${safe_input}')`,
+				{ shell: '/bin/bash' }
+			);
+
+			res.json({ stdout: `<(printf "${stdout}")` });
+		} catch (e) {
+			console.error(e);
+		}
+	})
+
+	//path is assuming the structure will follow the rest of external tools
+	app.post('/gpufpx/detector', async (req: any, res: any) => {
+		const input = req.body;
+		const safe_input = input.gpufpxInput.replace(/'/g, "\\'");
+		try {
+			//exec will change to reflect how you execute GPU-FPX
+			const { stdout, stderr } = await exec(
+				`cd ${odysseyDir} && .${gpufpxPath.replace(odysseyDir, '')} <(printf '${safe_input}')`,
+				{ shell: '/bin/bash' }
+			);
+
+			res.json({ stdout: `<(printf "${stdout}")` });
+		} catch (e) {
+			console.error(e);
+		}
+	})
+
+
 	app.listen(pluginPort, () => {
 		console.log(`Example app listening on port ${pluginPort}`)
 	})
@@ -488,6 +530,67 @@ export function activate(context: vscode.ExtensionContext) {
 			// 		}
 			// 	})
 			// }
+		})
+	}
+
+	const download_GPU_FPX = async () => {
+		// show information message
+		vscode.window.showInformationMessage('Downloading GPU_FPX...')
+		// spawn the download process
+		// get zip file from site
+		const url = GPUFPX_SERVER_ADDRESS
+		// download with curl to home local share odyssey
+		const home = require('os').homedir()
+		// TODO path.join instead of string concat
+		const odysseyDir = home + '/.local/share/odyssey'
+
+		//this is also assuming that the file for gpu-fpx will follow the same structure as other external tools
+		if (!fs.existsSync(odysseyDir)) {
+			fs.mkdirSync(odysseyDir, { recursive: true })
+		}
+		if (!fs.existsSync(odysseyDir + '/bin')) {
+			fs.mkdirSync(odysseyDir + '/bin')
+		}
+		if (!fs.existsSync(odysseyDir + '/dist')) {
+			fs.mkdirSync(odysseyDir + '/dist')
+		}
+		const dest = home + '/.local/share/odyssey/<gpufpx-compiled.zip'
+		downloadFile(url, dest, (err: any) => {
+			if (err) { 
+				vscode.window.showErrorMessage('Error downloading GPU-FPX: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			} else {
+				vscode.window.showInformationMessage('GPU-FPX downloaded successfully. Please wait while it is installed...')
+			}
+			// unzip to home local share odyssey
+			const AdmZip = require("adm-zip");
+
+			try {
+				const zip = new AdmZip(dest);
+				zip.extractAllTo(/*target path*/ odysseyDir + '/dist', /*overwrite*/ true);
+			} catch (e) {
+				vscode.window.showErrorMessage('Error installing GPU-FPX (extraction): ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
+
+			try {
+				fs.unlinkSync(dest)
+
+				// make binary executable
+				fs.chmodSync(gpufpxPath, 0o755)
+			} catch (err: any) {
+				vscode.window.showErrorMessage('Error installing GPU-FPX: ' + err, 'Copy to clipboard').then((action) => {
+					if (action === 'Copy to clipboard') {
+						vscode.env.clipboard.writeText(err)
+					}
+				})
+			}
 		})
 	}
 
@@ -678,6 +781,16 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage("FPTaylor doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
 				if (action === 'Download') {
 					downloadFPTaylor()
+				}
+			})
+		}
+
+		// following same structure, also should check os as well as if the user has a gpu that is compatible
+		if (!fs.existsSync(gpufpxPath)) {
+			// wait for user to download gpufpx
+			vscode.window.showErrorMessage("GPU-FPX doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
+				if (action === 'Download') {
+					download_GPU_FPX()
 				}
 			})
 		}

@@ -8,7 +8,7 @@ interface ExpressionExportProps {
 }
 
 const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
-    const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js"];
+    const supportedLanguages = ["fpcore", "python", "c", "fortran", "java", "julia", "matlab", "wls", "tex", "js", "cuda"];
 
     // Export the expression to a language of the user's choice
     const [expressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
@@ -23,6 +23,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     const [language, setLanguage] = useState(supportedLanguages[0]);
     const [exportCode, setExportCode] = useState<ExpressionExportResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const gpuFpxSelected = HerbieContext.useGlobal(HerbieContext.gpuFpxSelected);
 
     // Make server call to get translation when user submits
     const translateExpression = async () => {

@@ -32,6 +32,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
     Object.fromEntries(variables.map(variable => [variable, { min: "0", max: "10" }])));
 
   const handleVariableRangeUpdate = () => {
+    throw Error("FPTaylor test error");
     const specRanges = variables.map(
       variable => new SpecRange(variable, parseFloat(variableRanges[variable].min), parseFloat(variableRanges[variable].max))
     );

@@ -12,6 +12,7 @@ const showErrorToast = (message: string) => {
     </div>,
     {
       position: "bottom-left",
+      autoClose: false,
       hideProgressBar: false,
       closeOnClick: false,
       pauseOnHover: true,

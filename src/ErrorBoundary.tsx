@@ -11,7 +11,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
             console.log('caught error', event)
             showErrorToast(event.message)
             //vscode.postMessage(JSON.stringify({ command: 'error', error: event.error?.toString ? event.error.toString() : (JSON.stringify(event.error) + '\\n' + 'Message:' + event.message) }))
-        })
+        }, { once: true })
         // window.addEventListener("unhandledrejection", (event) => {
         //     console.log('caught unhandledrejection', event)
         //     showErrorToast(JSON.stringify(event))

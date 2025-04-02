@@ -18,14 +18,7 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
 
   useEffect(() => {
     if (expression.text.includes('pow')) {
-      toast.error("Error: FPTaylor does not support the \"pow\" expression.", {
-        position: "bottom-left",
-        autoClose: false,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      throw new Error("Error: FPTaylor does not support the \"pow\" expression.")
     }
   }, [expression.text]);
 

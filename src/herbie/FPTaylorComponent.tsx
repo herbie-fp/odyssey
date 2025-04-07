@@ -23,17 +23,14 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   
   const variables = getVarnamesMathJS(expression.text);
 
-  useEffect(() => {
-    if (expression.text.includes('pow')) {
-      throw new Error("Error: FPTaylor does not support the \"pow\" expression.")
-    }
-  }, [expression.text]);
-
   const [variableRanges, setVariableRanges] = useState(
     Object.fromEntries(variables.map(variable => [variable, { min: "0", max: "10" }])));
 
   const handleVariableRangeUpdate = () => {
-    throw Error("FPTaylor test error");
+    if (rawExpression.text.includes('pow')) {
+      throw new Error("FPTaylor does not support the \"pow\" expression.")
+    }
+
     const specRanges = variables.map(
       variable => new SpecRange(variable, parseFloat(variableRanges[variable].min), parseFloat(variableRanges[variable].max))
     );

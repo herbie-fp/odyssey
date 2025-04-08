@@ -18,6 +18,7 @@ import  NewLocalError  from './LocalError/newLocalError';
 import ExpressionExport from './ExpressionExport';
 
 import KaTeX from 'katex';
+import { GPU_FPX } from './GPU_FPX';
 
 import './ExpressionTable.css';
 
@@ -441,13 +442,13 @@ function ExpressionTable() {
               { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
               { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
               { value: 'newLocalError', label: 'New Local Error', component: <NewLocalError expressionId={expression.id}/> },
+              { value: 'GPU_FPX', label: 'Check for FP Exceptions', component: <GPU_FPX expressionId={expression.id} /> },
               // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
             ];
           return (
             <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`} key={expression.id}>
               <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
                 style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
-
                 {/* expand button [+] */}
                 <div className="expand action">
                   <div onClick={() => handleExpandClick(expression.id)}>

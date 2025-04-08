@@ -9,10 +9,17 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   const [FPTaylorAnalyses, ] = HerbieContext.useGlobal(HerbieContext.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = HerbieContext.useGlobal(HerbieContext.FPTaylorRangeContext);
 
-  const expression = expressions.find(expression => expression.id === expressionId);
-  if (!expression) {
+  const rawExpression = expressions.find(expression => expression.id === expressionId);
+  if (!rawExpression) {
     return <div>Expression not found.</div>;
   }
+  
+  // Apply matching to automatically transform some unsupported expressions to supported ones
+  // TODO: Eventually this needs to be confirmed to FPCore parsing solution, right now it is a regex hack
+  const expression = {
+    ...rawExpression,
+    text: rawExpression.text.replace(/pow\((\w+),\s*2\)/g, '($1 * $1)')
+  };
   
   const variables = getVarnamesMathJS(expression.text);
 

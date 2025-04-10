@@ -16,7 +16,6 @@ const showErrorToast = (message: string) => {
       hideProgressBar: false,
       closeOnClick: false,
       pauseOnHover: true,
-      draggable: true,
       progress: undefined,
     }
   );

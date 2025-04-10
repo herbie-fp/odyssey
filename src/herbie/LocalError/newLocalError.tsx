@@ -26,7 +26,7 @@ function TreeRow({ node, depth }: { node: LocalErrorTree; depth: number }) {
   return (
     <>
       <tr>
-        <td className="border px-4 py-2">
+        <td className="border px-4 py-2 program-col">
           <span style={{ marginLeft: `${depth * 15}px`, cursor: "pointer" }} onClick={() => setIsExpanded(!isExpanded)}>
             {node.children.length > 0 && (
               <button className="toggle-button">
@@ -36,13 +36,13 @@ function TreeRow({ node, depth }: { node: LocalErrorTree; depth: number }) {
             {isExpanded ? node.e : collapsedExpression}
           </span>
         </td>
-        <td className="border px-4 py-2">{node["actual-value"]}</td>
-        <td className="border px-4 py-2">{node["exact-value"]}</td>
-        <td className="border px-4 py-2">{node["abs-error-difference"]}</td>
-        <td className="border px-4 py-2">{node["percent-accuracy"]}%</td>
+        <td className="border px-4 py-2">{parseFloat(node["actual-value"]).toFixed(1)}</td>
+        <td className="border px-4 py-2">{parseFloat(node["exact-value"]).toFixed(1)}</td>
+        <td className="border px-4 py-2">{parseFloat(node["abs-error-difference"]).toFixed(1)}</td>
+        <td className="border px-4 py-2">{parseFloat(node["percent-accuracy"]).toFixed(1)}%</td>
         <td className="border px-4 py-2">
           <span className={`local-error ${parseFloat(node["percent-accuracy"]) < 100 ? "high-error" : ""}`}>
-            {node["ulps-error"]}
+          {parseFloat(node["ulps-error"]).toFixed(1)}
           </span>
         </td>
       </tr>
@@ -77,7 +77,7 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
       <table className="min-w-full border border-gray-300 bg-white">
         <thead className="bg-gray-100">
           <tr>
-            <th className="border px-4 py-2 text-left">Program</th>
+            <th className="border px-4 py-2 text-left program-col">Program</th>
             <th className="border px-4 py-2 text-left">R Value</th>
             <th className="border px-4 py-2 text-left">FP Value</th>
             <th className="border px-4 py-2 text-left">Difference</th>

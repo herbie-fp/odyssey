@@ -15,6 +15,7 @@
   background-color: rgba(255, 0, 0, 0.2); /* Light red for high errors */
   color: red;
 }
+
 .program-col {
   white-space: nowrap;
   padding-right: 50px;

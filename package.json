@@ -71,7 +71,6 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@observablehq/plot": "^0.6.9",
-    "@octokit/core": "^6.1.5",
     "@vscode/test-web": "^0.0.62",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "adm-zip": "^0.5.10",

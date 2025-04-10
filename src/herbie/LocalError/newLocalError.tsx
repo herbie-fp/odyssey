@@ -97,7 +97,7 @@ function TreeRow({
         </td>
         <td className="border px-4 py-2">{parseFloat(node["actual-value"]).toFixed(1)}</td>
         <td className="border px-4 py-2">{parseFloat(node["exact-value"]).toFixed(1)}</td>
-        <td className="border px-4 py-2">{parseFloat(node["abs-error-difference"]).toFixed(1)}</td>
+        <td className="border px-4 py-2">{(node["abs-error-difference"])}</td>
         <td className="border px-4 py-2">{parseFloat(node["percent-accuracy"]).toFixed(1)}%</td>
         <td className="border px-4 py-2">
           <span className={`local-error ${parseFloat(node["percent-accuracy"]) < 100 ? "high-error" : ""}`}>

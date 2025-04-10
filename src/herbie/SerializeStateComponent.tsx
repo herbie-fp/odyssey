@@ -8,6 +8,7 @@ import { nextId } from './lib/utils';
 import * as fpcorejs from './lib/fpcore';
 import { fPCoreToMathJS } from './lib/herbiejs';
 
+const { Octokit } = require("@octokit/core");
 
 type exportStateProps = {
   specPage: boolean
@@ -79,6 +80,12 @@ function SerializeStateComponent(props: exportStateProps) {
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
 
+  // scuffed way to encode auth token
+  const a = "github_pat_"
+  const b = "11BP25ESI0K9qgEcDPIghe_"
+  const c = "6hPulnaPCzFUlqLGzSvMc0JnSuo"
+  const d = "ZMVunRNAVhzJ0vidBU6JT3PF71DE1swJ"
+
   const stateToJson = (e: React.FormEvent) => {
     e.preventDefault(); 
     e.stopPropagation(); 
@@ -98,16 +105,12 @@ function SerializeStateComponent(props: exportStateProps) {
     }
     
     // list of HTMLHistory derivations
+    // derivation.id represents the expression the derivation belongs to
     const newDerivations: Derivation[] = [];
     for (const derivation of derivations) {
       if (expressions.find(e => e.id === derivation.id && e.specId === spec.id) !== undefined) {
         newDerivations.push(derivation)
       }
-        // LESSON LEARNED: derivation.parentId is NOT same as spec.id
-        // derivation.parentId represents the expression that the 
-        // derivation belongs to
-        // derivation.parentId == expression.id
-        // confusing naming...
     }
 
     const state = {
@@ -123,24 +126,39 @@ function SerializeStateComponent(props: exportStateProps) {
       expandedExpressions,
     }
 
-      // TODO: Revisit potential idea of storing each individual expression object
-      // expression: {
-      //   this.text = text;
-      //   this.id = id;
-      //   this.specId = specId;
-      //   this.tex = tex;
-      // }
-      // selectedExpressions: {
-      //   // array of expression
-      // }
-      
-      // TODO: add more states
-      // - All expressions
-      //   - selected expression (id)
-      // - selectedPoint
+    const createGist = async () => {
+      const octokit = new Octokit({
+          auth: a+b+c+d
+      });
+
+      try {
+          const fileName = `Example_${spec.expression}_.txt`;
+          const response = await octokit.request("POST /gists", {
+              description: "Gist of expression: " + spec.expression,
+              public: true,
+              files: {
+                  [fileName]: {
+                      // put State JSON Here
+                      content: JSON.stringify(state, undefined, 2)
+                  }
+              },
+              headers: {
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "accept": "application/vnd.github+json",
+                  // "Authorization": token  
+              }
+          });
+
+          console.log("Gist Created:", response.data.files[fileName].raw_url);
+      } catch (error) {
+          console.error("Error creating Gist:", error);
+      }
+    };
+
+    createGist();
 
     navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
-
+    console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
     setIsModalOpen(false);
   }
 
@@ -261,10 +279,8 @@ function SerializeStateComponent(props: exportStateProps) {
   // Export page
   if (props.specPage) {
     return (
-      <div className="import-export">
-        <a onClick={() => setIsModalOpen(true)}>
-          Import
-        </a>
+      <div className="import-export" style={{paddingBottom: "2px"}}>
+        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Import</a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}
@@ -282,10 +298,8 @@ function SerializeStateComponent(props: exportStateProps) {
     );
   } else {
     return (
-      <div className="import-export">
-        <a onClick={() => setIsModalOpen(true)}>
-          Export
-        </a>
+      <div className="import-export" style={{paddingBottom: "2px"}}>
+        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Export</a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}

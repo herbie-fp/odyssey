@@ -323,8 +323,8 @@ function SerializeStateComponent(props: exportStateProps) {
           ariaHideApp={false}
         >
           <form onSubmit={stateToJson}>
-            <label>Copy current analysis state: </label>
-            <button type="submit">Copy</button>
+            <label>Generate url with current analysis state: </label>
+            <button type="submit">Generate</button>
           </form>
 
           {gistUrl && (

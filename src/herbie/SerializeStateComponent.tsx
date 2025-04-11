@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 
 import { Derivation, Expression, InputRanges, RangeInSpecFPCore, SpecRange } from './HerbieTypes';
@@ -79,7 +79,14 @@ function SerializeStateComponent(props: exportStateProps) {
   const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext);
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
-
+  // saving gist
+  const [gistUrl, setGistUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
+  
+  useEffect(() => {
+    setGistUrl(null);
+    setCopied(false);
+  }, [spec.expression]);
   // scuffed way to encode auth token
   const a = "github_pat_"
   const b = "11BP25ESI0K9qgEcDPIghe_"
@@ -148,8 +155,14 @@ function SerializeStateComponent(props: exportStateProps) {
                   // "Authorization": token  
               }
           });
+          const url = response.data.files[fileName].raw_url;
+          setGistUrl(url);
+          // copy gist link to clipboard
+          navigator.clipboard.writeText(url);
 
-          console.log("Gist Created:", response.data.files[fileName].raw_url);
+          setCopied(true); 
+
+          console.log("Gist Created:", url);
       } catch (error) {
           console.error("Error creating Gist:", error);
       }
@@ -157,9 +170,11 @@ function SerializeStateComponent(props: exportStateProps) {
 
     createGist();
 
-    navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
-    console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
-    setIsModalOpen(false);
+    // copy gist state to clipboard
+    // navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
+    // console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
+
+    // setIsModalOpen(false);
   }
 
   const initializeSpec = async (serverUrl: string, expression: string, fpcore?: string, specRanges?: SpecRange[]) => {    
@@ -311,6 +326,19 @@ function SerializeStateComponent(props: exportStateProps) {
             <label>Copy current analysis state: </label>
             <button type="submit">Copy</button>
           </form>
+
+          {gistUrl && (
+            <div style={{ marginTop: "12px" }}>
+              <p><strong>Exported Gist link:</strong></p>
+              <input 
+                type="text" 
+                value={gistUrl} 
+                readOnly 
+                style={{ width: "100%", padding: "6px" }} 
+              />
+              {copied && <p style={{ color: "green", marginTop: "6px" }}>Link copied to clipboard!</p>}
+            </div>
+          )}
         </Modal>
       </div>
     );

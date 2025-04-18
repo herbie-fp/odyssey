@@ -16,11 +16,11 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     const [displayInfo, setDisplayInfo] = React.useState(false);
     const [exceptionStatusMessage, setExceptionStatusMessage] = useState<string>("Unchecked expression");
     const [exceptionStatusColor, setExceptionStatusColor] = useState<string>("orange");
-    const [analyzerResult, setAnalyzerResult] = useState<string>("");
-    const [detectorResult, setDetectorResult] = useState<string>("");
-    // const [runButtonState, setRunButtonState] = React.useState(true);
+    const [analyzerResult, setAnalyzerResult] = React.useState<string>("");
+    const [detectorResult, setDetectorResult] = React.useState<string>("");
+    const [runButtonState, setRunButtonState] = React.useState(true);
     // let exceptionFlag = false
-    let runButtonState = true
+    // let runButtonState = true
 
 
     // Get the expression text to send to GPU-FPX
@@ -39,29 +39,18 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     }
 
     function handleRunClick(){
-        runButtonState = !runButtonState
-        runGPUFPX();
+        setRunButtonState(false);
+        handleRunAnalysis();
     }
 
     function updateFromGPUFPX(detectorDataString : string){
-        // if (searchForExceptionsInDetectorOutput(detectorDataString)){
-        //     setExceptionFlag(!exceptionFlag)
-        // }
-        // if(exceptionFlag){
-        //     setInfoFlag(!infoFlag)
-        // }
-        // exceptionStatusHandler();
         if (searchForExceptionsInDetectorOutput(detectorDataString)){
-            exceptionStatusHandler(true)
+            exceptionStatusHandler(true);
+            setInfoFlag(true);
         }
         else{
             exceptionStatusHandler(false);
         }
-    }
-    
-    function runGPUFPX(){
-        handleRunAnalysis();
-
     }
 
     const viewMoreInfoClick = () => {
@@ -73,25 +62,11 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
      * @returns true if there is an exception found in the detector report, false otherwise
      */
     const searchForExceptionsInDetectorOutput = (detectorData : string) => {
-        console.log("Detector Result:" + detectorResult)
-        console.log("Analyzer Result:" + analyzerResult)
-        
-
         let noExceptionString = "Zero Exceptions Detected";
         if (detectorData.search(noExceptionString) !== -1){
             return false
         }
         return true
-        
-        
-        // let exceptionString : string = "The total number of exceptions are:"
-        // let index : number = detectorResult.search(exceptionString) + 35;
-        // let exceptionCountSubstring : string = detectorResult.substring(index,index + 4)
-        
-        // if(!exceptionCountSubstring.includes("0")){
-        //     console.log("In search for exceptions, there was an exception found, this is the number:" + exceptionCountSubstring)
-        //     return true
-        // }
     }
 
     //----------------- G P U - F P X  C A L L S ------------------//
@@ -138,7 +113,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
             let analyzerDataJSON = await analyzerResponse.json();
             let analyzerDataString = JSON.stringify(analyzerDataJSON);    
             console.log(analyzerDataString);
-            // setAnalyzerResult(analyzerDataString);
+            setAnalyzerResult(analyzerDataString);
 
             // Then run detector
             const detectorResponse = await fetch('http://155.98.68.136:8003/exec', {
@@ -150,15 +125,12 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
                     formulas: [cudaExpr]
                 })
             });
-            // let detectorData = await detectorResponse.json();
-            // console.log(detectorData);
-            // setDetectorResult(detectorData);
             let detectorDataJSON = await detectorResponse.json();
+            detectorResponse.body
             let detectorDataString = JSON.stringify(detectorDataJSON);    
-            console.log(detectorDataString);
+            setDetectorResult(detectorDataString);
             updateFromGPUFPX(detectorDataString)
-            // setDetectorResult(detectorDataString);
-            console.log("Printing detector result in handleRunAnalysis:" + detectorResult)
+            
         } catch (error) {
             console.error('Error running GPU-FPX:', error);
             // Handle error appropriately
@@ -201,6 +173,9 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
              {displayInfo ? 
              <div>
                 <p className='info-header'>The expression {expressionText?.text} is causing floating point exceptions on Nvidia GPU's.</p>
+                <p>Our program reported the following results:</p>
+                <p>{analyzerResult}</p>
+                <p>{detectorResult}</p>
              </div>: ""}
             
         </div>

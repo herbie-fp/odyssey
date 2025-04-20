@@ -2,6 +2,11 @@ import * as contexts from './HerbieContext';
 import React, { useState } from 'react';
 import  './GPU_FPX.css';
 import { FPCoreGetBody, getVarnamesFPCore, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
+import { render } from 'katex';
+
+let analyzerResultArray : Array<string> = [];
+let detectorResultArray: Array<string> = [];
+
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
  * then sends those CUDA expressions to GPU-FPX, runs GPU-FPX, and then outputs it's results in this component 
@@ -12,15 +17,13 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
 
     const [expressions, ] = contexts.useGlobal(contexts.ExpressionsContext);
     const [infoFlag, setInfoFlag] = React.useState(false);
-    const [exceptionFlag, setExceptionFlag] = React.useState(false);
     const [displayInfo, setDisplayInfo] = React.useState(false);
     const [exceptionStatusMessage, setExceptionStatusMessage] = useState<string>("Unchecked expression");
     const [exceptionStatusColor, setExceptionStatusColor] = useState<string>("orange");
     const [analyzerResult, setAnalyzerResult] = React.useState<string>("");
     const [detectorResult, setDetectorResult] = React.useState<string>("");
     const [runButtonState, setRunButtonState] = React.useState(true);
-    // let exceptionFlag = false
-    // let runButtonState = true
+
 
 
     // Get the expression text to send to GPU-FPX
@@ -41,6 +44,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     function handleRunClick(){
         setRunButtonState(false);
         handleRunAnalysis();
+        renderResults();
     }
 
     function updateFromGPUFPX(detectorDataString : string){
@@ -55,6 +59,18 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
 
     const viewMoreInfoClick = () => {
         setDisplayInfo(!displayInfo);
+
+    }
+
+    function renderResults(){
+
+    }
+
+    
+    function cleanOutputForDisplay(dataString : string) {
+        let toClean : string = dataString;
+        let cleanedResultArray = toClean.split("\\n");
+        return cleanedResultArray;
     }
 
     /**
@@ -114,6 +130,8 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
             let analyzerDataString = JSON.stringify(analyzerDataJSON);    
             console.log(analyzerDataString);
             setAnalyzerResult(analyzerDataString);
+            analyzerResultArray = cleanOutputForDisplay(analyzerDataString);
+
 
             // Then run detector
             const detectorResponse = await fetch('http://155.98.68.136:8003/exec', {
@@ -130,13 +148,13 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
             let detectorDataString = JSON.stringify(detectorDataJSON);    
             setDetectorResult(detectorDataString);
             updateFromGPUFPX(detectorDataString)
+            detectorResultArray = cleanOutputForDisplay(detectorDataString);
+
             
         } catch (error) {
             console.error('Error running GPU-FPX:', error);
             // Handle error appropriately
         }
-
-        
     };
 
 
@@ -174,8 +192,17 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
              <div>
                 <p className='info-header'>The expression {expressionText?.text} is causing floating point exceptions on Nvidia GPU's.</p>
                 <p>Our program reported the following results:</p>
-                <p>{analyzerResult}</p>
-                <p>{detectorResult}</p>
+                {/* <p>{analyzerResult}</p> */}
+                {/* <p>{detectorResult}</p> */}
+                <div className="result-area" style={{ height: '100px', overflow: 'scroll' }}>
+                    {analyzerResultArray.map((item, index) => (
+                    <p key={index}>{item}</p>
+                     ))}
+                     {detectorResultArray.map((item, index) => (
+                    <p key={index}>{item}</p>
+                     ))}
+                </div>
+                
              </div>: ""}
             
         </div>
@@ -183,3 +210,4 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     };
 
 export { GPU_FPX };
+

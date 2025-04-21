@@ -3,7 +3,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { ExternalLink } from "lucide-react";
 
 const showErrorToast = (message: string) => {
-  const issueTitle = encodeURIComponent("Bug Report: Unexpected Error");
+  const issueTitle = encodeURIComponent(`Bug Report: ${message}`);
   const issueBody = encodeURIComponent(`
     ### Description\n
     ${message}\n

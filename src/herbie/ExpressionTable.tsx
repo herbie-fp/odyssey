@@ -14,6 +14,7 @@ import { SelectableVisualization } from './SelectableVisualization';
 import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
+import  NewLocalError  from './LocalError/newLocalError';
 import ExpressionExport from './ExpressionExport';
 
 import KaTeX from 'katex';
@@ -434,20 +435,20 @@ function ExpressionTable() {
           // cost of the expression
           const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
 
-            const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
-            const components = [
-                { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
-                { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
-                { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
-                { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
-                // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />},
-                { value: 'GPU_FPX', label: 'Check for FP Exceptions', component: <GPU_FPX expressionId={expression.id} /> }
-              ];
-            return (
-              <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`}>
-                <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
-                  style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
-
+          const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
+          const components = [
+              { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expression.id} /> },
+              { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
+              { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
+              { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
+              { value: 'newLocalError', label: 'New Local Error', component: <NewLocalError expressionId={expression.id}/> },
+              { value: 'GPU_FPX', label: 'Check for FP Exceptions', component: <GPU_FPX expressionId={expression.id} /> },
+              // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
+            ];
+          return (
+            <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`} key={expression.id}>
+              <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
+                style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
                 {/* expand button [+] */}
                 <div className="expand action">
                   <div onClick={() => handleExpandClick(expression.id)}>

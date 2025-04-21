@@ -1,6 +1,5 @@
 .gpu-fpx{
     border-radius: 10px;
-    background-color: white;
 }
 
 .p-item{
@@ -8,6 +7,7 @@
     padding-right: 4px;
     padding-top: 4px;
     padding-bottom: 4px;
+    background-color: rgba(128, 128, 128, 0.52);
 }
 
 .p-item-exception-found{
@@ -15,7 +15,8 @@
     padding-right: 4px;
     padding-top: 4px;
     padding-bottom: 4px;
-    color:red
+    color:red;
+    background-color:rgba(255, 0, 0, 0.07);
 }
 
 .p-item-exception-not-found{
@@ -23,7 +24,8 @@
     padding-right: 4px;
     padding-top: 4px;
     padding-bottom: 4px;
-    color:#8ff51b
+    color:#8ff51b;
+    background-color:#070d014e;
 }
 
 .run-button{
@@ -63,7 +65,27 @@
     opacity: 1!important;
 }
 
-.status{
+.result-area{
+    height: '100px';
+    overflow: 'scroll';
+}
+
+.result-area::-webkit-scrollbar {
+    width: 12px;
+    background-color: #d3d3d3; /* scrollbar track color */
+  }
+  
+.result-area::-webkit-scrollbar-thumb {
+    background-color: #888; /* scrollbar thumb color */
+    border-radius: 6px;
+}
+  
+  /* Optional: for hover effect */
+.result-area::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+/* .status{
     background-color: black;
     border-radius: 10px;
     padding-left: 4px;
@@ -72,7 +94,7 @@
     padding-bottom: 2px;
     color: white;
     font-size: 12px;
-}
+} */
 
 .info-header{
     font-weight: bold;

@@ -69,7 +69,7 @@ const gpufpxAnalyzerCallback = async (req, res, binaryPath) => {
 
       // Second command - run analyzer with preload
       const { stdout: analyzerOutput } = await execPromise(
-          `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/analyzer.so ./cuda_program`,
+          `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/analyzer.so ./cuda_program | python3 analyzer_result_parser.py`,
           { shell: '/bin/bash', cwd:binaryPath }
       );
 
@@ -95,7 +95,7 @@ const gpufpxDetectorCallback = async (req, res, binaryPath) => {
     
       // Second command - run detector with preload
       const { stdout: detectorOutput } = await execPromise(
-        `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/detector.so ./cuda_program`,
+        `cd ${binaryPath} && LD_PRELOAD=${binaryPath}/detector.so ./cuda_program | python3 detector_result_parser.py`,
         { shell: '/bin/bash', cwd:binaryPath }
     );
 

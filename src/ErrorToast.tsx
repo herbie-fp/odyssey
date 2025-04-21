@@ -4,23 +4,7 @@ import { ExternalLink } from "lucide-react";
 
 const showErrorToast = (message: string) => {
   const issueTitle = encodeURIComponent(`Bug Report: ${message}`);
-  const issueBody = encodeURIComponent(`
-    ### Description\n
-    ${message}\n
-    \n
-    ### Steps to Reproduce\n
-    1. ...\n
-    2. ...\n
-    \n
-    ### Expected Behavior\n
-    ...\n
-    \n
-    ### Screenshots
-    \n
-    \n
-    ### Additional Context
-    \n
-  `);
+  const issueBody = encodeURIComponent(`### Description\n${message}\n\n### Steps to Reproduce\n1. ...\n2. ...\n\n### Expected Behavior\n...\n\n### Screenshots\n\n### Additional Context\n`);
 
   const githubIssueUrl = `https://github.com/herbie-fp/odyssey/issues/new?title=${issueTitle}&body=${issueBody}`;
 

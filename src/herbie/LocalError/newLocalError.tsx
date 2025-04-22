@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import * as HerbieContext from "../HerbieContext";
+import * as herbiejs from '../lib/herbiejs';
 import { LocalErrorTree } from "../HerbieTypes";
 import "./newLocalError.css";
 
@@ -7,26 +8,28 @@ function formatExpression(node: LocalErrorTree): string {
   if (!node.children || node.children.length === 0) {
     return node.e;
   }
-
   if (["sqrt", "pow", "log"].includes(node.e)) {
     return `${node.e}(${node.children.map(formatExpression).join(", ")})`;
   }
-
   if (node.children.length === 2) {
     return `(${formatExpression(node.children[0])} ${node.e} ${formatExpression(node.children[1])})`;
   }
-
   return `${node.e}(${node.children.map(formatExpression).join(", ")})`;
 }
 
-// Find all paths that lead to nodes with non-zero local error
-function findAllErrorPaths(
-  node: LocalErrorTree,
-  path: number[] = []
-): number[][] {
-  const errorValue = parseFloat(node["ulps-error"]);
+// Only find error paths if node is not an "if" with R == FP
+function findAllErrorPaths(node: LocalErrorTree, path: number[] = []): number[][] {
   const paths: number[][] = [];
 
+  const rValue = node["actual-value"];
+  const fpValue = node["exact-value"];
+
+  // If this is an "if" node and R == FP, do not collect its error or go deeper
+  if (node.e === "if" && rValue === fpValue) {
+    return paths; // Skip collecting errors under this
+  }
+
+  const errorValue = parseFloat(node["ulps-error"]);
   if (!isNaN(errorValue) && errorValue !== 0) {
     paths.push(path);
   }
@@ -38,11 +41,10 @@ function findAllErrorPaths(
   return paths;
 }
 
-// Check if current node should be expanded
 function shouldExpand(currentPath: number[], allErrorPaths: number[][]): boolean {
-  return allErrorPaths.some((errorPath) => {
-    return currentPath.every((val, index) => errorPath[index] === val);
-  });
+  return allErrorPaths.some(errorPath =>
+    currentPath.every((val, index) => errorPath[index] === val)
+  );
 }
 
 function TreeRow({
@@ -61,47 +63,56 @@ function TreeRow({
   );
   const collapsedExpression = formatExpression(node);
 
+  function renderValue(value: any) {
+    if (value === "true" || value === "false") {
+      return value;
+    }
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+    return herbiejs.displayNumber(num);
+  }
+
   return (
     <>
       <tr>
         <td className="border px-4 py-2 program-col">
           <span
             style={{ marginLeft: `${depth * 15}px`, cursor: "pointer" }}
-            onClick={() => setIsExpanded((prev) => !prev)}
+            onClick={() => setIsExpanded(prev => !prev)}
           >
             {node.children.length > 0 && (
               <span className="toggle-button">
-              {isExpanded ? (
-                <svg
-                  style={{ width: '15px', stroke: "var(--action-color)", transform: "rotate(180deg)" }}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : (
-                <svg
-                  style={{ width: '15px', stroke: "var(--action-color)" }}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </span>
+                {isExpanded ? (
+                  <svg
+                    style={{ width: '15px', stroke: "var(--action-color)", transform: "rotate(180deg)" }}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg
+                    style={{ width: '15px', stroke: "var(--action-color)" }}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </span>
             )}
             {isExpanded ? node.e : collapsedExpression}
           </span>
         </td>
-        <td className="border px-4 py-2">{parseFloat(node["actual-value"]).toFixed(1)}</td>
-        <td className="border px-4 py-2">{parseFloat(node["exact-value"]).toFixed(1)}</td>
-        <td className="border px-4 py-2">{(node["abs-error-difference"])}</td>
-        <td className="border px-4 py-2">{parseFloat(node["percent-accuracy"]).toFixed(1)}%</td>
+        <td className="border px-4 py-2">{renderValue(node["actual-value"])}</td>
+        <td className="border px-4 py-2">{renderValue(node["exact-value"])}</td>
+        <td className="border px-4 py-2">{renderValue(node["abs-error-difference"])}</td>
+        <td className="border px-4 py-2">{herbiejs.displayNumber(parseFloat(node["percent-accuracy"]))}%</td>
         <td className="border px-4 py-2">
           <span className={`local-error ${parseFloat(node["percent-accuracy"]) < 100 ? "high-error" : ""}`}>
-            {parseFloat(node["ulps-error"]).toFixed(1)}
+            {herbiejs.displayNumber(parseFloat(node["ulps-error"]))}
           </span>
         </td>
       </tr>

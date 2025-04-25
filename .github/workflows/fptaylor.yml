@@ -14,13 +14,15 @@ jobs:
           repository: soarlab/FPTaylor
           ref: develop
 
-      - name: Set up OCaml
-        uses: avsm/setup-ocaml@v1
-        with:
-          ocaml-version: 4.03.0
-
-      - name: Install OCaml dependencies
+      - name: Install OCaml and Opam manually
         run: |
+          sudo apt update
+          sudo apt install -y opam ocaml ocaml-native-compilers m4 bubblewrap
+
+      - name: Initialize opam and install dependencies
+        run: |
+          opam init --disable-sandboxing -y
+          eval $(opam env)
           opam install -y num
 
       - name: Set up Python 3.7
@@ -30,10 +32,8 @@ jobs:
 
       - name: Install Python and system dependencies
         run: |
-          sudo apt update
           sudo apt install -y flex bison wget
-          python -m pip install --upgrade pip setuptools wheel
-          pip install pyyaml sly
+          pip install --upgrade pip setuptools wheel pyyaml sly
 
       - name: Clone and build Gelpia
         run: |
@@ -44,7 +44,9 @@ jobs:
           make
 
       - name: Build FPTaylor
-        run: make
+        run: |
+          eval $(opam env)
+          make
 
       - name: Create FPTaylor compiled directory
         run: |

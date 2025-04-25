@@ -17,8 +17,7 @@ jobs:
       - name: Set up OCaml
         uses: avsm/setup-ocaml@v1
         with:
-          ocaml-version: 4.11.1
-          install-packages: false
+          ocaml-version: 4.09.0
 
       - name: Install OCaml dependencies
         run: |

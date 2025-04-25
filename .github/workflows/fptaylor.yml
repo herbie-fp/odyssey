@@ -14,10 +14,14 @@ jobs:
           repository: soarlab/FPTaylor
           ref: develop
 
-      - name: Set up OCaml
-        uses: avsm/setup-ocaml@v1
-        with:
-          ocaml-version: 5.2.0
+      - name: Set up OCaml manually
+        run: |
+         sudo apt update
+         sudo apt install -y ocaml opam bubblewrap g++-multilib gcc-multilib mercurial musl-tools
+         opam init --disable-sandboxing -y
+         eval $(opam env)
+         opam switch create 4.11.1
+         eval $(opam env)
 
       - name: Install OCaml dependencies
         run: |

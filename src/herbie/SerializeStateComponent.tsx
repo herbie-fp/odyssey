@@ -167,14 +167,22 @@ function SerializeStateComponent(props: exportStateProps) {
                   // "Authorization": token  
               }
           });
-          const url = response.data.files[fileName].raw_url;
-          setGistUrl(url);
-          // copy gist link to clipboard
-          navigator.clipboard.writeText(url);
+
+          const gistId = response.data.id;
+          const shareableLink = `https://herbie-fp.github.io/odyssey/?gist=${gistId}`;
+          setGistUrl(shareableLink); // <-- instead of raw_url
+          navigator.clipboard.writeText(shareableLink);
+
+          // OLD: Copy gist raw_url
+          // const url = response.data.files[fileName].raw_url;
+          // setGistUrl(url);
+          // // copy gist link to clipboard
+          // navigator.clipboard.writeText(url);
 
           setCopied(true); 
           setHasGeneratedGist(true);
-          console.log("Gist Created:", url);
+          console.log("Gist Raw Url:", response.data.files[fileName].raw_url);
+          console.log("Gist Shareable Link:", shareableLink);
       } catch (error) {
           console.error("Error creating Gist:", error);
       }

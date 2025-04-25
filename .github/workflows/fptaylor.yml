@@ -34,6 +34,9 @@ jobs:
           sudo apt install -y flex bison wget
           python -m pip install --upgrade pip setuptools wheel
           pip install pyyaml sly
+          
+      - name: Install latest Rust
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Clone and build Gelpia
         run: |

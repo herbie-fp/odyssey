@@ -4,9 +4,9 @@ import  './GPU_FPX.css';
 import { FPCoreGetBody, getVarnamesFPCore, makeFPCore2, mathjs, mathjsToFPCore } from './lib/fpcore';
 import { render } from 'katex';
 
-let analyzerResultArray : Array<string> = [];
-let detectorResultArray: Array<string> = [];
-let objDumpArray: Array<string> = [];
+let analyzerResultArrayVar : Array<string> = [];
+let detectorResultArrayVar: Array<string> = [];
+let objDumpArrayVar: Array<string> = [];
 
 /**
  * The GPU-FPX integration component, makes fetch calls to FPBench to convert FPCore expressions to CUDA from the expression table,
@@ -26,6 +26,10 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
     const [runButtonState, setRunButtonState] = React.useState(true);
     const [gpuRegisterClick,setgpuRegisterClick] = React.useState(false);
     const [SASSInfo,setSASSInfo] = React.useState(false);
+
+    const [analyzerResultArray,setanalyzerResultArray] = React.useState<string[]>([]);
+    const [detectorResultArray,setdetectorResultArray]= React.useState<string[]>([]);
+    const [objDumpArray,setobjDumpArray]= React.useState<string[]>([]);
 
 
 
@@ -53,6 +57,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
         if (searchForExceptionsInDetectorOutput(detectorDataString)){
             exceptionStatusHandler(true);
             setInfoFlag(true);
+            setRunButtonState(true);
         }
         else{
             exceptionStatusHandler(false);
@@ -84,7 +89,8 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
         console.log(analyzerDataString);
         setAnalyzerResult(analyzerDataString);
         let cleanedResultArray = cleanOutputForDisplay(analyzerDataString);
-        analyzerResultArray = cleanedResultArray.slice(1,cleanedResultArray.length-1);
+        // analyzerResultArrayVar = cleanedResultArray.slice(1,cleanedResultArray.length-1);
+        setanalyzerResultArray(cleanedResultArray.slice(1,cleanedResultArray.length-1))
     }
 
     function cleanDetectorResultsAndRender(jsonData : string){
@@ -92,8 +98,10 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
         setDetectorResult(detectorDataString);
         updateFromGPUFPX(detectorDataString);
         let cleanedDetectorArray = cleanOutputForDisplay(detectorDataString);
-        detectorResultArray = cleanedDetectorArray.slice(4,16);
-        objDumpArray = cleanedDetectorArray.slice(17,cleanedDetectorArray.length-1);
+        setdetectorResultArray(cleanedDetectorArray.slice(4,16));
+        setobjDumpArray(cleanedDetectorArray.slice(17,cleanedDetectorArray.length-1));
+        // detectorResultArrayVar = cleanedDetectorArray.slice(4,16);
+        // objDumpArrayVar = cleanedDetectorArray.slice(17,cleanedDetectorArray.length-1);
     }
 
     /**

@@ -98,7 +98,7 @@ const GPU_FPX = ({ expressionId }: {expressionId: number }) => {
         setDetectorResult(detectorDataString);
         updateFromGPUFPX(detectorDataString);
         let cleanedDetectorArray = cleanOutputForDisplay(detectorDataString);
-        setdetectorResultArray(cleanedDetectorArray.slice(4,16));
+        setdetectorResultArray(cleanedDetectorArray.slice(4,17));
         setobjDumpArray(cleanedDetectorArray.slice(17,cleanedDetectorArray.length-1));
         // detectorResultArrayVar = cleanedDetectorArray.slice(4,16);
         // objDumpArrayVar = cleanedDetectorArray.slice(17,cleanedDetectorArray.length-1);

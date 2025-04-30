@@ -26,7 +26,6 @@ const showErrorToast = (message: string) => {
       autoClose: false,
       hideProgressBar: false,
       closeOnClick: false,
-      pauseOnHover: true,
       progress: undefined,
     }
   );

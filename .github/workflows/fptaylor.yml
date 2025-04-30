@@ -1,0 +1,72 @@
+name: Build FPTaylor Binary (Linux Only)
+
+on:
+  workflow_dispatch
+
+jobs:
+  build-fptaylor:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout FPTaylor develop branch
+        uses: actions/checkout@v4
+        with:
+          repository: soarlab/FPTaylor
+          ref: develop
+
+      - name: Set up OCaml
+        uses: avsm/setup-ocaml@v1
+        with:
+          ocaml-version: 4.11.1
+
+      - name: Install OCaml dependencies
+        run: |
+          opam install -y num
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+
+      - name: Install Python and system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y flex bison wget
+          python -m pip install --upgrade pip setuptools wheel
+          pip install pyyaml sly
+          
+      - name: Install latest Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Clone and build Gelpia
+        run: |
+          git clone https://github.com/soarlab/gelpia.git
+          cd gelpia
+          git checkout develop
+          make requirements
+          make
+
+      - name: Build FPTaylor
+        run: make
+
+      - name: Create FPTaylor compiled directory
+        run: |
+          mkdir -p fptaylor-dist/linux/fptaylor-compiled
+          cp -r *.ml* *.sh *.cfg *.txt fptaylor fptaylor.native gelpia fptaylor-dist/linux/fptaylor-compiled/
+
+      - name: Zip the distribution
+        run: |
+          cd fptaylor-dist
+          zip -r ../fptaylor-dist.zip *
+
+      - name: Release FPTaylor Binary
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: fptaylor-component
+          name: "FPTaylor Binary (Linux)"
+          body: "Automated release of FPTaylor binary for Linux."
+          draft: false
+          prerelease: false
+          files: fptaylor-dist.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -22,6 +22,7 @@ import * as herbiejs from './lib/herbiejs';
 import { ToastContainer } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -736,9 +737,11 @@ function HerbieUIInner() {
 
 export function HerbieUI() {
   return (
-    <GlobalContextProvider>
-      <HerbieUIInner />
-      <ToastContainer />
-    </GlobalContextProvider>
-  )
+    <ErrorBoundary>
+      <GlobalContextProvider>
+        <HerbieUIInner />
+        <ToastContainer />
+      </GlobalContextProvider>
+    </ErrorBoundary>
+  );
 }

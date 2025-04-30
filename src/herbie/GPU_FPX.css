@@ -19,6 +19,10 @@
     background-color:rgba(255, 0, 0, 0.07);
 }
 
+.gpu-fpx-results {
+    background-color: #dedede;
+}
+
 .p-item-exception-not-found{
     padding-left: 4px;
     padding-right: 4px;
@@ -32,25 +36,27 @@
     font-size: 12px;
     font-weight: bold;
     padding: 1.25px 5.5px;
-    border-radius: 6px;
+    /* border-radius: 6px; */
     background-color: #a6e5eb;
     opacity: 1!important;
+    margin-left: 5px;
 }
 
 .disabled-run-button{
     font-size: 12px;
     font-weight: bold;
     padding: 1.25px 5.5px;
-    border-radius: 6px;
+    /* border-radius: 6px; */
     background-color: grey;
     opacity: 1!important;
+    margin-left: 5px;
 }
 
 .more-info-button{
     font-size: 12px;
     font-weight: bold;
     padding: 1.25px 5.5px;
-    border-radius: 6px;
+    /* border-radius: 6px; */
     background-color: white;
     color: #3a00ff;
     opacity: 1!important;
@@ -60,47 +66,28 @@
     font-size: 12px;
     font-weight: bold;
     padding: 1.25px 5.5px;
-    border-radius: 6px;
+    /* border-radius: 6px; */
     background-color: grey !important;
     opacity: 1!important;
 }
 
 .result-area{
-    height: '100px';
-    overflow: 'scroll';
+    height: 150px;
+    /* overflow: scroll; */
+    margin-bottom: 0%;
+    background-color: #dedede;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin; 
+    scrollbar-color: #3a00ff #eee;
 }
 
-.result-area::-webkit-scrollbar {
-    width: 12px;
-    background-color: #d3d3d3; /* scrollbar track color */
-  }
-  
-.result-area::-webkit-scrollbar-thumb {
-    background-color: #888; /* scrollbar thumb color */
-    border-radius: 6px;
+.expression-text-gpu-fpx{
+    font-style: italic;
+    font-weight: bold;
 }
-  
-  /* Optional: for hover effect */
-.result-area::-webkit-scrollbar-thumb:hover {
-    background-color: #555;
-}
-
-/* .status{
-    background-color: black;
-    border-radius: 10px;
-    padding-left: 4px;
-    padding-right: 4px;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    color: white;
-    font-size: 12px;
-} */
 
 .info-header{
     font-weight: bold;
-    font-size: 12px;
-    padding-left: 20px;
-    padding-bottom: 20px;
-    padding-right: 20px;
-    padding-top: 20px;
+    font-size: 10px;
 }

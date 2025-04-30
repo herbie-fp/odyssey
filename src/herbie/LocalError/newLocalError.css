@@ -22,3 +22,11 @@
   overflow-x: auto;
   display: block;
 }
+
+.emphasize-diff {
+  font-weight: 500;
+  color: #b91c1c;             /* Keep the red tone */
+  background-color: #fdf2f2;  /* Very subtle pink background */
+  border-radius: 3px;
+  padding: 2px 4px;
+}

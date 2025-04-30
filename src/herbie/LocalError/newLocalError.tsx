@@ -108,11 +108,13 @@ function TreeRow({
         </td>
         <td className="border px-4 py-2">{renderValue(node["actual-value"])}</td>
         <td className="border px-4 py-2">{renderValue(node["exact-value"])}</td>
-        <td className="border px-4 py-2">{renderValue(node["abs-error-difference"])}</td>
-        <td className="border px-4 py-2">{herbiejs.displayNumber(parseFloat(node["percent-accuracy"]))}%</td>
+        <td className="border px-4 py-2 emphasize-diff">{renderValue(node["abs-error-difference"])}</td>
+        <td className="border px-4 py-2">
+          {parseFloat(node["percent-accuracy"]).toFixed(1)}%
+        </td>
         <td className="border px-4 py-2">
           <span className={`local-error ${parseFloat(node["percent-accuracy"]) < 100 ? "high-error" : ""}`}>
-            {herbiejs.displayNumber(parseFloat(node["ulps-error"]))}
+            {parseFloat(node["ulps-error"]).toFixed(1)}
           </span>
         </td>
       </tr>
@@ -165,7 +167,9 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
             <th className="border px-4 py-2 text-left program-col">Program</th>
             <th className="border px-4 py-2 text-left">R Value</th>
             <th className="border px-4 py-2 text-left">FP Value</th>
-            <th className="border px-4 py-2 text-left">Difference</th>
+            <th className="border px-4 py-2 text-left emphasize-diff" title="Difference between R and FP values" >
+              Difference
+            </th>
             <th className="border px-4 py-2 text-left">Accuracy</th>
             <th className="border px-4 py-2 text-left">Local Error</th>
           </tr>

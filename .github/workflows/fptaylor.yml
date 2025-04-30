@@ -38,12 +38,22 @@ jobs:
       - name: Install latest Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Clone and build Gelpia
+      - name: Clone Gelpia
         run: |
           git clone https://github.com/soarlab/gelpia.git
           cd gelpia
           git checkout develop
-          make requirements
+      
+      - name: Install Gelpia dependencies manually
+        run: |
+          sudo apt update
+          sudo apt install -y flex bison wget libmpfr-dev
+          pip install sly
+      
+          # Make sure Rust is installed beforehand via setup-rust step
+      
+          cd gelpia
+          mkdir -p bin
           make
 
       - name: Build FPTaylor

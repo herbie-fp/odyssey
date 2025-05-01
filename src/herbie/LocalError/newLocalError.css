@@ -1,0 +1,32 @@
+.toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+.local-error {
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.high-error {
+  background-color: rgba(255, 0, 0, 0.2); /* Light red for high errors */
+  color: red;
+}
+
+.program-col {
+  white-space: nowrap;
+  padding-right: 50px;
+  overflow-x: auto;
+  display: block;
+}
+
+.emphasize-diff {
+  font-weight: 500;
+  color: #b91c1c;             /* Keep the red tone */
+  background-color: #fdf2f2;  /* Very subtle pink background */
+  border-radius: 3px;
+  padding: 2px 4px;
+}

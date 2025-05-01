@@ -139,14 +139,15 @@ option {
 
 button:active:hover:not(:disabled) {
   background: var(--ui-pressed-color);
-  /* color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 10%), var(--background-color) 50%); */
 }
 
-input[type="text"]:focus, select:focus {
-  outline: var(--ui-focus-color);
-  /* 1px solid color-mix(in srgb, var(--foreground-color), transparent 70%); */
+input[type="text"]:focus, select:focus, textarea:focus {
+  outline: var(--action-color auto 1px);
 }
 
+input:focus-visible, textarea:focus-visible {
+  outline: var(--action-color) auto 1px;
+}
 
 .grid-container {
   display: grid;
@@ -173,6 +174,16 @@ input[type="text"]:focus, select:focus {
   display:flex;
   grid-area: header; /*Place the header in the "header" grid area */
   justify-content: space-between; /* Align the components at the start and end of the header */
+  align-items: center;
+  font-family: Ruda;
+  font-size: 11px;
+  background-color: var(--foreground-color);
+  color: var(--background-color);
+  padding: 10px 25px;
+
+  a {
+    color: var(--background-color);
+  }
   
   .app-name {
     cursor: pointer;
@@ -181,7 +192,12 @@ input[type="text"]:focus, select:focus {
     font-size: 1em;
     font-family: 'Ruda';
     font-weight: 500;
-    margin-right: 64%; /* To fill space in header */
+  }
+
+  .tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 20px
   }
 
   .serverStatus {
@@ -191,6 +207,23 @@ input[type="text"]:focus, select:focus {
     font-size: 1em;
     font-family: 'Ruda';
     width: 70px;
+  }
+
+  .icon {
+    width: 1em; 
+    height: 1em;
+    fill: var(--foreground-color);
+    margin: 0 5px -1px 3px;
+  }
+
+  a:hover .icon { 
+    /* Open in external tab icon only shows on hover of link */
+    fill: var(--background-color);
+  }
+
+  .import-export a {
+    /* REMOVE if an icon is added for import/export tab */
+    padding-right: 11px;
   }
 }
 
@@ -225,7 +258,7 @@ input[type="text"]:focus, select:focus {
 
 .grid-container > .visualizations {
   grid-area: visualizations; /* Place the visualization section in the "visualizations" grid area */
-  margin-left: 10px;
+  padding-left: 25px;
   box-shadow: 3px 0 8px rgba(0, 0, 0, 0.07);
   display: flex;
   flex-direction: column;
@@ -293,7 +326,7 @@ a.action:focus {
   display: grid;
   grid-template-columns: 1fr auto 1fr; /* Three columns: flexible space, center item, flexible space */
   align-items: center; /* Center items vertically */
-  padding: 10px 27px;
+  padding: 10px 25px;
   font-size: 20px;
   background-color: var(--background-color);
   color: var(--foreground-color);

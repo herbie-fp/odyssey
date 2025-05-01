@@ -19,6 +19,10 @@ import * as utils from './lib/utils';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejs from './lib/herbiejs';
+import { ToastContainer } from 'react-toastify';
+
+import 'react-toastify/dist/ReactToastify.css';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -139,41 +143,88 @@ function HerbieUIInner() {
   // expression to load. Explore that immediately instead of showing spec page
   useEffect(loadSpecByURL, []);
   function loadSpecByURL() {
-    const submitURLSpec = (urlExpr: string | undefined) => {
+    const submitURLSpec = async (urlExpr: string, urlAlts: string | null) => {
       // Manually trigger explore with default values
-      if (urlExpr) { 
-        const specId = spec.id + 1;
-        const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
-        const variables = fpcorejs.getVarnamesMathJS(urlExpr);
+      const specId = spec.id + 1;
+      const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
+      const variables = fpcorejs.getVarnamesMathJS(urlExpr);
 
-        // TODO: do expression validation, see SpecComponent
-        setSpec(urlSpec);
+      // TODO: do expression validation, see SpecComponent
+      setSpec(urlSpec);
 
-        const defaultRanges = [];
-        for (const v of variables) {
-          defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308))
+      // Get ranges from URL parameters if they exist
+      const customRanges = getRangesFromURL(variables);
+      
+      // Use custom ranges if provided, otherwise use defaults
+      const defaultRanges = [];
+      for (const v of variables) {
+        const customRange = customRanges.find(r => r.variable === v);
+        if (customRange) {
+          defaultRanges.push(customRange);
+        } else {
+          defaultRanges.push(new HerbieTypes.SpecRange(v, -1e308, 1e308));
         }
-
-        setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
-          defaultRanges,
-          specId,
-          utils.nextId(inputRangesTable)
-        )]);
-
-        // TODO: add logging
-
-        // Skip showing spec entry page, go straight to main page
-        setShowSpecEntry(false);
       }
+
+      setInputRangesTable([...inputRangesTable, new HerbieTypes.InputRanges(
+        defaultRanges,
+        specId,
+        utils.nextId(inputRangesTable)
+      )]);
+
+      if (urlAlts !== null) {    
+        const alts: HerbieTypes.Expression[] = [];    
+        let expId = 0;
+        // alternatives given in , separated list under "alts"
+        for (const alt of urlAlts.split(',')) {
+          alts.push(new HerbieTypes.Expression(
+            alt, ++expId, specId, await expressionToTex(alt, variables.length, serverUrl)))
+        }
+        // Manually add spec to expressions list so ids line up nicely
+        alts.push(new HerbieTypes.Expression(
+          urlExpr, 0, specId, await expressionToTex(urlExpr, variables.length, serverUrl)));
+
+        setExpressions(alts)
+        setCompareExprIds(alts.map(a => a.id))
+      }
+
+      // TODO: add logging
+
+      // Skip showing spec entry page, go straight to main page
+      setShowSpecEntry(false);
     }
+
+    // Helper function to parse ranges from URL
+    const getRangesFromURL = (variables: string[]): HerbieTypes.SpecRange[] => {
+      const ranges: HerbieTypes.SpecRange[] = [];
+      
+      if (typeof window !== 'undefined') {
+        const queryParams = new URLSearchParams(window.location.search);
+        
+        // Check for ranges in URL using format: range_<varname>=min,max
+        variables.forEach(varName => {
+          const rangeParam = queryParams.get(`range_${varName}`);
+          if (rangeParam) {
+            const [min, max] = rangeParam.split(',').map(Number);
+            if (!isNaN(min) && !isNaN(max)) {
+              ranges.push(new HerbieTypes.SpecRange(varName, min, max));
+            }
+          }
+        });
+      }
+      
+      return ranges;
+    };
 
     // If this is running on the web, allow URL to pass in default expression
     if (typeof window !== 'undefined') {
       const queryParams = new URLSearchParams(window.location.search);
       const urlExpr = queryParams.get('spec');
+      const urlAlts = queryParams.get('alts');
 
       if (urlExpr !== null) {
-        submitURLSpec(urlExpr);
+        // It only makes sense to have alternatives if there was a spec given
+        submitURLSpec(urlExpr, urlAlts);
       }
     }
   }
@@ -588,7 +639,7 @@ function HerbieUIInner() {
 
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
-    // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
+    // { value: '', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
     { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
@@ -605,23 +656,23 @@ function HerbieUIInner() {
 
   function myHeader() {
     return (
-      <div className="header" style={{ fontSize: '11px', backgroundColor: "var(--foreground-color)", color: "var(--background-color)", padding: "10px 27px", alignItems: 'center'}}>
+      <div className="header">
         <div className="app-name" onClick={() => setShowSpecEntry(true)}>
-          <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '20px', marginRight: '5px' }} alt="Odyssey Icon"></img>
+          <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '18px', marginRight: '8px' }} alt="Odyssey Icon"></img>
           <span style={{fontSize: '13px'}}>Odyssey</span>
         </div>
-        <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank"
-          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
-        >
-          Documentation
-        </a>
-        <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank"
-          style={{color: "var(--background-color)", fontFamily: "Ruda"}}
-        >
-          Issues
-        </a>
-        <SerializeStateComponent specPage={showSpecEntry}/>
-        <ServerStatusComponent />
+        <div className="tabs">
+          <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank">
+            Documentation
+            <svg className="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"></path></svg>
+          </a>
+          <a href="https://github.com/herbie-fp/odyssey/issues/new" target="_blank">
+            Issues
+            <svg className="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"></path></svg>
+          </a>
+          <SerializeStateComponent specPage={showSpecEntry}/>
+          <ServerStatusComponent />
+        </div>
       </div>
     )
   }
@@ -686,8 +737,11 @@ function HerbieUIInner() {
 
 export function HerbieUI() {
   return (
-    <GlobalContextProvider>
-      <HerbieUIInner />
-    </GlobalContextProvider>
-  )
+    <ErrorBoundary>
+      <GlobalContextProvider>
+        <HerbieUIInner />
+        <ToastContainer />
+      </GlobalContextProvider>
+    </ErrorBoundary>
+  );
 }

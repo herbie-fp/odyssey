@@ -45,7 +45,7 @@ const webviewConfig = {
       },
     ]
   },
-  devtool: 'nosources-source-map',
+  devtool: 'source-map',
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
   },
@@ -86,7 +86,7 @@ const extensionConfig = {
       }
     ]
   },
-  devtool: 'nosources-source-map',
+  devtool: 'source-map',
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
   },
@@ -130,7 +130,7 @@ const knittingConfig = {
       },
     ]
   },
-  devtool: 'nosources-source-map',
+  devtool: 'source-map',
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
   },

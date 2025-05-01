@@ -73,6 +73,7 @@ export const FPTaylorRangeContext = makeGlobal([] as HerbieTypes.FPTaylorRange[]
 export const InputRangesTableContext = makeGlobal([] as (HerbieTypes.InputRanges | HerbieTypes.RangeInSpecFPCore) [])
 export const SelectedInputRangeIdContext = makeGlobal(0)
 export const ArchivedExpressionsContext = makeGlobal([] as number[])
+export const gpuFpxSelected = makeGlobal(false);
 export const ExpandedExpressionsContext = makeGlobal([] as number[])  // Spec IDs
 
 type jobCountAction = { type: 'increment' } | { type: 'decrement' }

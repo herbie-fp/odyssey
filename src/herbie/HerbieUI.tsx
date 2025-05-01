@@ -19,6 +19,10 @@ import * as utils from './lib/utils';
 import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejs from './lib/herbiejs';
+import { ToastContainer } from 'react-toastify';
+
+import 'react-toastify/dist/ReactToastify.css';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface ContextProviderProps {
   children: React.ReactNode;
@@ -635,7 +639,7 @@ function HerbieUIInner() {
 
   const components = [
     { value: 'errorPlot', label: 'Error Plot', component: <ErrorPlot /> },
-    // { value: 'localError', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
+    // { value: '', label: 'Local Error', component: <LocalError expressionId={expressionId} /> },
     { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={selectedExprId} /> },
     // { value: 'fpTaylorComponent', label: 'FPTaylor', component: <FPTaylorComponent/> },
     { value: 'SpeedVersusAccuracy', label: 'Speed Versus Accuracy Pareto', component: <SpeedVersusAccuracyPareto />},
@@ -733,8 +737,11 @@ function HerbieUIInner() {
 
 export function HerbieUI() {
   return (
-    <GlobalContextProvider>
-      <HerbieUIInner />
-    </GlobalContextProvider>
-  )
+    <ErrorBoundary>
+      <GlobalContextProvider>
+        <HerbieUIInner />
+        <ToastContainer />
+      </GlobalContextProvider>
+    </ErrorBoundary>
+  );
 }

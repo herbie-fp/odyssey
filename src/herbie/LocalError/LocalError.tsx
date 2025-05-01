@@ -112,7 +112,6 @@ function localErrorTreeAsMermaidGraph(tree: LocalErrorTree, bits: number, curren
     // HACK: title gets put under style to be extracted later
     edges.push('style ' + id + ' fill:#' + colors[id])
   }
-
   // `BT` means "Bottom to Top"
   return 'flowchart RL\n\n' + edges.join('\n')
 }

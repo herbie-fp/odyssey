@@ -1,23 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as HerbieContext from './HerbieContext';
 import { FPTaylorRange, SpecRange } from './HerbieTypes';
 import { getVarnamesMathJS } from './lib/fpcore';
+import { toast } from 'react-toastify';
 
 const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   const [expressions, ] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext);
   const [FPTaylorAnalyses, ] = HerbieContext.useGlobal(HerbieContext.FPTaylorAnalysisContext);
   const [FPTaylorRanges, setFPTaylorRanges] = HerbieContext.useGlobal(HerbieContext.FPTaylorRangeContext);
 
-  const expression = expressions.find(expression => expression.id === expressionId);
-  if (!expression) {
+  const rawExpression = expressions.find(expression => expression.id === expressionId);
+  if (!rawExpression) {
     return <div>Expression not found.</div>;
   }
+  
+  // Apply matching to automatically transform some unsupported expressions to supported ones
+  // TODO: Eventually this needs to be confirmed to FPCore parsing solution, right now it is a regex hack
+  const expression = {
+    ...rawExpression,
+    text: rawExpression.text.replace(/pow\((\w+),\s*2\)/g, '($1 * $1)')
+  };
+  
   const variables = getVarnamesMathJS(expression.text);
 
   const [variableRanges, setVariableRanges] = useState(
     Object.fromEntries(variables.map(variable => [variable, { min: "0", max: "10" }])));
 
   const handleVariableRangeUpdate = () => {
+    if (rawExpression.text.includes('pow')) {
+      throw new Error("FPTaylor does not support the \"pow\" expression.")
+    }
+
     const specRanges = variables.map(
       variable => new SpecRange(variable, parseFloat(variableRanges[variable].min), parseFloat(variableRanges[variable].max))
     );
@@ -33,7 +46,6 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   const absoluteError = analysisResult?.absoluteError ?? "FPTaylor returned no absolute error.";
 
   const errorMessages = (() => {
-    // List variable-specific errors for each kind of problem we could encounter in validateVariableRanges
     const messages = [];
     for (const [variable, range] of Object.entries(variableRanges)) {
       if (isNaN(parseFloat(range.min))) {
@@ -51,13 +63,8 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
 
   return (
     <div>
-      <p>Bounds: {analysisResult ? bounds : 
-        "FPTaylor has not been run on this expression yet."
-        }</p>
-      <p>Absolute Error: {analysisResult ? 
-        absoluteError : 
-        "FPTaylor has not been run on this expression yet."
-      }</p>
+      <p>Bounds: {analysisResult ? bounds : "FPTaylor has not been run on this expression yet."}</p>
+      <p>Absolute Error: {analysisResult ? absoluteError : "FPTaylor has not been run on this expression yet."}</p>
       {variables.map(variable => (
         <div key={variable}>
           <label>

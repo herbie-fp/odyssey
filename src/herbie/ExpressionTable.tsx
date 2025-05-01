@@ -14,9 +14,11 @@ import { SelectableVisualization } from './SelectableVisualization';
 import { LocalError } from './LocalError/LocalError';
 import { DerivationComponent } from './DerivationComponent';
 import { FPTaylorComponent } from './FPTaylorComponent';
+import  NewLocalError  from './LocalError/newLocalError';
 import ExpressionExport from './ExpressionExport';
 
 import KaTeX from 'katex';
+import { GPU_FPX } from './GPU_FPX';
 
 import './ExpressionTable.css';
 
@@ -351,8 +353,39 @@ function ExpressionTable() {
           <input type="checkbox" onChange={ toggleAllChecked } checked={ allChecked }></input>
         </div>
         <div className="expressions-header">
-          Expression
-          (Show TeX<input id="showTexCheckbox" type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>)
+          <p>Expression</p>
+          {/* Toggle for show/don't show tex */}
+          <p style={{color: "gray"}}>Show as: </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1em",
+            }}
+            onClick={toggleShowMath}
+          >
+            <span
+              style={{
+                fontWeight: "bold",
+                color: showMath ? "gray" : "black",
+              }}
+            >
+              Text
+            </span>
+            <label className="switch">
+              <input type="checkbox" disabled checked={showMath} />
+              <span className="slider round"></span>
+            </label>
+            <span
+              style={{
+                fontWeight: "bold",
+                color: showMath ? "black" : "gray",
+              }}
+            >
+              TeX
+            </span>
+          </div>
+          {/* (Show TeX<input id="showTexCheckbox" type="checkbox" style={{ transform: "scale(.8)" } } onChange={ toggleShowMath } checked={ showMath }></input>) */}
         </div>
         <div className="compare-header">
         </div>
@@ -408,13 +441,14 @@ function ExpressionTable() {
               { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
               { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
               { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
+              { value: 'newLocalError', label: 'New Local Error', component: <NewLocalError expressionId={expression.id}/> },
+              { value: 'GPU_FPX', label: 'Check for FP Exceptions', component: <GPU_FPX expressionId={expression.id} /> },
               // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
             ];
           return (
             <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`} key={expression.id}>
               <div key={expression.id} className={`expression`} onClick={() => handleExpandClick(expression.id)}
                 style={{ boxShadow: expandedExpressions.includes(expression.id) ? '0 2px 5px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
-
                 {/* expand button [+] */}
                 <div className="expand action">
                   <div onClick={() => handleExpandClick(expression.id)}>

@@ -139,14 +139,15 @@ option {
 
 button:active:hover:not(:disabled) {
   background: var(--ui-pressed-color);
-  /* color-mix(in srgb, color-mix(in srgb, var(--foreground-color), transparent 10%), var(--background-color) 50%); */
 }
 
-input[type="text"]:focus, select:focus {
-  outline: var(--ui-focus-color);
-  /* 1px solid color-mix(in srgb, var(--foreground-color), transparent 70%); */
+input[type="text"]:focus, select:focus, textarea:focus {
+  outline: var(--action-color auto 1px);
 }
 
+input:focus-visible, textarea:focus-visible {
+  outline: var(--action-color) auto 1px;
+}
 
 .grid-container {
   display: grid;
@@ -219,6 +220,11 @@ input[type="text"]:focus, select:focus {
     /* Open in external tab icon only shows on hover of link */
     fill: var(--background-color);
   }
+
+  .import-export a {
+    /* REMOVE if an icon is added for import/export tab */
+    padding-right: 11px;
+  }
 }
 
 .spec {
@@ -252,7 +258,7 @@ input[type="text"]:focus, select:focus {
 
 .grid-container > .visualizations {
   grid-area: visualizations; /* Place the visualization section in the "visualizations" grid area */
-  margin-left: 25px;
+  padding-left: 25px;
   box-shadow: 3px 0 8px rgba(0, 0, 0, 0.07);
   display: flex;
   flex-direction: column;

@@ -83,9 +83,9 @@ function ExpressionTable() {
   function toggleSortOrder(field: 'accuracy' | 'cost') {
     setSortField(field); // Set which field to sort
     setSortOrder((prevOrder) => {
-      if (sortField !== field) return 'asc'; // If switching fields, start with ascending order
-      if (prevOrder === 'none') return 'asc';
-      if (prevOrder === 'asc') return 'desc';
+      if (sortField !== field) {return 'asc';} // If switching fields, start with ascending order
+      if (prevOrder === 'none') {return 'asc';}
+      if (prevOrder === 'asc') {return 'desc';}
       return 'none';
     });
   }
@@ -299,13 +299,13 @@ function ExpressionTable() {
   
 
   const getSortedActiveExpressions = () => {
-    if (sortOrder === 'none') return activeExpressions; // Return original order
+    if (sortOrder === 'none') {return activeExpressions;} // Return original order
   
     return [...activeExpressions].sort((idA, idB) => {
       const exprA = expressions.find(exp => exp.id === idA);
       const exprB = expressions.find(exp => exp.id === idB);
   
-      if (!exprA || !exprB) return 0;
+      if (!exprA || !exprB) {return 0;}
   
       // Compute Accuracy using original method
       const getAccuracy = (expression: Expression) => {
@@ -326,7 +326,7 @@ function ExpressionTable() {
       // Compute Cost
       const getCost = (expression: Expression) => {
         const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
-        if (!naiveCost || !costResult || costResult === 0) return 0; // Handle missing values or division by zero
+        if (!naiveCost || !costResult || costResult === 0) {return 0;} // Handle missing values or division by zero
   
     return parseFloat((naiveCost / costResult).toFixed(1)); // Convert to number for sorting
       };

@@ -79,7 +79,7 @@ getLatestHerbieBinary().then(url => {
 const GPUFPX_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip";
 // TODO remove this server code/server and use the server code from server/tool-server.js
 // Port for plugins
-const pluginPort = 8888;
+const pluginPort = 9071;
 // /**
 //  * Downloads a file from a URL to a specified directory.
 //  *
@@ -241,6 +241,7 @@ function activate(context) {
         return fptaylorTerminal;
     };
     const downloadAndRunHerbie = async () => {
+        const port = 9070;
         console.log('downloading herbie');
         // show information message
         vscode.window.showInformationMessage('Downloading Herbie...');
@@ -304,7 +305,7 @@ function activate(context) {
                 // show the terminal
                 herbieTerminal = getHerbieTerminal();
                 herbieTerminal.show();
-                herbieTerminal.sendText(herbiePath + ' web --quiet');
+                herbieTerminal.sendText(herbiePath + ` web --port ${port} --quiet`);
                 console.log('started herbie server');
             }
             catch (err) {
@@ -584,7 +585,7 @@ function activate(context) {
     // }
     const runHerbieServer = async () => {
         try {
-            const port = 8000;
+            const port = 9070;
             const isPortFree = (port) => new Promise(resolve => {
                 const server = (__webpack_require__(30).createServer)()
                     .listen(port, () => {
@@ -624,7 +625,7 @@ function activate(context) {
             else {
                 herbieTerminal = getTerminal();
                 herbieTerminal.show();
-                herbieTerminal.sendText(herbiePath + ' web --quiet');
+                herbieTerminal.sendText(herbiePath + ` web --port ${port} --quiet`);
                 console.log('started herbie server');
             }
         }

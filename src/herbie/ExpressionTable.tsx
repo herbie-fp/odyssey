@@ -225,6 +225,8 @@ function ExpressionTable() {
 
   const handleAddExpressionChange = async (expression: string) => {
     expression = expression.trim();
+    // Replace '**' with '^' and 'e^' (not preceded by a word char) with 'exp'
+    expression = expression.replace(/\*\*/g, '^').replace(/(?<![\w])e\^/g, 'exp');
     setAddExpression(expression);
     try {
       validateExpression(expression);

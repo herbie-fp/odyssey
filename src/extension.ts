@@ -53,7 +53,7 @@ const GPUFPX_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/dow
 
 // TODO remove this server code/server and use the server code from server/tool-server.js
 // Port for plugins
-const pluginPort = 8888;
+const pluginPort = 9071;
 
 // /**
 //  * Downloads a file from a URL to a specified directory.
@@ -221,6 +221,7 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	const downloadAndRunHerbie = async () => {
+		const port = 9070
 		console.log('downloading herbie')
 		// show information message
 		vscode.window.showInformationMessage('Downloading Herbie...')
@@ -286,7 +287,7 @@ export function activate(context: vscode.ExtensionContext) {
 				herbieTerminal = getHerbieTerminal()
 				herbieTerminal.show()
 
-				herbieTerminal.sendText(herbiePath + ' web --quiet')
+				herbieTerminal.sendText(herbiePath + ` web --port ${port} --quiet`)
 				console.log('started herbie server')
 			} catch (err: any) {
 				vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
@@ -596,7 +597,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const runHerbieServer = async () => {
 		try {
-			const port = 8000
+			const port = 9070
 
 			const isPortFree = (port: number) =>
 				new Promise(resolve => {
@@ -638,7 +639,7 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				herbieTerminal = getTerminal()
 				herbieTerminal.show()
-				herbieTerminal.sendText(herbiePath + ' web --quiet')
+				herbieTerminal.sendText(herbiePath + ` web --port ${port} --quiet`)
 				console.log('started herbie server')
 			}
 		} catch (err: any) {

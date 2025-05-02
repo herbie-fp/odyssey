@@ -54,11 +54,11 @@ export const AnalysesContext = makeGlobal([] as HerbieTypes.ErrorAnalysis[])
 export const CostContext = makeGlobal([] as HerbieTypes.CostAnalysis[])
 export const SpecContext = makeGlobal(new HerbieTypes.Spec('', 0) as HerbieTypes.Spec)
 //@ts-ignore
-export const ServerContext = makeGlobal(localStorage.getItem('herbie-server-url') || 'https://herbie.uwplse.org/demo')//makeGlobal('http://127.0.0.1:8000')//window.acquireVsCodeApi ? '' : 'https://herbie.uwplse.org/demo')
+export const ServerContext = makeGlobal(localStorage.getItem('herbie-server-url') || window.acquireVsCodeApi ? 'http://127.0.0.1:9070' : 'https://herbie.uwplse.org/demo')//makeGlobal('http://127.0.0.1:9070')//window.acquireVsCodeApi ? '' : 'https://herbie.uwplse.org/demo')
 //@ts-ignore
-export const FPTaylorServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:8888/fptaylor' : 'https://herbie.uwplse.org/fptaylor')
+export const FPTaylorServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:9071/fptaylor' : 'https://herbie.uwplse.org/fptaylor')
 //@ts-ignore
-export const FPBenchServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:8888/fpbench' : 'https://herbie.uwplse.org/fpbench')
+export const FPBenchServerContext = makeGlobal(window.acquireVsCodeApi ? 'http://localhost:9071/fpbench' : 'https://herbie.uwplse.org/fpbench')
 export const ExpressionStylesContext = makeGlobal([] as HerbieTypes.ExpressionStyle[])
 export const SelectedSampleIdContext = makeGlobal(undefined as number | undefined);// undefined as number | undefined)
 export const SamplesContext = makeGlobal([] as HerbieTypes.Sample[])

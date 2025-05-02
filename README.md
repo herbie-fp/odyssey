@@ -124,6 +124,8 @@ Use the "Run and Debug" tab to start an instance of VSCode with the most recent 
 
 You can see changes to the frontend (`webview/index.ts`) by simply refreshing the webview, but **changes to the host (`extension.ts`) will only show if the debugger is restarted.**
 
+To run the test suite, see the documentation in `doc/test_suite.md`.
+
 ### Publishing the extension:
 
 Get publication key from @elmisback, then:

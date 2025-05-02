@@ -588,7 +588,7 @@ function activate(context) {
             const port = 9070;
             const isPortFree = (port) => new Promise(resolve => {
                 const server = (__webpack_require__(30).createServer)()
-                    .listen(port, () => {
+                    .listen(port, '127.0.0.1', () => {
                     server.close();
                     resolve(true);
                 })

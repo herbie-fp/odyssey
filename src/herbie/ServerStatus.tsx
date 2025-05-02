@@ -7,6 +7,19 @@ import './ServerStatus.css';
 
 const timeBetweenChecks = 3000; // Time between checking for the status, in milliseconds
 
+// Utility to sanitize server URLs
+function sanitizeServerUrl(url: string): string {
+  let sanitized = url.trim();
+  if (sanitized.endsWith('/')) { sanitized = sanitized.slice(0, -1); }
+  if (/^(localhost|127\.|0\.0\.0\.0)/.test(sanitized)) {
+    sanitized = 'http://' + sanitized;
+  }
+  if (!/^https?:\/\//.test(sanitized)) {
+    sanitized = 'http://' + sanitized;
+  }
+  return sanitized;
+}
+
 function ServerStatusComponent() {
   const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
   const [fptaylorServerUrl, setFPTaylorServerUrl] = HerbieContext.useGlobal(HerbieContext.FPTaylorServerContext)
@@ -71,19 +84,22 @@ function ServerStatusComponent() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    setServerUrl(updatedServerUrl);
+    setServerUrl(sanitizeServerUrl(updatedServerUrl));
     setIsDropdownOpen(false);
+    setUpdatedServerUrl(sanitizeServerUrl(updatedServerUrl));
   };
 
   const handleSubmitFPTaylor = (event: React.FormEvent) => {
     event.preventDefault();
-    setFPTaylorServerUrl(updatedFPTaylorServerUrl);
+    setFPTaylorServerUrl(sanitizeServerUrl(updatedFPTaylorServerUrl));
+    setUpdatedFPTaylorServerUrl(sanitizeServerUrl(updatedFPTaylorServerUrl));
     setIsDropdownOpen(false);
   }
 
   const handleSubmitFPBench = (event: React.FormEvent) => {
     event.preventDefault();
-    setFPBenchServerUrl(updatedFPBenchServerUrl);
+    setFPBenchServerUrl(sanitizeServerUrl(updatedFPBenchServerUrl));
+    setUpdatedFPBenchServerUrl(sanitizeServerUrl(updatedFPBenchServerUrl));
     setIsDropdownOpen(false);
   }
 

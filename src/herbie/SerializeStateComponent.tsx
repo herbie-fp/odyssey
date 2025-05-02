@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 
 import { Derivation, Expression, InputRanges, RangeInSpecFPCore, SpecRange } from './HerbieTypes';
@@ -79,17 +79,35 @@ function SerializeStateComponent(props: exportStateProps) {
   const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext);
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext);
   const [compareExprIds, setCompareExprIds] = HerbieContext.useGlobal(HerbieContext.CompareExprIdsContext);
+  // saving gist
+  const [gistUrl, setGistUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
+  const [isGeneratingGist, setIsGeneratingGist] = useState<boolean>(false);
+  const [hasGeneratedGist, setHasGeneratedGist] = useState<boolean>(false);
 
+  // when spec changes, reset everything
+  useEffect(() => {
+    setGistUrl(null);
+    setCopied(false);
+    setHasGeneratedGist(false);
+  }, [spec.expression]);
+
+  // generate gist after modal opens 
+  useEffect(() => {
+    if (isModalOpen && !hasGeneratedGist && !isGeneratingGist) {
+      stateToJson();
+    }
+  }, [isModalOpen]);
   // scuffed way to encode auth token
   const a = "github_pat_"
   const b = "11BP25ESI0K9qgEcDPIghe_"
   const c = "6hPulnaPCzFUlqLGzSvMc0JnSuo"
   const d = "ZMVunRNAVhzJ0vidBU6JT3PF71DE1swJ"
 
-  const stateToJson = (e: React.FormEvent) => {
-    e.preventDefault(); 
-    e.stopPropagation(); 
-
+  
+  const stateToJson = async () => {
+    // gist generation state
+    setIsGeneratingGist(true);
     // Get ranges associated with spec - ids (will be recomputed on import), 
     // (meaning undefined, don't jsonify, if RangeInSpecFPCore)
     const inputRange = inputRangesTable.findLast(r => r.specId === spec.id);
@@ -126,6 +144,7 @@ function SerializeStateComponent(props: exportStateProps) {
       expandedExpressions,
     }
 
+    // Github API Call using Octokit
     const createGist = async () => {
       const octokit = new Octokit({
           auth: a+b+c+d
@@ -149,17 +168,28 @@ function SerializeStateComponent(props: exportStateProps) {
               }
           });
 
-          console.log("Gist Created:", response.data.files[fileName].raw_url);
+          const gistId = response.data.id;
+          const shareableLink = `https://herbie-fp.github.io/odyssey/?gist=${gistId}`;
+          setGistUrl(shareableLink); // <-- instead of raw_url
+          navigator.clipboard.writeText(shareableLink);
+
+          // OLD: Copy gist raw_url
+          // const url = response.data.files[fileName].raw_url;
+          // setGistUrl(url);
+          // // copy gist link to clipboard
+          // navigator.clipboard.writeText(url);
+
+          setCopied(true); 
+          setHasGeneratedGist(true);
+          console.log("Gist Raw Url:", response.data.files[fileName].raw_url);
+          console.log("Gist Shareable Link:", shareableLink);
       } catch (error) {
           console.error("Error creating Gist:", error);
       }
     };
 
     createGist();
-
-    navigator.clipboard.writeText(JSON.stringify(state, undefined, 2)); 
-    console.log("Json stringify of state", JSON.stringify(state, undefined, 2));
-    setIsModalOpen(false);
+    setIsGeneratingGist(false);
   }
 
   const initializeSpec = async (serverUrl: string, expression: string, fpcore?: string, specRanges?: SpecRange[]) => {    
@@ -302,15 +332,30 @@ function SerializeStateComponent(props: exportStateProps) {
         <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Export</a>
         <Modal 
           isOpen={isModalOpen}
-          onRequestClose={() => setIsModalOpen(false)}
+          onRequestClose={() => {
+            setIsModalOpen(false);
+            // when modal closes, reset everything
+            setGistUrl(null);
+            setCopied(false);
+            setIsGeneratingGist(false);
+            setHasGeneratedGist(false);
+          }}
           contentLabel="State Export Modal"
           style={modalStyles}
           ariaHideApp={false}
         >
-          <form onSubmit={stateToJson}>
-            <label>Copy current analysis state: </label>
-            <button type="submit">Copy</button>
-          </form>
+          {isGeneratingGist ? (
+            <p>Generating export link...</p>
+          ) : gistUrl ? (
+            <div>
+              <p><strong>Exported Gist link:</strong></p>
+              <input type="text" value={gistUrl} readOnly />
+              {copied && <p style={{ color: "green" }}>Link copied to clipboard!</p>}
+            </div>
+          ) : (
+            // hacky, there should be a proper error handling message here
+            <p>Generating export link....</p>
+          )}
         </Modal>
       </div>
     );

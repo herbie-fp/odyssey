@@ -1,0 +1,48 @@
+name: Build FPBench Binary (Linux Only)
+
+on:
+  workflow_dispatch
+
+jobs:
+  build-fpbench:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Odyssey repo
+        uses: actions/checkout@v4
+
+      - name: Install MPFR dependency
+        run: sudo apt-get install -y libmpfr6 libmpfr-dev
+
+      - name: Install Racket
+        uses: Bogdanp/setup-racket@v1.11
+        with:
+          version: 8.15
+
+      - name: Clone FPBench
+        run: |
+          git clone https://github.com/FPBench/FPBench.git
+          cd FPBench
+          make setup
+
+      - name: Package FPBench Tools
+        run: |
+          mkdir -p fpbench-dist/linux/fpbench-compiled
+          cp -r FPBench/* fpbench-dist/linux/fpbench-compiled/
+
+      - name: Zip the build
+        run: |
+          cd fpbench-dist
+          zip -r ../fpbench-dist.zip *
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: fpbench-component
+          name: "FPBench Binary (Linux)"
+          body: "Automated release of FPBench binaries for Linux."
+          draft: false
+          prerelease: false
+          files: fpbench-dist.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

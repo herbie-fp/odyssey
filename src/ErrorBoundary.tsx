@@ -17,6 +17,10 @@ const ErrorBoundary = ({ children }: { children: ReactNode }) => {
         };
 
         window.addEventListener("error", handleError);
+        window.addEventListener("unhandledrejection", event => {
+            showErrorToast(event.reason?.message || "Unhandled Promise rejection");
+            console.log("unhandled rejection", event.reason);
+        });        
         return () => window.removeEventListener("error", handleError);
     }, []);
 

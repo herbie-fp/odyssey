@@ -737,11 +737,9 @@ function HerbieUIInner() {
 
 export function HerbieUI() {
   return (
-    <ErrorBoundary>
-      <GlobalContextProvider>
-        <HerbieUIInner />
-        <ToastContainer />
-      </GlobalContextProvider>
-    </ErrorBoundary>
+    <GlobalContextProvider>
+      <HerbieUIInner />
+      <ToastContainer />
+    </GlobalContextProvider>
   );
 }

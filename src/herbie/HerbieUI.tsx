@@ -21,6 +21,9 @@ import * as fpcorejs from './lib/fpcore';
 import * as herbiejs from './lib/herbiejs';
 import { ToastContainer } from 'react-toastify';
 
+const { Octokit } = require("@octokit/core");
+import { nextId } from './lib/utils';
+
 import 'react-toastify/dist/ReactToastify.css';
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -113,9 +116,9 @@ function HerbieUIInner() {
   const [expressions, setExpressions] = HerbieContext.useGlobal(HerbieContext.ExpressionsContext)
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
   const [samples, setSamples] = HerbieContext.useGlobal(HerbieContext.SamplesContext)
-  const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
-  const [fptaylorServerUrl,] = HerbieContext.useGlobal(HerbieContext.FPTaylorServerContext)
-  const [fpbenchServerUrl,] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext)
+  const [serverUrl, setServerUrl] = HerbieContext.useGlobal(HerbieContext.ServerContext)
+  const [fptaylorServerUrl, setFPTaylorServerUrl] = HerbieContext.useGlobal(HerbieContext.FPTaylorServerContext)
+  const [fpbenchServerUrl, setFPBenchServerUrl] = HerbieContext.useGlobal(HerbieContext.FPBenchServerContext)
   const [analyses, setAnalyses] = HerbieContext.useGlobal(HerbieContext.AnalysesContext)
   const [cost, setCosts] = HerbieContext.useGlobal(HerbieContext.CostContext)
   const [spec, setSpec] = HerbieContext.useGlobal(HerbieContext.SpecContext)
@@ -133,7 +136,7 @@ function HerbieUIInner() {
   const [FPTaylorRanges, setFPTaylorRanges] = HerbieContext.useGlobal(HerbieContext.FPTaylorRangeContext);
   const [inputRangesTable, setInputRangesTable] = HerbieContext.useGlobal(HerbieContext.InputRangesTableContext)
   const [archivedExpressions, setArchivedExpressions] = HerbieContext.useGlobal(HerbieContext.ArchivedExpressionsContext)
-  const [expandedExpressions,] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext)
+  const [expandedExpressions, setExpandedExpressions] = HerbieContext.useGlobal(HerbieContext.ExpandedExpressionsContext)
 
   const herbiejsJobs = addJobRecorder(herbiejs)
 
@@ -226,6 +229,98 @@ function HerbieUIInner() {
         // It only makes sense to have alternatives if there was a spec given
         submitURLSpec(urlExpr, urlAlts);
       }
+    }
+  }
+
+  // Load in data from URL with gistID
+  useEffect(loadSpecFromURLGistId, [])
+  function loadSpecFromURLGistId() {
+    // -----------------
+    const loadSpecFromGist = async (gistId: string) => {
+      const octokit = new Octokit();
+
+      try {
+
+        const response = await octokit.request("GET /gists/{gist_id}", {
+          gist_id: gistId,
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+            "accept": "application/vnd.github+json",
+          },
+        });
+  
+        const fileKey = Object.keys(response.data.files)[0];
+
+        if (fileKey.length === 0) throw new Error("No files found in Gist.");
+
+        const rawUrl = response.data.files[fileKey].raw_url;
+  
+        const rawResponse = await fetch(rawUrl);
+        const jsonState = await rawResponse.json();
+
+        console.log("gist jsonState from gist:", gistId, jsonState);
+
+        // LOAD THE STATE FROM JSON
+        // ------------------------
+
+        setServerUrl(jsonState.serverUrl);
+        setFPTaylorServerUrl(jsonState.fptaylorServerUrl);
+        setFPBenchServerUrl(jsonState.fpbenchServerUrl);
+
+        const newSpecId = spec.id + 1;
+        const inputRangeId = nextId(inputRangesTable);
+
+        const inputRanges = jsonState.specRanges
+        ? new HerbieTypes.InputRanges(jsonState.specRanges, newSpecId, inputRangeId)
+        : new HerbieTypes.RangeInSpecFPCore(newSpecId, inputRangeId);
+
+        setArchivedExpressions(expressions.map(e => e.id));
+        setInputRangesTable([...inputRangesTable, inputRanges]);
+        setSpec({ expression: jsonState.spec.expression, id: newSpecId, fpcore: jsonState.spec.fpcore });
+
+        const oldIdToNew: Map<number, HerbieTypes.Expression> = new Map();
+        const newExpressions = [];
+        const newDerivations = [];
+
+        for (let i = 0; i < jsonState.expressions.length; i++) {
+          const expr = jsonState.expressions[i];
+          const newId = nextId(expressions) + i;
+          const newExpr = new HerbieTypes.Expression(expr.text, newId, newSpecId, expr.tex);
+          oldIdToNew.set(expr.id, newExpr);
+          newExpressions.push(newExpr);
+        }
+
+        for (const deriv of jsonState.derivations) {
+          const newExpr = oldIdToNew.get(deriv.id);
+          const newParent = deriv.origExpId ? oldIdToNew.get(deriv.origExpId) : undefined;
+          if (newExpr) {
+            newDerivations.push(new HerbieTypes.Derivation(deriv.history, newExpr.id, newParent?.id));
+          }
+        }
+
+        setExpressions([...newExpressions, ...expressions]);
+        setDerivations([...newDerivations, ...derivations]);
+        setSelectedExprId(oldIdToNew.get(jsonState.selectedExprId)?.id ?? -1);
+        setExpandedExpressions(jsonState.expandedExpressions.map((id: number) => oldIdToNew.get(id)?.id ?? -1));
+        setCompareExprIds(jsonState.compareExprIds.map((id: number) => oldIdToNew.get(id)?.id ?? -1));
+
+        // ------------------------
+        
+        setShowSpecEntry(false);
+
+      } catch (err) {
+        console.error("Failed to import state from Gist:", err);
+      } 
+
+    };
+
+    // -----------------
+    const queryParams = new URLSearchParams(window.location.search);
+
+    const gistId = queryParams.get('gist');
+    
+    if (gistId != null) {
+      loadSpecFromGist(gistId);
     }
   }
 

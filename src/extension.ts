@@ -603,7 +603,7 @@ export function activate(context: vscode.ExtensionContext) {
 				new Promise(resolve => {
 					const server = require('http')
 						.createServer()
-						.listen(port, () => {
+						.listen(port, '127.0.0.1', () => {
 							server.close()
 							resolve(true)
 						})

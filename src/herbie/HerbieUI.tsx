@@ -20,7 +20,14 @@ import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejs from './lib/herbiejs';
 import { ToastContainer } from 'react-toastify';
-import { ErrorBoundary as ErrorBoundary2 } from "react-error-boundary";
+// import { ErrorBoundary as ErrorBoundary2 } from "react-error-boundary";
+// let ErrorBoundary2: typeof import("react-error-boundary")["ErrorBoundary"];
+let ErrorBoundary2: any = null;
+(async () => {
+  const mod = await import("react-error-boundary");
+  ErrorBoundary2 = mod.ErrorBoundary;
+})();
+
 
 const { Octokit } = require("@octokit/core");
 import { nextId } from './lib/utils';

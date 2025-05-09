@@ -692,7 +692,10 @@ function HerbieUIInner() {
 
           const fptaylorInputResponse = await (getApi(
             fpbenchServerUrl + "/exec",
-           {'formulas': [formula] },
+           { 
+            'lang': 'FPTaylor',
+            'formulas': [formula] 
+           },
            true
          ));
 

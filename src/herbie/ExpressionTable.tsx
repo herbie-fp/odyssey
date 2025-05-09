@@ -21,6 +21,7 @@ import KaTeX from 'katex';
 import { GPU_FPX } from './GPU_FPX';
 
 import './ExpressionTable.css';
+import LinkToReports from './LinkToReports';
 
 // Make server call to get tex version of expression
 export const expressionToTex = async (expression: fpcorejs.mathjs, numVars: number, serverUrl: string) => {
@@ -82,9 +83,9 @@ function ExpressionTable() {
   function toggleSortOrder(field: 'accuracy' | 'cost') {
     setSortField(field); // Set which field to sort
     setSortOrder((prevOrder) => {
-      if (sortField !== field) return 'asc'; // If switching fields, start with ascending order
-      if (prevOrder === 'none') return 'asc';
-      if (prevOrder === 'asc') return 'desc';
+      if (sortField !== field) {return 'asc';} // If switching fields, start with ascending order
+      if (prevOrder === 'none') {return 'asc';}
+      if (prevOrder === 'asc') {return 'desc';}
       return 'none';
     });
   }
@@ -224,6 +225,8 @@ function ExpressionTable() {
 
   const handleAddExpressionChange = async (expression: string) => {
     expression = expression.trim();
+    // Replace '**' with '^' and 'e^' (not preceded by a word char) with 'exp'
+    expression = expression.replace(/\*\*/g, '^').replace(/(?<![\w])e\^/g, 'exp');
     setAddExpression(expression);
     try {
       validateExpression(expression);
@@ -298,13 +301,13 @@ function ExpressionTable() {
   
 
   const getSortedActiveExpressions = () => {
-    if (sortOrder === 'none') return activeExpressions; // Return original order
+    if (sortOrder === 'none') {return activeExpressions;} // Return original order
   
     return [...activeExpressions].sort((idA, idB) => {
       const exprA = expressions.find(exp => exp.id === idA);
       const exprB = expressions.find(exp => exp.id === idB);
   
-      if (!exprA || !exprB) return 0;
+      if (!exprA || !exprB) {return 0;}
   
       // Compute Accuracy using original method
       const getAccuracy = (expression: Expression) => {
@@ -325,7 +328,7 @@ function ExpressionTable() {
       // Compute Cost
       const getCost = (expression: Expression) => {
         const costResult = cost.find(c => c.expressionId === expression.id)?.cost;
-        if (!naiveCost || !costResult || costResult === 0) return 0; // Handle missing values or division by zero
+        if (!naiveCost || !costResult || costResult === 0) {return 0;} // Handle missing values or division by zero
   
     return parseFloat((naiveCost / costResult).toFixed(1)); // Convert to number for sorting
       };
@@ -345,8 +348,8 @@ function ExpressionTable() {
       <div className="expression-table-header-row">
         <div className="expand-header action">
         <div onClick={() => handleExpandAllClick()}>
-                      {!noneExpanded ? <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                        : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>}
+                      {!noneExpanded ? <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
+                        : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>}
                     </div>
         </div>
         <div className="checkbox-header">
@@ -443,7 +446,7 @@ function ExpressionTable() {
               { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },
               { value: 'newLocalError', label: 'New Local Error', component: <NewLocalError expressionId={expression.id}/> },
               { value: 'GPU_FPX', label: 'Check for FP Exceptions', component: <GPU_FPX expressionId={expression.id} /> },
-              // {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
+              {value: 'linkToReports', label: 'Link To Reports', component: <LinkToReports expressionId={expression.id} />}
             ];
           return (
             <div className={`expression-container ${expression.id === selectedExprId ? 'selected' : ''}`} key={expression.id}>
@@ -453,8 +456,8 @@ function ExpressionTable() {
                 <div className="expand action">
                   <div onClick={() => handleExpandClick(expression.id)}>
                     {expandedExpressions.includes(expression.id) ?
-                      <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                      : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>}
+                      <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" transform="rotate(180)" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
+                      : <svg style={{ width: '15px', stroke: "var(--action-color)" }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>}
                   </div>
                 </div>
                 <input type="checkbox" checked={isChecked} onChange={event => handleCheckboxChange(event, expression.id)} onClick={event => event.stopPropagation()}

@@ -68,7 +68,7 @@ function TreeRow({
       return value;
     }
     const num = parseFloat(value);
-    if (isNaN(num)) return value;
+    if (isNaN(num)) {return value;}
     return herbiejs.displayNumber(num);
   }
 

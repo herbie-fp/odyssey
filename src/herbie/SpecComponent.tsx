@@ -160,7 +160,9 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
   }
 
   const handleSpecTextUpdate: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
-    const v = event.target.value.trim()
+    let v = event.target.value.trim();
+    // Replace '**' with '^' and 'e^' (not preceded by a word char) with 'exp'
+    v = v.replace(/\*\*/g, '^').replace(/(?<![\w])e\^/g, 'exp');
     if (v.includes('FPCore')) {
       setSpec(new Spec(v, spec.id, v));
     } else {

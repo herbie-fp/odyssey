@@ -1,7 +1,6 @@
 // import * as ReactDOM from 'react-dom';
 import ErrorBoundary from './ErrorBoundary';
 import { HerbieUI } from './herbie/HerbieUI';
-import ReactErrorBoundary from './ReactErrorBoundary';
 
 // const vscode = acquireVsCodeApi();
 interface vscode {
@@ -12,14 +11,11 @@ declare const vscode: vscode;
 
 // ReactDOM.render(<HerbieUI />, document.getElementById('root'));
 
-
 import { createRoot } from 'react-dom/client';
 const container = document.getElementById('root');
 const root = createRoot(container!); // createRoot(container!) if you use TypeScript
 root.render(
   <ErrorBoundary>
-    <ReactErrorBoundary>
       <HerbieUI />
-    </ReactErrorBoundary>
   </ErrorBoundary>
 );

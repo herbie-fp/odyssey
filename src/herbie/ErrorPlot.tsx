@@ -363,12 +363,18 @@ function ErrorPlot() {
           <InputRangeEditor1 value={{
             varname: v,
             lower: range.lowerBound.toString(),
-            upper: range.upperBound.toString()
+            upper: range.upperBound.toString(),
+            minAbsValue: range.minAbsValue.toString()
           }} setValue={
-            (value: { lower: string, upper: string }) => {
+            (value: { lower: string, upper: string, minAbsValue?: string }) => {
               if (!myInputRanges) { return }  // HACK figure out what to do when myInputRanges isn't defined
               console.debug('set input range', v, value)
-              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new SpecRange(v, parseFloat(value.lower), parseFloat(value.upper)) : r))
+              setMyInputRanges(myInputRanges.map(r => r.variable === v ? new SpecRange(
+                v, 
+                parseFloat(value.lower), 
+                parseFloat(value.upper), 
+                value.minAbsValue !== undefined ? parseFloat(value.minAbsValue) : undefined) : r)
+              )
             }
           } />
         )}

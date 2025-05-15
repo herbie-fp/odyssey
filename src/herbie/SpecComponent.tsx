@@ -289,7 +289,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
   useEffect(() => {
     const vars = variables;
     const newRanges = vars.map((v) => {
-      const range = mySpecRanges.find((r) => r.variable === v) || new SpecRange(v, -1e308, 1e308);
+      const range = mySpecRanges.find((r) => r.variable === v) || new SpecRange(v, -1e308, 1e308, 0);
       return range;
     });
     setMySpecRanges(newRanges);
@@ -352,7 +352,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
             {variables.map((v, i) => {
               const range =
                 mySpecRanges.find((r) => r.variable === v) ||
-                new SpecRange(v, -1e308, 1e308);
+                new SpecRange(v, -1e308, 1e308, 0);
               return (
                 <div className="spec-range-input" key={v}>
                   <div className="varname">{v}:</div>
@@ -361,8 +361,9 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
                       varname: v,
                       lower: range.lowerBound.toString(),
                       upper: range.upperBound.toString(),
+                      minAbsValue: range.minAbsValue.toString()
                     }}
-                    setValue={(value: { lower: string; upper: string }) => {
+                    setValue={(value: { lower: string; upper: string, minAbsValue?: string }) => {
                       console.debug("set input range", v, value);
                       if (mySpecRanges.map((r) => r.variable).includes(v)) {
                         setMySpecRanges(
@@ -371,7 +372,8 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
                               ? new SpecRange(
                                   v,
                                   parseFloat(value.lower),
-                                  parseFloat(value.upper)
+                                  parseFloat(value.upper),
+                                  value.minAbsValue !== undefined ? parseFloat(value.minAbsValue) : undefined
                                 )
                               : r
                           )

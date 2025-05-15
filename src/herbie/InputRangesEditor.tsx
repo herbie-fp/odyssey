@@ -4,8 +4,7 @@ interface InputRange {
   varname: string;
   lower: string;
   upper: string;
-
-  minAbsVal?: string;
+  minAbsValue?: string;
 }
 
 // /**
@@ -80,17 +79,17 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
   const varname = value.varname;
   const [lowerBound, setLowerBound] = useState(value.lower || '-1e308');
   const [upperBound, setUpperBound] = useState(value.upper || '1e308');
-  const [minAbsVal, setMinAbsVal] = useState(value.minAbsVal || '0');
+  const [minAbsValue, setMinAbsValue] = useState(value.minAbsValue || '0');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (rangesValid()) {
-      setValue({ varname, lower: lowerBound, upper: upperBound, minAbsVal: minAbsVal });
+      setValue({ varname, lower: lowerBound, upper: upperBound, minAbsValue: minAbsValue });
     }
-  }, [lowerBound, upperBound, minAbsVal]);
+  }, [lowerBound, upperBound, minAbsValue]);
 
   const rangesValid = () => {
-    if (lowerBound === '' || upperBound === '' || minAbsVal === '') {
+    if (lowerBound === '' || upperBound === '' || minAbsValue === '') {
       setError('All ranges must be filled.');
       return false;
     } else if (Number(lowerBound) >= Number(upperBound)) {
@@ -101,11 +100,11 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
     // These errors can only be triggered if the user selects bounds that cross zero, 
     // and therefore might have a minimum absolute value 
     else if ((Number(lowerBound) < 0) && (Number(upperBound) >= 0)) {
-      if (Number(minAbsVal) < 0) {
+      if (Number(minAbsValue) < 0) {
         setError('Minimum absolute value must be positive.');
         return false;
-      } else if (Math.abs(Number(minAbsVal)) >= Math.abs(Number(lowerBound)) || 
-          Math.abs(Number(minAbsVal)) >= Math.abs(Number(upperBound))) {
+      } else if (Math.abs(Number(minAbsValue)) >= Math.abs(Number(lowerBound)) || 
+          Math.abs(Number(minAbsValue)) >= Math.abs(Number(upperBound))) {
         setError('Minimum absolute value must be less than magnitude of lower and upper bounds.');
         return false;
       }
@@ -158,7 +157,7 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           onChange={e => setUpperBound(e.target.value)}
         />
       </span>
-      {/* { 
+      { 
         boundsCrossesZero &&
         <>
           <span className="separator"> with <span className="separator-math">|{varname}| &ge; </span></span>
@@ -166,12 +165,12 @@ export const InputRangeEditor1: React.FC<InputRangeEditor1Props> = ({ value, set
           <input
             type="number"
             placeholder="Min abs value"
-            value={minAbsVal}
-            onChange={e => setMinAbsVal(e.target.value)}
+            value={minAbsValue}
+            onChange={e => setMinAbsValue(e.target.value)}
           />
           </span>
           </> 
-      } */}
+      }
       &nbsp;
       {error && <span style={{ color: 'red', fontSize: 'smaller' }} className="error">{error}</span>}
     </div>

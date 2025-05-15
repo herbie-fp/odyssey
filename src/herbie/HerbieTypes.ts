@@ -83,11 +83,12 @@ export class SelectedSubset {
 export type SubsetErrorAnalysis = {expressionId: number, subsetErrorResult: string};
 
 export class SpecRange {
-  constructor(public readonly variable: string, public readonly lowerBound: number, public readonly upperBound: number) {
-    this.variable = variable;
-    this.lowerBound = lowerBound;
-    this.upperBound = upperBound;
-  }
+  constructor(
+    public readonly variable: string,
+    public readonly lowerBound: number,
+    public readonly upperBound: number,
+    public readonly minAbsValue: number = 0
+  ) {}
 }
 
 export class GPU_FPXExpression {

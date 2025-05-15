@@ -20,12 +20,11 @@ import { getApi } from './lib/servercalls';
 import * as fpcorejs from './lib/fpcore';
 import * as herbiejs from './lib/herbiejs';
 import { ToastContainer } from 'react-toastify';
-// import { ErrorBoundary as ErrorBoundary2 } from "react-error-boundary";
-// let ErrorBoundary2: typeof import("react-error-boundary")["ErrorBoundary"];
-let ErrorBoundary2: any = null;
+
+let ReactErrorBoundary: any = null;
 (async () => {
   const mod = await import("react-error-boundary");
-  ErrorBoundary2 = mod.ErrorBoundary;
+  ReactErrorBoundary = mod.ErrorBoundary;
 })();
 
 
@@ -824,9 +823,9 @@ function HerbieUIInner() {
     return {
       ...c,
       component: (
-        <ErrorBoundary2 key={i} fallback={<div>Something went wrong. See error messages or browser console for details.</div>}>
+        <ReactErrorBoundary key={i} fallback={<div>Something went wrong. See error messages or browser console for details.</div>}>
           {c.component}
-        </ErrorBoundary2>
+        </ReactErrorBoundary>
       )
     }
   })

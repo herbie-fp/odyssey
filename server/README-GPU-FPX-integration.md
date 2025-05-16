@@ -33,6 +33,7 @@ This is the shell script which takes care of compiling the driver-program with a
     - Right now the tool only runs on expressions, not full functions, so anything which has an if-statement in it does not run correctly
     - None of the results of GPU-FPX has been verified for expressions, this is to mean there are no tests which verify that the detector output, 
     and analyzer output are reporting the correct things a GPU should be reporting for those expressions, a full test-suite verifying all expressions should be made (not-trivial, and very important)
+    - Expressions lose their state once un-selected and the integration needs to be run again
 
 
 ## These are instructions of just how to use GPU-FPX via cmdline on the example.cu files in this folder, see the makefile for commands to append to make, these are not accurate 

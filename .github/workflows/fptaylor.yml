@@ -38,13 +38,13 @@ jobs:
       - name: Install latest Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Clone and build Gelpia
-        run: |
-          git clone https://github.com/soarlab/gelpia.git
-          cd gelpia
-          git checkout develop
-          make requirements
-          make
+      # - name: Clone and build Gelpia
+      #   run: |
+      #     git clone https://github.com/soarlab/gelpia.git
+      #     cd gelpia
+      #     git checkout develop
+      #     make requirements
+      #     make
 
       - name: Build FPTaylor
         run: make

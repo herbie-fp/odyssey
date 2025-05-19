@@ -85,8 +85,11 @@ const getHerbieApi = async (
       throw new Error('Herbie server: ' + responseData.error);
     }
     console.debug('got data', responseData);
+
+    console.log("herbie API valid response");
     return responseData;
   } catch (error: any) {
+    console.log("herbie API error at herbie server");
     throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`)
     // old retry code
     // console.error('Bad call to', url, 'with data', data, 'error was', error);

@@ -13,6 +13,7 @@ import { fPCoreToMathJS } from './lib/herbiejs';
 
 import './sliders.css';
 import './SpecComponent.css';
+import { showErrorToast } from '../ErrorToast';
 
 async function ensureMathJS(expression: string, serverUrl: string): Promise<string> {
   if (expression.includes("FPCore")) {
@@ -136,7 +137,21 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
     if (spec.expression.length === 0) {
       return false
     }
-    const expr = await ensureMathJS(spec.expression, serverUrl)
+    // const expr = await ensureMathJS(spec.expression, serverUrl)
+    let expr: string;
+
+    try {
+      expr = await ensureMathJS(spec.expression, serverUrl);
+      console.log("reached server and valid");
+    } catch (error : any) {
+      console.log("Couldn't reach server error");
+      // showErrorToast(
+      //   `Couldn’t reach server: ${error.message}`
+      // );
+      showErrorToast("Couldn't reach server: " + error.message);
+      return false;
+    }
+
 
     try {
       fpcorejs.mathjsToFPCore(expr);

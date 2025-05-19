@@ -247,26 +247,93 @@ function HerbieUIInner() {
     const loadSpecFromGist = async (gistId: string) => {
       const octokit = new Octokit();
 
-      try {
+      const response = await octokit.request("GET /gists/{gist_id}", {
+        gist_id: gistId,
+        headers: {
+          "X-GitHub-Api-Version": "2022-11-28",
+          "accept": "application/vnd.github+json",
+        },
+      });
 
-        const response = await octokit.request("GET /gists/{gist_id}", {
-          gist_id: gistId,
-          headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
-            "accept": "application/vnd.github+json",
-          },
-        });
-  
-        const fileKey = Object.keys(response.data.files)[0];
+      const fileKey = Object.keys(response.data.files)[0];
 
-        if (fileKey.length === 0) throw new Error("No files found in Gist.");
+      if (fileKey.length === 0) throw new Error("No files found in Gist.");
 
-        const rawUrl = response.data.files[fileKey].raw_url;
-  
-        const rawResponse = await fetch(rawUrl);
+      const rawUrl = response.data.files[fileKey].raw_url;
+
+      const rawResponse = await fetch(rawUrl);
+      const jsonState = await rawResponse.json();
+
+      console.log("gist jsonState from gist:", gistId, jsonState);
+
+      // LOAD THE STATE FROM JSON
+      // ------------------------
+
+      setServerUrl(jsonState.serverUrl);
+      setFPTaylorServerUrl(jsonState.fptaylorServerUrl);
+      setFPBenchServerUrl(jsonState.fpbenchServerUrl);
+
+      const newSpecId = spec.id + 1;
+      const inputRangeId = nextId(inputRangesTable);
+
+      const inputRanges = jsonState.specRanges
+      ? new HerbieTypes.InputRanges(jsonState.specRanges, newSpecId, inputRangeId)
+      : new HerbieTypes.RangeInSpecFPCore(newSpecId, inputRangeId);
+
+      setArchivedExpressions(expressions.map(e => e.id));
+      setInputRangesTable([...inputRangesTable, inputRanges]);
+      setSpec({ expression: jsonState.spec.expression, id: newSpecId, fpcore: jsonState.spec.fpcore });
+
+      const oldIdToNew: Map<number, HerbieTypes.Expression> = new Map();
+      const newExpressions = [];
+      const newDerivations = [];
+
+      for (let i = 0; i < jsonState.expressions.length; i++) {
+        const expr = jsonState.expressions[i];
+        const newId = nextId(expressions) + i;
+        const newExpr = new HerbieTypes.Expression(expr.text, newId, newSpecId, expr.tex);
+        oldIdToNew.set(expr.id, newExpr);
+        newExpressions.push(newExpr);
+      }
+
+      for (const deriv of jsonState.derivations) {
+        const newExpr = oldIdToNew.get(deriv.id);
+        const newParent = deriv.origExpId ? oldIdToNew.get(deriv.origExpId) : undefined;
+        if (newExpr) {
+          newDerivations.push(new HerbieTypes.Derivation(deriv.history, newExpr.id, newParent?.id));
+        }
+      }
+
+      setExpressions([...newExpressions, ...expressions]);
+      setDerivations([...newDerivations, ...derivations]);
+      setSelectedExprId(oldIdToNew.get(jsonState.selectedExprId)?.id ?? -1);
+      setExpandedExpressions(jsonState.expandedExpressions.map((id: number) => oldIdToNew.get(id)?.id ?? -1));
+      setCompareExprIds(jsonState.compareExprIds.map((id: number) => oldIdToNew.get(id)?.id ?? -1));
+
+      // ------------------------
+      
+      setShowSpecEntry(false);
+
+    };
+
+    // -----------------
+    const queryParams = new URLSearchParams(window.location.search);
+
+    const gistId = queryParams.get('gist');
+    
+    if (gistId != null) {
+      loadSpecFromGist(gistId);
+    }
+  }
+
+
+  // Load in data from URL with json_url
+  useEffect(loadStateFromURL, [])
+  function loadStateFromURL() {
+    // -----------------
+    const loadStateFromURLInner = async (json_url: string) => {
+        const rawResponse = await fetch(json_url);
         const jsonState = await rawResponse.json();
-
-        console.log("gist jsonState from gist:", gistId, jsonState);
 
         // LOAD THE STATE FROM JSON
         // ------------------------
@@ -315,20 +382,15 @@ function HerbieUIInner() {
         // ------------------------
         
         setShowSpecEntry(false);
-
-      } catch (err) {
-        console.error("Failed to import state from Gist:", err);
-      } 
-
     };
 
     // -----------------
     const queryParams = new URLSearchParams(window.location.search);
 
-    const gistId = queryParams.get('gist');
+    const json_url = queryParams.get('json_url');
     
-    if (gistId != null) {
-      loadSpecFromGist(gistId);
+    if (json_url != null) {
+      loadStateFromURLInner(json_url);
     }
   }
 

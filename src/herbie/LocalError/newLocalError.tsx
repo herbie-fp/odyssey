@@ -4,9 +4,23 @@ import * as herbiejs from '../lib/herbiejs';
 import { LocalErrorTree } from "../HerbieTypes";
 import "./newLocalError.css";
 
+const opMap: Record<string,string> = {
+  "+": "add",
+  "-": "sub",
+  "*": "mul",
+  "/": "div"
+};
+
+function mapOp(e: string) {
+  return opMap[e] ?? e;
+}
+
 function formatExpression(node: LocalErrorTree): string {
+  const expr = mapOp(node.e);
   if (!node.children || node.children.length === 0) {
-    return node.e;
+    // return node.e;
+    return expr;
+    
   }
   if (["sqrt", "pow", "log"].includes(node.e)) {
     return `${node.e}(${node.children.map(formatExpression).join(", ")})`;
@@ -103,7 +117,7 @@ function TreeRow({
                 )}
               </span>
             )}
-            {isExpanded ? node.e : collapsedExpression}
+            {isExpanded ? mapOp(node.e) : collapsedExpression}
           </span>
         </td>
         <td className="border px-4 py-2">{renderValue(node["actual-value"])}</td>

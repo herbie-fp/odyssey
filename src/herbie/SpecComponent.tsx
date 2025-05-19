@@ -448,10 +448,8 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
         className="acknowledgments"
         style={{ fontSize: "small", marginTop: "2em", textAlign: 'center' }}
       >
-        This work is supported by the U.S. Department of Energy, Office of
-        Science, Office of Advanced Scientific Computing Research, ComPort:
-        Rigorous Testing Methods to Safeguard Software Porting, under Award
-        Number DE-SC0022081.
+        This material is based upon work supported by the National Science Foundation 
+        under Grant No. CNS-2346394
       </div>
     </div>
   );

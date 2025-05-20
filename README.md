@@ -157,5 +157,5 @@ Ensure that you've read through the extensions guidelines and follow the best pr
 
 ## Acknowledgements
 
-This material is based upon work supported by the National Science Foundation under Grant No. CNS-2346394
+This material is based upon work supported by the National Science Foundation under Grant No. CNS-2346394.
 

@@ -449,7 +449,7 @@ function SpecComponent({setShowExplore}: {setShowExplore: () => void}) {
         style={{ fontSize: "small", marginTop: "2em", textAlign: 'center' }}
       >
         This material is based upon work supported by the National Science Foundation 
-        under Grant No. CNS-2346394
+        under Grant No. CNS-2346394.
       </div>
     </div>
   );

@@ -51,7 +51,8 @@ const FPTAYLOR_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/d
 const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/download/fptaylor-component/fpbench-dist.zip";
 async function getLatestHerbieBinary() {
     const repo = "herbie-fp/odyssey";
-    const url = `https://api.github.com/repos/${repo}/releases/latest`;
+    // const url = `https://api.github.com/repos/${repo}/releases/latest`;
+    const url = HERBIE_SERVER_ADDRESS;
     try {
         const response = await fetch(url, { headers: { "Accept": "application/vnd.github.v3+json" } });
         if (!response.ok) {

@@ -23,7 +23,8 @@ const FPBENCH_SERVER_ADDRESS = "https://github.com/herbie-fp/odyssey/releases/do
 
 async function getLatestHerbieBinary(): Promise<string> {
     const repo = "herbie-fp/odyssey";
-    const url = `https://api.github.com/repos/${repo}/releases/latest`;
+    // const url = `https://api.github.com/repos/${repo}/releases/latest`;
+	const url = HERBIE_SERVER_ADDRESS;
 
     try {
         const response = await fetch(url, { headers: { "Accept": "application/vnd.github.v3+json" } });

@@ -22,7 +22,6 @@ jobs:
       - name: Install OCaml dependencies
         run: |
           opam install -y num
-          eval $(opam env)
 
       - name: Set up Python 3.7
         uses: actions/setup-python@v4
@@ -48,7 +47,9 @@ jobs:
       #     make
 
       - name: Build FPTaylor
-        run: make
+        run: |
+          eval $(opam env)
+          make
 
       - name: Create FPTaylor compiled directory
         run: |

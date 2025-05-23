@@ -54,7 +54,7 @@ jobs:
       - name: Create FPTaylor compiled directory
         run: |
           mkdir -p fptaylor-dist/linux/fptaylor-compiled
-          cp -r *.ml* *.sh *.cfg *.txt fptaylor fptaylor.native gelpia fptaylor-dist/linux/fptaylor-compiled/
+          cp -r default.cfg fptaylor fptaylor-dist/linux/fptaylor-compiled/
 
       - name: Zip the distribution
         run: |

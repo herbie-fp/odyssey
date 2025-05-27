@@ -159,8 +159,7 @@ function HerbieUIInner() {
       const urlSpec = new HerbieTypes.Spec(urlExpr, specId);
       const variables = fpcorejs.getVarnamesMathJS(urlExpr);
 
-      // TODO: do expression validation, see SpecComponent
-      setSpec(urlSpec);
+      
 
       // Get ranges from URL parameters if they exist
       const customRanges = getRangesFromURL(variables);
@@ -181,6 +180,9 @@ function HerbieUIInner() {
         specId,
         utils.nextId(inputRangesTable)
       )]);
+
+      // TODO: do expression validation, see SpecComponent
+      setSpec(urlSpec);
 
       if (urlAlts !== null) {    
         const alts: HerbieTypes.Expression[] = [];    

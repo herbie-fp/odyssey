@@ -297,7 +297,10 @@ function SerializeStateComponent(props: exportStateProps) {
       bottom: 'auto',
       marginRight: '-50%',
       transform: 'translate(-50%, -50%)',
-      backgroundColor: 'var(--background-color)'
+      backgroundColor: 'var(--background-color)',
+      // make modal wider 
+      width: '600px',
+      maxWidth: '90vw'
     },
   };
 
@@ -329,7 +332,7 @@ function SerializeStateComponent(props: exportStateProps) {
   } else {
     return (
       <div className="import-export" style={{paddingBottom: "2px"}}>
-        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Export</a>
+        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Copy Analysis Link</a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => {
@@ -345,16 +348,29 @@ function SerializeStateComponent(props: exportStateProps) {
           ariaHideApp={false}
         >
           {isGeneratingGist ? (
-            <p>Generating export link...</p>
+            <p>Generating analysis link...</p>
           ) : gistUrl ? (
             <div>
-              <p><strong>Exported Gist link:</strong></p>
-              <input type="text" value={gistUrl} readOnly />
-              {copied && <p style={{ color: "green" }}>Link copied to clipboard!</p>}
+              <p><strong>Exported analysis link:</strong></p>
+
+              <input type="text" value={gistUrl} readOnly 
+                style={{
+                  width: '100%',
+                  minWidth: '400px', 
+                  padding: '0.5em',
+                  fontSize: '1em'
+                }}/>
+                
+              {copied && <p style={{ color: "green" }}>This analysis link has been copied</p>}
+
+              <p style={{ marginTop: '0.5em', fontSize: '0.9em', color: 'var(--secondary-text)' }}>
+                  To access this specific analysis again, visit the GitHub Gist
+              </p>
+
             </div>
           ) : (
             // hacky, there should be a proper error handling message here
-            <p>Generating export link....</p>
+            <p>Generating analysis link....</p>
           )}
         </Modal>
       </div>

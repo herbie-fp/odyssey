@@ -85,6 +85,24 @@ function SerializeStateComponent(props: exportStateProps) {
   const [isGeneratingGist, setIsGeneratingGist] = useState<boolean>(false);
   const [hasGeneratedGist, setHasGeneratedGist] = useState<boolean>(false);
 
+  // reset state helper method
+  const resetLinkState = () => {
+    setGistUrl(null);
+    setCopied(false);
+    setIsGeneratingGist(false);
+    setHasGeneratedGist(false);
+  };
+
+  const openModal = () => {
+    resetLinkState();
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetLinkState();
+  };
+
   // when spec changes, reset everything
   useEffect(() => {
     setGistUrl(null);
@@ -332,21 +350,36 @@ function SerializeStateComponent(props: exportStateProps) {
   } else {
     return (
       <div className="import-export" style={{paddingBottom: "2px"}}>
-        <a onClick={() => setIsModalOpen(true)} style={buttonStyles}>Copy Analysis Link</a>
+        <a onClick={() => openModal()} style={buttonStyles}>Copy Analysis Link</a>
         <Modal 
           isOpen={isModalOpen}
           onRequestClose={() => {
-            setIsModalOpen(false);
-            // when modal closes, reset everything
-            setGistUrl(null);
-            setCopied(false);
-            setIsGeneratingGist(false);
-            setHasGeneratedGist(false);
+            // // when modal closes, reset everything
+            closeModal();
           }}
           contentLabel="State Export Modal"
           style={modalStyles}
           ariaHideApp={false}
+          // does not close automatically on outside click
+          shouldCloseOnOverlayClick={false}
         >
+          {/* Close button */}
+          <button
+            onClick={() => closeModal()}
+            style={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              background: 'transparent',
+              border: 'none',
+              fontSize: '1.2em',
+              cursor: 'pointer'
+            }}
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+
           {isGeneratingGist ? (
             <p>Generating analysis link...</p>
           ) : gistUrl ? (

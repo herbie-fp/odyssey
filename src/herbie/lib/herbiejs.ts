@@ -2,6 +2,7 @@ import { getVarnamesFPCore } from './fpcore';
 import * as ordinals from './ordinals';
 import { ErrorExpressionResponse, Sample, LocalErrorTree } from '../HerbieTypes';
 import { getApi } from './servercalls';
+import { showErrorToast } from '../../ErrorToast';
 
 interface HerbieResponse {
   error?: string;
@@ -84,7 +85,16 @@ const getHerbieApi = async (
     if (responseData.error) {
       throw new Error('Herbie server: ' + responseData.error);
     }
-    console.debug('got data', responseData);
+    const warnings = responseData.warnings
+    console.log(warnings)
+    if (warnings) {
+      for (const [type, message, link, details] of warnings) {
+        showErrorToast(
+          `Warning: ${type}\nMessage: ${message}\nDetails: ${details.join(", ")}\nMore info: ${link}`
+        );
+      }
+    }
+    console.log('got data', responseData);
     return responseData;
   } catch (error: any) {
     throw new Error(`Error sending data to Herbie server at ${url}:\n${error.message}`)

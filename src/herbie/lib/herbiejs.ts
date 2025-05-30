@@ -90,7 +90,10 @@ const getHerbieApi = async (
     if (warnings) {
       for (const [type, message, link, details] of warnings) {
         showErrorToast(
-          `Warning: ${type}\nMessage: ${message}\nDetails: ${details.join(", ")}\nMore info: ${link}`
+          `Warning: ${type}\n
+           Message: ${message}\n
+           Details: ${details.join(", ")}\n
+           More info: ${link}`
         );
       }
     }

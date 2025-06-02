@@ -3,6 +3,10 @@ import * as HerbieContext from './HerbieContext';
 import './DerivationComponent.css';
 import { ReactNode, useEffect } from 'react';
 import { DerivationNode, ProofStep } from './HerbieTypes';
+import ReactDOMServer from 'react-dom/server';
+import KaTeX from 'katex';
+import { expressionToTex } from './ExpressionTable';
+import * as fpcorejs from './lib/fpcore'
 
 // Function to convert FPCore to TeX (simplified version)
 function fpCoreToTeX(expr: string, options?: { loc: any; color: any; }) {
@@ -86,7 +90,7 @@ function renderProof(proof: ProofStep[], options = {}) {
 
 
 // Render history recursively
-function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
+async function renderHistory(altn: DerivationNode, options = {}, serverUrl: string): Promise<ReactNode[]> {
   const items = [];
 
   if (altn.type === "start") {
@@ -98,17 +102,22 @@ function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
       <li key="start">
         <p>
           Initial program <span className="error" title={`${err2} on training set`}>{err}</span>
-        </p>
-        <div className="math" dangerouslySetInnerHTML={{ 
-          __html: `\\[${fpCoreToTeX(altn.program)}\\]` 
-        }} />
+        </p>        
+        <div className="math" dangerouslySetInnerHTML={{
+            //__html:  KaTeX.renderToString(`\\[${fpCoreToTeX(altn.program)}\\]`, { throwOnError: false })
+            __html:  KaTeX.renderToString(
+              await expressionToTex(altn.program, fpcorejs.getVarnamesMathJS(altn.program).length, serverUrl), { throwOnError: false }
+            )
+          }}
+        />
+        await expressionToTex(expression, fpcorejs.getVarnamesMathJS(expression).length, serverUrl)
       </li>
     );
   }
   else if (altn.type === "add-preprocessing") {
     // Add the previous items if they exist
     if (altn.prev) {
-      items.push(...renderHistory(altn.prev, options));
+      items.push(...await renderHistory(altn.prev, options, serverUrl));
     }
     
     // Add the preprocessing step
@@ -117,26 +126,32 @@ function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
   else if (altn.type === "taylor") {
     // Add the previous items
     if (altn.prev) {
-      items.push(...renderHistory(altn.prev, options));
+      items.push(...await renderHistory(altn.prev, options, serverUrl));
     }
     
     // Add Taylor expansion step
     items.push(
       <li key="taylor">
         <p>Taylor expanded in {altn.var} around {altn.pt}</p>
-        <div className="math" dangerouslySetInnerHTML={{ 
-          __html: `\\[\\leadsto ${fpCoreToTeX(altn.program, { 
-            loc: altn.loc, 
-            color: "blue" 
-          })}\\]` 
-        }} />
+        <Latex>     
+          {
+            ReactDOMServer.renderToString(
+              <div className="math" dangerouslySetInnerHTML={{ 
+                __html: `\\[\\leadsto ${fpCoreToTeX(altn.program, { 
+                  loc: altn.loc, 
+                  color: "blue" 
+                })}\\]` 
+              }} />
+            )
+          }
+        </Latex>
       </li>
     );
   }
   else if (altn.type === "rr") {
     // Add the previous items
     if (altn.prev) {
-      items.push(...renderHistory(altn.prev, options));
+      items.push(...await renderHistory(altn.prev, options, serverUrl));
     }
     
     // Add proof if it exists
@@ -168,18 +183,7 @@ function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
 
 // Main component for rendering derivations
 const DerivationRenderer = (derivation: DerivationNode) => {
-  // Load MathJax
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML';
-    script.async = true;
-    document.body.appendChild(script);
-    
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
+  const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
 
   // // Example JSON data
   // const exampleDerivation: DerivationNode = {
@@ -269,10 +273,14 @@ const DerivationRenderer = (derivation: DerivationNode) => {
       <div className="bg-white rounded-lg p-4 shadow">
         <div id="history">
           <ol>
-            {renderHistory(derivation, {
-              fpCoreToTeX,
-              formatAccuracy
-            })}
+            {await renderHistory(
+              derivation, 
+              {
+                fpCoreToTeX,
+                formatAccuracy
+              },
+              serverUrl
+            )}
           </ol>
         </div>
       </div>
@@ -302,8 +310,6 @@ const DerivationRenderer = (derivation: DerivationNode) => {
   );
 };
 
-
-
 const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
 
@@ -311,6 +317,18 @@ const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   if (!selectedDerivation) {
     return <div>Could not find expression with id {expressionId}</div>
   }
+
+  useEffect(() => {
+    async function() {
+      selectedDerivation?.derivation ?
+      await DerivationRenderer(selectedDerivation.derivation) : 
+      <Latex> 
+        {
+          selectedDerivation.history
+        }
+      </Latex>
+    }
+  }, []);
 
   let currentExpressionId: number | undefined = selectedDerivation.id
   let expressionAncestry = []
@@ -333,13 +351,15 @@ const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   }
 
   return <div>
-      selectedDerivation.derivation ?
-      DerivationRenderer(selectedDerivation.derivation) : 
-      <Latex> 
-        {
-          selectedDerivation.history
-        }
-      </Latex>
+      {
+        selectedDerivation.derivation ?
+        await DerivationRenderer(selectedDerivation.derivation) : 
+        <Latex> 
+          {
+            selectedDerivation.history
+          }
+        </Latex>
+      }
   </div>
 };
 

@@ -262,7 +262,7 @@ function SerializeStateComponent(props: exportStateProps) {
       if (newExpressionId === undefined) {
         continue;
       }
-      newDerivations.push(new Derivation(deriv.history, newExpressionId, newParentId));
+      newDerivations.push(new Derivation(deriv.history, newExpressionId, newParentId, deriv.derivation));
     }
 
     setExpressions([...oldIdToNewExpressions.values(), ...expressions]);

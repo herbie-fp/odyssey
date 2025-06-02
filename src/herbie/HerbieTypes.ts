@@ -5,16 +5,64 @@ export type ordinal = number
 export type ordinalPoint = ordinal[]
 export type FPCore = string
 
+export type ProofStep = {
+  direction: string;
+  error: number | "N/A";
+  loc: number[];
+  program: string;
+  rule: string;
+  tag: string;
+};
+
+type CommonFields = {
+  error: number | "N/A";
+  "training-error"?: number | "N/A";
+  prev?: DerivationNode;
+};
+
+type StartNode = CommonFields & {
+  error: number;
+  "training-error": number;
+  type: "start";
+  program: string;
+};
+
+type AddPreprocessingNode = CommonFields & {
+  type: "add-preprocessing";
+  program: string;
+  preprocessing: any[];
+};
+
+type TaylorNode = CommonFields & {
+  type: "taylor";
+  program: string;
+  loc: number[];
+  pt: string;
+  var: string;
+};
+
+type RRNode = CommonFields & {
+  error: number;
+  "training-error": number;
+  type: "rr";
+  program: string;
+  loc: number[];
+  proof: ProofStep[];
+};
+
+export type DerivationNode = StartNode | AddPreprocessingNode | TaylorNode | RRNode;
+
 export class Derivation {
   /**
    * @param history: The HTMLHistory object containing the derivation (as HTML) for an alternative expression
    * @param id: The id of this derivation, the same id as the expression this derivation is for
    * @param origExpId: The id of the expression that was improved resulting in the alternative this derivation is for
    */
-  constructor(public readonly history: HTMLHistory, public readonly id: number, public readonly origExpId: number | undefined) {
+  constructor(public readonly history: HTMLHistory, public readonly id: number, public readonly origExpId: number | undefined, public readonly derivation?: DerivationNode) {
     this.history = history;
     this.id = id;
-    this.origExpId = origExpId;
+    this.origExpId = origExpId;    
+    this.derivation = derivation;
   }
 }
 

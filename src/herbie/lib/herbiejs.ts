@@ -1,6 +1,6 @@
 import { getVarnamesFPCore } from './fpcore';
 import * as ordinals from './ordinals';
-import { ErrorExpressionResponse, Sample, LocalErrorTree } from '../HerbieTypes';
+import { ErrorExpressionResponse, Sample, LocalErrorTree, DerivationNode } from '../HerbieTypes';
 import { getApi } from './servercalls';
 import { showErrorToast } from '../../ErrorToast';
 
@@ -131,6 +131,7 @@ type ordinal = number;
  * histories[1] and splitpoints in splitpoints[1])
 **/
 interface HerbieAlternativesResponse {
+  derivations: DerivationNode[];
   alternatives: FPCore[];
 
   /** The history of each alternative. (e.g. alternatives[1] will have its history stored in

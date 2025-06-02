@@ -301,7 +301,7 @@ function HerbieUIInner() {
         const newExpr = oldIdToNew.get(deriv.id);
         const newParent = deriv.origExpId ? oldIdToNew.get(deriv.origExpId) : undefined;
         if (newExpr) {
-          newDerivations.push(new HerbieTypes.Derivation(deriv.history, newExpr.id, newParent?.id));
+          newDerivations.push(new HerbieTypes.Derivation(deriv.history, newExpr.id, newParent?.id, deriv.derivation));
         }
       }
 
@@ -370,7 +370,7 @@ function HerbieUIInner() {
           const newExpr = oldIdToNew.get(deriv.id);
           const newParent = deriv.origExpId ? oldIdToNew.get(deriv.origExpId) : undefined;
           if (newExpr) {
-            newDerivations.push(new HerbieTypes.Derivation(deriv.history, newExpr.id, newParent?.id));
+            newDerivations.push(new HerbieTypes.Derivation(deriv.history, newExpr.id, newParent?.id, deriv.derivation));
           }
         }
 
@@ -614,7 +614,7 @@ function HerbieUIInner() {
       }
 
       setDerivations([
-        new HerbieTypes.Derivation("<p>Original Spec Expression</p>", expressionId, undefined),
+        new HerbieTypes.Derivation("<p>Original Spec Expression</p>", expressionId, undefined, undefined),
         ...derivations,
       ]);
     } 

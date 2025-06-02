@@ -372,7 +372,7 @@ function SerializeStateComponent(props: exportStateProps) {
               right: '8px',
               background: 'transparent',
               border: 'none',
-              fontSize: '1.2em',
+              fontSize: '2.0em',
               cursor: 'pointer'
             }}
             aria-label="Close modal"
@@ -384,20 +384,20 @@ function SerializeStateComponent(props: exportStateProps) {
             <p>Generating analysis link...</p>
           ) : gistUrl ? (
             <div>
-              <p><strong>Exported analysis link:</strong></p>
+              <p><strong>Analysis link copied to the clipboard:</strong></p>
 
               <input type="text" value={gistUrl} readOnly 
                 style={{
-                  width: '100%',
+                  width: '98%',
                   minWidth: '400px', 
                   padding: '0.5em',
-                  fontSize: '1em'
+                  fontSize: '1em',
                 }}/>
                 
-              {copied && <p style={{ color: "green" }}>This analysis link has been copied</p>}
+              {/* {copied && <p style={{ color: "green" }}>This analysis link has been copied</p>} */}
 
               <p style={{ marginTop: '0.5em', fontSize: '0.9em', color: 'var(--secondary-text)' }}>
-                  To access this specific analysis again, visit the GitHub Gist
+                This analysis has been saved in a GitHub Gist. To access this analysis again, use the link shown above. 
               </p>
 
             </div>

@@ -575,8 +575,8 @@ function ErrorPlot() {
                 const firstPoint = brushedPoints.length > 0 ? brushedPoints[0] : null;
                 const lastPoint = brushedPoints.length > 0 ? brushedPoints[brushedPoints.length - 1] : null;
 
-                const firstFloat = firstPoint !== null ? ordinals.ordinalToFloat(firstPoint) : null;
-                const lastFloat = lastPoint !== null ? ordinals.ordinalToFloat(lastPoint) : null;
+                const firstFloat = firstPoint !== null ? firstPoint.map(v => ordinals.ordinalToFloat(v)) : null;
+                const lastFloat = lastPoint !== null ? lastPoint.map(v => ordinals.ordinalToFloat(v)) : null;
 
                 setSelectedSubset({
                   selection: event.selection,

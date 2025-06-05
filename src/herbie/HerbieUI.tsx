@@ -107,7 +107,7 @@ function permuteSampleToExpressionOrder(sample: HerbieTypes.Sample, expressionTe
   const permutedIndices = permutedVars.map(v => specVars.indexOf(v));
   
   const permutedSamplePoints = sample.points.map(([point, error]): [HerbieTypes.ordinalPoint, number] => {
-    const newPoint: HerbieTypes.ordinalPoint = point.map((_, idx) => point[permutedIndices[idx]]);
+    const newPoint: HerbieTypes.ordinalPoint = point.map((_, idx) => point[permutedIndices[idx] || 0]);
     return [newPoint, error];
   });
   

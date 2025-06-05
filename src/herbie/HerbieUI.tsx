@@ -272,7 +272,7 @@ function HerbieUIInner() {
 
       const fileKey = Object.keys(response.data.files)[0];
 
-      if (fileKey.length === 0) throw new Error("No files found in Gist.");
+      if (fileKey.length === 0) {throw new Error("No files found in Gist.");}
 
       const rawUrl = response.data.files[fileKey].raw_url;
 
@@ -336,7 +336,7 @@ function HerbieUIInner() {
 
     const gistId = queryParams.get('gist');
     
-    if (gistId != null) {
+    if (gistId !== null) {
       loadSpecFromGist(gistId);
     }
   }
@@ -404,7 +404,7 @@ function HerbieUIInner() {
 
     const json_url = queryParams.get('json_url');
     
-    if (json_url != null) {
+    if (json_url !== null) {
       loadStateFromURLInner(json_url);
     }
   }

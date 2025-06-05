@@ -245,7 +245,6 @@ function ExpressionTable() {
     // get suggested expressions with Herbie and put them in the expressions table
     const suggested = await herbiejsJobs.suggestExpressions(fpcorejs.mathjsToFPCore(expression.text, spec.expression, fpcorejs.getVarnamesMathJS(spec.expression)), sample, serverUrl)
 
-    // TODO: Fix name collision
     const derivationsObjects = suggested.derivations;
     const histories = suggested.histories;
     const alternatives = suggested.alternatives;

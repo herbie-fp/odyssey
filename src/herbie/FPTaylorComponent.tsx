@@ -15,7 +15,8 @@ const FPTaylorComponent = ({ expressionId }: { expressionId: number }) => {
   }
   
   // Apply matching to automatically transform some unsupported expressions to supported ones
-  // TODO: Eventually this needs to be confirmed to FPCore parsing solution, right now it is a regex hack
+  // TODO: waiting for FPTaylor to support pow(x, 2) directly
+  // associated issue: https://github.com/herbie-fp/odyssey/issues/243
   const expression = {
     ...rawExpression,
     text: rawExpression.text.replace(/pow\((\w+),\s*2\)/g, '($1 * $1)')

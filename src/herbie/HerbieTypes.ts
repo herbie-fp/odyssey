@@ -59,7 +59,6 @@ type FinalSimplifyNode = CommonFields & {
   error: number;
   "training-error": number;
   prev: DerivationNode;
-  // TODO
 };
 
 export type DerivationNode = StartNode | AddPreprocessingNode | TaylorNode | RRNode | RegimesNode | FinalSimplifyNode;

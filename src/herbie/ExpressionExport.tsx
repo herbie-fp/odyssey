@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as HerbieContext from './HerbieContext';
 import * as fpcorejs from './lib/fpcore';
-import { analyzeExpressionExport, ExpressionExportResponse } from './lib/herbiejs';
+import { translateFpcoreToLanguage, ExpressionExportResponse } from './lib/herbiejs';
 
 interface ExpressionExportProps {
     expressionId: number;
@@ -28,7 +28,7 @@ const ExpressionExport: React.FC<ExpressionExportProps> = (expressionId) => {
     // Make server call to get translation when user submits
     const translateExpression = async () => {
         try {
-            const response = await analyzeExpressionExport(
+            const response = await translateFpcoreToLanguage(
                 fpcorejs.mathjsToFPCore(expressionText?.text),
                 language,
                 serverUrl

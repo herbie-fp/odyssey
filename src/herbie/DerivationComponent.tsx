@@ -1,43 +1,12 @@
 import Latex from 'react-latex-next';
 import * as HerbieContext from './HerbieContext';
 import './DerivationComponent.css';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { DerivationNode, ProofStep } from './HerbieTypes';
 
-// Function to convert FPCore to TeX (simplified version)
-function fpCoreToTeX(expr: string, options?: { loc: any; color: any; }) {
-  // Handle colored output for specific locations if provided
-  if (options && options.loc && options.loc.length > 0 && options.color) {
-    // This is a simplified approach - a real implementation would navigate to the specific location
-    // and wrap just that part in color
-    return `\\color{${options.color}}{${
-      expr
-        .replace(/\(FPCore \(x\)\s+/g, '')
-        .replace(/\)\)/g, '}')
-        .replace(/\(\-\.f64/g, '(')
-        .replace(/\(\+\.f64/g, '(')
-        .replace(/\(\/\.f64/g, '\\frac{')
-        .replace(/\(sqrt\.f64 \(\+\.f64 x 1\)\)/g, '\\sqrt{x + 1}')
-        .replace(/\(sqrt\.f64 \(\+\.f64 1 x\)\)/g, '\\sqrt{1 + x}')
-        .replace(/\(sqrt\.f64 x\)/g, '\\sqrt{x}')
-        .replace(/\#s\(approx \(- \(\+ 1 x\) x\) 1\)/g, '1')
-        .replace(/\(\+\.f64 1 x\)/g, '(1 + x)')
-    }}`;
-  }
-  
-  // Basic conversion (highly simplified)
-  return expr
-    .replace(/\(FPCore \(x\)\s+/g, '')
-    .replace(/\)\)/g, '}')
-    .replace(/\(\-\.f64/g, '(')
-    .replace(/\(\+\.f64/g, '(')
-    .replace(/\(\/\.f64/g, '\\frac{')
-    .replace(/\(sqrt\.f64 \(\+\.f64 x 1\)\)/g, '\\sqrt{x + 1}')
-    .replace(/\(sqrt\.f64 \(\+\.f64 1 x\)\)/g, '\\sqrt{1 + x}')
-    .replace(/\(sqrt\.f64 x\)/g, '\\sqrt{x}')
-    .replace(/\#s\(approx \(- \(\+ 1 x\) x\) 1\)/g, '1')
-    .replace(/\(\+\.f64 1 x\)/g, '(1 + x)');
-}
+import KaTeX from 'katex';
+
+import * as herbiejs from './lib/herbiejs';
 
 // Format accuracy for display
 function formatAccuracy(val: number, bits = null, unit = '%') {
@@ -45,10 +14,10 @@ function formatAccuracy(val: number, bits = null, unit = '%') {
 }
 
 // Render a proof to HTML
-function renderProof(proof: ProofStep[], options = {}) {
+async function renderProof(proof: ProofStep[], serverUrl: string, options = {}) {
   const proofSteps = proof
     .filter(step => step.direction !== "goal")
-    .map(step => {
+    .map(async (step,i) => {
       // Convert direction to human-readable form
       const dirText = step.direction === "rtl" ? "right to left" : 
                       step.direction === "ltr" ? "left to right" : "";
@@ -57,17 +26,13 @@ function renderProof(proof: ProofStep[], options = {}) {
       const err = step.error;
       
       return (
-        <li key={step.rule + Math.random()}>
+        <li key={step.rule + "_" + i}>
           <p>
             <code title={dirText}>{step.rule}</code>
             <span className="error">{err}</span>
           </p>
-          <div className="math" dangerouslySetInnerHTML={{ 
-            __html: `\\[\\leadsto ${fpCoreToTeX(step.program, { 
-              loc: step.loc, 
-              color: "blue" 
-            })}\\]` 
-          }} />
+          { await texFromFPCoreHTML(step.program, serverUrl) }
+
         </li>
       );
     });
@@ -77,7 +42,7 @@ function renderProof(proof: ProofStep[], options = {}) {
       <div className="proof">
         <details>
           <summary>Step-by-step derivation</summary>
-          <ol>{proofSteps}</ol>
+          <ol>{await Promise.all(proofSteps)}</ol>
         </details>
       </div>
     </li>
@@ -85,8 +50,36 @@ function renderProof(proof: ProofStep[], options = {}) {
 }
 
 
+// Make server call to get tex version of expression
+const expressionToTexFPCore = async (expression: string, serverUrl: string) => {
+  try {
+    const response = await herbiejs.translateFpcoreToLanguage(
+      expression,
+      "tex",
+      serverUrl
+    );
+
+    // result starts with "exp(x) =" (all vars ", " separated), slice that off
+    const pre = response.result.split('=')[0];
+    return KaTeX.renderToString(response.result.slice(pre.length + 1), { throwOnError: false }
+    )
+  } catch (err: any) {
+    if ((err as Error).toString().includes("approx")) {
+      // If the error is about approx, we are still waiting for https://github.com/FPBench/FPBench/issues/145
+      return "LaTeX rendering of approx nodes is not yet supported. Please try again later.";
+    }
+    return (err as Error).toString()
+  }
+};
+
+async function texFromFPCoreHTML(expr: string, serverUrl: string): Promise<ReactNode> {
+  return <div className="math" dangerouslySetInnerHTML={{
+    __html: await expressionToTexFPCore(expr.replaceAll('.f64', ''), serverUrl), 
+  }} />;
+} 
+
 // Render history recursively
-function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
+async function renderHistory(altn: DerivationNode, options = {}, serverUrl: string): Promise<ReactNode[]> {
   const items = [];
 
   if (altn.type === "start") {
@@ -95,53 +88,46 @@ function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
     const err2 = formatAccuracy(altn["training-error"]);
     
     items.push(
-      <li key="start">
+      <li>
         <p>
           Initial program <span className="error" title={`${err2} on training set`}>{err}</span>
-        </p>
-        <div className="math" dangerouslySetInnerHTML={{ 
-          __html: `\\[${fpCoreToTeX(altn.program)}\\]` 
-        }} />
+        </p>        
+        { await texFromFPCoreHTML(altn.program, serverUrl) }
       </li>
     );
   }
   else if (altn.type === "add-preprocessing") {
     // Add the previous items if they exist
     if (altn.prev) {
-      items.push(...renderHistory(altn.prev, options));
+      items.push(...await renderHistory(altn.prev, options, serverUrl));
     }
     
     // Add the preprocessing step
-    items.push(<li key="preprocess">Add Preprocessing</li>);
+    items.push(<li>Add Preprocessing</li>);
   }
   else if (altn.type === "taylor") {
     // Add the previous items
     if (altn.prev) {
-      items.push(...renderHistory(altn.prev, options));
+      items.push(...await renderHistory(altn.prev, options, serverUrl));
     }
     
     // Add Taylor expansion step
     items.push(
-      <li key="taylor">
+      <li>
         <p>Taylor expanded in {altn.var} around {altn.pt}</p>
-        <div className="math" dangerouslySetInnerHTML={{ 
-          __html: `\\[\\leadsto ${fpCoreToTeX(altn.program, { 
-            loc: altn.loc, 
-            color: "blue" 
-          })}\\]` 
-        }} />
+        { await texFromFPCoreHTML(altn.program, serverUrl) }
       </li>
     );
   }
   else if (altn.type === "rr") {
     // Add the previous items
     if (altn.prev) {
-      items.push(...renderHistory(altn.prev, options));
+      items.push(...await renderHistory(altn.prev, options, serverUrl));
     }
     
     // Add proof if it exists
     if (altn.proof && altn.proof.length > 0) {
-      items.push(renderProof(altn.proof, options));
+      items.push(await renderProof(altn.proof, serverUrl, options));
     }
     
     // Add rewrite rule application step
@@ -149,16 +135,50 @@ function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
     const err2 = formatAccuracy(altn["training-error"]);
     
     items.push(
-      <li key="rr">
+      <li>
         <p>
           Applied rewrites<span className="error" title={`${err2} on training set`}>{err}</span>
         </p>
-        <div className="math" dangerouslySetInnerHTML={{ 
-          __html: `\\[\\leadsto ${fpCoreToTeX(altn.program, { 
-            loc: altn.loc, 
-            color: "blue" 
-          })}\\]` 
-        }} />
+        { await texFromFPCoreHTML(altn.program, serverUrl) }
+      </li>
+    );
+  }
+  else if (altn.type === "regimes") {
+    // For each regime, render the condition as "if ..." and then the derivation for that branch
+
+    items.push(
+      <li>
+        <ol>
+          {await Promise.all(altn.conditions.map(async (condition, i) => (
+            <div key={i}>
+              <h3 className="condition">if {condition.join(" and ")}</h3>
+              <div>
+                {await Promise.all(altn.prevs.map(async (prev, j) => (
+                  <div key={j}>
+                    {await renderHistory(prev, options, serverUrl)}
+                  </div>
+                )))}
+              </div>
+            </div>
+          )))}
+        </ol>
+      </li>
+    );
+  }
+  else if (altn.type === "final-simplify") {
+    // Add the previous items
+    if (altn.prev) {
+      items.push(...await renderHistory(altn.prev, options, serverUrl));
+    }
+    
+    // Add final simplification step
+    const err = formatAccuracy(altn.error);
+    const err2 = formatAccuracy(altn["training-error"]);
+    
+    items.push(
+      <li>
+        <p>Final simplification<span className="error" title={`${err2} on training set`}>{err}</span></p>
+        { await texFromFPCoreHTML(altn.program, serverUrl) }
       </li>
     );
   }
@@ -167,150 +187,50 @@ function renderHistory(altn: DerivationNode, options = {}): ReactNode[] {
 }
 
 // Main component for rendering derivations
-const DerivationRenderer = (derivation: DerivationNode) => {
-  // Load MathJax
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML';
-    script.async = true;
-    document.body.appendChild(script);
-    
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-
-  // // Example JSON data
-  // const exampleDerivation: DerivationNode = {
-  //   "error": 0.16362048906511412,
-  //   "preprocessing": [],
-  //   "prev": {
-  //     "error": 0.16362048906511412,
-  //     "loc": [1],
-  //     "prev": {
-  //       "error": "N/A",
-  //       "loc": [1],
-  //       "prev": {
-  //         "error": 29.28147582053326,
-  //         "loc": [],
-  //         "prev": {
-  //           "error": 29.900400659788048,
-  //           "preprocessing": [],
-  //           "prev": {
-  //             "error": 29.900400659788048,
-  //             "program": "(FPCore (x) (-.f64 (sqrt.f64 (+.f64 x 1)) (sqrt.f64 x)))",
-  //             "training-error": 29.900400659788048,
-  //             "type": "start"
-  //           },
-  //           "program": "(FPCore (x) (-.f64 (sqrt.f64 (+.f64 x 1)) (sqrt.f64 x)))",
-  //           "training-error": 29.900400659788048,
-  //           "type": "add-preprocessing"
-  //         },
-  //         "program": "(FPCore (x)\n (/.f64 (-.f64 (+.f64 1 x) x) (+.f64 (sqrt.f64 x) (sqrt.f64 (+.f64 1 x)))))",
-  //         "proof": [
-  //           {
-  //             "direction": "goal",
-  //             "error": 29.900400659788048,
-  //             "loc": [],
-  //             "program": "(FPCore (x) (-.f64 (sqrt.f64 (+.f64 x 1)) (sqrt.f64 x)))",
-  //             "rule": "#f",
-  //             "tag": " ↑ 0 ↓ 0"
-  //           },
-  //           {
-  //             "direction": "ltr",
-  //             "error": "N/A",
-  //             "loc": [],
-  //             "program": "(FPCore (x) (- (sqrt.f64 (+.f64 x 1)) (sqrt.f64 x)))",
-  //             "rule": "lift--.f64",
-  //             "tag": " ↑ N/A ↓ N/A"
-  //           },
-  //           {
-  //             "direction": "ltr",
-  //             "error": "N/A",
-  //             "loc": [],
-  //             "program": "(FPCore (x)\n (/\n  (-\n   (* (sqrt.f64 (+.f64 x 1)) (sqrt.f64 (+.f64 x 1)))\n   (* (sqrt.f64 x) (sqrt.f64 x)))\n  (+ (sqrt.f64 (+.f64 x 1)) (sqrt.f64 x))))",
-  //             "rule": "flip--",
-  //             "tag": " ↑ N/A ↓ N/A"
-  //           }
-  //         ],
-  //         "training-error": 29.28147582053326,
-  //         "type": "rr"
-  //       },
-  //       "program": "(FPCore (x) (/.f64 1 (+.f64 (sqrt.f64 x) (sqrt.f64 (+.f64 1 x)))))",
-  //       "pt": "0",
-  //       "training-error": "N/A",
-  //       "type": "taylor",
-  //       "var": "x"
-  //     },
-  //     "program": "(FPCore (x)\n (/.f64\n  #s(approx (- (+ 1 x) x) 1)\n  (+.f64 (sqrt.f64 x) (sqrt.f64 (+.f64 1 x)))))",
-  //     "proof": [
-  //       {
-  //         "direction": "goal",
-  //         "error": 0.16362048906511412,
-  //         "loc": [],
-  //         "program": "(FPCore (x) (/.f64 1 (+.f64 (sqrt.f64 x) (sqrt.f64 (+.f64 1 x)))))",
-  //         "rule": "#f",
-  //         "tag": " ↑ 0 ↓ 0"
-  //       }
-  //     ],
-  //     "training-error": 0.16362048906511412,
-  //     "type": "rr"
-  //   },
-  //   "program": "(FPCore (x)\n (/.f64\n  #s(approx (- (+ 1 x) x) 1)\n  (+.f64 (sqrt.f64 x) (sqrt.f64 (+.f64 1 x)))))",
-  //   "training-error": 0.16362048906511412,
-  //   "type": "add-preprocessing"
-  // };
+const DerivationRenderer = async (derivation: DerivationNode, serverUrl: string) => {
 
   return (
-    <div className="container p-4 mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Floating-Point Expression Optimization</h1>
-      
+    <div className="container p-4 mx-auto">      
       <div className="bg-white rounded-lg p-4 shadow">
         <div id="history">
           <ol>
-            {renderHistory(derivation, {
-              fpCoreToTeX,
-              formatAccuracy
-            })}
+            {await renderHistory(
+              derivation, 
+              {
+                formatAccuracy
+              },
+              serverUrl
+            )}
           </ol>
         </div>
       </div>
-      
-      <style>{`
-        .math {
-          overflow-x: auto;
-        }
-        .error {
-          margin-left: 0.5rem;
-          color: #4299e1;
-          cursor: help;
-        }
-        .proof {
-          margin: 0.5rem 0;
-        }
-        details summary {
-          cursor: pointer;
-          color: #4a5568;
-          font-weight: 500;
-        }
-        .condition {
-          font-style: italic;
-        }
-      `}</style>
     </div>
   );
 };
 
-
-
 const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   const [derivations, setDerivations] = HerbieContext.useGlobal(HerbieContext.DerivationsContext)
+  const [body, setBody] = useState(<Latex>Loading...</Latex>);
+  const [serverUrl,] = HerbieContext.useGlobal(HerbieContext.ServerContext)
 
   let selectedDerivation = derivations.find(d => d.id === expressionId)
   if (!selectedDerivation) {
     return <div>Could not find expression with id {expressionId}</div>
   }
+
+  useEffect(() => {
+    async function getBody() {
+      const newBody = selectedDerivation?.derivation ?
+        await DerivationRenderer(selectedDerivation.derivation, serverUrl) : 
+        <Latex> 
+          {
+            selectedDerivation?.history || "No history available for this expression."
+          }
+        </Latex>
+      setBody(newBody);
+    }
+    getBody();
+  }, []);
 
   let currentExpressionId: number | undefined = selectedDerivation.id
   let expressionAncestry = []
@@ -333,13 +253,9 @@ const DerivationComponent = ({ expressionId }: { expressionId: number }) => {
   }
 
   return <div>
-      selectedDerivation.derivation ?
-      DerivationRenderer(selectedDerivation.derivation) : 
-      <Latex> 
-        {
-          selectedDerivation.history
-        }
-      </Latex>
+      {
+        body
+      }
   </div>
 };
 

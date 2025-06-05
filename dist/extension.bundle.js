@@ -251,8 +251,7 @@ function activate(context) {
         const url = HERBIE_SERVER_ADDRESS;
         // download with curl to home local share odyssey
         const home = (__webpack_require__(225).homedir)();
-        // TODO path.join instead of string concat
-        const odysseyDir = home + '/.local/share/odyssey';
+        const odysseyDir = (0, path_1.join)(home, '.local', 'share', 'odyssey');
         if (!fs.existsSync(odysseyDir)) {
             fs.mkdirSync(odysseyDir, { recursive: true });
         }
@@ -388,8 +387,8 @@ function activate(context) {
         const url = FPTAYLOR_SERVER_ADDRESS;
         // download with curl to home local share odyssey
         const home = (__webpack_require__(225).homedir)();
-        // TODO path.join instead of string concat
-        const odysseyDir = home + '/.local/share/odyssey';
+        // Use path.join for proper cross-platform path handling
+        const odysseyDir = (0, path_1.join)(home, '.local', 'share', 'odyssey');
         if (!fs.existsSync(odysseyDir)) {
             fs.mkdirSync(odysseyDir, { recursive: true });
         }
@@ -436,22 +435,6 @@ function activate(context) {
                     }
                 });
             }
-            // TODO We don't need this code, why is it here?
-            // // show information message
-            // vscode.window.showInformationMessage('FPTaylor installed successfully. Starting server...')
-            // try {
-            // 	// run the command in the VSCode terminal
-            // 	// show the terminal
-            // 	herbieTerminal = getTerminal()
-            // 	herbieTerminal.show()
-            // 	herbieTerminal.sendText(fptaylorPath + ' web --quiet')
-            // } catch (err: any) {
-            // 	vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
-            // 		if (action === 'Copy to clipboard') {
-            // 			vscode.env.clipboard.writeText(err)
-            // 		}
-            // 	})
-            // }
         });
     };
     const downloadFPBench = async () => {
@@ -462,8 +445,7 @@ function activate(context) {
         const url = FPBENCH_SERVER_ADDRESS;
         // download with curl to home local share odyssey
         const home = (__webpack_require__(225).homedir)();
-        // TODO path.join instead of string concat
-        const odysseyDir = home + '/.local/share/odyssey';
+        const odysseyDir = (0, path_1.join)(home, '.local', 'share', 'odyssey');
         if (!fs.existsSync(odysseyDir)) {
             fs.mkdirSync(odysseyDir, { recursive: true });
         }
@@ -510,22 +492,6 @@ function activate(context) {
                     }
                 });
             }
-            // TODO We don't need this code, why is it here?
-            // // show information message
-            // vscode.window.showInformationMessage('FPBench installed successfully. Starting server...')
-            // try {
-            // 	// run the command in the VSCode terminal
-            // 	// show the terminal
-            // 	herbieTerminal = getTerminal()
-            // 	herbieTerminal.show()
-            // 	herbieTerminal.sendText(fpbenchPath + ' web --quiet')
-            // } catch (err: any) {
-            // 	vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {
-            // 		if (action === 'Copy to clipboard') {
-            // 			vscode.env.clipboard.writeText(err)
-            // 		}
-            // 	})
-            // }
         });
     };
     // const download_GPU_FPX = async () => {
@@ -632,102 +598,6 @@ function activate(context) {
         }
         catch (err) {
             vscode.window.showErrorMessage('Error starting Herbie server: ' + err, 'Copy to clipboard').then((action) => {
-                if (action === 'Copy to clipboard') {
-                    vscode.env.clipboard.writeText(err);
-                }
-            });
-        }
-    };
-    // TODO maybe get rid of this?
-    const runFPTaylorServer = async () => {
-        try {
-            const port = 8001;
-            const isPortFree = (port) => new Promise(resolve => {
-                const server = (__webpack_require__(30).createServer)()
-                    .listen(port, () => {
-                    server.close();
-                    resolve(true);
-                })
-                    .on('error', () => {
-                    resolve(false);
-                    return false;
-                });
-            });
-            // check if port is in use
-            let somethingOnPort = !(await isPortFree(port));
-            if (somethingOnPort) { // yes
-                // is it FPTaylor?
-                // TODO: Figure out how to check if it's FPTaylor
-            }
-            // check if symlink exists
-            if (!fs.existsSync(fptaylorPath)) {
-                // wait for user to download herbie
-                vscode.window.showErrorMessage("FPTaylor doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
-                    if (action === 'Download') {
-                        downloadFPTaylor();
-                    }
-                });
-            }
-            else if (somethingOnPort) {
-                showInfo("Using existing FPTaylor server on port " + port + ".");
-                return;
-            }
-            else {
-                herbieTerminal = getTerminal();
-                herbieTerminal.show();
-                // Set up FPTaylor server here
-                // TODO (rc2002)
-            }
-        }
-        catch (err) {
-            vscode.window.showErrorMessage('Error starting FPTaylor server: ' + err, 'Copy to clipboard').then((action) => {
-                if (action === 'Copy to clipboard') {
-                    vscode.env.clipboard.writeText(err);
-                }
-            });
-        }
-    };
-    // TODO maybe get rid of this?
-    const runFPBenchServer = async () => {
-        try {
-            const port = 8002;
-            const isPortFree = (port) => new Promise(resolve => {
-                const server = (__webpack_require__(30).createServer)()
-                    .listen(port, () => {
-                    server.close();
-                    resolve(true);
-                })
-                    .on('error', () => {
-                    resolve(false);
-                    return false;
-                });
-            });
-            // check if port is in use
-            let somethingOnPort = !(await isPortFree(port));
-            if (somethingOnPort) { // yes
-                // is it FPBench?
-                // TODO: Figure out how to check if it's FPBench
-            }
-            // check if symlink exists
-            if (!fs.existsSync(fpbenchPath)) {
-                // wait for user to download herbie
-                vscode.window.showErrorMessage("FPBench doesn't seem to be installed yet. Click the button to download it.", 'Download').then((action) => {
-                    if (action === 'Download') {
-                        downloadFPBench();
-                    }
-                });
-            }
-            else if (somethingOnPort) {
-                showInfo("Using existing FPBench server on port " + port + ".");
-                return;
-            }
-            else {
-                herbieTerminal = getTerminal();
-                herbieTerminal.show();
-            }
-        }
-        catch (err) {
-            vscode.window.showErrorMessage('Error starting FPBench server: ' + err, 'Copy to clipboard').then((action) => {
                 if (action === 'Copy to clipboard') {
                     vscode.env.clipboard.writeText(err);
                 }

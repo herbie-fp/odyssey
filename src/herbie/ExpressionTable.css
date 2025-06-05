@@ -101,11 +101,11 @@
   padding-left: 9px;
   padding-top: 0px;
   margin-bottom: 5px;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .dropdown select {
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .expression-table {
@@ -200,7 +200,7 @@
 }
 
 .delete button {
-  font-size: 7px;
+  font-size: 12px;
 }
 
 .expand, .expand-header {

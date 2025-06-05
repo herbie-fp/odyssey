@@ -130,3 +130,7 @@
   width: 100%;
   border-top: 1px solid lightgray;
 }
+
+.spec-header {
+  margin-bottom: 10px;
+}

@@ -353,7 +353,7 @@ function ExpressionTable() {
                     </div>
         </div>
         <div className="checkbox-header">
-          <input type="checkbox" onChange={ toggleAllChecked } checked={ allChecked }></input>
+          <input className="toggle-check-all" type="checkbox" onChange={ toggleAllChecked } checked={ allChecked }></input>
         </div>
         <div className="expressions-header">
           <p>Expression</p>

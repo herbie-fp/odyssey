@@ -9,6 +9,7 @@ body {
   --highlight: #bcbcbc7d;
   --foreground-extreme: #000000;
   --action-color: #3a00ff;
+  --action-color-dark: #3000D4
 }
 
 :root {
@@ -292,18 +293,17 @@ a:hover {
 }
 
 a {
-  color: #2A6496;
   text-decoration: none;
 }
 
 a.action {
-  color: var(--action-color);
+  color: var(--action-color-dark);
   text-decoration: none;
   font-weight: 450;
 }
 
 .action {
-  color: var(--action-color);
+  color: var(--action-color-dark);
   text-decoration: none;
   font-weight: 450;
   cursor: pointer;
@@ -338,7 +338,7 @@ a.action:focus {
 .subheader .left-item {
   grid-column: 1; /* Place in the first column */
   font-size: 14px;
-  color: var(--action-color);
+  color: var(--action-color-dark);
   text-decoration: none;
 }
 

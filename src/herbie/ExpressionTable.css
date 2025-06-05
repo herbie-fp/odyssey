@@ -309,3 +309,7 @@
 .add-expression button:disabled {
   background-color: #ccc;
 }
+
+.toggle-check-all {
+    accent-color: var(--action-color);
+}

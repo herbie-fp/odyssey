@@ -15,8 +15,9 @@ export type ProofStep = {
 };
 
 type CommonFields = {
-  error: number | "N/A";
+  error?: number | "N/A";
   "training-error"?: number | "N/A";
+  program: string;
   prev?: DerivationNode;
 };
 
@@ -29,13 +30,11 @@ type StartNode = CommonFields & {
 
 type AddPreprocessingNode = CommonFields & {
   type: "add-preprocessing";
-  program: string;
   preprocessing: any[];
 };
 
 type TaylorNode = CommonFields & {
   type: "taylor";
-  program: string;
   loc: number[];
   pt: string;
   var: string;
@@ -45,20 +44,33 @@ type RRNode = CommonFields & {
   error: number;
   "training-error": number;
   type: "rr";
-  program: string;
   loc: number[];
   proof: ProofStep[];
 };
 
-export type DerivationNode = StartNode | AddPreprocessingNode | TaylorNode | RRNode;
+type RegimesNode = CommonFields & {
+  type: "regimes";
+  conditions: string[][];
+  prevs: DerivationNode[];
+};
+
+type FinalSimplifyNode = CommonFields & {
+  type: "final-simplify";
+  error: number;
+  "training-error": number;
+  prev: DerivationNode;
+  // TODO
+};
+
+export type DerivationNode = StartNode | AddPreprocessingNode | TaylorNode | RRNode | RegimesNode | FinalSimplifyNode;
 
 export class Derivation {
   /**
-   * @param history: The HTMLHistory object containing the derivation (as HTML) for an alternative expression
+   * @param history: (deprecated) The HTMLHistory object containing the derivation (as HTML) for an alternative expression
    * @param id: The id of this derivation, the same id as the expression this derivation is for
    * @param origExpId: The id of the expression that was improved resulting in the alternative this derivation is for
    */
-  constructor(public readonly history: HTMLHistory, public readonly id: number, public readonly origExpId: number | undefined, public readonly derivation?: DerivationNode) {
+  constructor(public readonly history: HTMLHistory | undefined, public readonly id: number, public readonly origExpId: number | undefined, public readonly derivation?: DerivationNode) {
     this.history = history;
     this.id = id;
     this.origExpId = origExpId;    

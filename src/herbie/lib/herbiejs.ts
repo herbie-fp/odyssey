@@ -135,8 +135,8 @@ interface HerbieAlternativesResponse {
   alternatives: FPCore[];
 
   /** The history of each alternative. (e.g. alternatives[1] will have its history stored in
- * histories[1] and splitpoints in splitpoints[1]) */
-  histories: HTMLHistory[];
+ * histories[1] (deprecated, use derivations instead) and splitpoints in splitpoints[1]) */
+  histories?: HTMLHistory[];
 
   /** The splitpoints for each alternative. (e.g. alternatives[1] will have its history stored in
  * histories[1] and splitpoints in splitpoints[1]) */
@@ -179,7 +179,7 @@ export interface ExpressionExportResponse {
   result: string;
 }
 
-export const analyzeExpressionExport = async (
+export const translateFpcoreToLanguage = async (
   fpcore: string,
   language: string,
   host: string

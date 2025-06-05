@@ -26,7 +26,7 @@ import LinkToReports from './LinkToReports';
 // Make server call to get tex version of expression
 export const expressionToTex = async (expression: fpcorejs.mathjs, numVars: number, serverUrl: string) => {
   try {
-    const response = await herbiejs.analyzeExpressionExport(
+    const response = await herbiejs.translateFpcoreToLanguage(
       fpcorejs.mathjsToFPCore(expression),
       "tex",
       serverUrl
@@ -286,7 +286,7 @@ function ExpressionTable() {
       .catch(error => console.error('Request failed:', error));
       // The following code assumes the HTMLHistory[] returend by Herbie
       // is mapped to the alternatives array 1:1
-      const d = histories[i];
+      const d = histories?.[i];
       const newDerivation = new Derivation(d, newId, expression.id, derivationsObjects[i]);
       newDerivations.push(newDerivation);
     }

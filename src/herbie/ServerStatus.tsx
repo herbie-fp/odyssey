@@ -111,7 +111,7 @@ function ServerStatusComponent() {
   const connectedFill = '#8ff51b';
   const connectedStroke = '#8ff51b';
 
-  const statusColor = statusClass === 'pending' ? 'orange' : status ? connectedFill : 'none';
+  const statusColor = statusClass === 'pending' ? 'orange' : statusClass === "no-server" ? "#e03c31" : status ? connectedFill : 'none';
 
   return (
     <div>
@@ -119,12 +119,12 @@ function ServerStatusComponent() {
         <span className={'status ' + statusClass}>
           {/* an SVG status indicator dot */}
           <svg width="10" height="10" viewBox="0 0 20 20">
-            <circle cx="10" cy="10" r="7" fill={statusClass === 'pending' ? 'orange' : status ? connectedFill : 'none'} stroke={statusColor}/>
+            <circle cx="10" cy="10" r="7" fill={statusClass === 'pending' ? 'orange' : statusClass === 'no-server' ? '#e03c31' : status ? connectedFill : 'none'} stroke={statusColor}/>
           </svg>
         </span>
         &nbsp;
       
-        <span style={{color: statusColor}}>{statusText}</span>
+        <a style={{color: statusColor}}>{statusText}</a>
       </div>
       
       <Modal 

@@ -6,10 +6,10 @@
   font-size: 14px;
 }
 
-.local-error {
+/* .local-error {
   padding: 2px 6px;
   border-radius: 4px;
-}
+} */
 
 .high-error {
   background-color: rgba(255, 0, 0, 0.2); /* Light red for high errors */
@@ -29,4 +29,8 @@
   background-color: #fdf2f2;  /* Very subtle pink background */
   border-radius: 3px;
   padding: 2px 4px;
+}
+
+.local-error td:not(.program-col) {
+    text-align: right;
 }

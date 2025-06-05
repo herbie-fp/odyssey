@@ -5,10 +5,10 @@ import { LocalErrorTree } from "../HerbieTypes";
 import "./newLocalError.css";
 
 const opMap: Record<string,string> = {
-  "+": "add",
-  "-": "sub",
-  "*": "mul",
-  "/": "div"
+  "+": "add (+)",
+  "-": "subtract (-)",
+  "*": "multiply (*)",
+  "/": "divide (/)",
 };
 
 function mapOp(e: string) {
@@ -98,7 +98,7 @@ function TreeRow({
               <span className="toggle-button">
                 {isExpanded ? (
                   <svg
-                    style={{ width: '15px', stroke: "var(--action-color)", transform: "rotate(180deg)" }}
+                    style={{ width: '15px', stroke: "var(--action-color)", transform: "rotate(180deg)", verticalAlign: "middle" }}
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +107,7 @@ function TreeRow({
                   </svg>
                 ) : (
                   <svg
-                    style={{ width: '15px', stroke: "var(--action-color)" }}
+                    style={{ width: '15px', stroke: "var(--action-color)", verticalAlign: "middle" }}
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -120,14 +120,14 @@ function TreeRow({
             {isExpanded ? mapOp(node.e) : collapsedExpression}
           </span>
         </td>
-        <td className="border px-4 py-2">{renderValue(node["actual-value"])}</td>
-        <td className="border px-4 py-2">{renderValue(node["exact-value"])}</td>
-        <td className="border px-4 py-2 emphasize-diff">{renderValue(node["abs-error-difference"])}</td>
-        <td className="border px-4 py-2">
+        <td>{renderValue(node["actual-value"])}</td>
+        <td>{renderValue(node["exact-value"])}</td>
+        <td>{renderValue(node["abs-error-difference"])}</td>
+        <td>
           {parseFloat(node["percent-accuracy"]).toFixed(1)}%
         </td>
-        <td className="border px-4 py-2">
-          <span className={`local-error ${parseFloat(node["percent-accuracy"]) < 100 ? "high-error" : ""}`}>
+        <td>
+          <span className={`${parseFloat(node["percent-accuracy"]) < 100 ? "high-error" : ""}`}>
             {parseFloat(node["ulps-error"]).toFixed(1)}
           </span>
         </td>
@@ -167,25 +167,25 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
 
   if (!localError) {
     return (
-      <div className="local-error not-computed">
+      <div className="not-computed">
         <div>No local error computed for this expression. Select a point to compute.</div>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto p-4">
-      <table className="min-w-full border border-gray-300 bg-white">
-        <thead className="bg-gray-100">
+    <div className="local-error">
+      <table>
+        <thead>
           <tr>
-            <th className="border px-4 py-2 text-left program-col">Program</th>
-            <th className="border px-4 py-2 text-left">R Value</th>
-            <th className="border px-4 py-2 text-left">FP Value</th>
-            <th className="border px-4 py-2 text-left emphasize-diff" title="Difference between R and FP values" >
+            <th className="program-col">Program</th>
+            <th>R Value</th>
+            <th>FP Value</th>
+            <th title="Difference between R and FP values" >
               Difference
             </th>
-            <th className="border px-4 py-2 text-left">Accuracy</th>
-            <th className="border px-4 py-2 text-left">Local Error</th>
+            <th>Accuracy</th>
+            <th>Local Error</th>
           </tr>
         </thead>
         <tbody>

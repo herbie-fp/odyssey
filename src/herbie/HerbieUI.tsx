@@ -100,6 +100,20 @@ function hslToRgb(h: number, s: number, l: number) {
   return rgbToHex(round(r * 255), round(g * 255), round(b * 255));
 }
 
+// Helper function to permute sample points to match expression variable order
+function permuteSampleToExpressionOrder(sample: HerbieTypes.Sample, expressionText: string, specExpression: string): HerbieTypes.Sample {
+  const specVars = fpcorejs.getVarnamesMathJS(specExpression);
+  const permutedVars = fpcorejs.getVarnamesMathJS(expressionText);
+  const permutedIndices = permutedVars.map(v => specVars.indexOf(v));
+  
+  const permutedSamplePoints = sample.points.map(([point, error]): [HerbieTypes.ordinalPoint, number] => {
+    const newPoint: HerbieTypes.ordinalPoint = point.map((_, idx) => point[permutedIndices[idx]]);
+    return [newPoint, error];
+  });
+  
+  return new HerbieTypes.Sample(permutedSamplePoints, sample.specId, sample.inputRangesId, sample.id);
+}
+
 export function addJobRecorder(_: typeof herbiejs) {
   const [, setJobCount] = HerbieContext.useReducerGlobal(HerbieContext.JobCountContext)
   function jobRecorder<P extends any[], Q>(f: (...args: P) => Q) {
@@ -450,15 +464,7 @@ function HerbieUIInner() {
           // HACK to make sampling work on Herbie side
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           // re-order the sample points to match the expression
-          // TODO Write a function here to abstract the re-ordering of sample points 
-
-          const permutedVars = fpcorejs.getVarnamesMathJS(expression.text)
-          const permutedIndices = permutedVars.map(v => specVars.indexOf(v));
-          const permutedSamplePoints = sample.points.map(([point, error]): [HerbieTypes.ordinalPoint, number] => {
-            const newPoint : HerbieTypes.ordinalPoint = point.map((_, idx) => point[permutedIndices[idx]]);
-            return [newPoint, error];
-          })
-          const permutedSample = new HerbieTypes.Sample(permutedSamplePoints, sample.specId, sample.inputRangesId, sample.id);
+          const permutedSample = permuteSampleToExpressionOrder(sample, expression.text, spec.expression);
           const analysis = await herbiejsJobs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), permutedSample, serverUrl)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
@@ -498,8 +504,8 @@ function HerbieUIInner() {
 
         try {
           const formula = fpcorejs.mathjsToFPCore(expression.text);
-          // TODO permute the sample points to match the expression
-          const costData = await herbiejsJobs.getCost(formula, sample, serverUrl);
+          const permutedSample = permuteSampleToExpressionOrder(sample, expression.text, spec.expression);
+          const costData = await herbiejsJobs.getCost(formula, permutedSample, serverUrl);
 
           return new HerbieTypes.CostAnalysis(expression.id, costData);
         } catch (e) {
@@ -689,14 +695,16 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
-          // TODO permute the sample points to match the expression
+          // Create temporary sample and permute it
+          const tempSample = new HerbieTypes.Sample([[modSelectedPoint, 1e308]], spec.id, -1, -1);
+          const permutedSample = permuteSampleToExpressionOrder(tempSample, expression.text, spec.expression);
           localErrors.push(
             new HerbieTypes.PointLocalErrorAnalysis(
               expression.id,
               selectedPoint,
               await herbiejsJobs.analyzeLocalError(
                 fpcorejs.mathjsToFPCore(expression.text),
-                { points: [[modSelectedPoint, 1e308]] } as HerbieTypes.Sample,
+                permutedSample,
                 serverUrl
               )
             )
@@ -722,14 +730,16 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
-          // TODO permute the sample points to match the expression
+          // Create temporary sample and permute it
+          const tempSample = new HerbieTypes.Sample([[modSelectedPoint, 1e308]], spec.id, -1, -1);
+          const permutedSample = permuteSampleToExpressionOrder(tempSample, expression.text, spec.expression);
           errorExp.push(
             new HerbieTypes.PointErrorExpAnalysis(
               expression.id,
               selectedPoint,
               await herbiejsJobs.analyzeErrorExpression(
                 fpcorejs.mathjsToFPCore(expression.text),
-                { points: [[modSelectedPoint, 1e308]] } as HerbieTypes.Sample,
+                permutedSample,
                 serverUrl
               )
             )

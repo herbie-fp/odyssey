@@ -449,7 +449,17 @@ function HerbieUIInner() {
         try {
           // HACK to make sampling work on Herbie side
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
-          const analysis = await herbiejsJobs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), sample, serverUrl)
+          // re-order the sample points to match the expression
+          // TODO Write a function here to abstract the re-ordering of sample points 
+
+          const permutedVars = fpcorejs.getVarnamesMathJS(expression.text)
+          const permutedIndices = permutedVars.map(v => specVars.indexOf(v));
+          const permutedSamplePoints = sample.points.map(([point, error]): [HerbieTypes.ordinalPoint, number] => {
+            const newPoint : HerbieTypes.ordinalPoint = point.map((_, idx) => point[permutedIndices[idx]]);
+            return [newPoint, error];
+          })
+          const permutedSample = new HerbieTypes.Sample(permutedSamplePoints, sample.specId, sample.inputRangesId, sample.id);
+          const analysis = await herbiejsJobs.analyzeExpression(fpcorejs.mathjsToFPCore(expression.text, spec.expression, specVars), permutedSample, serverUrl)
           // analysis now looks like [[[x1, y1], e1], ...]. We want to average the e's
 
           return new HerbieTypes.ErrorAnalysis(analysis, expression.id, sample.id)
@@ -488,6 +498,7 @@ function HerbieUIInner() {
 
         try {
           const formula = fpcorejs.mathjsToFPCore(expression.text);
+          // TODO permute the sample points to match the expression
           const costData = await herbiejsJobs.getCost(formula, sample, serverUrl);
 
           return new HerbieTypes.CostAnalysis(expression.id, costData);
@@ -647,6 +658,7 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSample = new HerbieTypes.Sample(sample.points.map(([x, y], _) => [x.filter((xi, i) => vars.includes(specVars[i])), y]), sample.specId, sample.inputRangesId, sample.id)
+          // TODO permute the sample points to match the expression
           const localErrorTree = (await herbiejsJobs.analyzeLocalError(fpcorejs.mathjsToFPCore(expression.text, /*fpcorejs.mathjsToFPCore(spec.expression)*/), modSample, serverUrl))
           return new HerbieTypes.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree)
           // updates.push(new Types.AverageLocalErrorAnalysis(expression.id, sample.id, localErrorTree))
@@ -677,6 +689,7 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
+          // TODO permute the sample points to match the expression
           localErrors.push(
             new HerbieTypes.PointLocalErrorAnalysis(
               expression.id,
@@ -709,6 +722,7 @@ function HerbieUIInner() {
           const vars = fpcorejs.getVarnamesMathJS(expression.text)
           const specVars = fpcorejs.getVarnamesMathJS(spec.expression)
           const modSelectedPoint = selectedPoint.filter((xi, i) => vars.includes(specVars[i]))
+          // TODO permute the sample points to match the expression
           errorExp.push(
             new HerbieTypes.PointErrorExpAnalysis(
               expression.id,

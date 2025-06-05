@@ -361,7 +361,7 @@ function SerializeStateComponent(props: exportStateProps) {
           style={modalStyles}
           ariaHideApp={false}
           // does not close automatically on outside click
-          shouldCloseOnOverlayClick={false}
+          shouldCloseOnOverlayClick={true}
         >
           {/* Close button */}
           <button

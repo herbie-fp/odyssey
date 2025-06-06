@@ -927,7 +927,7 @@ function HerbieUIInner() {
             {/* <SelectableVisualization components={components} /> */}
             <div style={{fontSize: "14px", padding:"11px 0px", fontWeight: 'bold'}}>Error Plot</div>
             <ErrorPlot />
-            <h4>Other Comparisons</h4>
+            <div style={{fontSize: "14px", padding:"11px 0px", fontWeight: 'bold'}}>Other Comparisons</div>
             <SelectableVisualization components={components2} />
           </div>
         </div>

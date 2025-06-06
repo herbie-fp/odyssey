@@ -99,10 +99,18 @@ function TreeRow({
       <tr className={ rowClassName }>
         <td className="program-col">
           <span
-            style={{ marginLeft: `${depth * 15}px`, cursor: "pointer" }}
+            style={{ marginLeft: `0px`, cursor: "pointer" }}
             onClick={() => setIsExpanded(prev => !prev)}
           >
-            {node.children.length > 0 && (
+            {/* Show pipe lines for folding  */}
+            {depth > 0 && (
+              <span className="pipe-lines" style={{ marginRight: '5px' }}>
+                {Array(depth).fill(null).map((_, i) => (
+                  <span key={i} className="pipe-line" style={{ height: '20px', borderLeft: '1px solid gray', marginLeft: `${7.5 + (i > 0 ? 5 : 0) }px` }}></span>
+                ))}
+              </span>
+            )}
+            {node.children.length > 0 ? (
               <span className="toggle-button">
                 {isExpanded ? (
                   <svg
@@ -124,8 +132,12 @@ function TreeRow({
                   </svg>
                 )}
               </span>
-            )}
-            {isExpanded ? mapOp(node.e) : collapsedExpression}
+            ) : (<span style={{ width: '3px' , display: 'inline-block'}}></span>)}
+            <div style={{
+              display: "inline-block",
+            }}>
+              {isExpanded ? mapOp(node.e) : collapsedExpression}
+            </div>
           </span>
         </td>
         <td>{renderValue(node["actual-value"])}</td>

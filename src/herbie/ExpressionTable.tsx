@@ -440,7 +440,7 @@ function ExpressionTable() {
 
           const color = expressionStyles.find((style) => style.expressionId === expression.id)?.color
           const components = [
-              { value: 'newLocalError', label: 'Local Error', component: <NewLocalError expressionId={expression.id} /> },
+              { value: 'newLocalError', label: 'Local Error Table', component: <NewLocalError expressionId={expression.id} /> },
               { value: 'derivationComponent', label: 'Derivation', component: <DerivationComponent expressionId={expression.id}/> },
               { value: 'fpTaylorComponent', label: 'FPTaylor Analysis', component: <FPTaylorComponent expressionId={expression.id}/> },
               { value: 'expressionExport', label: 'Expression Export', component: <ExpressionExport expressionId={expression.id}/> },

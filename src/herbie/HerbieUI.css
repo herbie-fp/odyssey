@@ -178,7 +178,7 @@ input:focus-visible, textarea:focus-visible {
   justify-content: space-between; /* Align the components at the start and end of the header */
   align-items: center;
   font-family: Ruda;
-  font-size: 11px;
+  font-size: 12px;
   background-color: var(--foreground-color);
   color: var(--background-color);
   padding: 10px 25px;
@@ -218,7 +218,7 @@ input:focus-visible, textarea:focus-visible {
     margin: 0 5px -1px 3px;
   }
 
-  a:hover .icon { 
+  a .icon { 
     /* Open in external tab icon only shows on hover of link */
     fill: var(--background-color);
   }

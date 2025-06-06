@@ -860,7 +860,7 @@ function HerbieUIInner() {
       <div className="header">
         <div className="app-name" onClick={() => setShowSpecEntry(true)}>
           <img src="https://raw.githubusercontent.com/herbie-fp/odyssey/main/images/odyssey-icon.png" style={{ width: '18px', marginRight: '8px' }} alt="Odyssey Icon"></img>
-          <span style={{fontSize: '13px'}}>Odyssey</span>
+          <span style={{fontSize: '15px'}}>Odyssey</span>
         </div>
         <div className="tabs">
           <a href="https://github.com/herbie-fp/odyssey/?tab=readme-ov-file#odyssey-an-interactive-numerics-workbench" target="_blank">
@@ -925,7 +925,7 @@ function HerbieUIInner() {
           <ExpressionTable />
           <div className="visualizations">
             {/* <SelectableVisualization components={components} /> */}
-            <div style={{fontSize: "12px", padding:"11px 0px", fontWeight: 'bold'}}>Error Plot</div>
+            <div style={{fontSize: "14px", padding:"11px 0px", fontWeight: 'bold'}}>Error Plot</div>
             <ErrorPlot />
             <h4>Other Comparisons</h4>
             <SelectableVisualization components={components2} />

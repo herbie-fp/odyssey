@@ -17,6 +17,7 @@
   background-color: #fdf2f2;  /* Very subtle pink background */
   border-radius: 3px;
   padding: 2px 4px;
+  display: inline-block;
 }
 
 .program-col {
@@ -53,9 +54,12 @@
   font-size: 12px;
 }
 
+.local-error thead th {
+  border-bottom: 1px solid #b2b3b5; /* Light gray border for header */
+}
+
 /* slightly darken the hovered row */
 .local-error tbody tr:hover {
   background-color: #f3f4f6; /* Light gray background on hover */
-  border-radius: 5px;
   transition: background-color 0.2s ease;
 }

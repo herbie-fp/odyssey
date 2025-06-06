@@ -61,13 +61,16 @@ function shouldExpand(currentPath: number[], allErrorPaths: number[][]): boolean
   );
 }
 
+type LocalErrorTreeWithExplanation = LocalErrorTree & { explanation?: string, path?: number[] };
+
+
 function TreeRow({
   node,
   depth,
   currentPath,
   errorPaths,
 }: {
-  node: LocalErrorTree;
+  node: LocalErrorTreeWithExplanation;
   depth: number;
   currentPath: number[];
   errorPaths: number[][];
@@ -131,6 +134,31 @@ function TreeRow({
         <td className="accuracy-col">
           {parseFloat(node["percent-accuracy"]).toFixed(1)}%
         </td>
+        <td className="explanation">
+          {node.explanation ?
+            node.explanation === "cancellation" ? (
+              <a href="https://en.wikipedia.org/wiki/Catastrophic_cancellation" target="_blank" rel="noopener noreferrer">
+                <span className="explanation-link" title="Click for more information about this error type">
+                  {node.explanation}
+                </span>
+              </a>
+            ) : 
+            node.explanation === "oflow-rescue" ? (
+                <a href="https://en.wikipedia.org/wiki/Floating-point_arithmetic#:~:text=including%20the%20zeros.-,overflow,-%2C%20set%20if%20the" target="_blank" rel="noopener noreferrer">
+                <span className="explanation-link" title="Click for more information about this error type">
+                  {node.explanation}
+                </span>
+              </a>
+              ) :
+                // TODO handle other explanations
+                (
+            <span className="explanation">
+              {node.explanation}
+            </span>
+          ) : (
+            <span className="no-explanation"></span>
+          )}
+        </td>
         {/* <td>
           <span >
             {parseFloat(node["ulps-error"]).toFixed(1)}
@@ -152,11 +180,35 @@ function TreeRow({
   );
 }
 
+// Applies a function on a tree structure, providing a current path
+// in the tree as [] for the root, [1] for the first child, [[1, 2]] for the second child of the first child, etc.
+function treeMapWithPath<T, U>(
+  tree: T,
+  fn: (node: T, path: number[]) => U,
+  getChildren: (node: T) => T[] | undefined,
+  path: number[] = []
+): U {
+  const result = fn(tree, path);
+  const children = getChildren(tree);
+  
+  if (children) {
+    children.forEach((child, index) => {
+      treeMapWithPath(child, fn, getChildren, [...path, index+1]);
+    });
+  }
+  
+  return result;
+}
+
 function NewLocalError({ expressionId }: { expressionId: number }) {
   const [selectedPointsLocalError] = HerbieContext.useGlobal(HerbieContext.SelectedPointsLocalErrorContext);
   const [localError, setLocalError] = useState<LocalErrorTree | null>(null);
   const [errorPaths, setErrorPaths] = useState<number[][]>([]);
+  const [selectedPointsErrorExp,] = HerbieContext.useGlobal(HerbieContext.SelectedPointsErrorExpContext);
+  
+  const pointErrorExp = selectedPointsErrorExp.find(a => a.expressionId === expressionId)?.error;
 
+  // TODO we probably don't need these useState hooks, we can just use the context directly
   useEffect(() => {
     const pointLocalError = selectedPointsLocalError.find(
       (a) => a.expressionId === expressionId
@@ -170,16 +222,34 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
     }
   }, [selectedPointsLocalError, expressionId]);
 
-  if (!localError) {
+  if (!localError || !pointErrorExp
+  ) {
     return (
       <div className="not-computed">
         <div>No local error computed for this expression. Select a point to compute.</div>
       </div>
     );
   }
+  console.log("pointErrorExp", pointErrorExp)
+  const explanations = pointErrorExp.explanation.map(e => e[2]);
+  const explanationPaths = pointErrorExp.explanation.map(e => e[6][0]);
+  console.log(explanations, explanationPaths);
 
+  // For each node in the local error tree, attach its explanation if it exists
+  const localErrorWithExplanations = treeMapWithPath(localError as LocalErrorTreeWithExplanation, (node, path) => {
+    // Find the explanation for this node, if it exists
+    const explanationIndex = explanationPaths.findIndex(ep => 
+      ep.length === path.length &&
+      ep.join(',') === path.join(',')
+    );
+    node.explanation = explanationIndex !== -1 ? explanations[explanationIndex] : undefined;
+    return node;
+  }, (node) => node.children);
+
+  const hasNoExplanations = explanationPaths.length === 0
+  
   return (
-    <div className="local-error">
+    <div className={`local-error ${hasNoExplanations ? ' no-explanations' : ''}`}>
       <table>
         <thead>
           <tr>
@@ -190,10 +260,11 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
               Difference
             </th>
             <th>Accuracy</th>
+            <th className="explanation">Explanation</th>
           </tr>
         </thead>
         <tbody>
-          <TreeRow node={localError} depth={0} currentPath={[]} errorPaths={errorPaths} />
+          <TreeRow node={localErrorWithExplanations} depth={0} currentPath={[]} errorPaths={errorPaths} />
         </tbody>
       </table>
     </div>

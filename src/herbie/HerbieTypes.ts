@@ -206,7 +206,7 @@ export class PointLocalErrorAnalysis {
 type Explanation = [
   string,  // operator
   string,  // expression
-  string,  // type
+  string,  // type (the actual error code, e.g. "cancellation")
   number,  // occurrences
   number,  // errors
   any[] ,   // details

@@ -24,10 +24,10 @@
   overflow-x: auto;
   display: block;
   text-align: left;
-  max-width: 300px;
+  max-width: 200px;
 }
 
-.local-error td:not(.program-col) {
+.local-error td:not(.program-col), th:not(.program-col) {
     text-align: right;
 }
 
@@ -44,3 +44,6 @@
   color: black;
 }
 
+.no-explanations .explanation {
+  display: none;
+}

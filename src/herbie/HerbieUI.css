@@ -117,12 +117,12 @@ button, select {
 
 select {
   font-family: 'IBM Plex Serif', serif;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 button {
   font-family: 'Ruda', sans-serif;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 button:disabled {

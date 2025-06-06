@@ -4,6 +4,8 @@ import * as herbiejs from '../lib/herbiejs';
 import { LocalErrorTree } from "../HerbieTypes";
 import "./newLocalError.css";
 
+import { Tooltip } from "react-tooltip";
+
 const opMap: Record<string,string> = {
   "+": "add (+)",
   "-": "subtract (-)",
@@ -260,19 +262,44 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
 
   const hasNoExplanations = explanationPaths.length === 0
   
+  // InfoIcon component for consistent tooltips
+  const InfoIcon = ({ tooltipId, tooltipContent }: { tooltipId: string, tooltipContent: string }) => (
+    <>
+      <span 
+        data-tooltip-id={tooltipId} 
+        data-tooltip-content={tooltipContent}
+        style={{ marginLeft: '4px', cursor: 'help', color: 'var(--action-color)' }}
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/>
+          <text x="12" y="16" textAnchor="middle" fontSize="12" fontWeight="bold">?</text>
+        </svg>
+      </span>
+      <Tooltip id={tooltipId} />
+    </>
+  );
+
   return (
     <div className={`local-error ${hasNoExplanations ? ' no-explanations' : ''}`}>
       <table>
         <thead>
           <tr>
             <th className="program-col">Program</th>
-            <th>R Value</th>
-            <th>FP Value</th>
-            <th title="Difference between R and FP values" >
-              Difference
+            <th>R Value
+              <InfoIcon tooltipId="r-value-tooltip" tooltipContent="The exact value computed using infinite precision arithmetic" />
             </th>
-            <th>Accuracy</th>
-            <th className="explanation">Explanation</th>
+            <th>FP Value
+              <InfoIcon tooltipId="fp-value-tooltip" tooltipContent="The actual computed value using floating-point arithmetic" />
+            </th>
+            <th>Difference
+              <InfoIcon tooltipId="difference-tooltip" tooltipContent="The absolute difference between the exact (R) and floating-point (FP) values" />
+            </th>
+            <th>Accuracy
+              <InfoIcon tooltipId="accuracy-tooltip" tooltipContent="Percentage accuracy of the floating-point computation compared to the exact result" />
+            </th>
+            <th className="explanation">Explanation
+              <InfoIcon tooltipId="explanation-tooltip" tooltipContent="An explanation code, if there is significant error" />
+            </th>
           </tr>
         </thead>
         <tbody>

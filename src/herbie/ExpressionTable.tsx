@@ -83,9 +83,9 @@ function ExpressionTable() {
   function toggleSortOrder(field: 'accuracy' | 'cost') {
     setSortField(field); // Set which field to sort
     setSortOrder((prevOrder) => {
-      if (sortField !== field) {return 'asc';} // If switching fields, start with ascending order
-      if (prevOrder === 'none') {return 'asc';}
-      if (prevOrder === 'asc') {return 'desc';}
+      if (sortField !== field) {return 'desc';} // If switching fields, start with ascending order
+      if (prevOrder === 'none') {return 'desc';}
+      if (prevOrder === 'desc') {return 'asc';}
       return 'none';
     });
   }

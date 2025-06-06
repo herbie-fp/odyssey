@@ -11,7 +11,7 @@
   border-radius: 4px;
 } */
 
-.high-error .accuracy-col {
+.high-error .accuracy-col span {
   font-weight: 500;
   color: #b91c1c;             /* Keep the red tone */
   background-color: #fdf2f2;  /* Very subtle pink background */
@@ -29,10 +29,11 @@
 
 .local-error td:not(.program-col), th:not(.program-col) {
     text-align: right;
+    padding-left: 10px;
 }
 
 .local-error table {
-  border-spacing: 10px 0px;
+  border-spacing: 0px 0px;
 }
 
 .local-error td {
@@ -46,4 +47,11 @@
 
 .no-explanations .explanation {
   display: none;
+}
+
+/* slightly darken the hovered row */
+.local-error tbody tr:hover {
+  background-color: #f3f4f6; /* Light gray background on hover */
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
 }

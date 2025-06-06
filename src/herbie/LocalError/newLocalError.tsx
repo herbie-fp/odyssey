@@ -65,6 +65,7 @@ function shouldExpand(currentPath: number[], allErrorPaths: number[][]): boolean
 
 type LocalErrorTreeWithExplanation = LocalErrorTree & { explanation?: string, path?: number[] };
 
+let valueId = 0;
 
 function TreeRow({
   node,
@@ -82,13 +83,25 @@ function TreeRow({
   );
   const collapsedExpression = formatExpression(node);
 
+  
+
   function renderValue(value: any) {
     if (value === "true" || value === "false") {
       return value;
     }
+    valueId += 1;
     const num = parseFloat(value);
     if (isNaN(num)) {return value;}
-    return herbiejs.displayNumber(num);
+    return <>
+      <span className="number-value"
+        data-tooltip-id= {`value-tooltip-${valueId}`}
+      >
+      {herbiejs.displayNumber(num)}
+      </span>
+      <Tooltip id={`value-tooltip-${valueId}`}>
+        {num.toString()}
+      </Tooltip>
+      </>
   }
 
   const isHighError = parseFloat(node["percent-accuracy"]) < 50;
@@ -142,11 +155,13 @@ function TreeRow({
             </div>
           </span>
         </td>
-        <td>{renderValue(node["actual-value"])}</td>
         <td>{renderValue(node["exact-value"])}</td>
+        <td>{renderValue(node["actual-value"])}</td>
         <td>{renderValue(node["abs-error-difference"])}</td>
         <td className="accuracy-col">
+          <span>
           {parseFloat(node["percent-accuracy"]).toFixed(1)}%
+          </span>
         </td>
         <td className="explanation">
           {node.explanation ?
@@ -272,7 +287,7 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
       >
         <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <text x="12" y="16" textAnchor="middle" fontSize="12" fontWeight="bold">?</text>
+          <text x="12" y="16" textAnchor="middle" fontSize="12" fontWeight="bold">i</text>
         </svg>
       </span>
       <Tooltip id={tooltipId} />

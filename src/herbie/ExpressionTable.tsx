@@ -498,7 +498,7 @@ function ExpressionTable() {
                       setSelectedExprId(activeExp[0]);
                     }
                     }}>
-                  ╳
+                  ×
                   </button>
                 </div>
               </div>

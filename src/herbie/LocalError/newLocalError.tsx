@@ -147,7 +147,7 @@ function TreeRow({
                   </svg>
                 )}
               </span>
-            ) : (<span style={{ width: '3px' , display: 'inline-block'}}></span>)}
+            ) : (<span style={{ width: '7px' , display: 'inline-block'}}></span>)}
             <div style={{
               display: "inline-block",
             }}>
@@ -230,6 +230,7 @@ function treeMapWithPath<T, U>(
 }
 
 function NewLocalError({ expressionId }: { expressionId: number }) {
+  const [selectedPoint] = HerbieContext.useGlobal(HerbieContext.SelectedPointContext);
   const [selectedPointsLocalError] = HerbieContext.useGlobal(HerbieContext.SelectedPointsLocalErrorContext);
   const [localError, setLocalError] = useState<LocalErrorTree | null>(null);
   const [errorPaths, setErrorPaths] = useState<number[][]>([]);
@@ -251,11 +252,19 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
     }
   }, [selectedPointsLocalError, expressionId]);
 
+  if (!selectedPoint) {
+    return (
+      <div className="not-computed">
+        <div><strong>Select a single point</strong> on the Local Error Plot to the left to compute subexpression error.</div>
+      </div>
+    );
+  }
+
   if (!localError || !pointErrorExp
   ) {
     return (
-      <div className="not-computed">
-        <div>No local error computed for this expression. Select a point to compute.</div>
+      <div className="loading">
+        <div>Loading...</div>
       </div>
     );
   }

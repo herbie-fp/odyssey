@@ -49,6 +49,10 @@
   display: none;
 }
 
+.local-error thead {
+  font-size: 12px;
+}
+
 /* slightly darken the hovered row */
 .local-error tbody tr:hover {
   background-color: #f3f4f6; /* Light gray background on hover */

@@ -59,7 +59,6 @@
   width: 80px; /* Fixed width to prevent resizing */
   display: flex;
   align-items: center; /* Center content vertically */
-  justify-content: flex-end; /* Align text to the right */
 }
 
 .speedup {
@@ -129,6 +128,13 @@
   padding-left: 25px;
   padding-right: 10px;
   align-items: center;
+  button {
+    font-size: 10px;
+  }
+}
+
+.expression-table .fas {
+  vertical-align: middle;
 }
 
 .expand-header {

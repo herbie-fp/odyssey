@@ -530,8 +530,8 @@ function ErrorPlot() {
             const parent = circle.parentNode;
             circles.push({circle, parent, orig, expId})
 
-            // Done using circle ordinal & id info, reset textContent so onHover of points gives useful info for user
-            t.textContent = orig.map((v : ordinal, i :number) => `${vars[i]}: ${herbiejs.displayNumber(ordinals.ordinalToFloat(v))}`).join('\n');
+            // Done using circle ordinal & id info, reset textContent so onHover of points doesn't bother the user
+            t.textContent = ''
           });
           let brushedPoints: ordinal[][] = [];
 

@@ -118,13 +118,13 @@ function TreeRow({
             onClick={() => setIsExpanded(prev => !prev)}
           >
             {/* Show pipe lines for folding  */}
-            {depth > 0 && (
+            {depth > 0 ? (
               <span className="pipe-lines" style={{ marginRight: '5px' }}>
                 {Array(depth).fill(null).map((_, i) => (
                   <span key={i} className="pipe-line" style={{ height: '20px', borderLeft: '1px solid gray', marginLeft: `${7.5 + (i > 0 ? 5 : 0) }px` }}></span>
                 ))}
-              </span>
-            )}
+              </span>) : <span style={{ height: "14px", display: 'inline-block'}}></span>
+            }
             {node.children.length > 0 ? (
               <span className="toggle-button">
                 {isExpanded ? (

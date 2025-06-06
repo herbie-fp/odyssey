@@ -97,7 +97,7 @@ function TreeRow({
   return (
     <>
       <tr className={ rowClassName }>
-        <td className="border px-4 py-2 program-col">
+        <td className="program-col">
           <span
             style={{ marginLeft: `${depth * 15}px`, cursor: "pointer" }}
             onClick={() => setIsExpanded(prev => !prev)}

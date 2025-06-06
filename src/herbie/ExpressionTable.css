@@ -166,9 +166,6 @@
   margin-left: 17px;
   transition: all 1s ease-in;
 }
-.dropdown:hover {
-  cursor: pointer;
-}
 
 .expression-container:hover {
   outline: 2px solid var(--highlight);

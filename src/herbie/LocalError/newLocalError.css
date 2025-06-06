@@ -11,19 +11,7 @@
   border-radius: 4px;
 } */
 
-.high-error {
-  background-color: rgba(255, 0, 0, 0.2); /* Light red for high errors */
-  color: red;
-}
-
-.program-col {
-  white-space: nowrap;
-  padding-right: 50px;
-  overflow-x: auto;
-  display: block;
-}
-
-.emphasize-diff {
+.high-error .accuracy-col {
   font-weight: 500;
   color: #b91c1c;             /* Keep the red tone */
   background-color: #fdf2f2;  /* Very subtle pink background */
@@ -31,6 +19,28 @@
   padding: 2px 4px;
 }
 
+.program-col {
+  white-space: nowrap;
+  overflow-x: auto;
+  display: block;
+  text-align: left;
+  max-width: 300px;
+}
+
 .local-error td:not(.program-col) {
     text-align: right;
 }
+
+.local-error table {
+  border-spacing: 10px 0px;
+}
+
+.local-error td {
+  font-family: 'Ruda', sans-serif;
+  color: gray;
+}
+
+.has-error td {
+  color: black;
+}
+

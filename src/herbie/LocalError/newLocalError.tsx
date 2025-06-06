@@ -86,9 +86,14 @@ function TreeRow({
     return herbiejs.displayNumber(num);
   }
 
+  const isHighError = parseFloat(node["percent-accuracy"]) < 50;
+  const hasError = parseFloat(node["percent-accuracy"]) < 99.9;
+
+  const rowClassName = isHighError ? "has-error high-error" : hasError ? "has-error" : "";
+
   return (
     <>
-      <tr>
+      <tr className={ rowClassName }>
         <td className="border px-4 py-2 program-col">
           <span
             style={{ marginLeft: `${depth * 15}px`, cursor: "pointer" }}
@@ -123,14 +128,14 @@ function TreeRow({
         <td>{renderValue(node["actual-value"])}</td>
         <td>{renderValue(node["exact-value"])}</td>
         <td>{renderValue(node["abs-error-difference"])}</td>
-        <td>
+        <td className="accuracy-col">
           {parseFloat(node["percent-accuracy"]).toFixed(1)}%
         </td>
-        <td>
-          <span className={`${parseFloat(node["percent-accuracy"]) < 100 ? "high-error" : ""}`}>
+        {/* <td>
+          <span >
             {parseFloat(node["ulps-error"]).toFixed(1)}
           </span>
-        </td>
+        </td> */}
       </tr>
 
       {isExpanded &&
@@ -185,7 +190,6 @@ function NewLocalError({ expressionId }: { expressionId: number }) {
               Difference
             </th>
             <th>Accuracy</th>
-            <th>Local Error</th>
           </tr>
         </thead>
         <tbody>

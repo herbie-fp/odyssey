@@ -1,5 +1,5 @@
 # Odyssey: An Interactive Numerics Workbench 
-#### [[Video tutorial (8.5 min)]](https://youtu.be/jsjGuM2KK50) [[Setup]](#running-odyssey)
+#### [[Video tutorial (8.5 min)]](https://youtu.be/4YPvNDdoYjY) [[Setup]](#running-odyssey)
 
 Odyssey is a tool for interactively rewriting numerical expressions to reduce floating-point error.
 

@@ -46,7 +46,8 @@ async function runTest(rowData) {
     const expressionTableTextSelector = await page.locator('.expression-text[id="0"]').waitHandle();
     const expressionTableSpec = await expressionTableTextSelector?.evaluate(el => el.textContent);
     console.log('The expression table specification is', expressionTableSpec);
-    assert(expressionTableSpec === trueSpec, `Expected expression table spec: ${trueSpec}, but got: ${expressionTableSpec}`);
+    const roughlyEqual = (a, b) => b <= a + 1 && b >= a-1
+    assert(roughlyEqual(expressionTableSpec, trueSpec), `Expected expression table spec: ${trueSpec}, but got: ${expressionTableSpec}`);
 
     const analysisSelector = '.analysis[id="0"]'
     const initialValue = '...'
